@@ -1,0 +1,79 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: edgecloud-ingress
+  namespace: edgecloud
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.edgecloud.io
+    secretName: edgecloud-tls
+  rules:
+  - host: api.edgecloud.io
+    http:
+      paths:
+      - path: /tasks
+        pathType: Prefix
+        backend:
+          service:
+            name: task-service
+            port:
+              number: 80
+      - path: /nodes
+        pathType: Prefix
+        backend:
+          service:
+            name: node-service
+            port:
+              number: 80
+      - path: /metrics
+        pathType: Prefix
+        backend:
+          service:
+            name: metrics-service
+            port:
+              number: 80
+      - path: /schedule
+        pathType: Prefix
+        backend:
+          service:
+            name: scheduler-service
+            port:
+              number: 80
+      - path: /ws
+        pathType: Prefix
+        backend:
+          service:
+            name: websocket-gateway
+            port:
+              number: 80
+        
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: edgecloud-websocket
+  namespace: edgecloud
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+    nginx.ingress.kubernetes.io/proxy-body-size: "0"
+    nginx.org/websocket-services: "websocket-gateway"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: ws.edgecloud.io
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: websocket-gateway
+            port:
+              number: 80

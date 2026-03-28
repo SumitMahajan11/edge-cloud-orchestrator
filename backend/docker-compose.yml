@@ -1,0 +1,312 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: edge-cloud-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      POSTGRES_DB: ${POSTGRES_DB:-edge_cloud}
+    secrets:
+      - postgres_password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /var/run/postgresql
+    networks:
+      - backend
+    ports:
+      - "5432:5432"
+
+  # Redis Cache (Primary)
+  redis:
+    image: redis:7-alpine
+    container_name: edge-cloud-redis
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru --requirepass ${REDIS_PASSWORD:-}
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    sysctls:
+      - net.core.somaxconn=65535
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+        reservations:
+          memory: 128M
+    networks:
+      - backend
+    ports:
+      - "6379:6379"
+
+  # RabbitMQ Message Queue
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: edge-cloud-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER_FILE: /run/secrets/rabbitmq_user
+      RABBITMQ_DEFAULT_PASS_FILE: /run/secrets/rabbitmq_password
+    secrets:
+      - rabbitmq_user
+      - rabbitmq_password
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - backend
+    # Management UI only via internal network
+    ports:
+      - "127.0.0.1:15672:15672"
+
+  # Backend API Server
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: edge-cloud-backend
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-edge_cloud}?schema=public
+      DATABASE_READ_URL: ${DATABASE_READ_URL:-}
+      REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
+      RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin}@rabbitmq:5672
+      JWT_SECRET_FILE: /run/secrets/jwt_secret
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      # Security settings
+      ENABLE_MTLS: ${ENABLE_MTLS:-false}
+      TLS_CERT_PATH: ${TLS_CERT_PATH:-/etc/edgecloud/server.crt}
+      TLS_KEY_PATH: ${TLS_KEY_PATH:-/etc/edgecloud/server.key}
+      TLS_CA_PATH: ${TLS_CA_PATH:-/etc/edgecloud/ca.crt}
+      FORCE_HTTPS: ${FORCE_HTTPS:-false}
+      HSTS_MAX_AGE: ${HSTS_MAX_AGE:-31536000}
+      RATE_LIMIT_MAX: ${RATE_LIMIT_MAX:-100}
+      RATE_LIMIT_WINDOW_MS: ${RATE_LIMIT_WINDOW_MS:-60000}
+    secrets:
+      - jwt_secret
+    ports:
+      - "3000:3000"
+    volumes:
+      - ${TLS_CERTS_PATH:-./certs}:/etc/edgecloud:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - NET_BIND_SERVICE
+    deploy:
+      replicas: ${BACKEND_REPLICAS:-1}
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+    networks:
+      - frontend
+      - backend
+      - edge
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Edge Agent 1
+  edge-agent-1:
+    build:
+      context: ../edge-agent
+      dockerfile: Dockerfile
+    container_name: edge-agent-1
+    environment:
+      PORT: 4001
+      NODE_ID: edge-agent-1
+      NODE_NAME: Edge Agent 1
+      NODE_LOCATION: us-east-datacenter
+      ORCHESTRATOR_URL: ${ORCHESTRATOR_URL:-http://backend:3000/api}
+      # mTLS settings
+      ENABLE_MTLS: ${ENABLE_MTLS:-false}
+      TLS_CERT_PATH: /etc/edgecloud/agent.crt
+      TLS_KEY_PATH: /etc/edgecloud/agent.key
+      TLS_CA_PATH: /etc/edgecloud/ca.crt
+      API_KEY: ${EDGE_AGENT_1_API_KEY:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${TLS_CERTS_PATH:-./certs}:/etc/edgecloud:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    networks:
+      - edge
+    # No external ports - communicate via backend only
+
+  # Edge Agent 2
+  edge-agent-2:
+    build:
+      context: ../edge-agent
+      dockerfile: Dockerfile
+    container_name: edge-agent-2
+    environment:
+      PORT: 4002
+      NODE_ID: edge-agent-2
+      NODE_NAME: Edge Agent 2
+      NODE_LOCATION: eu-west-datacenter
+      ORCHESTRATOR_URL: ${ORCHESTRATOR_URL:-http://backend:3000/api}
+      # mTLS settings
+      ENABLE_MTLS: ${ENABLE_MTLS:-false}
+      TLS_CERT_PATH: /etc/edgecloud/agent.crt
+      TLS_KEY_PATH: /etc/edgecloud/agent.key
+      TLS_CA_PATH: /etc/edgecloud/ca.crt
+      API_KEY: ${EDGE_AGENT_2_API_KEY:-}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ${TLS_CERTS_PATH:-./certs}:/etc/edgecloud:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    cap_add:
+      - CHOWN
+      - SETUID
+      - SETGID
+    networks:
+      - edge
+    # No external ports - communicate via backend only
+
+  # Prometheus (Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: edge-cloud-prometheus
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.listen-address=127.0.0.1:9090'
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - monitoring
+    # Only localhost access
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  # Grafana (Visualization)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: edge-cloud-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD_FILE: /run/secrets/grafana_admin_password
+      GF_USERS_ALLOW_SIGN_UP: false
+      GF_SECURITY_COOKIE_SECURE: ${GRAFANA_COOKIE_SECURE:-false}
+      GF_SECURITY_COOKIE_SAMESITE: strict
+      GF_SERVER_ROOT_URL: ${GRAFANA_ROOT_URL:-http://localhost:3001}
+    secrets:
+      - grafana_admin_password
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - frontend
+      - monitoring
+    ports:
+      - "3001:3000"
+
+# Network segmentation for security isolation
+networks:
+  # Frontend network - only for services that need external access
+  frontend:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
+
+  # Backend network - databases and internal services
+  backend:
+    driver: bridge
+    # internal: true  # Disabled for local development - enables port exposure
+    ipam:
+      config:
+        - subnet: 172.21.0.0/16
+
+  # Edge network - edge agents communicate with backend only
+  edge:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.22.0.0/16
+
+  # Monitoring network - prometheus/grafana
+  monitoring:
+    driver: bridge
+    internal: true
+    ipam:
+      config:
+        - subnet: 172.23.0.0/16
+
+# Secrets configuration
+secrets:
+  postgres_password:
+    file: ./secrets/postgres_password.txt
+  rabbitmq_user:
+    file: ./secrets/rabbitmq_user.txt
+  rabbitmq_password:
+    file: ./secrets/rabbitmq_password.txt
+  jwt_secret:
+    file: ./secrets/jwt_secret.txt
+  grafana_admin_password:
+    file: ./secrets/grafana_admin_password.txt
+
+volumes:
+  postgres_data:
+  redis_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:

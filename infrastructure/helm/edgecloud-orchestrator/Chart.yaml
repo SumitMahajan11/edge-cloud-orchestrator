@@ -1,0 +1,34 @@
+apiVersion: v2
+name: edgecloud-orchestrator
+description: A production-grade distributed edge-cloud compute orchestrator
+type: application
+version: 2.0.0
+appVersion: "2.0.0"
+home: https://github.com/edgecloud/orchestrator
+sources:
+  - https://github.com/edgecloud/orchestrator
+maintainers:
+  - name: EdgeCloud Team
+    email: team@edgecloud.io
+keywords:
+  - edge-computing
+  - cloud-orchestration
+  - distributed-systems
+  - kubernetes
+dependencies:
+  - name: cockroachdb
+    version: "11.0.0"
+    repository: "https://charts.cockroachdb.com/"
+    condition: cockroachdb.enabled
+  - name: kafka
+    version: "22.1.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: kafka.enabled
+  - name: redis
+    version: "17.0.0"
+    repository: "https://charts.bitnami.com/bitnami"
+    condition: redis.enabled
+  - name: vault
+    version: "0.25.0"
+    repository: "https://helm.releases.hashicorp.com"
+    condition: vault.enabled

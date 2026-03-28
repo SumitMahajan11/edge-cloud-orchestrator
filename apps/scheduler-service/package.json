@@ -1,0 +1,27 @@
+{
+  "name": "@edgecloud/scheduler-service",
+  "version": "1.0.0",
+  "description": "RAFT-based intelligent scheduler service",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "@edgecloud/event-bus": "workspace:*",
+    "@edgecloud/raft-consensus": "workspace:*",
+    "@edgecloud/ml-scheduler": "workspace:*",
+    "@edgecloud/circuit-breaker": "workspace:*",
+    "fastify": "^4.24.0",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/rate-limit": "^9.0.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.1.0",
+    "typescript": "^5.3.0"
+  }
+}

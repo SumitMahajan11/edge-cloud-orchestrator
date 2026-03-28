@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: edge-agent
+  namespace: edge-cloud
+  labels:
+    app: edge-agent
+spec:
+  selector:
+    matchLabels:
+      app: edge-agent
+  template:
+    metadata:
+      labels:
+        app: edge-agent
+    spec:
+      containers:
+      - name: agent
+        image: edgecloud/agent:latest
+        ports:
+        - containerPort: 4001
+          name: http
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4001"
+        - name: NODE_ID
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
+        - name: NODE_NAME
+          value: "K8s Edge Node"
+        - name: NODE_LOCATION
+          value: "kubernetes"
+        resources:
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run/docker.sock
+      volumes:
+      - name: docker-sock
+        hostPath:
+          path: /var/run/docker.sock
+          type: Socket

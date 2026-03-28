@@ -1,0 +1,391 @@
+version: '3.8'
+
+services:
+  # CockroachDB Cluster
+  cockroachdb-1:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroachdb-1,cockroachdb-2,cockroachdb-3 --listen-addr=cockroachdb-1:26257 --http-addr=cockroachdb-1:8080
+    volumes:
+      - cockroachdb-data-1:/cockroach/cockroach-data
+    networks:
+      - edgecloud
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+
+  cockroachdb-2:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroachdb-1,cockroachdb-2,cockroachdb-3 --listen-addr=cockroachdb-2:26257 --http-addr=cockroachdb-2:8080
+    volumes:
+      - cockroachdb-data-2:/cockroach/cockroach-data
+    networks:
+      - edgecloud
+
+  cockroachdb-3:
+    image: cockroachdb/cockroach:v23.1.11
+    command: start --insecure --join=cockroachdb-1,cockroachdb-2,cockroachdb-3 --listen-addr=cockroachdb-3:26257 --http-addr=cockroachdb-3:8080
+    volumes:
+      - cockroachdb-data-3:/cockroach/cockroach-data
+    networks:
+      - edgecloud
+
+  cockroachdb-init:
+    image: cockroachdb/cockroach:v23.1.11
+    command: init --insecure --host=cockroachdb-1:26257
+    depends_on:
+      - cockroachdb-1
+    networks:
+      - edgecloud
+
+  # Kafka Cluster
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - edgecloud
+
+  kafka-1:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    ports:
+      - "29092:29092"
+    networks:
+      - edgecloud
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    networks:
+      - edgecloud
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    networks:
+      - edgecloud
+
+  # Microservices
+  task-service:
+    build:
+      context: .
+      dockerfile: apps/task-service/Dockerfile
+    environment:
+      PORT: 3001
+      DATABASE_HOST: cockroachdb-1
+      DATABASE_PORT: 26257
+      DATABASE_NAME: edgecloud
+      DATABASE_USER: root
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - cockroachdb-init
+      - kafka-1
+    networks:
+      - edgecloud
+    ports:
+      - "3001:3001"
+    deploy:
+      replicas: 2
+
+  node-service:
+    build:
+      context: .
+      dockerfile: apps/node-service/Dockerfile
+    environment:
+      PORT: 3002
+      DATABASE_HOST: cockroachdb-1
+      DATABASE_PORT: 26257
+      DATABASE_NAME: edgecloud
+      DATABASE_USER: root
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - cockroachdb-init
+      - kafka-1
+    networks:
+      - edgecloud
+    ports:
+      - "3002:3002"
+    deploy:
+      replicas: 2
+
+  scheduler-service-1:
+    build:
+      context: .
+      dockerfile: apps/scheduler-service/Dockerfile
+    environment:
+      NODE_ID: scheduler-1
+      PORT: 3003
+      RAFT_PORT: 7001
+      RAFT_PEERS: scheduler-2:scheduler-service-2:7002,scheduler-3:scheduler-service-3:7003
+      TASK_SERVICE_URL: http://task-service:3001
+      NODE_SERVICE_URL: http://node-service:3002
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - task-service
+      - node-service
+    networks:
+      - edgecloud
+    ports:
+      - "3003:3003"
+      - "7001:7001"
+
+  scheduler-service-2:
+    build:
+      context: .
+      dockerfile: apps/scheduler-service/Dockerfile
+    environment:
+      NODE_ID: scheduler-2
+      PORT: 3003
+      RAFT_PORT: 7002
+      RAFT_PEERS: scheduler-1:scheduler-service-1:7001,scheduler-3:scheduler-service-3:7003
+      TASK_SERVICE_URL: http://task-service:3001
+      NODE_SERVICE_URL: http://node-service:3002
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - task-service
+      - node-service
+    networks:
+      - edgecloud
+
+  scheduler-service-3:
+    build:
+      context: .
+      dockerfile: apps/scheduler-service/Dockerfile
+    environment:
+      NODE_ID: scheduler-3
+      PORT: 3003
+      RAFT_PORT: 7003
+      RAFT_PEERS: scheduler-1:scheduler-service-1:7001,scheduler-2:scheduler-service-2:7002
+      TASK_SERVICE_URL: http://task-service:3001
+      NODE_SERVICE_URL: http://node-service:3002
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+    depends_on:
+      - task-service
+      - node-service
+    networks:
+      - edgecloud
+
+  # WebSocket Gateway
+  websocket-gateway:
+    build:
+      context: .
+      dockerfile: apps/websocket-gateway/Dockerfile
+    environment:
+      PORT: 3004
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      REGION: us-east
+    depends_on:
+      - kafka-1
+    networks:
+      - edgecloud
+    ports:
+      - "3004:3004"
+
+  # Backend API Service
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    environment:
+      PORT: 3000
+      DATABASE_HOST: cockroachdb-1
+      DATABASE_PORT: 26257
+      DATABASE_NAME: edgecloud
+      DATABASE_USER: root
+      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      REDIS_URL: redis://redis:6379
+      JWT_SECRET: dev-jwt-secret-change-in-production
+      VAULT_ADDR: http://vault:8200
+      VAULT_TOKEN: dev-token
+    depends_on:
+      - cockroachdb-init
+      - kafka-1
+      - redis
+    networks:
+      - edgecloud
+    ports:
+      - "3000:3000"
+
+  # API Gateway
+  nginx:
+    image: nginx:alpine
+    volumes:
+      - ./apps/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    depends_on:
+      - task-service
+      - node-service
+      - scheduler-service-1
+      - websocket-gateway
+    networks:
+      - edgecloud
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: edgecloud
+      POSTGRES_PASSWORD: edgecloud123
+      POSTGRES_DB: edgecloud
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - edgecloud
+
+  # Redis for caching/sessions
+  redis:
+    image: redis:7-alpine
+    networks:
+      - edgecloud
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+  # ==========================================
+  # Observability Stack
+  # ==========================================
+  
+  # Prometheus for metrics collection
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    volumes:
+      - ./infrastructure/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./infrastructure/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    ports:
+      - "9090:9090"
+    networks:
+      - edgecloud
+    depends_on:
+      - task-service
+      - node-service
+      - scheduler-service-1
+
+  # Grafana for visualization
+  grafana:
+    image: grafana/grafana:10.2.0
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./infrastructure/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./infrastructure/observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    ports:
+      - "3001:3000"
+    networks:
+      - edgecloud
+    depends_on:
+      - prometheus
+
+  # Jaeger for distributed tracing
+  jaeger:
+    image: jaegertracing/all-in-one:1.50
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    ports:
+      - "16686:16686"  # UI
+      - "14268:14268"  # Collector HTTP
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP
+    networks:
+      - edgecloud
+
+  # ==========================================
+  # Security Infrastructure
+  # ==========================================
+  
+  # HashiCorp Vault for secrets management
+  vault:
+    image: hashicorp/vault:1.15
+    cap_add:
+      - IPC_LOCK
+    environment:
+      - VAULT_DEV_ROOT_TOKEN_ID=dev-token
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    volumes:
+      - vault-data:/vault/file
+      - ./infrastructure/vault/vault-config.hcl:/vault/config/vault.hcl:ro
+    ports:
+      - "8200:8200"
+    networks:
+      - edgecloud
+    command: server -dev -dev-root-token-id="dev-token"
+
+  # ==========================================
+  # Backup & Disaster Recovery
+  # ==========================================
+  
+  # Backup service for automated backups
+  backup-service:
+    image: cockroachdb/cockroach:v23.1.11
+    volumes:
+      - ./infrastructure/backup:/backup-scripts:ro
+      - backup-data:/backups
+    command: |
+      sh -c "
+        echo 'Backup service ready' &&
+        tail -f /dev/null
+      "
+    networks:
+      - edgecloud
+    depends_on:
+      - cockroachdb-1
+    environment:
+      - BACKUP_SCHEDULE=0 2 * * *
+
+volumes:
+  cockroachdb-data-1:
+  cockroachdb-data-2:
+  cockroachdb-data-3:
+  postgres-data:
+  redis-data:
+  prometheus-data:
+  grafana-data:
+  vault-data:
+  backup-data:
+
+networks:
+  edgecloud:
+    driver: bridge

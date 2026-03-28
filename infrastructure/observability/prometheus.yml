@@ -1,0 +1,91 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    cluster: edgecloud
+    replica: '{{.ExternalURL}}'
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+          - alertmanager:9093
+
+rule_files:
+  - /etc/prometheus/alerts.yml
+
+scrape_configs:
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # Task Service
+  - job_name: 'task-service'
+    static_configs:
+      - targets: ['task-service:3001']
+    metrics_path: /metrics
+    scrape_interval: 10s
+    scrape_timeout: 5s
+
+  # Node Service
+  - job_name: 'node-service'
+    static_configs:
+      - targets: ['node-service:3002']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  # Scheduler Service
+  - job_name: 'scheduler-service'
+    static_configs:
+      - targets: 
+        - 'scheduler-service-1:3003'
+        - 'scheduler-service-2:3003'
+        - 'scheduler-service-3:3003'
+    metrics_path: /metrics
+    scrape_interval: 5s
+    scrape_timeout: 3s
+
+  # WebSocket Gateway
+  - job_name: 'websocket-gateway'
+    static_configs:
+      - targets: ['websocket-gateway:3004']
+    metrics_path: /metrics
+    scrape_interval: 10s
+
+  # CockroachDB
+  - job_name: 'cockroachdb'
+    static_configs:
+      - targets:
+        - 'cockroachdb-1:8080'
+        - 'cockroachdb-2:8080'
+        - 'cockroachdb-3:8080'
+    metrics_path: /_status/vars
+    scrape_interval: 15s
+
+  # Kafka
+  - job_name: 'kafka'
+    static_configs:
+      - targets: ['kafka-exporter:9308']
+    scrape_interval: 15s
+
+  # Vault
+  - job_name: 'vault'
+    static_configs:
+      - targets: ['vault:8200']
+    metrics_path: /v1/sys/metrics
+    params:
+      format: ['prometheus']
+    scrape_interval: 15s
+
+  # Node Exporter (system metrics)
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['node-exporter:9100']
+    scrape_interval: 15s
+
+  # cAdvisor (container metrics)
+  - job_name: 'cadvisor'
+    static_configs:
+      - targets: ['cadvisor:8080']
+    scrape_interval: 15s

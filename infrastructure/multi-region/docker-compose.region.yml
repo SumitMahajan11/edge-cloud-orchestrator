@@ -1,0 +1,179 @@
+version: '3.8'
+
+# Multi-Region Docker Compose Configuration
+# This simulates a multi-region deployment using Docker networks
+
+networks:
+  us-east:
+    driver: bridge
+  us-west:
+    driver: bridge
+  eu-west:
+    driver: bridge
+  ap-south:
+    driver: bridge
+  global:
+    driver: bridge
+
+services:
+  # ==========================================
+  # US-EAST Region (Primary)
+  # ==========================================
+  crdb-us-east-1:
+    image: cockroachdb/cockroach:v23.1.11
+    command: >
+      start 
+      --insecure 
+      --join=crdb-us-east-1,crdb-us-east-2,crdb-us-west-1,crdb-eu-west-1,crdb-ap-south-1
+      --listen-addr=crdb-us-east-1:26257
+      --http-addr=crdb-us-east-1:8080
+      --locality=region=us-east,zone=us-east-1a
+    volumes:
+      - crdb-us-east-1:/cockroach/cockroach-data
+    networks:
+      - us-east
+      - global
+    ports:
+      - "26257:26257"
+      - "8080:8080"
+
+  crdb-us-east-2:
+    image: cockroachdb/cockroach:v23.1.11
+    command: >
+      start 
+      --insecure 
+      --join=crdb-us-east-1,crdb-us-east-2,crdb-us-west-1,crdb-eu-west-1,crdb-ap-south-1
+      --listen-addr=crdb-us-east-2:26257
+      --http-addr=crdb-us-east-2:8080
+      --locality=region=us-east,zone=us-east-1b
+    volumes:
+      - crdb-us-east-2:/cockroach/cockroach-data
+    networks:
+      - us-east
+      - global
+
+  # ==========================================
+  # US-WEST Region
+  # ==========================================
+  crdb-us-west-1:
+    image: cockroachdb/cockroach:v23.1.11
+    command: >
+      start 
+      --insecure 
+      --join=crdb-us-east-1,crdb-us-east-2,crdb-us-west-1,crdb-eu-west-1,crdb-ap-south-1
+      --listen-addr=crdb-us-west-1:26257
+      --http-addr=crdb-us-west-1:8080
+      --locality=region=us-west,zone=us-west-2a
+    volumes:
+      - crdb-us-west-1:/cockroach/cockroach-data
+    networks:
+      - us-west
+      - global
+    ports:
+      - "26258:26257"
+      - "8081:8080"
+
+  # ==========================================
+  # EU-WEST Region
+  # ==========================================
+  crdb-eu-west-1:
+    image: cockroachdb/cockroach:v23.1.11
+    command: >
+      start 
+      --insecure 
+      --join=crdb-us-east-1,crdb-us-east-2,crdb-us-west-1,crdb-eu-west-1,crdb-ap-south-1
+      --listen-addr=crdb-eu-west-1:26257
+      --http-addr=crdb-eu-west-1:8080
+      --locality=region=eu-west,zone=eu-west-1a
+    volumes:
+      - crdb-eu-west-1:/cockroach/cockroach-data
+    networks:
+      - eu-west
+      - global
+    ports:
+      - "26259:26257"
+      - "8082:8080"
+
+  # ==========================================
+  # AP-SOUTH Region
+  # ==========================================
+  crdb-ap-south-1:
+    image: cockroachdb/cockroach:v23.1.11
+    command: >
+      start 
+      --insecure 
+      --join=crdb-us-east-1,crdb-us-east-2,crdb-us-west-1,crdb-eu-west-1,crdb-ap-south-1
+      --listen-addr=crdb-ap-south-1:26257
+      --http-addr=crdb-ap-south-1:8080
+      --locality=region=ap-south,zone=ap-south-1a
+    volumes:
+      - crdb-ap-south-1:/cockroach/cockroach-data
+    networks:
+      - ap-south
+      - global
+    ports:
+      - "26260:26257"
+      - "8083:8080"
+
+  # ==========================================
+  # Region-aware Services
+  # ==========================================
+  task-service-us-east:
+    build:
+      context: ../..
+      dockerfile: apps/task-service/Dockerfile
+    environment:
+      PORT: 3001
+      REGION: us-east
+      DATABASE_HOST: crdb-us-east-1
+      DATABASE_PORT: 26257
+      DATABASE_NAME: edgecloud
+      DATABASE_USER: root
+      KAFKA_BROKERS: kafka-us-east:9092
+    networks:
+      - us-east
+    ports:
+      - "3001:3001"
+
+  task-service-us-west:
+    build:
+      context: ../..
+      dockerfile: apps/task-service/Dockerfile
+    environment:
+      PORT: 3001
+      REGION: us-west
+      DATABASE_HOST: crdb-us-west-1
+      DATABASE_PORT: 26257
+      DATABASE_NAME: edgecloud
+      DATABASE_USER: root
+      KAFKA_BROKERS: kafka-us-west:9092
+    networks:
+      - us-west
+    ports:
+      - "3004:3001"
+
+  # ==========================================
+  # Global Load Balancer
+  # ==========================================
+  global-lb:
+    image: nginx:alpine
+    volumes:
+      - ./nginx-global.conf:/etc/nginx/nginx.conf:ro
+    ports:
+      - "80:80"
+    networks:
+      - us-east
+      - us-west
+      - eu-west
+      - ap-south
+      - global
+    depends_on:
+      - task-service-us-east
+      - task-service-us-west
+
+volumes:
+  crdb-us-east-1:
+  crdb-us-east-2:
+  crdb-us-west-1:
+  crdb-eu-west-1:
+  crdb-ap-south-1:

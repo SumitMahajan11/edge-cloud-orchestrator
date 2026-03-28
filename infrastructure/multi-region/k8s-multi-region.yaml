@@ -1,0 +1,290 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: regional-config
+  namespace: edgecloud
+data:
+  # Regional configuration for multi-region deployment
+  REGIONS: "us-east,us-west,eu-west,ap-south"
+  PRIMARY_REGION: "us-east"
+  
+  # CockroachDB connection strings per region
+  US_EAST_DB: "postgresql://root@crdb-us-east:26257/edgecloud?sslmode=verify-full"
+  US_WEST_DB: "postgresql://root@crdb-us-west:26257/edgecloud?sslmode=verify-full"
+  EU_WEST_DB: "postgresql://root@crdb-eu-west:26257/edgecloud?sslmode=verify-full"
+  AP_SOUTH_DB: "postgresql://root@crdb-ap-south:26257/edgecloud?sslmode=verify-full"
+  
+  # Kafka brokers per region
+  US_EAST_KAFKA: "kafka-us-east:9092"
+  US_WEST_KAFKA: "kafka-us-west:9092"
+  EU_WEST_KAFKA: "kafka-eu-west:9092"
+  AP_SOUTH_KAFKA: "kafka-ap-south:9092"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-service-us-east
+  namespace: edgecloud
+  labels:
+    app: task-service
+    region: us-east
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: task-service
+      region: us-east
+  template:
+    metadata:
+      labels:
+        app: task-service
+        region: us-east
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/region: us-east-1
+      containers:
+      - name: task-service
+        image: edgecloud/task-service:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: PORT
+          value: "3001"
+        - name: REGION
+          value: "us-east"
+        - name: DATABASE_HOST
+          value: "crdb-us-east"
+        - name: DATABASE_PORT
+          value: "26257"
+        - name: KAFKA_BROKERS
+          value: "kafka-us-east:9092"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3001
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: task-service-us-west
+  namespace: edgecloud
+  labels:
+    app: task-service
+    region: us-west
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: task-service
+      region: us-west
+  template:
+    metadata:
+      labels:
+        app: task-service
+        region: us-west
+    spec:
+      nodeSelector:
+        topology.kubernetes.io/region: us-west-2
+      containers:
+      - name: task-service
+        image: edgecloud/task-service:latest
+        ports:
+        - containerPort: 3001
+        env:
+        - name: PORT
+          value: "3001"
+        - name: REGION
+          value: "us-west"
+        - name: DATABASE_HOST
+          value: "crdb-us-west"
+        - name: DATABASE_PORT
+          value: "26257"
+        - name: KAFKA_BROKERS
+          value: "kafka-us-west:9092"
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-service-us-east
+  namespace: edgecloud
+  labels:
+    app: task-service
+    region: us-east
+spec:
+  selector:
+    app: task-service
+    region: us-east
+  ports:
+  - port: 80
+    targetPort: 3001
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: task-service-us-west
+  namespace: edgecloud
+  labels:
+    app: task-service
+    region: us-west
+spec:
+  selector:
+    app: task-service
+    region: us-west
+  ports:
+  - port: 80
+    targetPort: 3001
+  type: ClusterIP
+---
+# Global Load Balancer with Geo-Routing
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: global-ingress
+  namespace: edgecloud
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    # Enable sticky sessions for regional affinity
+    nginx.ingress.kubernetes.io/affinity: "cookie"
+    nginx.ingress.kubernetes.io/session-cookie-name: "region"
+    nginx.ingress.kubernetes.io/session-cookie-expires: "172800"
+    nginx.ingress.kubernetes.io/session-cookie-max-age: "172800"
+spec:
+  ingressClassName: nginx
+  tls:
+  - hosts:
+    - api.edgecloud.io
+    secretName: edgecloud-tls
+  rules:
+  - host: api.edgecloud.io
+    http:
+      paths:
+      # Route to region-specific services based on path prefix
+      - path: /us-east
+        pathType: Prefix
+        backend:
+          service:
+            name: task-service-us-east
+            port:
+              number: 80
+      - path: /us-west
+        pathType: Prefix
+        backend:
+          service:
+            name: task-service-us-west
+            port:
+              number: 80
+      - path: /eu-west
+        pathType: Prefix
+        backend:
+          service:
+            name: task-service-eu-west
+            port:
+              number: 80
+      - path: /ap-south
+        pathType: Prefix
+        backend:
+          service:
+            name: task-service-ap-south
+            port:
+              number: 80
+      # Default route with geo-based routing
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: task-service-us-east
+            port:
+              number: 80
+---
+# Topology-aware scheduling for CockroachDB
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cockroachdb-regional
+  namespace: edgecloud
+spec:
+  serviceName: cockroachdb
+  replicas: 5
+  selector:
+    matchLabels:
+      app: cockroachdb
+  template:
+    metadata:
+      labels:
+        app: cockroachdb
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - weight: 100
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - cockroachdb
+              topologyKey: topology.kubernetes.io/region
+          - weight: 50
+            podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: app
+                  operator: In
+                  values:
+                  - cockroachdb
+              topologyKey: topology.kubernetes.io/zone
+      containers:
+      - name: cockroachdb
+        image: cockroachdb/cockroach:v23.1.11
+        command:
+        - /bin/bash
+        - -c
+        - |
+          exec cockroach start \
+            --join=cockroachdb-0.cockroachdb,cockroachdb-1.cockroachdb,cockroachdb-2.cockroachdb,cockroachdb-3.cockroachdb,cockroachdb-4.cockroachdb \
+            --advertise-host=$(POD_NAME).cockroachdb \
+            --locality=region=$(REGION),zone=$(ZONE) \
+            --insecure
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: REGION
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['topology.kubernetes.io/region']
+        - name: ZONE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.labels['topology.kubernetes.io/zone']
+        ports:
+        - containerPort: 26257
+          name: grpc
+        - containerPort: 8080
+          name: http

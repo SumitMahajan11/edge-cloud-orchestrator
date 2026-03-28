@@ -1,0 +1,278 @@
+# Kong API Gateway Configuration
+# Declarative configuration for Edge-Cloud Orchestrator
+#
+# Service Discovery Strategy: Kubernetes Native
+# - Services discovered via K8s Service DNS (service.namespace.svc.cluster.local)
+# - Health checks via Kubernetes readiness probes
+# - Load balancing via K8s Service (ClusterIP)
+#
+# Fallback: DNS-based discovery for non-K8s environments
+# - Uses internal DNS resolver
+# - TTL-based caching (60s default)
+
+_format_version: "3.0"
+
+_transform: false
+
+# ==========================================
+# Service Discovery Configuration
+# ==========================================
+# In Kubernetes:
+# - Services are discovered via K8s DNS: http://service-name.namespace.svc.cluster.local:port
+# - No explicit service discovery plugin needed
+# - Kong Ingress Controller handles K8s Service -> Kong Service mapping
+#
+# For non-K8s environments, use DNS-based discovery:
+# - Enable dns_resolver in kong.conf
+# - Services use DNS names resolved by internal resolver
+
+services:
+  # ==========================================
+  # Backend API Service
+  # ==========================================
+  - name: backend-api
+    url: http://backend:3000
+    routes:
+      - name: api-route
+        paths:
+          - /api
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 1000
+              policy: local
+              fault_tolerant: true
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+              secret_is_base64: false
+          - name: cors
+            config:
+              origins:
+                - "*"
+              methods:
+                - GET
+                - POST
+                - PUT
+                - DELETE
+                - PATCH
+                - OPTIONS
+              headers:
+                - Accept
+                - Accept-Version
+                - Content-Length
+                - Content-MD5
+                - Content-Type
+                - Date
+                - X-Auth-Token
+                - Authorization
+              exposed_headers:
+                - X-Auth-Token
+              credentials: true
+              max_age: 3600
+
+  # ==========================================
+  # Authentication Routes (Public)
+  # ==========================================
+  - name: auth-service
+    url: http://backend:3000
+    routes:
+      - name: auth-route
+        paths:
+          - /api/auth
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              policy: local
+          - name: request-transformer
+            config:
+              add:
+                headers:
+                  - X-Request-ID:$(uuid)
+
+  # ==========================================
+  # Task Service Routes
+  # ==========================================
+  - name: task-service
+    url: http://backend:3000
+    routes:
+      - name: tasks-route
+        paths:
+          - /api/tasks
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 500
+              policy: local
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+  # ==========================================
+  # Node Service Routes
+  # ==========================================
+  - name: node-service
+    url: http://backend:3000
+    routes:
+      - name: nodes-route
+        paths:
+          - /api/nodes
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 500
+              policy: local
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+
+  # ==========================================
+  # Scheduler Service Routes
+  # ==========================================
+  - name: scheduler-service
+    url: http://backend:3000
+    routes:
+      - name: scheduler-route
+        paths:
+          - /api/scheduler
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 100
+              policy: local
+          - name: jwt
+            config:
+              claims_to_verify:
+                - exp
+          - name: acl
+            config:
+              allow:
+                - admin
+                - operator
+
+  # ==========================================
+  # WebSocket Gateway
+  # ==========================================
+  - name: websocket-gateway
+    url: http://backend:3000
+    routes:
+      - name: websocket-route
+        paths:
+          - /ws
+        strip_path: false
+        protocols:
+          - ws
+          - wss
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 1000
+              policy: local
+
+  # ==========================================
+  # Health Check (Public)
+  # ==========================================
+  - name: health-service
+    url: http://backend:3000
+    routes:
+      - name: health-route
+        paths:
+          - /health
+        strip_path: false
+        plugins:
+          - name: rate-limiting
+            config:
+              minute: 1000
+              policy: local
+
+  # ==========================================
+  # Metrics Endpoint (Internal)
+  # ==========================================
+  - name: metrics-service
+    url: http://backend:3000
+    routes:
+      - name: metrics-route
+        paths:
+          - /metrics
+        strip_path: false
+        plugins:
+          - name: ip-restriction
+            config:
+              allow:
+                - 10.0.0.0/8
+                - 172.16.0.0/12
+                - 192.168.0.0/16
+                - 127.0.0.1
+
+  # ==========================================
+  # API Documentation (Public)
+  # ==========================================
+  - name: docs-service
+    url: http://backend:3000
+    routes:
+      - name: docs-route
+        paths:
+          - /docs
+        strip_path: false
+
+plugins:
+  # ==========================================
+  # Global Plugins
+  # ==========================================
+  - name: correlation-id
+    config:
+      header_name: X-Request-ID
+      generator: uuid
+      echo_downstream: true
+
+  - name: request-size-limiting
+    config:
+      allowed_payload_size: 10
+
+  - name: response-transformer
+    config:
+      add:
+        headers:
+          - X-Powered-By:Edge-Cloud-Orchestrator
+          - X-Response-Time:$(latency)
+
+  - name: prometheus
+    config:
+      per_consumer: true
+      status_code_metrics: true
+      latency_metrics: true
+      bandwidth_metrics: true
+
+  - name: file-log
+    config:
+      path: /var/log/kong/access.log
+
+consumers:
+  # ==========================================
+  # Admin Consumer
+  # ==========================================
+  - username: admin
+    custom_id: admin-user
+    jwt_secrets:
+      - key: admin-key
+        algorithm: HS256
+        secret: ${KONG_JWT_SECRET}
+
+  # ==========================================
+  # Service Account Consumer
+  # ==========================================
+  - username: service-account
+    custom_id: service-account-id
+    jwt_secrets:
+      - key: service-key
+        algorithm: HS256
+        secret: ${KONG_JWT_SECRET}

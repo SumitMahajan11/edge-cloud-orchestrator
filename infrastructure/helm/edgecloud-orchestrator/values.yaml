@@ -1,0 +1,355 @@
+# Global settings
+global:
+  imageRegistry: ""
+  imagePullSecrets: []
+  storageClass: ""
+
+# EdgeCloud Orchestrator configuration
+replicaCount: 3
+
+image:
+  repository: edgecloud/orchestrator
+  pullPolicy: IfNotPresent
+  tag: "2.0.0"
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+  runAsNonRoot: true
+  runAsUser: 1000
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Task Service
+taskService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: edgecloud/task-service
+    tag: "2.0.0"
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3001
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# Node Service
+nodeService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: edgecloud/node-service
+    tag: "2.0.0"
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3002
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  autoscaling:
+    enabled: true
+    minReplicas: 3
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+
+# Scheduler Service
+schedulerService:
+  enabled: true
+  replicaCount: 3
+  image:
+    repository: edgecloud/scheduler-service
+    tag: "2.0.0"
+  service:
+    type: ClusterIP
+    port: 80
+    targetPort: 3003
+  raft:
+    enabled: true
+    port: 7001
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+
+# API Gateway
+apiGateway:
+  enabled: true
+  replicaCount: 2
+  image:
+    repository: nginx
+    tag: "alpine"
+  service:
+    type: LoadBalancer
+    port: 80
+    targetPort: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+
+# CockroachDB
+cockroachdb:
+  enabled: true
+  replicaCount: 3
+  storage: 100Gi
+  resources:
+    requests:
+      cpu: 1
+      memory: 2Gi
+    limits:
+      cpu: 2
+      memory: 4Gi
+
+# Kafka
+kafka:
+  enabled: true
+  replicaCount: 3
+  storage: 50Gi
+  zookeeper:
+    replicaCount: 3
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2Gi
+
+# Redis
+redis:
+  enabled: true
+  architecture: replication
+  master:
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        cpu: 200m
+        memory: 512Mi
+  replica:
+    replicaCount: 2
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+
+# Vault
+vault:
+  enabled: true
+  mode: dev
+  devDevRootToken: "dev-token"
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 200m
+      memory: 512Mi
+
+# Observability
+observability:
+  prometheus:
+    enabled: true
+    retention: 15d
+    storage: 50Gi
+  grafana:
+    enabled: true
+    adminPassword: admin
+    storage: 5Gi
+  jaeger:
+    enabled: true
+    storage:
+      type: memory
+
+# Multi-region configuration
+multiRegion:
+  enabled: false
+  regions:
+    - name: us-east
+      primary: true
+    - name: us-west
+    - name: eu-west
+    - name: ap-south
+
+# Security
+security:
+  tls:
+    enabled: true
+    certManager:
+      enabled: true
+      issuerRef:
+        name: letsencrypt-prod
+        kind: ClusterIssuer
+  abac:
+    enabled: true
+
+# Ingress
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+  hosts:
+    - host: api.edgecloud.io
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: edgecloud-tls
+      hosts:
+        - api.edgecloud.io
+
+# Node ports for external access
+nodePorts:
+  taskService: ""
+  nodeService: ""
+  schedulerService: ""
+
+# Database configuration
+database:
+  host: ""
+  port: 26257
+  name: edgecloud
+  user: root
+  existingSecret: ""
+  sslMode: disable
+
+# Kafka configuration
+kafkaConfig:
+  brokers: ""
+  topics:
+    tasks: tasks.events
+    nodes: nodes.events
+    metrics: metrics.raw
+    scheduler: scheduler.decisions
+
+# Redis configuration
+redisConfig:
+  host: ""
+  port: 6379
+  database: 0
+  existingSecret: ""
+
+# Vault configuration
+vaultConfig:
+  address: ""
+  roleId: ""
+  secretId: ""
+  existingSecret: ""
+
+# Resource quotas
+resourceQuota:
+  enabled: true
+  hard:
+    requests.cpu: "10"
+    requests.memory: 20Gi
+    limits.cpu: "20"
+    limits.memory: 40Gi
+    pods: "50"
+
+# Pod disruption budget
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+# Network policies
+networkPolicy:
+  enabled: true
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              name: edgecloud
+  egress:
+    - to:
+        - namespaceSelector: {}
+
+# Priority class
+priorityClass:
+  enabled: true
+  name: edgecloud-high
+  value: 1000000
+
+# Topology spread constraints
+topologySpreadConstraints:
+  enabled: true
+  maxSkew: 1
+  topologyKey: topology.kubernetes.io/zone
+  whenUnsatisfiable: ScheduleAnyway
+
+# Affinity
+affinity:
+  podAntiAffinity:
+    preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 100
+        podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/name
+                operator: In
+                values:
+                  - edgecloud-orchestrator
+          topologyKey: kubernetes.io/hostname
+
+# Tolerations
+tolerations: []
+
+# Node selector
+nodeSelector: {}
+
+# Environment variables
+env:
+  - name: NODE_ENV
+    value: production
+  - name: LOG_LEVEL
+    value: info
+
+# ConfigMaps
+configMaps:
+  create: true
+
+# Secrets
+secrets:
+  create: true

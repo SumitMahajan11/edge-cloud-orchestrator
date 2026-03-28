@@ -1,0 +1,263 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: backup-scripts
+  namespace: edgecloud
+data:
+  # Phase 13: Disaster Recovery - Backup & Point-in-Time Recovery
+  
+  backup-cockroachdb.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_DIR="/backups/cockroachdb"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    BACKUP_NAME="crdb_backup_${TIMESTAMP}"
+    
+    echo "Starting CockroachDB backup at $(date)"
+    
+    # Create full database backup
+    cockroach sql --insecure -e "BACKUP DATABASE edgecloud TO '${BACKUP_DIR}/${BACKUP_NAME}' AS OF SYSTEM TIME '-10s'"
+    
+    # Verify backup
+    if [ -d "${BACKUP_DIR}/${BACKUP_NAME}" ]; then
+      echo "Backup completed successfully: ${BACKUP_NAME}"
+      
+      # Update latest symlink
+      ln -sfn "${BACKUP_NAME}" "${BACKUP_DIR}/latest"
+      
+      # Clean up old backups (keep last 7 days)
+      find "${BACKUP_DIR}" -name "crdb_backup_*" -type d -mtime +7 -exec rm -rf {} \;
+      
+      # Notify success
+      curl -X POST http://alertmanager:9093/api/v1/alerts \
+        -d '[{"labels":{"alertname":"BackupSuccess","job":"cockroachdb"},"annotations":{"summary":"CockroachDB backup completed"}}]'
+    else
+      echo "Backup failed!"
+      exit 1
+    fi
+  
+  restore-cockroachdb.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_NAME=${1:-"latest"}
+    BACKUP_DIR="/backups/cockroachdb"
+    
+    if [ "$BACKUP_NAME" = "latest" ]; then
+      BACKUP_PATH=$(readlink -f "${BACKUP_DIR}/latest")
+    else
+      BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
+    fi
+    
+    echo "Restoring CockroachDB from ${BACKUP_PATH}"
+    
+    # Restore database
+    cockroach sql --insecure -e "RESTORE DATABASE edgecloud FROM '${BACKUP_PATH}'"
+    
+    echo "Restore completed at $(date)"
+  
+  point-in-time-recovery.sh: |
+    #!/bin/bash
+    set -e
+    
+    TARGET_TIME=$1  # Format: '2024-01-15 14:30:00'
+    BACKUP_DIR="/backups/cockroachdb"
+    
+    if [ -z "$TARGET_TIME" ]; then
+      echo "Usage: $0 'YYYY-MM-DD HH:MM:SS'"
+      exit 1
+    fi
+    
+    echo "Performing point-in-time recovery to: ${TARGET_TIME}"
+    
+    # Find the most recent backup before target time
+    LATEST_BACKUP=$(find "${BACKUP_DIR}" -name "crdb_backup_*" -type d | sort | tail -1)
+    
+    # Restore to specific point in time
+    cockroach sql --insecure -e "RESTORE DATABASE edgecloud FROM '${LATEST_BACKUP}' AS OF SYSTEM TIME '${TARGET_TIME}'"
+    
+    echo "Point-in-time recovery completed"
+  
+  backup-kafka.sh: |
+    #!/bin/bash
+    set -e
+    
+    BACKUP_DIR="/backups/kafka"
+    TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+    
+    echo "Starting Kafka topic backup at $(date)"
+    
+    # Backup topic configurations and offsets
+    kafka-topics.sh --bootstrap-server kafka:9092 --describe > "${BACKUP_DIR}/topics_${TIMESTAMP}.txt"
+    
+    # MirrorMaker or Kafka Connect can be used for full topic backup
+    echo "Kafka backup completed"
+  
+  verify-backup.sh: |
+    #!/bin/bash
+    BACKUP_DIR="/backups/cockroachdb"
+    BACKUP_NAME=${1:-"latest"}
+    
+    if [ "$BACKUP_NAME" = "latest" ]; then
+      BACKUP_PATH=$(readlink -f "${BACKUP_DIR}/latest")
+    else
+      BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
+    fi
+    
+    echo "Verifying backup: ${BACKUP_PATH}"
+    
+    # Check backup manifest
+    if [ -f "${BACKUP_PATH}/BACKUP_MANIFEST" ]; then
+      echo "Backup manifest found"
+      cat "${BACKUP_PATH}/BACKUP_MANIFEST"
+    else
+      echo "ERROR: Backup manifest not found!"
+      exit 1
+    fi
+    
+    # Verify backup integrity (simplified check)
+    BACKUP_SIZE=$(du -sh "${BACKUP_PATH}" | cut -f1)
+    echo "Backup size: ${BACKUP_SIZE}"
+---
+# CronJob for automated backups
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cockroachdb-backup
+  namespace: edgecloud
+spec:
+  schedule: "0 2 * * *"  # Daily at 2 AM
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: cockroachdb/cockroach:v23.1.11
+            command:
+            - /bin/bash
+            - /scripts/backup-cockroachdb.sh
+            volumeMounts:
+            - name: backup-scripts
+              mountPath: /scripts
+            - name: backup-storage
+              mountPath: /backups
+            env:
+            - name: COCKROACH_HOST
+              value: cockroachdb-public
+          volumes:
+          - name: backup-scripts
+            configMap:
+              name: backup-scripts
+              defaultMode: 0755
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+---
+# CronJob for incremental backups (every 4 hours)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cockroachdb-incremental-backup
+  namespace: edgecloud
+spec:
+  schedule: "0 */4 * * *"  # Every 4 hours
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: backup
+            image: cockroachdb/cockroach:v23.1.11
+            command:
+            - /bin/bash
+            - -c
+            - |
+              TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+              LATEST=$(readlink -f /backups/cockroachdb/latest)
+              cockroach sql --insecure -e \
+                "BACKUP DATABASE edgecloud INTO LATEST IN '/backups/cockroachdb' AS OF SYSTEM TIME '-10s'"
+            volumeMounts:
+            - name: backup-storage
+              mountPath: /backups
+          volumes:
+          - name: backup-storage
+            persistentVolumeClaim:
+              claimName: backup-pvc
+          restartPolicy: OnFailure
+---
+# Persistent Volume Claim for backups
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: backup-pvc
+  namespace: edgecloud
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: standard
+---
+# Disaster Recovery Runbook (as ConfigMap for reference)
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: disaster-recovery-runbook
+  namespace: edgecloud
+data:
+  runbook.md: |
+    # Disaster Recovery Runbook
+    
+    ## Recovery Time Objectives (RTO)
+    - Service degradation: 5 minutes
+    - Full service recovery: 30 minutes
+    - Data recovery (PITR): 1 hour
+    
+    ## Recovery Point Objectives (RPO)
+    - Maximum data loss: 4 hours (incremental backup frequency)
+    
+    ## Scenarios
+    
+    ### 1. Single Node Failure
+    **Detection:** Node health check fails
+    **Response:**
+    1. CockroachDB automatically re-replicates data
+    2. Replace failed node
+    3. Verify cluster health: `cockroach node status`
+    
+    ### 2. Region Failure
+    **Detection:** All nodes in region unreachable
+    **Response:**
+    1. Verify survival goal is met (REGION level)
+    2. Redirect traffic to healthy regions
+    3. Restore region from backup when available
+    
+    ### 3. Database Corruption
+    **Detection:** Data integrity check fails
+    **Response:**
+    1. Stop application writes
+    2. Identify last known good backup
+    3. Execute: `./restore-cockroachdb.sh <backup-name>`
+    4. Verify data integrity
+    5. Resume operations
+    
+    ### 4. Point-in-Time Recovery
+    **When:** Data deleted or corrupted at specific time
+    **Command:**
+    ```bash
+    kubectl exec -it cockroachdb-0 -- /scripts/point-in-time-recovery.sh "2024-01-15 14:30:00"
+    ```
+    
+    ## Backup Verification
+    Monthly backup verification:
+    ```bash
+    kubectl create job --from=cronjob/cockroachdb-backup backup-verify-$(date +%s)
+    ```

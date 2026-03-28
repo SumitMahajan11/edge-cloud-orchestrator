@@ -1,0 +1,21 @@
+{
+  "name": "@edgecloud/security",
+  "version": "1.0.0",
+  "description": "Security utilities including Vault client and mTLS support",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "axios": "^1.6.0",
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

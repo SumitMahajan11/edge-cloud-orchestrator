@@ -1,0 +1,30 @@
+{
+  "name": "@edgecloud/task-service",
+  "version": "1.0.0",
+  "description": "Task lifecycle management microservice",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "@edgecloud/event-bus": "workspace:*",
+    "@edgecloud/circuit-breaker": "workspace:*",
+    "fastify": "^4.24.0",
+    "@fastify/cors": "^8.4.0",
+    "@fastify/rate-limit": "^9.0.0",
+    "pg": "^8.11.0",
+    "kafkajs": "^2.2.4",
+    "pino": "^8.16.0",
+    "prom-client": "^15.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/pg": "^8.10.0",
+    "tsx": "^4.1.0",
+    "typescript": "^5.3.0"
+  }
+}

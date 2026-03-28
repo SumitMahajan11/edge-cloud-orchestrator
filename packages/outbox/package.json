@@ -1,0 +1,23 @@
+{
+  "name": "@edgecloud/outbox",
+  "version": "1.0.0",
+  "description": "Transactional Outbox Pattern implementation for reliable event publishing",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "npx tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^5.0.0",
+    "kafkajs": "^2.2.0"
+  }
+}

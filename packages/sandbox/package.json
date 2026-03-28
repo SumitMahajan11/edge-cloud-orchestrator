@@ -1,0 +1,20 @@
+{
+  "name": "@edgecloud/sandbox",
+  "version": "1.0.0",
+  "description": "Sandbox runtimes: Firecracker, gVisor, Docker for secure task execution",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

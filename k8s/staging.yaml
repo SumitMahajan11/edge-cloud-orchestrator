@@ -1,0 +1,354 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: staging
+  labels:
+    environment: staging
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: edge-cloud-secrets
+  namespace: staging
+type: Opaque
+stringData:
+  DATABASE_URL: "postgresql://postgres:password@postgres:5432/edge_cloud"
+  REDIS_URL: "redis://redis:6379"
+  JWT_SECRET: "staging-jwt-secret-change-in-production"
+  JWT_REFRESH_SECRET: "staging-refresh-secret-change-in-production"
+  API_KEY: "staging-api-key-change-in-production"
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: edge-cloud-config
+  namespace: staging
+data:
+  NODE_ENV: "production"
+  PORT: "3000"
+  LOG_LEVEL: "info"
+  CORS_ORIGINS: "https://staging.example.com"
+  RATE_LIMIT_MAX: "200"
+  RATE_LIMIT_WINDOW_MS: "60000"
+---
+# PostgreSQL
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+        - name: postgres
+          image: postgres:15-alpine
+          ports:
+            - containerPort: 5432
+          env:
+            - name: POSTGRES_USER
+              value: postgres
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: edge-cloud-secrets
+                  key: DATABASE_URL
+                  optional: true
+            - name: POSTGRES_DB
+              value: edge_cloud
+          volumeMounts:
+            - name: postgres-data
+              mountPath: /var/lib/postgresql/data
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: staging
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: staging
+spec:
+  selector:
+    app: postgres
+  ports:
+    - port: 5432
+      targetPort: 5432
+---
+# Redis
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: staging
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          command: ["redis-server", "--appendonly", "yes"]
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+      volumes:
+        - name: redis-data
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: staging
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+# Backend API
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-cloud-backend
+  namespace: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: edge-cloud-backend
+  template:
+    metadata:
+      labels:
+        app: edge-cloud-backend
+    spec:
+      initContainers:
+        - name: run-migrations
+          image: edge-cloud-backend:latest
+          command: ["npx", "prisma", "migrate", "deploy"]
+          envFrom:
+            - configMapRef:
+                name: edge-cloud-config
+            - secretRef:
+                name: edge-cloud-secrets
+      containers:
+        - name: backend
+          image: edge-cloud-backend:latest
+          ports:
+            - containerPort: 3000
+          envFrom:
+            - configMapRef:
+                name: edge-cloud-config
+            - secretRef:
+                name: edge-cloud-secrets
+          env:
+            - name: DATABASE_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edge-cloud-secrets
+                  key: DATABASE_URL
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edge-cloud-secrets
+                  key: REDIS_URL
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 5
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-cloud-backend
+  namespace: staging
+spec:
+  selector:
+    app: edge-cloud-backend
+  ports:
+    - port: 3000
+      targetPort: 3000
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: edge-cloud-backend-hpa
+  namespace: staging
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: edge-cloud-backend
+  minReplicas: 2
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80
+---
+# Frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: edge-cloud-frontend
+  namespace: staging
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: edge-cloud-frontend
+  template:
+    metadata:
+      labels:
+        app: edge-cloud-frontend
+    spec:
+      containers:
+        - name: frontend
+          image: edge-cloud-orchestrator:latest
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "50m"
+            limits:
+              memory: "128Mi"
+              cpu: "100m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: edge-cloud-frontend
+  namespace: staging
+spec:
+  selector:
+    app: edge-cloud-frontend
+  ports:
+    - port: 80
+      targetPort: 80
+---
+# Ingress
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: edge-cloud-ingress
+  namespace: staging
+  annotations:
+    kubernetes.io/ingress.class: nginx
+    cert-manager.io/cluster-issuer: letsencrypt-staging
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+    - hosts:
+        - staging.example.com
+      secretName: edge-cloud-tls
+  rules:
+    - host: staging.example.com
+      http:
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-cloud-backend
+                port:
+                  number: 3000
+          - path: /ws
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-cloud-backend
+                port:
+                  number: 3000
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: edge-cloud-frontend
+                port:
+                  number: 80
+---
+# Prometheus ServiceMonitor
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: edge-cloud-monitor
+  namespace: staging
+  labels:
+    app: edge-cloud-backend
+spec:
+  selector:
+    matchLabels:
+      app: edge-cloud-backend
+  endpoints:
+    - port: "3000"
+      path: /metrics
+      interval: 30s

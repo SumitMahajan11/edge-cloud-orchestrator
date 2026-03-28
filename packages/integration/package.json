@@ -1,0 +1,32 @@
+{
+  "name": "@edgecloud/integration",
+  "version": "1.0.0",
+  "description": "Integration package that wires all EdgeCloud packages together",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "@edgecloud/event-bus": "workspace:*",
+    "@edgecloud/security": "workspace:*",
+    "@edgecloud/observability": "workspace:*",
+    "@edgecloud/chaos": "workspace:*",
+    "@edgecloud/analytics": "workspace:*",
+    "@edgecloud/performance": "workspace:*",
+    "@edgecloud/scheduler": "workspace:*",
+    "@edgecloud/circuit-breaker": "workspace:*",
+    "@edgecloud/sandbox": "workspace:*",
+    "@edgecloud/websocket-client": "workspace:*",
+    "@edgecloud/ml-scheduler": "workspace:*",
+    "@edgecloud/raft-consensus": "workspace:*",
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

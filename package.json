@@ -1,0 +1,59 @@
+{
+  "name": "edge-cloud-orchestrator",
+  "version": "2.0.0",
+  "description": "Production-grade distributed edge-cloud compute orchestrator",
+  "private": true,
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File start.ps1 docker -Detached",
+    "start:dev": "powershell -ExecutionPolicy Bypass -File start.ps1 dev",
+    "start:infra": "powershell -ExecutionPolicy Bypass -File start.ps1 infra",
+    "start:services": "powershell -ExecutionPolicy Bypass -File start.ps1 services",
+    "start:frontend": "powershell -ExecutionPolicy Bypass -File start.ps1 frontend",
+    "build": "npm run build --workspaces",
+    "dev": "vite",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write \"**/*.ts\"",
+    "docker:build": "docker-compose build",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:observability": "docker-compose up -d prometheus grafana jaeger",
+    "docker:vault": "docker-compose up -d vault",
+    "docker:ws": "docker-compose up -d websocket-gateway",
+    "k8s:apply": "kubectl apply -f infrastructure/kubernetes/",
+    "k8s:delete": "kubectl delete -f infrastructure/kubernetes/",
+    "k8s:helm": "helm install edgecloud infrastructure/helm/edgecloud-orchestrator",
+    "k8s:chaos": "kubectl apply -f infrastructure/chaos/",
+    "db:migrate": "psql -f infrastructure/cockroachdb/schema.sql",
+    "db:multi-region": "psql -f infrastructure/multi-region/crdb-regions.sql",
+    "vault:setup": "bash infrastructure/vault/vault-setup.sh",
+    "backup": "docker-compose exec backup-service /backup-scripts/backup-cockroachdb.sh",
+    "restore": "docker-compose exec backup-service /backup-scripts/restore-cockroachdb.sh",
+    "health": "curl -s http://localhost:80/health && curl -s http://localhost:3001/health && curl -s http://localhost:3002/health && curl -s http://localhost:3003/health && curl -s http://localhost:3004/health"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@vitejs/plugin-react": "^4.2.0",
+    "@vitest/coverage-v8": "^1.0.0",
+    "eslint": "^8.50.0",
+    "prettier": "^3.0.0",
+    "typescript": "^5.3.0",
+    "vite": "^5.0.0",
+    "vitest": "^1.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

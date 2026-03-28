@@ -1,0 +1,20 @@
+{
+  "name": "@edgecloud/circuit-breaker",
+  "version": "1.0.0",
+  "description": "Fault tolerance patterns: circuit breakers, retry, checkpointing",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

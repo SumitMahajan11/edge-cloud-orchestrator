@@ -1,0 +1,185 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: chaos-experiments
+  namespace: edgecloud
+data:
+  experiments.json: |
+    {
+      "experiments": [
+        {
+          "id": "pod-failure-scheduler",
+          "name": "Scheduler Pod Failure",
+          "type": "pod-failure",
+          "target": {
+            "selector": {
+              "app": "scheduler-service"
+            },
+            "namespace": "edgecloud"
+          },
+          "duration": 60,
+          "intensity": 1
+        },
+        {
+          "id": "network-partition-crdb",
+          "name": "CockroachDB Network Partition",
+          "type": "network-partition",
+          "target": {
+            "selector": {
+              "app": "cockroachdb"
+            },
+            "namespace": "edgecloud"
+          },
+          "duration": 120,
+          "intensity": 1
+        },
+        {
+          "id": "cpu-stress-task-service",
+          "name": "Task Service CPU Stress",
+          "type": "cpu-stress",
+          "target": {
+            "selector": {
+              "app": "task-service"
+            },
+            "namespace": "edgecloud"
+          },
+          "duration": 180,
+          "intensity": 0.8
+        }
+      ]
+    }
+---
+# Chaos Mesh Experiment - Pod Failure
+apiVersion: chaos-mesh.org/v1alpha1
+kind: PodChaos
+metadata:
+  name: scheduler-pod-failure
+  namespace: edgecloud
+spec:
+  action: pod-failure
+  mode: one
+  duration: 60s
+  selector:
+    namespaces:
+      - edgecloud
+    labelSelectors:
+      app: scheduler-service
+  scheduler:
+    cron: '@every 24h'
+---
+# Chaos Mesh Experiment - Network Latency
+apiVersion: chaos-mesh.org/v1alpha1
+kind: NetworkChaos
+metadata:
+  name: network-latency
+  namespace: edgecloud
+spec:
+  action: delay
+  mode: all
+  selector:
+    namespaces:
+      - edgecloud
+    labelSelectors:
+      app: task-service
+  delay:
+    latency: 100ms
+    correlation: '50'
+    jitter: 50ms
+  duration: 5m
+  scheduler:
+    cron: '@every 12h'
+---
+# Chaos Mesh Experiment - CPU Stress
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: cpu-stress
+  namespace: edgecloud
+spec:
+  mode: all
+  selector:
+    namespaces:
+      - edgecloud
+    labelSelectors:
+      app: node-service
+  stressors:
+    cpu:
+      workers: 4
+      load: 80
+  duration: 3m
+---
+# Chaos Mesh Experiment - Memory Stress
+apiVersion: chaos-mesh.org/v1alpha1
+kind: StressChaos
+metadata:
+  name: memory-stress
+  namespace: edgecloud
+spec:
+  mode: all
+  selector:
+    namespaces:
+      - edgecloud
+    labelSelectors:
+      app: task-service
+  stressors:
+    memory:
+      workers: 2
+      size: 512Mi
+  duration: 3m
+---
+# Chaos Schedule for Regular Testing
+apiVersion: chaos-mesh.org/v1alpha1
+kind: Schedule
+metadata:
+  name: weekly-chaos
+  namespace: edgecloud
+spec:
+  schedule: '0 2 * * 0'  # Every Sunday at 2 AM
+  concurrencyPolicy: Forbid
+  type: Workflow
+  workflowSpec:
+    entry: entry
+    templates:
+      - name: entry
+        templateType: Serial
+        deadline: 30m
+        children:
+          - name: node-failure
+          - name: network-partition
+          - name: cpu-stress
+      - name: node-failure
+        templateType: PodChaos
+        podChaos:
+          action: pod-failure
+          mode: one
+          duration: 2m
+          selector:
+            namespaces:
+              - edgecloud
+            labelSelectors:
+              app: scheduler-service
+      - name: network-partition
+        templateType: NetworkChaos
+        networkChaos:
+          action: partition
+          mode: all
+          duration: 3m
+          selector:
+            namespaces:
+              - edgecloud
+            labelSelectors:
+              app: cockroachdb
+      - name: cpu-stress
+        templateType: StressChaos
+        stressChaos:
+          mode: all
+          stressors:
+            cpu:
+              workers: 2
+              load: 50
+          duration: 5m
+          selector:
+            namespaces:
+              - edgecloud
+            labelSelectors:
+              app: task-service

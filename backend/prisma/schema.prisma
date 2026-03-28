@@ -1,0 +1,933 @@
+// Prisma Schema for Edge-Cloud Orchestrator
+// PostgreSQL database schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// User & Authentication
+// ============================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          Role      @default(VIEWER)
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  lastLoginAt   DateTime?
+  
+  sessions      Session[]
+  auditLogs     AuditLog[]
+  apiKeys       ApiKey[]
+  bootstrapTokens BootstrapToken[]
+  
+  @@index([email])
+  @@map("users")
+}
+
+enum Role {
+  ADMIN
+  OPERATOR
+  VIEWER
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  userId       String
+  token        String   @unique
+  refreshToken String   @unique
+  expiresAt    DateTime
+  createdAt    DateTime @default(now())
+  
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([token])
+  @@map("sessions")
+}
+
+model ApiKey {
+  id          String   @id @default(uuid())
+  userId      String
+  name        String
+  key         String   @unique
+  permissions Json
+  expiresAt   DateTime?
+  createdAt   DateTime @default(now())
+  lastUsedAt  DateTime?
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([key])
+  @@map("api_keys")
+}
+
+// ============================================
+// mTLS Certificate Management
+// ============================================
+
+model CertificateAuthority {
+  id              String   @id @default(uuid())
+  serialNumber    String   @unique
+  certificatePem  String
+  privateKeyPem   String   // Encrypted in production
+  publicKeyPem    String
+  issuedAt        DateTime @default(now())
+  expiresAt       DateTime
+  isActive        Boolean  @default(true)
+  
+  @@map("certificate_authorities")
+}
+
+model BootstrapToken {
+  id          String   @id @default(uuid())
+  token       String   @unique
+  nodeId      String?
+  createdBy   String
+  createdAt   DateTime @default(now())
+  expiresAt   DateTime
+  usedAt      DateTime?
+  usedBy      String?
+  
+  user        User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  
+  @@index([token])
+  @@map("bootstrap_tokens")
+}
+
+model CertificateRevocation {
+  id            String   @id @default(uuid())
+  serialNumber  String   @unique
+  nodeId        String
+  reason        String
+  revokedAt     DateTime @default(now())
+  
+  @@index([serialNumber])
+  @@map("certificate_revocations")
+}
+
+// ============================================
+// Edge Nodes
+// ============================================
+
+model EdgeNode {
+  id                String   @id @default(uuid())
+  name              String   @unique
+  location          String
+  region            String
+  status            NodeStatus @default(ONLINE)
+  ipAddress         String
+  port              Int
+  url               String
+  
+  // Resources
+  cpuCores          Int
+  memoryGB          Int
+  storageGB         Int
+  
+  // Current metrics
+  cpuUsage          Float    @default(0)
+  memoryUsage       Float    @default(0)
+  storageUsage      Float    @default(0)
+  latency           Float    @default(0)
+  
+  // Task info
+  tasksRunning      Int      @default(0)
+  maxTasks          Int      @default(10)
+  
+  // Cost
+  costPerHour       Float    @default(0.05)
+  
+  // Network
+  bandwidthInMbps   Int      @default(100)
+  bandwidthOutMbps  Int      @default(100)
+  
+  // Status
+  isMaintenanceMode Boolean  @default(false)
+  lastHeartbeat     DateTime @default(now())
+  
+  // Timestamps
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  // Relations
+  tasks             Task[]
+  taskExecutions    TaskExecution[]
+  metrics           NodeMetric[]
+  certificates      NodeCertificate[]
+  pricing           NodePricing?
+  
+  @@index([region])
+  @@index([status])
+  @@map("edge_nodes")
+}
+
+enum NodeStatus {
+  ONLINE
+  OFFLINE
+  DEGRADED
+  MAINTENANCE
+}
+
+model NodeMetric {
+  id           String   @id @default(uuid())
+  nodeId       String
+  timestamp    DateTime @default(now())
+  
+  cpuUsage     Float
+  memoryUsage  Float
+  storageUsage Float
+  latency      Float
+  tasksRunning Int
+  networkIn    Float
+  networkOut   Float
+  
+  node         EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  
+  @@index([nodeId, timestamp])
+  @@map("node_metrics")
+}
+
+model NodeCertificate {
+  id             String   @id @default(uuid())
+  nodeId         String
+  certificatePem String
+  publicKeyPem   String
+  serialNumber   String
+  issuedAt       DateTime @default(now())
+  expiresAt      DateTime
+  isActive       Boolean  @default(true)
+  
+  node           EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  
+  @@index([nodeId])
+  @@map("node_certificates")
+}
+
+// ============================================
+// Tasks
+// ============================================
+
+model Task {
+  id           String     @id @default(uuid())
+  name         String
+  type         TaskType
+  status       TaskStatus @default(PENDING)
+  priority     Priority   @default(MEDIUM)
+  target       ExecutionTarget
+  
+  // Scheduling
+  nodeId       String?
+  policy       String
+  reason       String
+  
+  // Timing
+  submittedAt  DateTime   @default(now())
+  
+  // Retry configuration
+  maxRetries   Int        @default(3)
+  
+  // Input/Output
+  input        Json?
+  
+  // Metadata
+  metadata     Json?
+  
+  // Relations
+  node         EdgeNode?  @relation(fields: [nodeId], references: [id])
+  executions   TaskExecution[]
+  logs         TaskLog[]
+  
+  @@index([status])
+  @@index([nodeId])
+  @@index([submittedAt])
+  @@map("tasks")
+}
+
+// TaskExecution tracks each actual execution attempt
+// This separates "what to run" (Task) from "how it ran" (TaskExecution)
+model TaskExecution {
+  id           String     @id @default(uuid())
+  taskId       String
+  
+  // Execution identity
+  attemptNumber Int      @default(1)
+  
+  // Node assignment (where it ran)
+  nodeId       String?
+  node         EdgeNode?  @relation(fields: [nodeId], references: [id])
+  nodeUrl      String?    // Snapshot of node URL at execution time
+  
+  // Timing (lifecycle tracking)
+  scheduledAt  DateTime   @default(now())  // When added to queue
+  startedAt    DateTime?                   // When container started
+  completedAt  DateTime?                   // When container finished
+  durationMs   Int?                        // Actual execution time (wall clock)
+  queueWaitMs  Int?                        // Time spent waiting in queue
+  
+  // Status
+  status       ExecutionStatus @default(PENDING)
+  exitCode     Int?                        // Container exit code (0 = success)
+  
+  // Resource usage (actual measurements from container)
+  cpuUsageAvg      Float?                  // Average CPU % during execution
+  cpuUsagePeak     Float?                  // Peak CPU %
+  memoryUsageMax   Float?                  // Peak memory in GB
+  storageReadBytes Int?                    // Bytes read from disk
+  storageWriteBytes Int?                   // Bytes written to disk
+  networkIngressBytes Int?                 // Bytes received
+  networkEgressBytes Int?                  // Bytes sent
+  
+  // Cost (actual, calculated after execution)
+  costUSD      Float?     @default(0)
+  
+  // Output and results
+  output       Json?                       // Task output data
+  error        String?                     // Error message if failed
+  errorStack   String?                     // Stack trace if available
+  
+  // Container information
+  containerId  String?                     // Docker container ID
+  image        String?                     // Container image used
+  imageDigest  String?                     // Image SHA256 digest
+  
+  // Metadata
+  retryReason  String?                     // Why this retry was needed
+  metadata     Json?                       // Additional execution metadata
+  
+  // Relations
+  task         Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  logs         TaskLog[]  @relation("ExecutionLogs")
+  
+  @@index([taskId])
+  @@index([nodeId])
+  @@index([status])
+  @@index([startedAt])
+  @@index([completedAt])
+  @@map("task_executions")
+}
+
+enum ExecutionStatus {
+  PENDING     // Queued, waiting for node
+  SCHEDULED   // Assigned to node, not yet started
+  RUNNING     // Container is executing
+  COMPLETED   // Finished successfully (exit 0)
+  FAILED      // Finished with error (exit != 0)
+  CANCELLED   // Cancelled by user
+  TIMEOUT     // Exceeded time limit
+  EVICTED     // Preempted by system
+}
+
+enum TaskType {
+  IMAGE_CLASSIFICATION
+  DATA_AGGREGATION
+  MODEL_INFERENCE
+  SENSOR_FUSION
+  VIDEO_PROCESSING
+  LOG_ANALYSIS
+  ANOMALY_DETECTION
+  CUSTOM
+}
+
+enum TaskStatus {
+  PENDING
+  SCHEDULED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum Priority {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum ExecutionTarget {
+  EDGE
+  CLOUD
+  HYBRID
+}
+
+model TaskLog {
+  id           String   @id @default(uuid())
+  taskId       String
+  executionId  String?  // Optional: link to specific execution
+  
+  timestamp    DateTime @default(now())
+  level        LogLevel
+  source       String   // 'scheduler', 'agent', 'container', etc.
+  message      String
+  metadata     Json?
+  
+  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  execution    TaskExecution? @relation("ExecutionLogs", fields: [executionId], references: [id], onDelete: Cascade)
+  
+  @@index([taskId, timestamp])
+  @@index([executionId])
+  @@map("task_logs")
+}
+
+enum LogLevel {
+  DEBUG
+  INFO
+  WARN
+  ERROR
+}
+
+// ============================================
+// Workflows
+// ============================================
+
+model Workflow {
+  id          String   @id @default(uuid())
+  name        String
+  version     String
+  definition  Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  executions  WorkflowExecution[]
+  
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id           String   @id @default(uuid())
+  workflowId   String
+  status       ExecutionStatus @default(PENDING)
+  input        Json?
+  output       Json?
+  error        String?
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  
+  workflow     Workflow @relation(fields: [workflowId], references: [id])
+  
+  @@index([workflowId])
+  @@map("workflow_executions")
+}
+
+// ============================================
+// Policies & Configuration
+// ============================================
+
+model SchedulingPolicy {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  type        String
+  config      Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  @@map("scheduling_policies")
+}
+
+model AlertRule {
+  id          String   @id @default(uuid())
+  name        String
+  metric      String
+  operator    String
+  threshold   Float
+  duration    Int
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  alerts      Alert[]
+  
+  @@map("alert_rules")
+}
+
+model Alert {
+  id           String   @id @default(uuid())
+  ruleId       String
+  entityId     String
+  entityType   String
+  severity     String
+  message      String
+  acknowledged Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  acknowledgedAt DateTime?
+  
+  rule         AlertRule @relation(fields: [ruleId], references: [id])
+  
+  @@index([createdAt])
+  @@map("alerts")
+}
+
+// ============================================
+// Webhooks
+// ============================================
+
+model Webhook {
+  id          String   @id @default(uuid())
+  name        String
+  url         String
+  events      String[]
+  secret      String?
+  enabled     Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  
+  deliveries  WebhookDelivery[]
+  
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id           String   @id @default(uuid())
+  webhookId    String
+  event        String
+  payload      Json
+  statusCode   Int?
+  response     String?
+  deliveredAt  DateTime?
+  retryCount   Int      @default(0)
+  createdAt    DateTime @default(now())
+  
+  webhook      Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  
+  @@index([webhookId])
+  @@map("webhook_deliveries")
+}
+
+// ============================================
+// Audit & Compliance
+// ============================================
+
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  action      String
+  entityType  String
+  entityId    String?
+  details     Json
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  
+  user        User?    @relation(fields: [userId], references: [id])
+  
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+model ComplianceRecord {
+  id          String   @id @default(uuid())
+  type        String
+  category    String
+  data        Json
+  retention   Int      // days
+  expiresAt   DateTime
+  createdAt   DateTime @default(now())
+  
+  @@index([type])
+  @@index([expiresAt])
+  @@map("compliance_records")
+}
+
+// ============================================
+// Federated Learning
+// ============================================
+
+model FLModel {
+  id           String   @id @default(uuid())
+  name         String
+  version      String
+  architecture String
+  parameters   Int
+  weights      Bytes?
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  
+  sessions     FLSession[]
+  
+  @@map("fl_models")
+}
+
+model FLSession {
+  id           String   @id @default(uuid())
+  modelId      String
+  status       String
+  currentRound Int      @default(0)
+  totalRounds  Int
+  config       Json
+  metrics      Json?
+  startedAt    DateTime @default(now())
+  completedAt  DateTime?
+  
+  model        FLModel  @relation(fields: [modelId], references: [id])
+  
+  @@index([modelId])
+  @@map("fl_sessions")
+}
+
+// ============================================
+// Cost & Sustainability
+// ============================================
+
+model NodePricing {
+  id                  String   @id @default(uuid())
+  nodeId              String   @unique
+  
+  // Compute pricing ($/hour)
+  baseHourlyRate      Float    @default(0.05)
+  cpuCoreRate         Float    @default(0.02)
+  memoryGBRate        Float    @default(0.005)
+  gpuHourlyRate       Float?
+  
+  // Data transfer pricing ($/GB)
+  ingressRate         Float    @default(0)
+  egressRate          Float    @default(0.09)
+  crossRegionMultiplier Float  @default(2.0)
+  
+  // Storage pricing ($/GB/hour)
+  ephemeralGBRate     Float    @default(0.0001)
+  persistentGBRate    Float    @default(0.0001)
+  
+  // Discount/premium modifiers
+  spotDiscount        Float    @default(0)    // 0.0-0.95 (e.g., 0.7 = 70% off)
+  reservedDiscount    Float    @default(0)    // 0.0-0.5
+  priorityPremium     Float    @default(0)    // 0.0-1.0
+  
+  // Metadata
+  currency            String   @default("USD")
+  region              String
+  availabilityZone    String?
+  pricingSource       String   @default("declared") // declared, aws, gcp, azure
+  lastUpdated         DateTime @default(now())
+  
+  node                EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  
+  @@map("node_pricing")
+}
+
+model TaskCostEstimate {
+  id                  String   @id @default(uuid())
+  taskId              String
+  nodeId              String
+  
+  // Estimated costs (before execution)
+  estimatedCompute    Float    @default(0)
+  estimatedData       Float    @default(0)
+  estimatedStorage    Float    @default(0)
+  estimatedTotal      Float    @default(0)
+  estimatedDuration   Int      @default(0)  // minutes
+  
+  // Actual costs (after execution)
+  actualCompute       Float?
+  actualData          Float?
+  actualStorage       Float?
+  actualTotal         Float?
+  actualDuration      Int?     // milliseconds
+  
+  // Variance tracking
+  costVariance        Float?   // (actual - estimated) / estimated
+  durationVariance    Float?
+  
+  // Metadata
+  pricingSnapshot     Json     // Pricing at time of estimate
+  confidence          Float    @default(0.8)  // 0.0-1.0
+  estimatedAt         DateTime @default(now())
+  actualizedAt        DateTime?
+  
+  @@index([taskId])
+  @@index([nodeId])
+  @@map("task_cost_estimates")
+}
+
+model CostHistory {
+  id                  String   @id @default(uuid())
+  nodeId              String
+  taskType            String
+  
+  // Aggregated metrics
+  avgDurationMs       Float    @default(0)
+  avgComputeCost      Float    @default(0)
+  avgDataCost         Float    @default(0)
+  avgTotalCost        Float    @default(0)
+  
+  // Sample statistics
+  sampleCount         Int      @default(0)
+  stdDeviation        Float    @default(0)
+  minCost             Float    @default(0)
+  maxCost             Float    @default(0)
+  
+  // Time window
+  periodStart         DateTime
+  periodEnd           DateTime
+  
+  @@index([nodeId, taskType])
+  @@map("cost_history")
+}
+
+model CostRecord {
+  id          String   @id @default(uuid())
+  nodeId      String?
+  resourceType String
+  amount      Float
+  unit        String
+  cost        Float
+  currency    String   @default("USD")
+  recordedAt  DateTime @default(now())
+  
+  @@index([recordedAt])
+  @@map("cost_records")
+}
+
+model CarbonMetric {
+  id          String   @id @default(uuid())
+  nodeId      String?
+  region      String
+  energyKwh   Float
+  carbonKg    Float
+  renewablePercent Float
+  recordedAt  DateTime @default(now())
+  
+  @@index([recordedAt])
+  @@map("carbon_metrics")
+}
+
+// ============================================
+// Multi-Tenancy (Phase 3)
+// ============================================
+
+model Tenant {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  plan        String   @default("starter")
+  config      Json
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       TenantUser[]
+  
+  @@map("tenants")
+}
+
+model TenantUser {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+  
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  
+  @@unique([tenantId, userId])
+  @@map("tenant_users")
+}
+
+// ============================================
+// Transactional Outbox Pattern
+// ============================================
+
+model OutboxEvent {
+  id            String       @id @default(uuid())
+  aggregateId   String
+  eventType     String
+  idempotencyKey String     @unique
+  payload       Json
+  headers       Json?
+  status        OutboxStatus @default(PENDING)
+  attempts      Int          @default(0)
+  maxAttempts   Int          @default(5)
+  nextRetryAt   DateTime?
+  processedAt   DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  @@index([status, createdAt])
+  @@index([aggregateId])
+  @@index([idempotencyKey])
+  @@map("outbox_events")
+}
+
+enum OutboxStatus {
+  PENDING
+  PROCESSING
+  PUBLISHED
+  FAILED
+}
+
+// ============================================
+// Idempotency Tracking
+// ============================================
+
+model IdempotencyRecord {
+  id             String   @id @default(uuid())
+  idempotencyKey String   @unique
+  resourceType   String
+  resourceId     String
+  requestHash    String?
+  result         Json?
+  status         IdempotencyStatus @default(PROCESSING)
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@index([idempotencyKey])
+  @@index([resourceType, resourceId])
+  @@index([expiresAt])
+  @@map("idempotency_records")
+}
+
+enum IdempotencyStatus {
+  PROCESSING
+  COMPLETED
+  FAILED
+}
+
+// ============================================
+// DLQ Message Storage (Kafka Primary)
+// ============================================
+
+model DLQMessage {
+  id                String   @id
+  originalTopic     String
+  originalPartition Int
+  originalOffset    String
+  messageKey        String?
+  messageValue      Json
+  headers           Json
+  errorMessage      String
+  errorStack        String?
+  retryCount        Int      @default(0)
+  maxRetries        Int      @default(5)
+  status            String   @default("pending")
+  nextRetryAt       DateTime?
+  resolvedAt        DateTime?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([status])
+  @@index([originalTopic])
+  @@index([createdAt])
+  @@map("dlq_messages")
+}
+
+// ============================================
+// Processed Offsets (Exactly-Once Semantics)
+// ============================================
+
+model ProcessedOffset {
+  id             String   @id @default(uuid())
+  consumerGroup  String
+  topic          String
+  partition      Int
+  offset         String
+  processedAt    DateTime @default(now())
+
+  @@unique([consumerGroup, topic, partition, offset])
+  @@index([consumerGroup])
+  @@index([topic])
+  @@index([processedAt])
+  @@map("processed_offsets")
+}
+
+// ============================================
+// Saga Pattern (Distributed Transactions)
+// ============================================
+
+model SagaInstance {
+  id            String      @id @default(uuid())
+  sagaType      String
+  correlationId String
+  status        SagaStatus  @default(STARTED)
+  currentStep   Int         @default(0)
+  totalSteps    Int
+  context       Json
+  error         String?
+  startedAt     DateTime    @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime    @updatedAt
+
+  steps         SagaStep[]
+
+  @@index([correlationId])
+  @@index([status])
+  @@map("saga_instances")
+}
+
+model SagaStep {
+  id          String     @id @default(uuid())
+  sagaId      String
+  stepName    String
+  stepOrder   Int
+  status      StepStatus @default(PENDING)
+  input       Json?
+  output      Json?
+  error       String?
+  attempts    Int        @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  saga        SagaInstance @relation(fields: [sagaId], references: [id], onDelete: Cascade)
+
+  @@index([sagaId])
+  @@map("saga_steps")
+}
+
+enum SagaStatus {
+  STARTED
+  IN_PROGRESS
+  COMPLETED
+  COMPENSATING
+  COMPENSATED
+  FAILED
+}
+
+enum StepStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  COMPENSATED
+  FAILED
+}
+
+// ============================================
+// Dead Letter Queue
+// ============================================
+
+model DeadLetterEvent {
+  id             String   @id @default(uuid())
+  originalTopic  String
+  originalKey    String?
+  payload        Json
+  headers        Json?
+  error          String
+  errorStack     String?
+  attempts       Int      @default(0)
+  originalEventId String?
+  status         DLQStatus @default(PENDING)
+  createdAt      DateTime @default(now())
+  lastAttemptAt  DateTime?
+
+  @@index([status])
+  @@index([originalTopic])
+  @@map("dead_letter_events")
+}
+
+enum DLQStatus {
+  PENDING
+  RETRYING
+  REPROCESSED
+  PERMANENTLY_FAILED
+}

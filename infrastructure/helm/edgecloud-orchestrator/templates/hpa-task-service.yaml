@@ -1,0 +1,33 @@
+{{- if .Values.taskService.autoscaling.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "edgecloud.fullname" . }}-task-service
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "edgecloud.labels" . | nindent 4 }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "edgecloud.fullname" . }}-task-service
+  minReplicas: {{ .Values.taskService.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.taskService.autoscaling.maxReplicas }}
+  metrics:
+    {{- if .Values.taskService.autoscaling.targetCPUUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.taskService.autoscaling.targetCPUUtilizationPercentage }}
+    {{- end }}
+    {{- if .Values.taskService.autoscaling.targetMemoryUtilizationPercentage }}
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: {{ .Values.taskService.autoscaling.targetMemoryUtilizationPercentage }}
+    {{- end }}
+{{- end }}

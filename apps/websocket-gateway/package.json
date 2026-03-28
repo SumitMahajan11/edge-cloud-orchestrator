@@ -1,0 +1,26 @@
+{
+  "name": "@edgecloud/websocket-gateway",
+  "version": "1.0.0",
+  "description": "WebSocket Gateway with auto-reconnect and SSE fallback",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "ts-node-dev --respawn src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@edgecloud/event-bus": "workspace:*",
+    "@edgecloud/shared-kernel": "workspace:*",
+    "@fastify/cors": "^8.4.1",
+    "@fastify/websocket": "^8.3.1",
+    "eventemitter3": "^5.0.0",
+    "fastify": "^4.24.3",
+    "ws": "^8.14.2"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "@types/ws": "^8.5.10",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.0"
+  }
+}

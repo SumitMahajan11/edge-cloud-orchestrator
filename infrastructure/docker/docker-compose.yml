@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # Orchestrator Dashboard
+  orchestrator:
+    build:
+      context: ../..
+      dockerfile: Dockerfile
+    ports:
+      - "5173:5173"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=http://localhost:4001
+    networks:
+      - edge-network
+    depends_on:
+      - agent-1
+      - agent-2
+      - agent-3
+
+  # Edge Agent 1
+  agent-1:
+    build:
+      context: ../../edge-agent
+      dockerfile: Dockerfile
+    ports:
+      - "4001:4001"
+    environment:
+      - PORT=4001
+      - NODE_ID=edge-docker-01
+      - NODE_NAME=Docker Edge Node 1
+      - NODE_LOCATION=docker-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - edge-network
+
+  # Edge Agent 2
+  agent-2:
+    build:
+      context: ../../edge-agent
+      dockerfile: Dockerfile
+    ports:
+      - "4002:4001"
+    environment:
+      - PORT=4001
+      - NODE_ID=edge-docker-02
+      - NODE_NAME=Docker Edge Node 2
+      - NODE_LOCATION=docker-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - edge-network
+
+  # Edge Agent 3
+  agent-3:
+    build:
+      context: ../../edge-agent
+      dockerfile: Dockerfile
+    ports:
+      - "4003:4001"
+    environment:
+      - PORT=4001
+      - NODE_ID=edge-docker-03
+      - NODE_NAME=Docker Edge Node 3
+      - NODE_LOCATION=docker-local
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    networks:
+      - edge-network
+
+  # Prometheus (optional)
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - edge-network
+    profiles:
+      - monitoring
+
+  # Grafana (optional)
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    networks:
+      - edge-network
+    profiles:
+      - monitoring
+
+networks:
+  edge-network:
+    driver: bridge

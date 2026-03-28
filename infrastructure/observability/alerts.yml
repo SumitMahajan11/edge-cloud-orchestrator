@@ -1,0 +1,376 @@
+groups:
+  - name: edgecloud-alerts
+    interval: 30s
+    rules:
+      # ==========================================
+      # Task-related alerts
+      # ==========================================
+      - alert: HighTaskFailureRate
+        expr: |
+          (
+            sum(rate(edgecloud_tasks_failed_total[5m])) 
+            / 
+            sum(rate(edgecloud_tasks_created_total[5m]))
+          ) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+          service: task-service
+        annotations:
+          summary: "High task failure rate detected"
+          description: "Task failure rate is {{ $value | humanizePercentage }} over the last 5 minutes"
+
+      - alert: TaskQueueBacklog
+        expr: |
+          sum(edgecloud_tasks_created_total) - sum(edgecloud_tasks_completed_total) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: scheduler-service
+        annotations:
+          summary: "Task queue backlog detected"
+          description: "More than 1000 tasks are pending in the queue"
+
+      - alert: TaskSchedulingLatencyHigh
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(edgecloud_scheduling_duration_seconds_bucket[5m])) by (le)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: scheduler-service
+        annotations:
+          summary: "High task scheduling latency"
+          description: "95th percentile scheduling latency is {{ $value }}s"
+
+      # ==========================================
+      # Node-related alerts
+      # ==========================================
+      - alert: NodeOffline
+        expr: |
+          edgecloud_active_nodes{status="ONLINE"} < 3
+        for: 2m
+        labels:
+          severity: critical
+          service: node-service
+        annotations:
+          summary: "Insufficient online nodes"
+          description: "Only {{ $value }} nodes are online"
+
+      - alert: NodeHighCPUUsage
+        expr: |
+          edgecloud_node_cpu_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: node-service
+        annotations:
+          summary: "High CPU usage on node"
+          description: "Node {{ $labels.node_id }} CPU usage is {{ $value }}%"
+
+      - alert: NodeHighMemoryUsage
+        expr: |
+          edgecloud_node_memory_usage_percent > 90
+        for: 5m
+        labels:
+          severity: warning
+          service: node-service
+        annotations:
+          summary: "High memory usage on node"
+          description: "Node {{ $labels.node_id }} memory usage is {{ $value }}%"
+
+      - alert: NodeHeartbeatMissing
+        expr: |
+          time() - max(edgecloud_node_heartbeats_total) by (node_id) > 60
+        for: 1m
+        labels:
+          severity: critical
+          service: node-service
+        annotations:
+          summary: "Node heartbeat missing"
+          description: "Node {{ $labels.node_id }} has not sent heartbeat for over 60 seconds"
+
+      # ==========================================
+      # Scheduler/RAFT alerts
+      # ==========================================
+      - alert: SchedulerNoLeader
+        expr: |
+          sum(edgecloud_scheduler_leader) == 0
+        for: 30s
+        labels:
+          severity: critical
+          service: scheduler-service
+        annotations:
+          summary: "No scheduler leader elected"
+          description: "RAFT cluster has no leader - scheduling is unavailable"
+
+      - alert: RaftFrequentElections
+        expr: |
+          rate(edgecloud_raft_elections_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: scheduler-service
+        annotations:
+          summary: "Frequent RAFT elections"
+          description: "RAFT is experiencing frequent leader elections - possible network issues"
+
+      # ==========================================
+      # Database alerts
+      # ==========================================
+      - alert: DatabaseHighConnectionCount
+        expr: |
+          edgecloud_db_connections{state="active"} > 100
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "High database connection count"
+          description: "{{ $value }} active database connections"
+
+      - alert: DatabaseSlowQueries
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(edgecloud_db_query_duration_seconds_bucket[5m])) by (le)
+          ) > 1
+        for: 5m
+        labels:
+          severity: warning
+          service: database
+        annotations:
+          summary: "Slow database queries detected"
+          description: "95th percentile query time is {{ $value }}s"
+
+      # ==========================================
+      # API/HTTP alerts
+      # ==========================================
+      - alert: HighErrorRate
+        expr: |
+          (
+            sum(rate(edgecloud_http_requests_total{status_code=~"5.."}[5m]))
+            /
+            sum(rate(edgecloud_http_requests_total[5m]))
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+          service: api-gateway
+        annotations:
+          summary: "High HTTP error rate"
+          description: "HTTP 5xx error rate is {{ $value | humanizePercentage }}"
+
+      - alert: HighLatency
+        expr: |
+          histogram_quantile(0.95, 
+            sum(rate(edgecloud_http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 2
+        for: 5m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High API latency"
+          description: "95th percentile API latency is {{ $value }}s"
+
+      # ==========================================
+      # Event bus alerts
+      # ==========================================
+      - alert: EventProcessingLag
+        expr: |
+          edgecloud_event_lag_seconds > 60
+        for: 5m
+        labels:
+          severity: warning
+          service: event-bus
+        annotations:
+          summary: "Event processing lag"
+          description: "Consumer {{ $labels.consumer_group }} is lagging by {{ $value }}s"
+
+      # ==========================================
+      # Infrastructure alerts
+      # ==========================================
+      - alert: HighMemoryUsage
+        expr: |
+          (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "High system memory usage"
+          description: "Memory usage is above 90%"
+
+      - alert: HighDiskUsage
+        expr: |
+          (node_filesystem_size_bytes - node_filesystem_avail_bytes) / node_filesystem_size_bytes > 0.85
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "High disk usage"
+          description: "Disk usage is above 85% on {{ $labels.device }}"
+
+      - alert: ContainerRestarting
+        expr: |
+          rate(kube_pod_container_status_restarts_total[15m]) > 0
+        for: 5m
+        labels:
+          severity: warning
+          service: kubernetes
+        annotations:
+          summary: "Container is restarting"
+          description: "Container {{ $labels.container }} in pod {{ $labels.pod }} is restarting"
+
+      # ==========================================
+      # Circuit Breaker alerts
+      # ==========================================
+      - alert: CircuitBreakerOpen
+        expr: |
+          edgecloud_circuit_breaker_state{state="OPEN"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Circuit breaker is open"
+          description: "Circuit breaker {{ $labels.name }} in {{ $labels.service }} is OPEN - calls are being rejected"
+
+      - alert: CircuitBreakerHighRejectionRate
+        expr: |
+          rate(edgecloud_circuit_breaker_rejected_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "High circuit breaker rejection rate"
+          description: "Circuit breaker {{ $labels.name }} is rejecting {{ $value }} calls/second"
+
+      # ==========================================
+      # Node Health Score alerts
+      # ==========================================
+      - alert: NodeLowHealthScore
+        expr: |
+          edgecloud_node_health_score < 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: node-service
+        annotations:
+          summary: "Node health score is low"
+          description: "Node {{ $labels.node_id }} health score is {{ $value }} - consider investigation"
+
+      - alert: NodeCriticalHealthScore
+        expr: |
+          edgecloud_node_health_score < 0.3
+        for: 2m
+        labels:
+          severity: critical
+          service: node-service
+        annotations:
+          summary: "Node health score is critical"
+          description: "Node {{ $labels.node_id }} health score is {{ $value }} - node should be drained"
+
+      - alert: NodeConsecutiveFailures
+        expr: |
+          edgecloud_node_consecutive_failures > 3
+        for: 1m
+        labels:
+          severity: warning
+          service: node-service
+        annotations:
+          summary: "Node has consecutive failures"
+          description: "Node {{ $labels.node_id }} has {{ $value }} consecutive task failures"
+
+      # ==========================================
+      # Service Health alerts
+      # ==========================================
+      - alert: ServiceDegraded
+        expr: |
+          edgecloud_service_health_status{status="degraded"} == 1
+        for: 2m
+        labels:
+          severity: warning
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Service is degraded"
+          description: "Service {{ $labels.service }} is reporting degraded status"
+
+      - alert: ServiceUnhealthy
+        expr: |
+          edgecloud_service_health_status{status="unhealthy"} == 1
+        for: 30s
+        labels:
+          severity: critical
+          service: "{{ $labels.service }}"
+        annotations:
+          summary: "Service is unhealthy"
+          description: "Service {{ $labels.service }} is reporting unhealthy status"
+
+      # ==========================================
+      # Multi-region alerts
+      # ==========================================
+      - alert: RegionUnavailable
+        expr: |
+          count by (region) (edgecloud_active_nodes{status="ONLINE"}) == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: infrastructure
+        annotations:
+          summary: "Region has no online nodes"
+          description: "Region {{ $labels.region }} has no online nodes"
+
+      - alert: RegionHighLatency
+        expr: |
+          avg by (region) (edgecloud_node_latency_ms) > 200
+        for: 5m
+        labels:
+          severity: warning
+          service: infrastructure
+        annotations:
+          summary: "Region experiencing high latency"
+          description: "Region {{ $labels.region }} average latency is {{ $value }}ms"
+
+      # ==========================================
+      # Rate Limiting alerts
+      # ==========================================
+      - alert: HighRateLimitRejections
+        expr: |
+          rate(edgecloud_rate_limit_rejected_total[5m]) > 100
+        for: 2m
+        labels:
+          severity: warning
+          service: api-gateway
+        annotations:
+          summary: "High rate limit rejection rate"
+          description: "Rate limiting is rejecting {{ $value }} requests/second - consider increasing limits or investigating traffic source"
+
+      # ==========================================
+      # Backup alerts
+      # ==========================================
+      - alert: BackupFailed
+        expr: |
+          edgecloud_backup_status{status="failed"} == 1
+        for: 1m
+        labels:
+          severity: critical
+          service: backup
+        annotations:
+          summary: "Backup failed"
+          description: "Database backup has failed - immediate attention required"
+
+      - alert: BackupStale
+        expr: |
+          time() - edgecloud_backup_last_success_timestamp_seconds > 86400
+        for: 1h
+        labels:
+          severity: warning
+          service: backup
+        annotations:
+          summary: "Backup is stale"
+          description: "Last successful backup was more than 24 hours ago"
+

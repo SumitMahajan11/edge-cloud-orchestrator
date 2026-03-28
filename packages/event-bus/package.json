@@ -1,0 +1,21 @@
+{
+  "name": "@edgecloud/event-bus",
+  "version": "1.0.0",
+  "description": "Kafka-based event bus for event-driven architecture",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "tsc --watch",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "kafkajs": "^2.2.4",
+    "avsc": "^5.7.7"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
+}

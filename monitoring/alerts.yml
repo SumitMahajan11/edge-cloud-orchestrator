@@ -1,0 +1,273 @@
+groups:
+  - name: edge-cloud-orchestrator
+    rules:
+      # API Server Alerts
+      - alert: APIHighLatency
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High API latency detected"
+          description: "95th percentile latency is {{ $value }}s for {{ $labels.method }} {{ $labels.path }}"
+
+      - alert: APIHighErrorRate
+        expr: rate(http_requests_total{status=~"5.."}[5m]) / rate(http_requests_total[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High API error rate"
+          description: "Error rate is {{ $value | humanizePercentage }} for {{ $labels.instance }}"
+
+      - alert: APIRequestsPerSecond
+        expr: rate(http_requests_total[1m]) > 1000
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request rate"
+          description: "Request rate is {{ $value }}/s, consider scaling"
+
+      # Node Alerts
+      - alert: NodeDown
+        expr: up{job="edge-node"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Edge node is down"
+          description: "Node {{ $labels.instance }} has been down for more than 1 minute"
+
+      - alert: NodeHighCPU
+        expr: node_cpu_usage_percent > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on edge node"
+          description: "Node {{ $labels.node_name }} CPU usage is {{ $value }}%"
+
+      - alert: NodeHighMemory
+        expr: node_memory_usage_percent > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on edge node"
+          description: "Node {{ $labels.node_name }} memory usage is {{ $value }}%"
+
+      - alert: NodeDiskSpaceLow
+        expr: node_disk_usage_percent > 90
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Low disk space on edge node"
+          description: "Node {{ $labels.node_name }} disk usage is {{ $value }}%"
+
+      - alert: NodeHeartbeatMissing
+        expr: time() - node_last_heartbeat_timestamp > 60
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node heartbeat missing"
+          description: "Node {{ $labels.node_name }} has not sent heartbeat for {{ $value }}s"
+
+      - alert: NodeLatencyHigh
+        expr: node_latency_ms > 500
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High latency to edge node"
+          description: "Latency to node {{ $labels.node_name }} is {{ $value }}ms"
+
+      # Task Alerts
+      - alert: TaskFailureRate
+        expr: rate(tasks_failed_total[5m]) / rate(tasks_completed_total[5m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High task failure rate"
+          description: "Task failure rate is {{ $value | humanizePercentage }}"
+
+      - alert: TaskQueueBacklog
+        expr: tasks_pending_count > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Large task queue backlog"
+          description: "{{ $value }} tasks pending in queue"
+
+      - alert: TaskExecutionTime
+        expr: histogram_quantile(0.95, rate(task_execution_duration_seconds_bucket[5m])) > 300
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow task execution"
+          description: "95th percentile task execution time is {{ $value }}s"
+
+      # Database Alerts
+      - alert: DatabaseConnectionsHigh
+        expr: pg_stat_activity_count / pg_settings_max_connections > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High database connection usage"
+          description: "Database connection usage is {{ $value | humanizePercentage }}"
+
+      - alert: DatabaseReplicationLag
+        expr: pg_replication_lag_seconds > 10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database replication lag"
+          description: "Replication lag is {{ $value }}s"
+
+      - alert: DatabaseSlowQueries
+        expr: rate(pg_stat_statements_total_time_seconds[5m]) > 1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow database queries detected"
+          description: "High query time detected"
+
+      # Redis Alerts
+      - alert: RedisMemoryHigh
+        expr: redis_memory_used_bytes / redis_memory_max_bytes > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis memory usage"
+          description: "Redis memory usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisConnectionsHigh
+        expr: redis_connected_clients / redis_config_maxclients > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Redis connection usage"
+          description: "Redis connection usage is {{ $value | humanizePercentage }}"
+
+      - alert: RedisDown
+        expr: redis_up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Redis is down"
+          description: "Redis instance {{ $labels.instance }} is unavailable"
+
+      # Kubernetes Alerts
+      - alert: PodCrashLooping
+        expr: rate(kube_pod_container_status_restarts_total[15m]) > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod is crash looping"
+          description: "Pod {{ $labels.pod }} is restarting frequently"
+
+      - alert: PodNotReady
+        expr: kube_pod_status_phase{phase=~"Pending|Failed"} == 1
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Pod not ready"
+          description: "Pod {{ $labels.pod }} is in {{ $labels.phase }} state"
+
+      - alert: DeploymentReplicasUnavailable
+        expr: kube_deployment_status_replicas_unavailable / kube_deployment_spec_replicas > 0.25
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Deployment replicas unavailable"
+          description: "{{ $value | humanizePercentage }} of {{ $labels.deployment }} replicas are unavailable"
+
+      - alert: HPAOverutilized
+        expr: kube_hpa_status_current_replicas / kube_hpa_spec_max_replicas > 0.9
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "HPA near max replicas"
+          description: "HPA {{ $labels.hpa }} is at {{ $value | humanizePercentage }} of max replicas"
+
+      # Cost Alerts
+      - alert: HighComputeCost
+        expr: daily_compute_cost_usd > 1000
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "High compute costs detected"
+          description: "Daily compute cost is ${{ $value }}"
+
+      - alert: CostAnomaly
+        expr: rate(daily_compute_cost_usd[1h]) > rate(daily_compute_cost_usd[24h] offset 24h) * 1.5
+        for: 30m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Cost anomaly detected"
+          description: "Compute cost increased by {{ $value | humanizePercentage }} compared to yesterday"
+
+      # Carbon Alerts
+      - alert: HighCarbonIntensity
+        expr: carbon_intensity_gco2_per_kwh > 500
+        for: 1h
+        labels:
+          severity: info
+        annotations:
+          summary: "High carbon intensity"
+          description: "Carbon intensity is {{ $value }} gCO2/kWh in {{ $labels.region }}"
+
+      # SLA Alerts
+      - alert: SLAAvailabilityBreached
+        expr: sla_availability_percent < 99.9
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SLA availability breached"
+          description: "Availability is {{ $value }}%, below 99.9% SLA"
+
+      - alert: SLALatencyBreached
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{route="api"}[5m])) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SLA latency breached"
+          description: "P95 latency is {{ $value }}s, above 500ms SLA"
+
+      # Security Alerts
+      - alert: HighFailedLogins
+        expr: rate(auth_failed_logins_total[5m]) > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High failed login attempts"
+          description: "{{ $value }} failed login attempts per second from {{ $labels.source_ip }}"
+
+      - alert: RateLimitExceeded
+        expr: rate(rate_limit_exceeded_total[5m]) > 100
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Rate limit frequently exceeded"
+          description: "Rate limit exceeded {{ $value }} times per second"

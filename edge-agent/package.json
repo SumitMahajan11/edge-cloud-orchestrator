@@ -1,0 +1,23 @@
+{
+  "name": "edge-cloud-agent",
+  "version": "1.0.0",
+  "description": "Edge node agent for distributed compute orchestration",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "nodemon server.js",
+    "agent-1": "set PORT=4001&& set NODE_ID=edge-local-01&& set NODE_NAME=Local Edge Node 1&& node server.js",
+    "agent-2": "set PORT=4002&& set NODE_ID=edge-local-02&& set NODE_NAME=Local Edge Node 2&& node server.js",
+    "agent-3": "set PORT=4003&& set NODE_ID=edge-local-03&& set NODE_NAME=Local Edge Node 3&& node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "systeminformation": "^5.21.20",
+    "node-cron": "^3.0.3",
+    "axios": "^1.6.2"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.2"
+  }
+}
