@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '../components/ui/button'
 import { StatusBadge } from '../components/shared/StatusBadge'
 import { NodeDetailModal } from '../components/modals/NodeDetailModal'
+import { AddNodeModal } from '../components/modals/AddNodeModal'
 import { 
   Plus, 
   Trash2, 
@@ -19,14 +20,15 @@ import type { EdgeNode } from '../types'
 
 interface EdgeNodesProps {
   nodes: EdgeNode[]
-  onAddNode: () => void
+  onAddNode: (nodeData?: Partial<EdgeNode>) => void
   onRemoveNode: (nodeId: string) => void
 }
 
 export function EdgeNodes({ nodes, onAddNode, onRemoveNode }: EdgeNodesProps) {
   // const [selectedNodes, setSelectedNodes] = useState<Set<string>>(new Set())
   const [selectedNode, setSelectedNode] = useState<EdgeNode | null>(null)
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false)
   
   // Toggle selection functionality commented out
   // const toggleSelection = (nodeId: string) => {
@@ -41,15 +43,25 @@ export function EdgeNodes({ nodes, onAddNode, onRemoveNode }: EdgeNodesProps) {
   
   const handleNodeClick = (node: EdgeNode) => {
     setSelectedNode(node)
-    setIsModalOpen(true)
+    setIsDetailModalOpen(true)
+  }
+
+  const handleAddNode = (nodeData: Partial<EdgeNode>) => {
+    onAddNode(nodeData)
+    setIsAddModalOpen(false)
   }
   
   return (
     <>
       <NodeDetailModal 
         node={selectedNode} 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={isDetailModalOpen} 
+        onClose={() => setIsDetailModalOpen(false)} 
+      />
+      <AddNodeModal
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
+        onSubmit={handleAddNode}
       />
       <div className="space-y-6">
       {/* Header */}
