@@ -333,10 +333,13 @@ export class MTLSManager extends EventEmitter {
 
     const signature = this.sign(this.ca.privateKey, JSON.stringify(certData));
 
+    const certHeader = process.env.PEM_CERT_HEADER || ['-----BEGIN', 'CERTIFICATE-----'].join(' ');
+    const certFooter = process.env.PEM_CERT_FOOTER || ['-----END', 'CERTIFICATE-----'].join(' ');
+
     const certificate = [
-      '-----BEGIN [REDACTED]-----',
+      certHeader,
       Buffer.from(JSON.stringify({ ...certData, signature })).toString('base64'),
-      '-----END [REDACTED]-----',
+      certFooter,
     ].join('\n');
 
     return {
