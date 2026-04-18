@@ -109,7 +109,7 @@ export class CircuitBreaker extends EventEmitter {
   }
 
   private openCircuit(): void {
-    if (this.state === 'OPEN') return;
+    if (this.state === 'OPEN') {return;}
 
     this.state = 'OPEN';
     this.emit('open', { name: this.config.name });
@@ -121,7 +121,7 @@ export class CircuitBreaker extends EventEmitter {
   }
 
   private halfOpenCircuit(): void {
-    if (this.state !== 'OPEN') return;
+    if (this.state !== 'OPEN') {return;}
 
     this.state = 'HALF_OPEN';
     this.halfOpenCalls = 0;
@@ -130,7 +130,7 @@ export class CircuitBreaker extends EventEmitter {
   }
 
   private closeCircuit(): void {
-    if (this.state === 'CLOSED') return;
+    if (this.state === 'CLOSED') {return;}
 
     this.state = 'CLOSED';
     this.failures = 0;

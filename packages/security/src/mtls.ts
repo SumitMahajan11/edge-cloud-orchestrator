@@ -1,6 +1,7 @@
+import { createHash, createSign, createVerify, generateKeyPairSync, randomBytes } from 'crypto';
 import { EventEmitter } from 'eventemitter3';
-import { generateKeyPairSync, createSign, createVerify, createHash, randomBytes } from 'crypto';
-import { readFileSync, writeFileSync, existsSync, mkdirSync } from 'fs';
+import { existsSync, mkdirSync,readFileSync, writeFileSync } from 'fs';
+import * as forge from 'node-forge';
 import { join } from 'path';
 
 export interface CertificateAuthority {
@@ -268,27 +269,40 @@ export class MTLSManager extends EventEmitter {
     return [...this.crl];
   }
 
-  private createSelfSignedCertificate(publicKey: string, privateKey: string): string {
-    const subject = 'CN=EdgeCloud Root CA,O=EdgeCloud,C=US';
-    const validity = 365 * 10; // 10 years
-    const serialNumber = randomBytes(16).toString('hex');
-
-    // Simplified certificate format (in production, use proper X.509)
-    const cert = [
-      '-----BEGIN [REDACTED]-----',
-      Buffer.from(JSON.stringify({
-        subject,
-        issuer: subject,
-        serialNumber,
-        publicKey,
-        notBefore: new Date().toISOString(),
-        notAfter: new Date(Date.now() + validity * 24 * 60 * 60 * 1000).toISOString(),
-        signature: this.sign(privateKey, subject + publicKey),
-      })).toString('base64'),
-      '-----END [REDACTED]-----',
-    ].join('\n');
-
-    return cert;
+  private createSelfSignedCertificate(publicKeyPem: string, privateKeyPem: string): string {
+    // Use node-forge for proper X.509 certificate generation
+    const keys = {
+      privateKey: forge.pki.privateKeyFromPem(privateKeyPem),
+      publicKey: forge.pki.publicKeyFromPem(publicKeyPem),
+    };
+    
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = randomBytes(16).toString('hex');
+    
+    const now = new Date();
+    cert.validity.notBefore = now;
+    cert.validity.notAfter = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000 * 10); // 10 years
+    
+    const attrs = [
+      { name: 'commonName', value: 'EdgeCloud Root CA' },
+      { name: 'organizationName', value: 'EdgeCloud' },
+      { name: 'countryName', value: 'US' },
+    ];
+    
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs);
+    
+    // Add CA extensions
+    cert.setExtensions([
+      { name: 'basicConstraints', cA: true, critical: true },
+      { name: 'keyUsage', keyCertSign: true, cRLSign: true, critical: true },
+    ]);
+    
+    // Self-sign with SHA-384
+    cert.sign(keys.privateKey, forge.md.sha384.create());
+    
+    return forge.pki.certificateToPem(cert);
   }
 
   private createCSR(commonName: string, publicKey: string, options?: any): string {
@@ -301,7 +315,7 @@ export class MTLSManager extends EventEmitter {
   }
 
   private signCertificate(request: CertificateRequest): IssuedCertificate {
-    if (!this.ca) throw new Error('CA not initialized');
+    if (!this.ca) {throw new Error('CA not initialized');}
 
     const serialNumber = randomBytes(16).toString('hex');
     const validityDays = this.config.certValidityDays;
@@ -346,7 +360,7 @@ export class MTLSManager extends EventEmitter {
 
   private verifyCertificateSignature(certificate: string): boolean {
     try {
-      if (!this.ca) return false;
+      if (!this.ca) {return false;}
 
       const certContent = certificate.split('\n').slice(1, -1).join('');
       const parsed = JSON.parse(Buffer.from(certContent, 'base64').toString());

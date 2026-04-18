@@ -1,0 +1,87 @@
+# GSD Configuration
+
+# GitHub Standard Development Configuration
+# This file defines the standards and workflows for this project
+
+## Code Quality Standards
+
+### Linting
+- ESLint with TypeScript support
+- Maximum 50 warnings allowed
+- Auto-fixable issues should be fixed automatically
+
+### Formatting
+- Prettier for consistent code formatting
+- Applied to TypeScript, JavaScript, JSON, and Markdown files
+
+### Type Checking
+- Strict TypeScript configuration
+- No implicit any types
+- Full type coverage required
+
+### Testing
+- Minimum 80% code coverage
+- Unit tests for all modules
+- Integration tests for critical paths
+- E2E tests for user workflows
+
+## Git Workflow
+
+### Branch Naming
+- `feature/` - New features
+- `bugfix/` - Bug fixes
+- `hotfix/` - Critical fixes
+- `refactor/` - Code refactoring
+
+### Commit Messages
+- Use conventional commits format
+- `feat:` - New features
+- `fix:` - Bug fixes
+- `docs:` - Documentation
+- `style:` - Code style changes
+- `refactor:` - Code refactoring
+- `test:` - Testing
+- `chore:` - Maintenance
+
+### Pull Requests
+- Require review for main/develop branches
+- Must pass all CI checks
+- Include tests for new features
+- Update documentation as needed
+
+## Development Workflow
+
+### Pre-commit Hooks
+- Lint code
+- Format code
+- Run type checking
+- Run unit tests
+
+### Pre-push Hooks
+- Full test suite (for protected branches)
+- Coverage checks
+- Security audit
+
+### CI/CD Pipeline
+- Code quality checks
+- Security audit
+- Build verification
+- Test execution
+- Coverage reporting
+
+## Tooling
+
+### Required Tools
+- Node.js 18+
+- pnpm
+- Git
+- Docker (for local development)
+
+### Development Scripts
+- `pnpm gsd:setup` - Initialize GSD workflow
+- `pnpm gsd:check` - Run all quality checks
+- `pnpm gsd:fix` - Auto-fix issues
+- `pnpm lint` - Run linter
+- `pnpm format` - Format code
+- `pnpm typecheck` - Run type checker
+- `pnpm test:ci` - Run tests for CI

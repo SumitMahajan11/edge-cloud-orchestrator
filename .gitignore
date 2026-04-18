@@ -25,8 +25,18 @@ dist-ssr
 *.crt
 *.p12
 *.pfx
+*.cer
 certs/
 secrets/
+!infra/vault/certs/*.example.crt
+
+# Database files
+*.db
+*.sqlite
+
+# Keep example files
+!.env.example
+!.env.production.example
 
 # Editor directories and files
 .vscode/*

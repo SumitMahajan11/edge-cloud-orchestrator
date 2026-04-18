@@ -11,7 +11,6 @@
   "dependencies": {
     "@edgecloud/shared-kernel": "workspace:*",
     "@edgecloud/event-bus": "workspace:*",
-    "@edgecloud/raft-consensus": "workspace:*",
     "@edgecloud/ml-scheduler": "workspace:*",
     "@edgecloud/circuit-breaker": "workspace:*",
     "fastify": "^4.24.0",

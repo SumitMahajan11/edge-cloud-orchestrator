@@ -9,12 +9,13 @@
     "start": "node dist/index.js"
   },
   "dependencies": {
-    "@edgecloud/shared-kernel": "workspace:*",
-    "@edgecloud/event-bus": "workspace:*",
     "@edgecloud/circuit-breaker": "workspace:*",
-    "fastify": "^4.24.0",
+    "@edgecloud/event-bus": "workspace:*",
+    "@edgecloud/shared-kernel": "workspace:*",
     "@fastify/cors": "^8.4.0",
     "@fastify/rate-limit": "^9.0.0",
+    "fastify": "^4.24.0",
+    "ioredis": "^5.10.1",
     "pg": "^8.11.0"
   },
   "devDependencies": {

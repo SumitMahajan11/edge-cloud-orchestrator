@@ -1,5 +1,5 @@
+import { CreateTaskCommand, Task, TaskStatus } from '@edgecloud/shared-kernel';
 import { Pool, QueryResult } from 'pg';
-import { Task, CreateTaskCommand, TaskStatus } from '@edgecloud/shared-kernel';
 
 export interface TaskRepository {
   create(command: CreateTaskCommand): Promise<Task>;
@@ -42,7 +42,7 @@ export class PostgresTaskRepository implements TaskRepository {
 
   async findById(id: string): Promise<Task | null> {
     const result = await this.pool.query('SELECT * FROM tasks WHERE id = $1', [id]);
-    if (result.rows.length === 0) return null;
+    if (result.rows.length === 0) {return null;}
     return this.mapRowToTask(result.rows[0]);
   }
 
@@ -55,7 +55,7 @@ export class PostgresTaskRepository implements TaskRepository {
       values.push(options.status);
     }
 
-    query += ' ORDER BY created_at DESC LIMIT $' + (values.length + 1) + ' OFFSET $' + (values.length + 2);
+    query += ` ORDER BY created_at DESC LIMIT $${  values.length + 1  } OFFSET $${  values.length + 2}`;
     values.push(options.limit, options.offset);
 
     const result = await this.pool.query(query, values);
@@ -108,7 +108,7 @@ export class PostgresTaskRepository implements TaskRepository {
     const query = `UPDATE tasks SET ${setClauses.join(', ')} WHERE id = $${values.length} RETURNING *`;
 
     const result = await this.pool.query(query, values);
-    if (result.rows.length === 0) return null;
+    if (result.rows.length === 0) {return null;}
     return this.mapRowToTask(result.rows[0]);
   }
 

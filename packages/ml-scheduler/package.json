@@ -7,15 +7,19 @@
   "scripts": {
     "build": "npx tsc",
     "dev": "tsc --watch",
-    "test": "jest"
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "dependencies": {
     "@edgecloud/shared-kernel": "workspace:*",
     "@tensorflow/tfjs-node": "^4.15.0",
+    "@types/pg": "^8.20.0",
+    "pg": "^8.20.0",
     "simple-statistics": "^7.8.3"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",
-    "typescript": "^5.3.0"
+    "typescript": "^5.3.0",
+    "vitest": "^1.6.0"
   }
 }

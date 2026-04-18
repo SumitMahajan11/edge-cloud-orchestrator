@@ -1,0 +1,110 @@
+﻿TAP version 13
+1..1
+not ok 1 - packages/security/tests/abac.test.ts # time=12.00ms {
+    1..3
+    not ok 1 - ABACEngine # time=9.00ms {
+        1..4
+        not ok 1 - policy management # time=6.00ms {
+            1..3
+            not ok 1 - should add and retrieve policies # time=4.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:15:10"
+                ...
+            not ok 2 - should remove policies # time=1.00ms
+                ---
+                error:
+                    name: "Error"
+                    message: "Policy must have id, name, and effect"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/src/abac.ts:346:13"
+                ...
+            not ok 3 - should clear all policies # time=0.00ms
+                ---
+                error:
+                    name: "Error"
+                    message: "Policy must have id, name, and effect"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/src/abac.ts:346:13"
+                ...
+        }
+        not ok 2 - access decisions # time=1.00ms {
+            1..4
+            not ok 1 - should allow admin full access # time=0.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:52:12"
+                ...
+            not ok 2 - should allow user read access to tasks # time=0.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:52:12"
+                ...
+            not ok 3 - should deny user write access to tasks # time=0.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:52:12"
+                ...
+            not ok 4 - should deny guest access # time=1.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:52:12"
+                ...
+        }
+        not ok 3 - time-based conditions # time=0.00ms {
+            1..1
+            not ok 1 - should deny access outside business hours # time=0.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:186:12"
+                ...
+        }
+        not ok 4 - obligations # time=1.00ms {
+            1..1
+            not ok 1 - should include obligations in decision # time=1.00ms
+                ---
+                error:
+                    name: "TypeError"
+                    message: "(intermediate value).allow(...).forSubject is not a function"
+                at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:231:12"
+                ...
+        }
+    }
+    not ok 2 - PolicyBuilder # time=0.00ms {
+        1..2
+        not ok 1 - should build a complete policy # time=0.00ms
+            ---
+            error:
+                name: "TypeError"
+                message: "(intermediate value).allow(...).forSubject is not a function"
+            at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:274:8"
+            ...
+        not ok 2 - should create deny policy # time=0.00ms
+            ---
+            error:
+                name: "Error"
+                message: "Policy must have id, name, and effect"
+            at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/src/abac.ts:346:13"
+            ...
+    }
+    not ok 3 - DEFAULT_POLICIES # time=3.00ms {
+        1..1
+        not ok 1 - should contain essential policies # time=3.00ms
+            ---
+            error:
+                name: "AssertionError"
+                message: "expected [ 'admin-full-access', ΓÇª(5) ] to include 'user-read-access'"
+            at: "D:/Projects/Cloud1/edge-cloud-orchestrator/packages/security/tests/abac.test.ts:307:23"
+            ...
+    }
+}

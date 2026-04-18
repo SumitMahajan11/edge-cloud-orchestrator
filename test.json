@@ -1,0 +1,10 @@
+﻿{
+  "name": "test",
+  "version": "1.0.0",
+  "scripts": {
+    "test": "echo test"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  }
+}

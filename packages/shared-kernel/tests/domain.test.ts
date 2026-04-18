@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { Task, TaskStatus, TaskPriority } from '../src/domain/task';
+import { beforeEach,describe, expect, it } from 'vitest';
+
 import { EdgeNode, NodeStatus } from '../src/domain/node';
+import { Task, TaskPriority,TaskStatus } from '../src/domain/task';
 
 describe('Task', () => {
   describe('creation', () => {

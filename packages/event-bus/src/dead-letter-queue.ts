@@ -1,5 +1,5 @@
-import { Kafka, Consumer, Producer, Message, EachMessagePayload } from 'kafkajs';
 import { EventEmitter } from 'eventemitter3';
+import { Consumer, EachMessagePayload,Kafka, Message, Producer } from 'kafkajs';
 
 // ============================================================================
 // Types
@@ -208,7 +208,7 @@ export class DeadLetterQueue extends EventEmitter {
       id: e.id,
       originalTopic: e.originalTopic,
       originalKey: e.originalKey,
-      payload: e.payload as Record<string, unknown>,
+      payload: e.payload,
       headers: e.headers as Record<string, string>,
       error: e.error,
       errorStack: e.errorStack || undefined,
@@ -357,7 +357,7 @@ export class DeadLetterQueue extends EventEmitter {
    * Parse Kafka headers
    */
   private parseHeaders(headers?: Record<string, any>): Record<string, string> {
-    if (!headers) return {};
+    if (!headers) {return {};}
     
     const result: Record<string, string> = {};
     for (const [key, value] of Object.entries(headers)) {

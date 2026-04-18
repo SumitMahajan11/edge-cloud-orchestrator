@@ -1,0 +1,35 @@
+{
+  "name": "@edgecloud/agent",
+  "version": "1.0.0",
+  "description": "Edge node agent for distributed compute orchestration",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "agent-1": "set PORT=4001&& set NODE_ID=edge-local-01&& pnpm dev",
+    "agent-2": "set PORT=4002&& set NODE_ID=edge-local-02&& pnpm dev",
+    "agent-3": "set PORT=4003&& set NODE_ID=edge-local-03&& pnpm dev"
+  },
+  "dependencies": {
+    "@edgecloud/shared-kernel": "workspace:*",
+    "axios": "^1.6.2",
+    "cors": "^2.8.5",
+    "dockerode": "^4.0.2",
+    "express": "^4.18.2",
+    "express-async-errors": "^3.1.1",
+    "node-cron": "^3.0.3",
+    "pino": "^8.16.1",
+    "systeminformation": "^5.21.20"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.16",
+    "@types/dockerode": "^3.3.21",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.10.0",
+    "@types/node-cron": "^3.0.11",
+    "nodemon": "^3.0.2",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.3.2"
+  }
+}

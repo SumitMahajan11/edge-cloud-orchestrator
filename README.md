@@ -4,6 +4,26 @@
 
 ---
 
+## 🚀 GSD Implementation
+
+This project follows **GitHub Standard Development (GSD)** practices for consistent, high-quality code delivery.
+
+---
+
+## 📜 Project Protocol
+
+**Mandatory for all Developers and AI Agents:**
+
+This project utilizes a **Continuous Evolution Tracking** system. To ensure long-term maintainability over the multi-month development cycle:
+
+1.  **Update the Chronicle**: Every technical update, architectural shift, or fix **must** be recorded in [CHRONICLE.md](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/CHRONICLE.md) before marking a task as complete.
+2.  **Rationale-First**: Always document the *why* behind design decisions (e.g., choosing Redis over Kafka for specific flows).
+3.  **Baseline Awareness**: Before starting work, review the latest entries in `CHRONICLE.md` to synchronize with the current project state.
+
+---
+
+---
+
 ## Overview
 
 The **Edge-Cloud Compute Orchestrator** is a highly scalable distributed system designed to manage compute workloads across **edge nodes and cloud environments**.

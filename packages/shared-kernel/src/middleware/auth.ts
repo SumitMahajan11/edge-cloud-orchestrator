@@ -1,4 +1,4 @@
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyReply,FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
 
 export interface AuthUser {
@@ -27,7 +27,7 @@ export function createAuthMiddleware(config: AuthConfig) {
 
   return async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
     // Skip authentication for health/metrics endpoints
-    if (skipPaths.some(path => request.url.startsWith(path))) {
+    if (skipPaths.some((path) => request.url.startsWith(path))) {
       return;
     }
 

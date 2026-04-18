@@ -1,16 +1,16 @@
-import { EventEmitter } from 'eventemitter3';
-import { EventBus } from '@edgecloud/event-bus';
-import { VaultClient, ABACEngine, MTLSManager, PolicyBuilder, DEFAULT_POLICIES } from '@edgecloud/security';
-import { MetricsCollector, TracingManager } from '@edgecloud/observability';
+import { PredictiveAnalytics,RealTimeAnalytics, StreamProcessor } from '@edgecloud/analytics';
 import { ChaosEngine } from '@edgecloud/chaos';
-import { StreamProcessor, RealTimeAnalytics, PredictiveAnalytics } from '@edgecloud/analytics';
-import { DistributedCache, PooledDatabase, DistributedRateLimiter } from '@edgecloud/performance';
-import { ResourceReservationManager, GangScheduler } from '@edgecloud/scheduler';
-import { CircuitBreaker, CircuitBreakerRegistry, RetryPolicy, CheckpointManager, type RetryConfig } from '@edgecloud/circuit-breaker';
-import { SandboxRuntimeFactory, type SandboxRuntime, type SandboxConfig } from '@edgecloud/sandbox';
-import { ResilientWebSocketClient, type WebSocketClientConfig } from '@edgecloud/websocket-client';
+import { CheckpointManager, CircuitBreaker, CircuitBreakerRegistry, type RetryConfig,RetryPolicy } from '@edgecloud/circuit-breaker';
+import { EventBus } from '@edgecloud/event-bus';
 import { MultiObjectiveScorer, SchedulingPredictor } from '@edgecloud/ml-scheduler';
+import { MetricsCollector, TracingManager } from '@edgecloud/observability';
+import { DistributedCache, DistributedRateLimiter,PooledDatabase } from '@edgecloud/performance';
 import { RaftNode, type RaftNodeConfig, type StateMachine } from '@edgecloud/raft-consensus';
+import { type SandboxConfig,type SandboxRuntime, SandboxRuntimeFactory } from '@edgecloud/sandbox';
+import { GangScheduler,ResourceReservationManager } from '@edgecloud/scheduler';
+import { ABACEngine, DEFAULT_POLICIES,MTLSManager, PolicyBuilder, VaultClient } from '@edgecloud/security';
+import { ResilientWebSocketClient, type WebSocketClientConfig } from '@edgecloud/websocket-client';
+import { EventEmitter } from 'eventemitter3';
 
 export interface ServiceConfig {
   serviceName: string;
@@ -168,7 +168,7 @@ export class ServiceContainer extends EventEmitter {
   }
 
   async initialize(): Promise<void> {
-    if (this.initialized) return;
+    if (this.initialized) {return;}
 
     this.emit('initializing');
 
@@ -383,8 +383,8 @@ export class ServiceContainer extends EventEmitter {
 
     // Determine overall status
     const coreChecks = ['eventBus', 'database', 'cache', 'vault'];
-    const coreHealthy = coreChecks.every(k => checks[k]);
-    const someHealthy = Object.values(checks).some(v => v);
+    const coreHealthy = coreChecks.every((k) => checks[k]);
+    const someHealthy = Object.values(checks).some((v) => v);
 
     const status = coreHealthy ? 'healthy' : someHealthy ? 'degraded' : 'unhealthy';
 

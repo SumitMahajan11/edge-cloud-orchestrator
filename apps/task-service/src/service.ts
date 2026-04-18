@@ -1,15 +1,16 @@
 import { EventBus, TOPICS } from '@edgecloud/event-bus';
 import {
-  Task,
   CreateTaskCommand,
-  TaskStatus,
-  TaskCreatedEvent,
-  TaskScheduledEvent,
-  TaskCompletedEvent,
-  TaskFailedEvent,
-  TaskCancelledEvent,
   generateCorrelationId,
+  Task,
+  TaskCancelledEvent,
+  TaskCompletedEvent,
+  TaskCreatedEvent,
+  TaskFailedEvent,
+  TaskScheduledEvent,
+  TaskStatus,
 } from '@edgecloud/shared-kernel';
+
 import { TaskRepository } from './repository';
 
 export class TaskService {
@@ -70,7 +71,7 @@ export class TaskService {
       nodeId,
     });
 
-    if (!task) return null;
+    if (!task) {return null;}
 
     // Publish TaskScheduled event
     const event: TaskScheduledEvent = {
@@ -105,7 +106,7 @@ export class TaskService {
       cost,
     });
 
-    if (!task) return null;
+    if (!task) {return null;}
 
     // Publish TaskCompleted event
     const event: TaskCompletedEvent = {
@@ -134,7 +135,7 @@ export class TaskService {
     willRetry: boolean
   ): Promise<Task | null> {
     const task = await this.repository.findById(taskId);
-    if (!task) return null;
+    if (!task) {return null;}
 
     let newStatus: TaskStatus = 'FAILED';
     
@@ -145,7 +146,7 @@ export class TaskService {
 
     const updatedTask = await this.repository.updateStatus(taskId, newStatus);
 
-    if (!updatedTask) return null;
+    if (!updatedTask) {return null;}
 
     // Publish TaskFailed event
     const event: TaskFailedEvent = {
@@ -170,7 +171,7 @@ export class TaskService {
   async cancelTask(taskId: string, reason: string): Promise<Task | null> {
     const task = await this.repository.updateStatus(taskId, 'CANCELLED');
 
-    if (!task) return null;
+    if (!task) {return null;}
 
     // Publish TaskCancelled event
     const event: TaskCancelledEvent = {

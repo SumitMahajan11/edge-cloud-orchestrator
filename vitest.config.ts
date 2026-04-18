@@ -1,15 +1,19 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig } from 'vitest/config'
+import path from 'path'
 
 export default defineConfig({
   test: {
     globals: true,
     environment: 'node',
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'json', 'html'],
-      exclude: ['node_modules/', 'dist/', 'tests/'],
+    setupFiles: ['./vitest.setup.ts'],
+    alias: {
+      '@edgecloud/shared-kernel': path.resolve(__dirname, './packages/shared-kernel/src/index.ts'),
+      '@edgecloud/ml-scheduler': path.resolve(__dirname, './packages/ml-scheduler/src/index.ts'),
+      '@edgecloud/observability': path.resolve(__dirname, './packages/observability/src/index.ts'),
     },
-    timeout: 10000,
-    hookTimeout: 10000,
+    // Ensure we don't try to mock built-ins that we need
+    deps: {
+      interopDefault: true,
+    }
   },
-});
+})

@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: websocket-gateway
+  namespace: edgecloud
+  labels:
+    app.kubernetes.io/name: websocket-gateway
+    app.kubernetes.io/component: gateway
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: websocket-gateway
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: websocket-gateway
+        app.kubernetes.io/component: gateway
+    spec:
+      containers:
+        - name: websocket-gateway
+          image: ghcr.io/SumitMahajan01/edge-cloud-orchestrator/websocket-gateway:latest
+          ports:
+            - containerPort: 3004
+              name: ws
+          env:
+            - name: NODE_ENV
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: NODE_ENV
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: edgecloud-secrets
+                  key: REDIS_URL
+          startupProbe:
+            httpGet:
+              path: /health/startup
+              port: ws
+            failureThreshold: 30
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: ws
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: ws
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+      terminationGracePeriodSeconds: 30
+      imagePullSecrets:
+        - name: ghcr-credentials
+

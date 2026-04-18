@@ -1,21 +1,41 @@
+import { 
+  initTelemetry,
+  createLogger,
+  fastifyLoggingPlugin,
+  SecretManager, 
+  SecretManagerFactory, 
+  validateRequiredSecrets,
+  REDIS_CHANNELS,
+  extractTraceContext,
+  getRequestHeaders,
+  GracefulShutdown,
+  HealthCheck
+} from '@edgecloud/shared-kernel';
+initTelemetry('websocket-gateway');
+
+const logger = createLogger('websocket-gateway');
+
 import Fastify from 'fastify';
-import cors from '@fastify/cors';
 import websocket, { SocketStream } from '@fastify/websocket';
+import cors from '@fastify/cors';
 import { EventEmitter } from 'eventemitter3';
-import { EventBus, TOPICS } from '@edgecloud/event-bus';
+import jwt from 'jsonwebtoken';
+import Redis from 'ioredis';
+import axios from 'axios';
 import type { WebSocket } from 'ws';
 
-const app = Fastify({ logger: true });
+let secretManager: SecretManager;
+let JWT_SECRET: string;
+let PORT: number;
+let HEARTBEAT_INTERVAL: number;
+let RECONNECT_BACKOFF_BASE: number;
+let RECONNECT_BACKOFF_MAX: number;
+let NODE_SERVICE_URL: string;
+let serviceToken: string;
+let redis: Redis;
+let redisSub: Redis;
 
-// Register plugins
-app.register(cors, { origin: true });
-app.register(websocket);
-
-// Configuration
-const PORT = parseInt(process.env.PORT || '3004');
-const HEARTBEAT_INTERVAL = parseInt(process.env.HEARTBEAT_INTERVAL || '30000');
-const RECONNECT_BACKOFF_BASE = parseInt(process.env.RECONNECT_BACKOFF_BASE || '1000');
-const RECONNECT_BACKOFF_MAX = parseInt(process.env.RECONNECT_BACKOFF_MAX || '30000');
+const app = Fastify({ logger: false });
 
 // Connection manager with auto-reconnect support
 class ConnectionManager extends EventEmitter {
@@ -28,7 +48,7 @@ class ConnectionManager extends EventEmitter {
   }
 
   addConnection(socketStream: SocketStream, metadata: ConnectionMetadata): string {
-    const socket = socketStream.socket;
+    const {socket} = socketStream;
     const connectionId = `conn-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     const connection: ManagedConnection = {
@@ -44,21 +64,15 @@ class ConnectionManager extends EventEmitter {
     this.connections.set(connectionId, connection);
     this.emit('connection:added', { connectionId, metadata });
 
-    // Set up message handler
     socket.on('message', (data) => this.handleMessage(connectionId, data));
-
-    // Set up close handler
     socket.on('close', () => {
       this.connections.delete(connectionId);
       this.emit('connection:closed', { connectionId, metadata });
     });
-
-    // Set up error handler
     socket.on('error', (error) => {
       this.emit('connection:error', { connectionId, error });
     });
 
-    // Send connection acknowledgment with reconnect config
     this.send(connectionId, {
       type: 'connected',
       connectionId,
@@ -81,113 +95,100 @@ class ConnectionManager extends EventEmitter {
 
     try {
       const message = JSON.parse(data.toString());
-      
       switch (message.type) {
-        case 'subscribe':
-          this.handleSubscribe(connectionId, message.channels);
-          break;
-        case 'unsubscribe':
-          this.handleUnsubscribe(connectionId, message.channels);
-          break;
-        case 'ping':
-          this.send(connectionId, { type: 'pong', timestamp: Date.now() });
-          break;
-        case 'reconnect':
-          this.handleReconnect(connectionId, message.previousConnectionId);
-          break;
-        default:
-          this.emit('message', { connectionId, message });
+        case 'subscribe': this.handleSubscribe(connectionId, message.channels); break;
+        case 'unsubscribe': this.handleUnsubscribe(connectionId, message.channels); break;
+        case 'ping': this.send(connectionId, { type: 'pong', timestamp: Date.now() }); break;
+        case 'reconnect': this.handleReconnect(connectionId, message.previousConnectionId); break;
+        default: this.emit('message', { connectionId, message });
       }
     } catch (error) {
-      this.send(connectionId, { type: 'error', message: 'Invalid message format' });
+      this.send(connectionId, { type: 'error', message: 'Invalid format' });
     }
   }
 
-  private handleSubscribe(connectionId: string, channels: string[]): void {
+  private async handleSubscribe(connectionId: string, channels: string[]): Promise<void> {
     const connection = this.connections.get(connectionId);
     if (!connection) return;
-
-    channels.forEach(channel => connection.subscriptions.add(channel));
+    
+    for (const ch of channels) {
+      connection.subscriptions.add(ch);
+      if (ch === 'nodes') {
+        // Fetch snapshot for nodes on subscription
+        try {
+          const response = await axios.get(`${NODE_SERVICE_URL}/nodes`, {
+            headers: { 
+              ...getRequestHeaders(),
+              'Authorization': `Bearer ${serviceToken}` 
+            }
+          });
+          this.send(connectionId, { 
+            type: 'snapshot', 
+            channel: 'nodes', 
+            data: response.data 
+          });
+          logger.info({ connectionId }, 'Sent node snapshot to client');
+        } catch (err) {
+          logger.error({ err }, 'Failed to fetch node snapshot');
+        }
+      }
+    }
     this.send(connectionId, { type: 'subscribed', channels });
   }
 
   private handleUnsubscribe(connectionId: string, channels: string[]): void {
     const connection = this.connections.get(connectionId);
     if (!connection) return;
-
-    channels.forEach(channel => connection.subscriptions.delete(channel));
+    channels.forEach(ch => connection.subscriptions.delete(ch));
     this.send(connectionId, { type: 'unsubscribed', channels });
   }
 
   private handleReconnect(connectionId: string, previousId: string): void {
     const previousConnection = this.connections.get(previousId);
     const newConnection = this.connections.get(connectionId);
-    
     if (previousConnection && newConnection) {
-      // Restore subscriptions from previous connection
-      previousConnection.subscriptions.forEach(sub => 
-        newConnection.subscriptions.add(sub)
-      );
-      
-      // Send missed messages (if any were buffered)
-      this.send(connectionId, {
-        type: 'reconnected',
-        previousConnectionId: previousId,
-        subscriptionsRestored: Array.from(newConnection.subscriptions),
-      });
+      previousConnection.subscriptions.forEach(sub => newConnection.subscriptions.add(sub));
+      this.send(connectionId, { type: 'reconnected', previousConnectionId: previousId, subscriptionsRestored: Array.from(newConnection.subscriptions) });
     }
   }
 
   broadcast(channel: string, message: any): void {
+    const allowedRoles = CHANNEL_PERMISSIONS[channel] || [];
     const payload = { type: 'broadcast', channel, data: message, timestamp: Date.now() };
-    
-    for (const [id, connection] of this.connections) {
-      if (connection.subscriptions.has(channel)) {
-        this.send(id, payload);
-      }
+    for (const [id, conn] of this.connections) {
+      if (!allowedRoles.includes(conn.metadata.role)) continue;
+      if (message.region && conn.metadata.region && message.region !== conn.metadata.region) continue;
+      if (conn.subscriptions.has(channel)) this.send(id, payload);
     }
   }
 
   send(connectionId: string, message: any): void {
     const connection = this.connections.get(connectionId);
     if (!connection || connection.socket.readyState !== 1) return;
-
-    try {
-      connection.socket.send(JSON.stringify(message));
-    } catch (error) {
-      this.emit('send:error', { connectionId, error });
-    }
+    try { connection.socket.send(JSON.stringify(message)); } catch (e) { this.emit('send:error', { connectionId, error: e }); }
   }
 
   private sendHeartbeats(): void {
-    for (const [id, connection] of this.connections) {
-      if (!connection.isAlive) {
-        // Connection didn't respond to last ping, close it
-        connection.socket.close(4000, 'Heartbeat timeout');
+    for (const [id, conn] of this.connections) {
+      if (!conn.isAlive) {
+        conn.socket.close(4000, 'Timeout');
         this.connections.delete(id);
         continue;
       }
-
-      connection.isAlive = false;
+      conn.isAlive = false;
       this.send(id, { type: 'ping', timestamp: Date.now() });
     }
   }
 
-  getStats(): ConnectionStats {
-    return {
-      totalConnections: this.connections.size,
-      byRegion: this.groupBy('region'),
-      byType: this.groupBy('type'),
-    };
+  getStats(): any {
+    return { totalConnections: this.connections.size };
   }
 
-  private groupBy(field: keyof ConnectionMetadata): Record<string, number> {
-    const counts: Record<string, number> = {};
+  closeAll(): void {
     for (const conn of this.connections.values()) {
-      const key = String(conn.metadata[field] || 'unknown');
-      counts[key] = (counts[key] || 0) + 1;
+      try { conn.socket.close(1001, 'Shutdown'); } catch (e) {}
     }
-    return counts;
+    this.connections.clear();
   }
 }
 
@@ -203,138 +204,150 @@ interface ManagedConnection {
 
 interface ConnectionMetadata {
   userId?: string;
+  role: 'ADMIN' | 'OPERATOR' | 'VIEWER';
   region?: string;
   type: 'dashboard' | 'agent' | 'cli';
   version?: string;
 }
 
-interface ConnectionStats {
-  totalConnections: number;
-  byRegion: Record<string, number>;
-  byType: Record<string, number>;
-}
-
-// Initialize connection manager
-const connectionManager = new ConnectionManager();
-
-// Initialize event bus
-const eventBus = new EventBus({
-  clientId: 'websocket-gateway',
-  brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
-});
-
-// Subscribe to Kafka events and broadcast to WebSocket clients
-async function setupEventSubscriptions(): Promise<void> {
-  // Task events
-  await eventBus.subscribe(TOPICS.TASK_EVENTS, 'ws-gateway-tasks', async (event) => {
-    connectionManager.broadcast('tasks', event);
-  });
-
-  // Node events
-  await eventBus.subscribe(TOPICS.NODE_EVENTS, 'ws-gateway-nodes', async (event) => {
-    connectionManager.broadcast('nodes', event);
-  });
-
-  // Metrics events
-  await eventBus.subscribe(TOPICS.METRICS, 'ws-gateway-metrics', async (event) => {
-    connectionManager.broadcast('metrics', event);
-  });
-
-  // Scheduler events
-  await eventBus.subscribe(TOPICS.SCHEDULER_DECISIONS, 'ws-gateway-scheduler', async (event) => {
-    connectionManager.broadcast('scheduler', event);
-  });
-}
-
-// WebSocket endpoint
-app.register(async function (fastify) {
-  fastify.get('/ws', { websocket: true }, (connection, req) => {
-    const query = req.query as Record<string, string>;
-    
-    const metadata: ConnectionMetadata = {
-      userId: query.userId,
-      region: query.region || process.env.REGION || 'unknown',
-      type: (query.type as ConnectionMetadata['type']) || 'dashboard',
-      version: query.version,
-    };
-
-    const connectionId = connectionManager.addConnection(connection.socket, metadata);
-
-    // Send initial state
-    connection.socket.send(JSON.stringify({
-      type: 'welcome',
-      connectionId,
-      serverTime: Date.now(),
-      availableChannels: ['tasks', 'nodes', 'metrics', 'scheduler', 'alerts'],
-    }));
-  });
-});
-
-// SSE fallback endpoint for clients that can't use WebSocket
-app.get('/sse', async (request, reply) => {
-  const query = request.query as Record<string, string>;
-  
-  reply.raw.setHeader('Content-Type', 'text/event-stream');
-  reply.raw.setHeader('Cache-Control', 'no-cache');
-  reply.raw.setHeader('Connection', 'keep-alive');
-  reply.raw.setHeader('X-Accel-Buffering', 'no'); // Disable nginx buffering
-
-  const sseId = `sse-${Date.now()}`;
-  
-  // Send initial connection message
-  reply.raw.write(`event: connected\ndata: ${JSON.stringify({ sseId, timestamp: Date.now() })}\n\n`);
-
-  // Create a handler for events
-  const eventHandler = (data: any) => {
-    try {
-      reply.raw.write(`event: message\ndata: ${JSON.stringify(data)}\n\n`);
-    } catch (error) {
-      // Connection closed
-      connectionManager.removeListener('broadcast', eventHandler);
-    }
-  };
-
-  // Subscribe to events
-  connectionManager.on('broadcast', eventHandler);
-
-  // Keep alive
-  const keepAlive = setInterval(() => {
-    try {
-      reply.raw.write(': keepalive\n\n');
-    } catch (error) {
-      clearInterval(keepAlive);
-      connectionManager.removeListener('broadcast', eventHandler);
-    }
-  }, 15000);
-
-  // Handle client disconnect
-  request.raw.on('close', () => {
-    clearInterval(keepAlive);
-    connectionManager.removeListener('broadcast', eventHandler);
-  });
-
-  return reply;
-});
-
-// REST endpoints for stats
-app.get('/health', async () => {
-  return { status: 'healthy', timestamp: new Date().toISOString() };
-});
-
-app.get('/stats', async () => {
-  return connectionManager.getStats();
-});
-
-// Start server
-const start = async () => {
-  try {
-    await setupEventSubscriptions();
-    await app.listen({ port: PORT, host: '0.0.0.0' });
-    console.log(`WebSocket Gateway running on port ${PORT}`);
-  } catch (err) {
-    app.log.error(err);
-    process.exit(1);
-  }
+const CHANNEL_PERMISSIONS: Record<string, string[]> = {
+  'tasks': ['ADMIN', 'OPERATOR', 'VIEWER'],
+  'nodes': ['ADMIN', 'OPERATOR', 'VIEWER'],
+  'metrics': ['ADMIN', 'OPERATOR'],
+  'scheduler': ['ADMIN'],
+  'alerts': ['ADMIN', 'OPERATOR'],
+  'admin': ['ADMIN'],
 };
 
+function validateWebSocketToken(req: any): any {
+  const token = (req.query).token || req.headers['authorization']?.replace('Bearer ', '');
+  if (!token) return { valid: false, error: 'No token' };
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET!) as any;
+    return { valid: true, userId: decoded.userId, role: decoded.role || 'VIEWER' };
+  } catch (err) {
+    return { valid: false, error: 'Invalid' };
+  }
+}
+
+async function start() {
+  secretManager = SecretManagerFactory.create();
+  await validateRequiredSecrets(secretManager, ['JWT_SECRET'], 'websocket-gateway');
+
+  JWT_SECRET = (await secretManager.getSecret('JWT_SECRET'))!;
+  serviceToken = await secretManager.getSecret('SERVICE_TOKEN') || 'internal-default';
+  PORT = parseInt(await secretManager.getSecret('PORT') || '3004', 10);
+  HEARTBEAT_INTERVAL = parseInt(await secretManager.getSecret('HEARTBEAT_INTERVAL') || '30000', 10);
+  RECONNECT_BACKOFF_BASE = parseInt(await secretManager.getSecret('RECONNECT_BACKOFF_BASE') || '1000', 10);
+  RECONNECT_BACKOFF_MAX = parseInt(await secretManager.getSecret('RECONNECT_BACKOFF_MAX') || '30000', 10);
+  NODE_SERVICE_URL = await secretManager.getSecret('NODE_SERVICE_URL') || 'http://localhost:3001';
+
+  const redisHost = await secretManager.getSecret('REDIS_HOST') || 'localhost';
+  const redisPort = parseInt(await secretManager.getSecret('REDIS_PORT') || '6379');
+  redis = new Redis({ host: redisHost, port: redisPort });
+  redisSub = new Redis({ host: redisHost, port: redisPort });
+
+  redisSub.subscribe(REDIS_CHANNELS.NODE_HEARTBEAT);
+  redisSub.on('message', async (channel, message) => {
+    if (channel === REDIS_CHANNELS.NODE_HEARTBEAT) {
+      try {
+        const envelope = JSON.parse(message);
+        const otelMetadata = envelope._otel || {};
+        const requestId = otelMetadata.requestId || '';
+        const data = envelope.payload || envelope;
+
+        const extractedContext = extractTraceContext(otelMetadata);
+        const tracer = (await import('@opentelemetry/api')).trace.getTracer('websocket-gateway');
+        const { runWithRequestId } = await import('@edgecloud/shared-kernel');
+
+        await tracer.startActiveSpan('WSGateway.broadcast', {
+          kind: (await import('@opentelemetry/api')).SpanKind.SERVER,
+          attributes: { 'messaging.system': 'redis', 'messaging.destination': channel }
+        }, extractedContext, async (span) => {
+          await runWithRequestId(requestId, async () => {
+            try {
+              connectionManager.broadcast('nodes', {
+                ...data,
+                _traceId: span.spanContext().traceId,
+                _requestId: requestId
+              });
+              span.setStatus({ code: (await import('@opentelemetry/api')).SpanStatusCode.OK });
+            } catch (err: any) {
+              span.recordException(err);
+              span.setStatus({ code: (await import('@opentelemetry/api')).SpanStatusCode.ERROR });
+            } finally {
+              span.end();
+            }
+          });
+        });
+      } catch (err) {
+        logger.error({ err }, 'Failed to parse Redis heartbeat message');
+      }
+    }
+  });
+
+  const corsOrigins = (await secretManager.getSecret('CORS_ORIGINS') || 'http://localhost:5173,http://localhost:3000').split(',');
+  app.register(cors, { origin: corsOrigins, credentials: true });
+
+  // Register unified logging
+  await app.register(fastifyLoggingPlugin, { logger, serviceName: 'websocket-gateway' });
+
+  app.register(websocket);
+
+  // We still use Kafka for non-realtime business events if needed, but not for high-frequency heartbeats
+  // await eventBus.subscribe(TOPICS.TASK_EVENTS, 'ws-gateway', async (ev) => connectionManager.broadcast('tasks', ev));
+
+  app.register(async (fastify) => {
+    fastify.get('/ws', { websocket: true }, (connection, req) => {
+      const validation = validateWebSocketToken(req);
+      if (!validation.valid) { connection.socket.close(4001, validation.error); return; }
+      const metadata: ConnectionMetadata = {
+        userId: validation.userId,
+        role: validation.role || 'VIEWER',
+        region: (req.query as any).region || 'unknown',
+        type: (req.query as any).type || 'dashboard',
+      };
+      connectionManager.addConnection(connection, metadata);
+    });
+  });
+
+  app.get('/health', async () => HealthCheck.getLiveness());
+  app.get('/health/live', async () => HealthCheck.getLiveness());
+  app.get('/health/ready', async () => HealthCheck.getReadiness({
+    redis: async () => {
+      try { return (await redis.ping()) === 'PONG'; } catch { return false; }
+    }
+  }));
+  app.get('/health/startup', async () => HealthCheck.getStartup());
+
+  try {
+    await app.listen({ port: PORT, host: '0.0.0.0' });
+    
+    // Initialize shutdown manager
+    GracefulShutdown.init();
+    GracefulShutdown.registerHandler('ws-clients', async () => {
+      logger.info('Notifying WebSocket clients of server restart...');
+      connectionManager.broadcast('admin', { type: 'server-restarting', message: 'WebSocket Gateway is restarting for maintenance.' });
+      // Give clients a moment to receive the message
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      connectionManager.closeAll();
+    });
+    GracefulShutdown.registerHandler('redis', async () => {
+      if (redis) redis.disconnect();
+      if (redisSub) redisSub.disconnect();
+    });
+    GracefulShutdown.registerHandler('app', async () => {
+      await app.close();
+    });
+
+    HealthCheck.setReady(true);
+    
+    logger.info(`WebSocket Gateway running on port ${PORT} using ${secretManager.constructor.name}`);
+  } catch (err) {
+    logger.error({ err }, 'Failed to start WebSocket Gateway');
+    process.exit(1);
+  }
+}
+
+// Start the application
 start();

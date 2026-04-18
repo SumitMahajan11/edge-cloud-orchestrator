@@ -1,0 +1,36 @@
+openapi: 3.0.0
+info:
+  title: Cloud1 Backend API
+  version: 1.0.0
+  description: API documentation for Cloud1 edge orchestrator backend
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /health:
+    get:
+      summary: Health check
+      responses:
+        '200':
+          description: Server is healthy
+
+  /api/nodes:
+    get:
+      summary: Get all edge nodes
+      responses:
+        '200':
+          description: List of nodes
+
+  /api/tasks:
+    post:
+      summary: Create a new task
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        '200':
+          description: Task created

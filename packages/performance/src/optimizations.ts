@@ -110,7 +110,7 @@ export class DistributedCache extends EventEmitter {
       }
     } else {
       // Someone else is fetching, wait and retry
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await new Promise((resolve) => setTimeout(resolve, 100));
       return this.getWithLock(key, factory, ttlSeconds, lockTimeout);
     }
   }
@@ -163,6 +163,18 @@ export class MultiLayerCache extends EventEmitter {
     await this.l2Cache.delete(key);
   }
 
+  async deletePattern(pattern: string): Promise<void> {
+    // Delete from L1 cache - iterate and match pattern
+    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    for (const key of this.l1Cache.keys()) {
+      if (regex.test(key)) {
+        this.l1Cache.delete(key);
+      }
+    }
+    // Delete from L2 cache
+    await this.l2Cache.deletePattern(pattern);
+  }
+
   private cleanupL1(): void {
     const now = Date.now();
     for (const [key, entry] of this.l1Cache.entries()) {
@@ -206,12 +218,8 @@ export class PooledDatabase extends EventEmitter {
       ssl: config.ssl,
       max: config.poolSize || 20,
       min: 5,
-      acquireTimeoutMillis: 5000,
-      createTimeoutMillis: 5000,
-      destroyTimeoutMillis: 5000,
+      connectionTimeoutMillis: 5000,
       idleTimeoutMillis: 30000,
-      reapIntervalMillis: 1000,
-      createRetryIntervalMillis: 200,
       statement_timeout: (config.statementTimeout || 30) * 1000,
       query_timeout: (config.queryTimeout || 30) * 1000,
     });

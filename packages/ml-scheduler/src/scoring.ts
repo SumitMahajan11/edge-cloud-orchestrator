@@ -1,4 +1,5 @@
-import { Task, EdgeNode, TaskScore, DEFAULT_SCORE_WEIGHTS } from '@edgecloud/shared-kernel';
+import { DEFAULT_SCORE_WEIGHTS,EdgeNode, Task, TaskScore } from '@edgecloud/shared-kernel';
+
 import { SchedulingPredictor } from './predictor';
 
 export interface ScoreWeights {
@@ -34,7 +35,7 @@ export class MultiObjectiveScorer {
     this.weights = weights;
   }
 
-  calculateScore(task: Task, node: EdgeNode): NodeScoreResult {
+  async calculateScore(task: Task, node: EdgeNode): Promise<NodeScoreResult> {
     // Normalize metrics to 0-1 scale (higher is better)
     const latencyScore = this.normalizeLatency(node.latency);
     const cpuScore = this.normalizeCpuUsage(node.cpuUsage);
@@ -44,7 +45,7 @@ export class MultiObjectiveScorer {
     const healthScore = this.normalizeHealthScore(node.healthScore);
 
     // ML prediction
-    const mlPrediction = this.predictor.predictSuccess(task, node);
+    const mlPrediction = await this.predictor.predictAsync(task, node);
 
     // Weighted sum
     const score =
@@ -71,14 +72,14 @@ export class MultiObjectiveScorer {
     };
   }
 
-  rankNodes(task: Task, nodes: EdgeNode[]): NodeScoreResult[] {
-    const scores = nodes.map((node) => this.calculateScore(task, node));
+  async rankNodes(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult[]> {
+    const scores = await Promise.all(nodes.map((node) => this.calculateScore(task, node)));
     return scores.sort((a, b) => b.score - a.score);
   }
 
-  selectBestNode(task: Task, nodes: EdgeNode[]): NodeScoreResult | null {
-    if (nodes.length === 0) return null;
-    const ranked = this.rankNodes(task, nodes);
+  async selectBestNode(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult | null> {
+    if (nodes.length === 0) {return null;}
+    const ranked = await this.rankNodes(task, nodes);
     return ranked[0];
   }
 
@@ -131,7 +132,7 @@ export class MultiObjectiveScorer {
     // This is a simplified check - in production, use more sophisticated matching
     const requiredCapabilities = this.getRequiredCapabilities(task.type);
     
-    if (requiredCapabilities.length === 0) return 1;
+    if (requiredCapabilities.length === 0) {return 1;}
     
     const nodeCapabilities = node.capabilities || [];
     const matched = requiredCapabilities.filter((cap) =>

@@ -1,75 +1,64 @@
-# Scheduler Service Dockerfile
-FROM node:20-alpine AS builder
-
+# Stage 1: Dependency installation
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy workspace manifests first — Docker caches this layer if nothing changed
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/shared-kernel/package.json ./packages/shared-kernel/
-COPY packages/shared-kernel/tsconfig.json ./packages/shared-kernel/
-COPY packages/event-bus/package.json ./packages/event-bus/
-COPY packages/event-bus/tsconfig.json ./packages/event-bus/
-COPY packages/raft-consensus/package.json ./packages/raft-consensus/
-COPY packages/raft-consensus/tsconfig.json ./packages/raft-consensus/
-COPY packages/ml-scheduler/package.json ./packages/ml-scheduler/
-COPY packages/ml-scheduler/tsconfig.json ./packages/ml-scheduler/
-COPY packages/security/package.json ./packages/security/
-COPY packages/security/tsconfig.json ./packages/security/
-COPY packages/observability/package.json ./packages/observability/
-COPY packages/observability/tsconfig.json ./packages/observability/
 COPY apps/scheduler-service/package.json ./apps/scheduler-service/
-COPY apps/scheduler-service/tsconfig.json ./apps/scheduler-service/
 
-# Install dependencies with hoisted node_modules
-RUN pnpm install --frozen-lockfile --shamefully-hoist
+RUN corepack enable pnpm && \
+    pnpm install --frozen-lockfile --prefer-offline
 
-# Copy source code
-COPY packages/shared-kernel ./packages/shared-kernel
-COPY packages/event-bus ./packages/event-bus
-COPY packages/raft-consensus ./packages/raft-consensus
-COPY packages/ml-scheduler ./packages/ml-scheduler
-COPY packages/security ./packages/security
-COPY packages/observability ./packages/observability
-COPY apps/scheduler-service ./apps/scheduler-service
-COPY tsconfig.json ./
+# Stage 2: Build
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-# Build all packages from root using npx with workspace resolution
-RUN npx --yes tsc --build packages/shared-kernel
-RUN npx --yes tsc --build packages/event-bus
-RUN npx --yes tsc --build packages/raft-consensus
-RUN npx --yes tsc --build packages/ml-scheduler
-RUN npx --yes tsc --build packages/security
-RUN npx --yes tsc --build packages/observability
-RUN npx --yes tsc --build apps/scheduler-service
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages/shared-kernel/node_modules ./packages/shared-kernel/node_modules
+COPY . .
 
-# Production image
-FROM node:20-alpine
+# Build shared-kernel first (scheduler-service depends on it)
+RUN corepack enable pnpm && \
+    pnpm --filter "@edgecloud/shared-kernel" build && \
+    pnpm --filter "@edgecloud/scheduler-service" build
+
+# Stage 3: Production runtime
+FROM node:20-alpine AS runtime
+
+# Security: don't run as root
+RUN addgroup -g 1001 edgecloud && \
+    adduser -u 1001 -G edgecloud -s /bin/sh -D edgecloud
 
 WORKDIR /app
 
-COPY --from=builder /app/packages/shared-kernel/dist ./packages/shared-kernel/dist
-COPY --from=builder /app/packages/shared-kernel/package*.json ./packages/shared-kernel/
-COPY --from=builder /app/packages/event-bus/dist ./packages/event-bus/dist
-COPY --from=builder /app/packages/event-bus/package*.json ./packages/event-bus/
-COPY --from=builder /app/packages/raft-consensus/dist ./packages/raft-consensus/dist
-COPY --from=builder /app/packages/raft-consensus/package*.json ./packages/raft-consensus/
-COPY --from=builder /app/packages/ml-scheduler/dist ./packages/ml-scheduler/dist
-COPY --from=builder /app/packages/ml-scheduler/package*.json ./packages/ml-scheduler/
-COPY --from=builder /app/packages/security/dist ./packages/security/dist
-COPY --from=builder /app/packages/security/package*.json ./packages/security/
-COPY --from=builder /app/packages/observability/dist ./packages/observability/dist
-COPY --from=builder /app/packages/observability/package*.json ./packages/observability/
-COPY --from=builder /app/apps/scheduler-service/dist ./apps/scheduler-service/dist
-COPY --from=builder /app/apps/scheduler-service/package*.json ./apps/scheduler-service/
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+# Copy only what's needed at runtime
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/shared-kernel/dist ./packages/shared-kernel/dist
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/shared-kernel/package.json ./packages/shared-kernel/
+COPY --from=builder --chown=edgecloud:edgecloud /app/apps/scheduler-service/dist ./apps/scheduler-service/dist
+COPY --from=builder --chown=edgecloud:edgecloud /app/apps/scheduler-service/package.json ./apps/scheduler-service/
 
-ENV NODE_ENV=production
-ENV PORT=3003
+# Install only production dependencies for the final image
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+RUN corepack enable pnpm && \
+    pnpm install --frozen-lockfile --prod --prefer-offline && \
+    pnpm store prune
 
-EXPOSE 3003
+USER edgecloud
+
+# Build metadata — accessible at runtime for /version endpoint
+ARG BUILD_DATE
+ARG GIT_SHA
+ENV BUILD_DATE=${BUILD_DATE} \
+    GIT_SHA=${GIT_SHA} \
+    NODE_ENV=production \
+    PORT=3002
+
+EXPOSE 3002 9090
+
+# Healthcheck — used by Docker and Kubernetes before readinessProbe kicks in
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3002/health/live || exit 1
 
 CMD ["node", "apps/scheduler-service/dist/index.js"]

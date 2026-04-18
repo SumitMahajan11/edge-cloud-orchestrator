@@ -1,5 +1,5 @@
+import { EdgeNode,Task } from '@edgecloud/shared-kernel';
 import { EventEmitter } from 'eventemitter3';
-import { Task, EdgeNode } from '@edgecloud/shared-kernel';
 
 // Phase 11: Advanced Scheduling - Resource Reservations & Gang Scheduling
 
@@ -90,7 +90,7 @@ export class ResourceReservationManager extends EventEmitter {
 
   async releaseReservation(reservationId: string): Promise<void> {
     const reservation = this.reservations.get(reservationId);
-    if (!reservation) return;
+    if (!reservation) {return;}
 
     reservation.status = 'RELEASED';
 
@@ -153,7 +153,7 @@ export class GangScheduler extends EventEmitter {
 
   private async scheduleGang(gangId: string): Promise<void> {
     const request = this.pendingGangs.get(gangId);
-    if (!request || request.status !== 'PENDING') return;
+    if (!request || request.status !== 'PENDING') {return;}
 
     request.status = 'SCHEDULING';
     this.emit('gangSchedulingStarted', request);
@@ -200,23 +200,23 @@ export class AffinityScorer {
     constraint: AffinityConstraint
   ): number {
     let matches = 0;
-    let total = constraint.expressions.length;
+    const total = constraint.expressions.length;
 
     for (const expr of constraint.expressions) {
       const nodeValue = this.getNodeLabel(node, expr.key);
 
       switch (expr.operator) {
         case 'In':
-          if (expr.values.includes(nodeValue)) matches++;
+          if (expr.values.includes(nodeValue)) {matches++;}
           break;
         case 'NotIn':
-          if (!expr.values.includes(nodeValue)) matches++;
+          if (!expr.values.includes(nodeValue)) {matches++;}
           break;
         case 'Exists':
-          if (nodeValue !== undefined) matches++;
+          if (nodeValue !== undefined) {matches++;}
           break;
         case 'DoesNotExist':
-          if (nodeValue === undefined) matches++;
+          if (nodeValue === undefined) {matches++;}
           break;
       }
     }

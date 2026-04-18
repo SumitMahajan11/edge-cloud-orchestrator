@@ -1,5 +1,5 @@
-import { EventEmitter } from 'eventemitter3';
 import { EventBus, TOPICS } from '@edgecloud/event-bus';
+import { EventEmitter } from 'eventemitter3';
 
 // Phase 12: Data Pipeline - Stream Processing & Analytics
 
@@ -107,7 +107,7 @@ export class StreamProcessor extends EventEmitter {
   private async emitWindowResults(windowKey: string, window: StreamWindow): Promise<void> {
     const [ruleId] = windowKey.split(':');
     const rule = this.rules.get(ruleId);
-    if (!rule) return;
+    if (!rule) {return;}
 
     const results = this.aggregateWindow(rule, window);
 
@@ -132,7 +132,7 @@ export class StreamProcessor extends EventEmitter {
     const results: Record<string, any> = {};
 
     for (const agg of rule.aggregations) {
-      const values = window.events.map(e => this.getNestedValue(e.data, agg.field));
+      const values = window.events.map((e) => this.getNestedValue(e.data, agg.field));
       
       switch (agg.operation) {
         case 'count':
@@ -145,10 +145,10 @@ export class StreamProcessor extends EventEmitter {
           results[agg.alias] = values.reduce((a, b) => a + (Number(b) || 0), 0) / values.length;
           break;
         case 'min':
-          results[agg.alias] = Math.min(...values.map(v => Number(v) || 0));
+          results[agg.alias] = Math.min(...values.map((v) => Number(v) || 0));
           break;
         case 'max':
-          results[agg.alias] = Math.max(...values.map(v => Number(v) || 0));
+          results[agg.alias] = Math.max(...values.map((v) => Number(v) || 0));
           break;
         case 'percentile':
           results[agg.alias] = this.calculatePercentile(values, agg.percentile || 95);
@@ -160,7 +160,7 @@ export class StreamProcessor extends EventEmitter {
   }
 
   private getWindowKey(rule: AggregationRule, event: StreamEvent): string {
-    const groupValues = rule.groupBy.map(field => this.getNestedValue(event.data, field));
+    const groupValues = rule.groupBy.map((field) => this.getNestedValue(event.data, field));
     return `${rule.id}:${groupValues.join(':')}:${Math.floor(Date.now() / rule.windowSize)}`;
   }
 
@@ -169,7 +169,7 @@ export class StreamProcessor extends EventEmitter {
   }
 
   private calculatePercentile(values: any[], percentile: number): number {
-    const sorted = values.map(v => Number(v) || 0).sort((a, b) => a - b);
+    const sorted = values.map((v) => Number(v) || 0).sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * sorted.length) - 1;
     return sorted[Math.max(0, index)];
   }
@@ -245,7 +245,7 @@ export class RealTimeAnalytics extends EventEmitter {
 
   getMetricsHistory(durationMinutes: number): DashboardMetrics[] {
     const cutoff = new Date(Date.now() - durationMinutes * 60 * 1000);
-    return this.metrics.filter(m => m.timestamp >= cutoff);
+    return this.metrics.filter((m) => m.timestamp >= cutoff);
   }
 
   // Anomaly detection
@@ -253,7 +253,7 @@ export class RealTimeAnalytics extends EventEmitter {
     const anomalies: Array<{ metric: string; value: number; threshold: number; severity: 'warning' | 'critical' }> = [];
     const latest = this.getLatestMetrics();
 
-    if (!latest) return anomalies;
+    if (!latest) {return anomalies;}
 
     // Check success rate
     if (latest.metrics.successRate < 0.95) {
@@ -301,7 +301,7 @@ export class PredictiveAnalytics extends EventEmitter {
 
     // Keep last 24 hours
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    this.historicalData = this.historicalData.filter(d => d.timestamp >= cutoff);
+    this.historicalData = this.historicalData.filter((d) => d.timestamp >= cutoff);
   }
 
   predictLoad(nextMinutes: number): { timestamp: Date; predictedTasks: number; confidence: number }[] {
@@ -342,7 +342,7 @@ export class PredictiveAnalytics extends EventEmitter {
       const recent = data.slice(-6); // Last 30 minutes
       const avgCpu = recent.reduce((sum, d) => sum + (d.cpuUsage || 0), 0) / recent.length;
       const avgMemory = recent.reduce((sum, d) => sum + (d.memoryUsage || 0), 0) / recent.length;
-      const errorRate = recent.filter(d => d.status === 'error').length / recent.length;
+      const errorRate = recent.filter((d) => d.status === 'error').length / recent.length;
 
       const reasons: string[] = [];
       let probability = 0;

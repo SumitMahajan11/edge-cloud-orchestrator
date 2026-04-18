@@ -76,23 +76,23 @@ function Start-DockerMode() {
     Set-Location $ProjectRoot
 
     # Check if already running
-    $running = docker-compose ps -q
+    $running = docker-compose -f infra/docker/docker-compose.yml ps -q
     if ($running) {
         Write-Status "Services already running. Stopping first..." "Warning"
-        docker-compose down
+        docker-compose -f infra/docker/docker-compose.yml down
     }
 
     # Build and start
     if (-not $SkipBuild) {
         Write-Status "Building services..."
-        docker-compose build --parallel
+        docker-compose -f infra/docker/docker-compose.yml build --parallel
     }
 
     Write-Status "Starting all services..."
     if ($Detached) {
-        docker-compose up -d
+        docker-compose -f infra/docker/docker-compose.yml up -d
     } else {
-        docker-compose up
+        docker-compose -f infra/docker/docker-compose.yml up
         return
     }
 
@@ -162,7 +162,7 @@ function Start-DevMode() {
         @{ Name = "Task Service"; Path = "apps\task-service"; Port = 3001; Cmd = "npm run dev" },
         @{ Name = "Node Service"; Path = "apps\node-service"; Port = 3002; Cmd = "npm run dev" },
         @{ Name = "Scheduler Service"; Path = "apps\scheduler-service"; Port = 3003; Cmd = "npm run dev" },
-        @{ Name = "Backend API"; Path = "backend"; Port = 3000; Cmd = "npm run dev" }
+        @{ Name = "Backend API"; Path = "apps\api"; Port = 3000; Cmd = "npm run dev" }
     )
 
     foreach ($svc in $services) {
@@ -183,7 +183,8 @@ function Start-DevMode() {
     # Start frontend
     if (-not $SkipFrontend) {
         Write-Status "Starting Frontend..."
-        Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$ProjectRoot'; npm run dev" -WindowStyle Normal
+        $webPath = Join-Path $ProjectRoot "apps\web"
+        Start-Process powershell -ArgumentList "-NoExit", "-Command", "cd '$webPath'; npm run dev" -WindowStyle Normal
     }
 
     Write-Header "Development Environment Started!"
@@ -219,7 +220,7 @@ function Start-Services() {
         @{ Name = "Task Service"; Path = "apps\task-service"; Cmd = "npm run dev" },
         @{ Name = "Node Service"; Path = "apps\node-service"; Cmd = "npm run dev" },
         @{ Name = "Scheduler Service"; Path = "apps\scheduler-service"; Cmd = "npm run dev" },
-        @{ Name = "Backend API"; Path = "backend"; Cmd = "npm run dev" }
+        @{ Name = "Backend API"; Path = "apps\api"; Cmd = "npm run dev" }
     )
 
     foreach ($svc in $services) {
@@ -237,9 +238,10 @@ function Start-Services() {
 function Start-Frontend() {
     Write-Header "Starting Frontend Only"
 
-    Set-Location $ProjectRoot
+    $webPath = Join-Path $ProjectRoot "apps\web"
+    Set-Location $webPath
 
-    if (-not (Test-Path "$ProjectRoot\node_modules")) {
+    if (-not (Test-Path "$webPath\node_modules")) {
         Write-Status "Installing dependencies..."
         npm install
     }
@@ -260,7 +262,7 @@ function Start-ProdMode() {
     npm run build
 
     # Start with production compose
-    docker-compose -f docker-compose.yml up -d
+    docker-compose -f infra/docker/docker-compose.yml up -d
 
     Write-Status "Production environment started!" "Success"
 }

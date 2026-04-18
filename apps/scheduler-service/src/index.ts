@@ -7,7 +7,7 @@ import { EventBus, TOPICS } from '@edgecloud/event-bus';
 import { RaftNode, StateMachine } from '@edgecloud/raft-consensus';
 import { MultiObjectiveScorer, SchedulingPredictor } from '@edgecloud/ml-scheduler';
 import { Task, EdgeNode, TaskScheduledEvent, SchedulingDecisionEvent } from '@edgecloud/shared-kernel';
-import { CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
+import { CircuitBreaker, CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
 
 const app = Fastify({ logger: true, trustProxy: true });
 
@@ -46,6 +46,59 @@ const nodeServiceBreaker = circuitBreakerRegistry.getOrCreate('node-service', {
   failureThreshold: 3,
   resetTimeout: 15000,
 });
+
+// Helper to call with circuit breaker
+async function callWithCircuitBreaker<T>(
+  breaker: CircuitBreaker,
+  operation: () => Promise<T>
+): Promise<T> {
+  return breaker.execute(operation);
+}
+
+// Retry with exponential backoff
+async function retryWithBackoff<T>(
+  operation: () => Promise<T>,
+  options: {
+    maxRetries?: number;
+    baseDelay?: number;
+    maxDelay?: number;
+    retryableErrors?: string[];
+  } = {}
+): Promise<T> {
+  const {
+    maxRetries = 3,
+    baseDelay = 100,
+    maxDelay = 10000,
+    retryableErrors = ['ECONNREFUSED', 'ETIMEDOUT', 'ECONNRESET', '503', '502', '504'],
+  } = options;
+
+  let lastError: any;
+
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      return await operation();
+    } catch (error: any) {
+      lastError = error;
+
+      if (attempt === maxRetries) break;
+
+      const errorCode = error.code || error.response?.status?.toString();
+      if (!retryableErrors.includes(errorCode)) {
+        throw error;
+      }
+
+      const delay = Math.min(
+        baseDelay * Math.pow(2, attempt) + Math.random() * 100,
+        maxDelay
+      );
+
+      console.warn(`Retry ${attempt + 1}/${maxRetries} after ${Math.round(delay)}ms: ${error.message}`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+    }
+  }
+
+  throw lastError;
+}
 
 // State machine for scheduling decisions
 class SchedulingStateMachine implements StateMachine {
@@ -87,10 +140,10 @@ const raftNode = new RaftNode({
 // Subscribe to task events
 async function subscribeToEvents() {
   await eventBus.subscribe(TOPICS.TASK_EVENTS, `scheduler-${NODE_ID}`, async (event) => {
-    if (event.eventType === 'TaskCreated') {
+    if (event.eventType === 'TaskCreated' && 'taskId' in event) {
       // Only leader schedules tasks
       if (raftNode.isLeader()) {
-        await scheduleTask(event.taskId);
+        await scheduleTask(event.taskId as string);
       }
     }
   });
@@ -99,16 +152,26 @@ async function subscribeToEvents() {
 // Schedule a task
 async function scheduleTask(taskId: string): Promise<void> {
   try {
-    // Fetch task details
-    const taskRes = await axios.get(`${TASK_SERVICE_URL}/tasks/${taskId}`);
+    // Fetch task details with circuit breaker and retry
+    const taskRes = await retryWithBackoff(
+      () => callWithCircuitBreaker(taskServiceBreaker, () =>
+        axios.get(`${TASK_SERVICE_URL}/tasks/${taskId}`)
+      ),
+      { maxRetries: 3, baseDelay: 100 }
+    );
     const task: Task = taskRes.data;
 
     if (task.status !== 'PENDING') {
       return; // Task already scheduled or cancelled
     }
 
-    // Fetch healthy nodes
-    const nodesRes = await axios.get(`${NODE_SERVICE_URL}/internal/nodes/healthy`);
+    // Fetch healthy nodes with circuit breaker and retry
+    const nodesRes = await retryWithBackoff(
+      () => callWithCircuitBreaker(nodeServiceBreaker, () =>
+        axios.get(`${NODE_SERVICE_URL}/internal/nodes/healthy`)
+      ),
+      { maxRetries: 3, baseDelay: 100 }
+    );
     const nodes: EdgeNode[] = nodesRes.data;
 
     if (nodes.length === 0) {
@@ -138,11 +201,16 @@ async function scheduleTask(taskId: string): Promise<void> {
       return;
     }
 
-    // Update task in task service
-    await axios.post(`${TASK_SERVICE_URL}/internal/tasks/${taskId}/schedule`, {
-      nodeId: best.nodeId,
-      score: best.score,
-    });
+    // Update task in task service with circuit breaker and retry
+    await retryWithBackoff(
+      () => callWithCircuitBreaker(taskServiceBreaker, () =>
+        axios.post(`${TASK_SERVICE_URL}/internal/tasks/${taskId}/schedule`, {
+          nodeId: best.nodeId,
+          score: best.score,
+        })
+      ),
+      { maxRetries: 3, baseDelay: 100 }
+    );
 
     // Publish scheduling decision event
     const decisionEvent: SchedulingDecisionEvent = {
@@ -166,7 +234,15 @@ async function scheduleTask(taskId: string): Promise<void> {
 }
 
 // API Routes
-app.register(cors, { origin: true, credentials: true });
+// CORS configuration with whitelist - restricted origins for security
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+app.register(cors, { 
+  origin: corsOrigins,
+  credentials: true 
+});
 
 // Rate limiting
 app.register(rateLimit, {

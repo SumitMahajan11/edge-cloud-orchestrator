@@ -1,9 +1,9 @@
 export {
+  type CacheConfig,
+  CachedQueryExecutor,
   DistributedCache,
+  DistributedRateLimiter,
   MultiLayerCache,
   PooledDatabase,
-  CachedQueryExecutor,
-  DistributedRateLimiter,
-  type CacheConfig,
   type PooledDatabaseConfig
 } from './optimizations';

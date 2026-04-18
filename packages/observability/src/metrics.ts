@@ -1,5 +1,5 @@
-import { Registry, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
 import { EventEmitter } from 'eventemitter3';
+import { collectDefaultMetrics,Counter, Gauge, Histogram, Registry } from 'prom-client';
 
 export interface MetricsConfig {
   serviceName: string;
@@ -55,6 +55,10 @@ export class MetricsCollector extends EventEmitter {
   public readonly dbQueryDuration: Histogram;
   public readonly dbConnections: Gauge;
   public readonly dbConnectionErrors: Counter;
+
+  // ML Scheduler metrics
+  public readonly mlSchedulerFallback: Counter;
+  public readonly mlSchedulerDrift: Gauge;
 
   constructor(config: MetricsConfig) {
     super();
@@ -296,6 +300,21 @@ export class MetricsCollector extends EventEmitter {
       labelNames: ['error_type'],
       registers: [this.registry],
     });
+
+    // Initialize ML Scheduler metrics
+    this.mlSchedulerFallback = new Counter({
+      name: `${prefix}_ml_scheduler_fallback_total`,
+      help: 'Total number of ML scheduler fallbacks',
+      labelNames: ['reason', 'fallback_policy'],
+      registers: [this.registry],
+    });
+
+    this.mlSchedulerDrift = new Gauge({
+      name: `${prefix}_ml_scheduler_prediction_mae`,
+      help: 'Mean Absolute Error of ML predictions vs actual outcomes',
+      labelNames: ['model_version'],
+      registers: [this.registry],
+    });
   }
 
   async getMetrics(): Promise<string> {
@@ -363,5 +382,13 @@ export class MetricsCollector extends EventEmitter {
 
   updateRaftCommitIndex(nodeId: string, index: number): void {
     this.raftCommitIndex.set({ node_id: nodeId }, index);
+  }
+
+  recordMLFallback(reason: string, fallbackPolicy: string): void {
+    this.mlSchedulerFallback.inc({ reason, fallback_policy: fallbackPolicy });
+  }
+
+  updateMLDrift(modelVersion: string, mae: number): void {
+    this.mlSchedulerDrift.set({ model_version: modelVersion }, mae);
   }
 }
