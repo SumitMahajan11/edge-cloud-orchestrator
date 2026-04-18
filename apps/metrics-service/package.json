@@ -1,0 +1,22 @@
+{
+  "name": "@edgecloud/metrics-service",
+  "version": "1.0.0",
+  "description": "Metrics aggregation and monitoring microservice",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "npx tsc",
+    "dev": "tsx watch src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "fastify": "^4.24.0",
+    "prom-client": "^15.0.0",
+    "pino": "^8.16.0",
+    "ioredis": "^5.4.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsx": "^4.1.0",
+    "typescript": "^5.3.0"
+  }
+}
