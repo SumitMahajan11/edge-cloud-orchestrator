@@ -56,3 +56,15 @@ Thumbs.db
 coverage/
 .nyc_output/
 *.tsbuildinfo
+
+# Certificates and private keys — NEVER commit these
+*.crt
+*.pfx
+*.pem
+*.key
+*.p12
+*.cer
+*.der
+certs/
+# Exception: example/template files only
+!*.example.crt

@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: edge-agent
+  namespace: edgecloud
+spec:
+  selector:
+    matchLabels:
+      app: edge-agent
+  template:
+    metadata:
+      labels:
+        app: edge-agent
+    spec:
+      serviceAccountName: edgecloud-sa
+      priorityClassName: high-priority
+      securityContext:
+        runAsUser: 0
+      containers:
+        - name: agent
+          image: edgecloud/agent:latest
+          ports:
+            - containerPort: 4001
+          env:
+            - name: NODE_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
+            - name: PORT
+              value: "4001"
+            - name: NODE_ENV
+              value: "production"
+            - name: SECRET_BACKEND
+              value: "env"
+            - name: ORCHESTRATOR_URL
+              value: "https://node-service.edgecloud.svc.cluster.local:3002"
+            - name: REQUEST_SIGNATURE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: agent-secrets
+                  key: signature-secret
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: agent-secrets
+                  key: api-key
+          volumeMounts:
+            - name: docker-socket
+              mountPath: /var/run/docker.sock
+            - name: certs
+              mountPath: /etc/edgecloud/certs
+              readOnly: true
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+          securityContext:
+            readOnlyRootFilesystem: false # Need to write logs if not using stdout
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+      volumes:
+        - name: docker-socket
+          hostPath:
+            path: /var/run/docker.sock
+            type: Socket
+        - name: certs
+          secret:
+            secretName: edge-agent-certs
