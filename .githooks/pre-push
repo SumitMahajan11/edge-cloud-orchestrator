@@ -1,0 +1,35 @@
+#!/bin/sh
+
+# GSD Pre-push Hook
+# Runs comprehensive checks before pushing
+
+echo "🚀 Running GSD pre-push checks..."
+
+# Check if we're pushing to main/master
+protected_branches="main master develop production"
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+
+for branch in $protected_branches; do
+    if [ "$current_branch" = "$branch" ]; then
+        echo "🛡️  Pushing to protected branch: $branch"
+
+        # Run full test suite
+        echo "🧪 Running full test suite..."
+        if ! npm run test:coverage; then
+            echo "❌ Full test suite failed. Cannot push to protected branch."
+            exit 1
+        fi
+
+        # Check coverage threshold
+        echo "📊 Checking test coverage..."
+        if ! npm run test:coverage:check; then
+            echo "❌ Test coverage too low. Cannot push to protected branch."
+            exit 1
+        fi
+
+        break
+    fi
+done
+
+echo "✅ GSD pre-push checks passed!"
+exit 0

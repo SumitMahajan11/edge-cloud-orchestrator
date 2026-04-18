@@ -1,5 +1,5 @@
-import { Registry, Counter, Histogram, Gauge, collectDefaultMetrics } from 'prom-client';
-import { FastifyRequest, FastifyReply } from 'fastify';
+import { FastifyReply,FastifyRequest } from 'fastify';
+import { collectDefaultMetrics,Counter, Gauge, Histogram, Registry } from 'prom-client';
 
 // Create registry
 const registry = new Registry();

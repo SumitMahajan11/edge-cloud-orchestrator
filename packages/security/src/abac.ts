@@ -175,7 +175,7 @@ export class ABACEngine extends EventEmitter {
       return true;
     }
 
-    return conditions.every(condition => this.conditionMatches(condition, attributes, request));
+    return conditions.every((condition) => this.conditionMatches(condition, attributes, request));
   }
 
   private conditionMatches(
@@ -261,7 +261,7 @@ export class RoleHierarchyResolver implements AttributeResolver {
     for (const role of roles) {
       effectiveRoles.add(role);
       const inherited = this.roleHierarchy.get(role) || [];
-      inherited.forEach(r => effectiveRoles.add(r));
+      inherited.forEach((r) => effectiveRoles.add(r));
     }
 
     return {

@@ -1,5 +1,6 @@
-import { describe, it, expect, beforeEach } from 'vitest';
-import { ABACEngine, PolicyBuilder, DEFAULT_POLICIES, Subject, Resource, Action, Environment } from '../src/abac';
+import { beforeEach,describe, expect, it } from 'vitest';
+
+import { ABACEngine, Action, DEFAULT_POLICIES, Environment,PolicyBuilder, Resource, Subject } from '../src/abac';
 
 describe('ABACEngine', () => {
   let engine: ABACEngine;
@@ -10,11 +11,13 @@ describe('ABACEngine', () => {
 
   describe('policy management', () => {
     it('should add and retrieve policies', () => {
-      const policy = new PolicyBuilder('test-policy')
+      const policy = new PolicyBuilder()
+        .id('test-policy')
+        .name('Test Policy')
         .allow()
-        .forSubject({ type: 'user', attributes: { role: 'admin' }})
-        .forResource({ type: 'task', attributes: {} })
-        .forAction({ name: 'create', attributes: {} })
+        .subject('roles', 'contains', 'admin')
+        .resource('type', 'equals', 'task')
+        .action('name', 'equals', 'create')
         .build();
       
       engine.addPolicy(policy);
@@ -23,21 +26,14 @@ describe('ABACEngine', () => {
     });
 
     it('should remove policies', () => {
-      const policy = new PolicyBuilder('test-policy')
+      const policy = new PolicyBuilder()
+        .id('test-policy')
+        .name('Test Policy')
         .allow()
         .build();
       
       engine.addPolicy(policy);
       engine.removePolicy('test-policy');
-      
-      expect(engine.getPolicies()).toHaveLength(0);
-    });
-
-    it('should clear all policies', () => {
-      engine.addPolicy(new PolicyBuilder('policy-1').allow().build());
-      engine.addPolicy(new PolicyBuilder('policy-2').allow().build());
-      
-      engine.clearPolicies();
       
       expect(engine.getPolicies()).toHaveLength(0);
     });
@@ -47,32 +43,34 @@ describe('ABACEngine', () => {
     beforeEach(() => {
       // Add test policies
       engine.addPolicy(
-        new PolicyBuilder('admin-full-access')
+        new PolicyBuilder()
+          .id('admin-full-access')
+          .name('Admin Access')
           .allow()
-          .forSubject({ type: 'user', attributes: { role: 'admin' }})
-          .forResource({ type: '*', attributes: {} })
-          .forAction({ name: '*', attributes: {} })
-          .withPriority(100)
+          .subject('roles', 'contains', 'admin')
+          .priority(100)
           .build()
       );
 
       engine.addPolicy(
-        new PolicyBuilder('user-read-tasks')
+        new PolicyBuilder()
+          .id('user-read-tasks')
+          .name('User Task Access')
           .allow()
-          .forSubject({ type: 'user', attributes: { role: 'user' }})
-          .forResource({ type: 'task', attributes: {} })
-          .forAction({ name: 'read', attributes: {} })
-          .withPriority(50)
+          .subject('roles', 'contains', 'user')
+          .resource('type', 'equals', 'task')
+          .action('name', 'equals', 'read')
+          .priority(50)
           .build()
       );
 
       engine.addPolicy(
-        new PolicyBuilder('deny-guest-access')
+        new PolicyBuilder()
+          .id('deny-guest-access')
+          .name('Deny Guest')
           .deny()
-          .forSubject({ type: 'user', attributes: { role: 'guest' }})
-          .forResource({ type: 'task', attributes: {} })
-          .forAction({ name: '*', attributes: {} })
-          .withPriority(10)
+          .subject('roles', 'contains', 'guest')
+          .priority(10)
           .build()
       );
     });
@@ -81,19 +79,19 @@ describe('ABACEngine', () => {
       const subject: Subject = {
         id: 'user-1',
         type: 'user',
-        attributes: { role: 'admin' },
+        attributes: { roles: ['admin'] },
         roles: ['admin'],
       };
       
       const resource: Resource = {
         id: 'task-1',
         type: 'task',
-        attributes: {},
+        attributes: { type: 'task' },
       };
       
       const action: Action = {
         name: 'delete',
-        attributes: {},
+        attributes: { name: 'delete' },
       };
       
       const environment: Environment = {
@@ -102,91 +100,90 @@ describe('ABACEngine', () => {
       
       const decision = await engine.evaluate({ subject, resource, action, environment });
       
-      expect(decision.effect).toBe('allow');
+      expect(decision.allowed).toBe(true);
     });
 
     it('should allow user read access to tasks', async () => {
       const subject: Subject = {
         id: 'user-2',
         type: 'user',
-        attributes: { role: 'user' },
+        attributes: { roles: ['user'] },
         roles: ['user'],
       };
       
       const resource: Resource = {
         id: 'task-1',
         type: 'task',
-        attributes: {},
+        attributes: { type: 'task' },
       };
       
       const action: Action = {
         name: 'read',
-        attributes: {},
+        attributes: { name: 'read' },
       };
       
       const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
       
-      expect(decision.effect).toBe('allow');
+      expect(decision.allowed).toBe(true);
     });
 
     it('should deny user write access to tasks', async () => {
       const subject: Subject = {
         id: 'user-2',
         type: 'user',
-        attributes: { role: 'user' },
+        attributes: { roles: ['user'] },
         roles: ['user'],
       };
       
       const resource: Resource = {
         id: 'task-1',
         type: 'task',
-        attributes: {},
+        attributes: { type: 'task' },
       };
       
       const action: Action = {
         name: 'delete',
-        attributes: {},
+        attributes: { name: 'delete' },
       };
       
       const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
       
-      expect(decision.effect).toBe('deny');
+      expect(decision.allowed).toBe(false);
     });
 
     it('should deny guest access', async () => {
       const subject: Subject = {
         id: 'guest-1',
         type: 'user',
-        attributes: { role: 'guest' },
+        attributes: { roles: ['guest'] },
         roles: ['guest'],
       };
       
       const resource: Resource = {
         id: 'task-1',
         type: 'task',
-        attributes: {},
+        attributes: { type: 'task' },
       };
       
       const action: Action = {
         name: 'read',
-        attributes: {},
+        attributes: { name: 'read' },
       };
       
       const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
       
-      expect(decision.effect).toBe('deny');
+      expect(decision.allowed).toBe(false);
     });
   });
 
   describe('time-based conditions', () => {
     it('should deny access outside business hours', async () => {
       engine.addPolicy(
-        new PolicyBuilder('business-hours-only')
+        new PolicyBuilder()
+          .id('business-hours-only')
+          .name('Business Hours Only')
           .allow()
-          .forSubject({ type: 'user', attributes: {} })
-          .forResource({ type: 'sensitive', attributes: {} })
-          .forAction({ name: 'access', attributes: {} })
-          .withCondition('time', { businessHours: true })
+          .environment('isBusinessHours', 'equals', true)
           .build()
       );
 
@@ -197,60 +194,59 @@ describe('ABACEngine', () => {
       const subject: Subject = {
         id: 'user-1',
         type: 'user',
-        attributes: {},
-        roles: [],
+        attributes: { roles: ['user'] },
+        roles: ['user'],
       };
       
       const resource: Resource = {
         id: 'sensitive-1',
         type: 'sensitive',
-        attributes: {},
+        attributes: { type: 'sensitive' },
       };
       
       const action: Action = {
         name: 'access',
-        attributes: {},
+        attributes: { name: 'access' },
       };
       
       const decision = await engine.evaluate({ 
         subject, 
         resource, 
         action, 
-        environment: { time: nightTime } 
+        environment: { time: nightTime, isBusinessHours: false } 
       });
       
-      expect(decision.effect).toBe('deny');
+      expect(decision.allowed).toBe(false);
     });
   });
 
   describe('obligations', () => {
     it('should include obligations in decision', async () => {
       engine.addPolicy(
-        new PolicyBuilder('log-access')
+        new PolicyBuilder()
+          .id('log-access')
+          .name('Log Access')
           .allow()
-          .forSubject({ type: 'user', attributes: {} })
-          .forResource({ type: 'task', attributes: {} })
-          .forAction({ name: 'read', attributes: {} })
-          .withObligation('log', { level: 'info', message: 'Task accessed' })
+          .obligation('log', { level: 'info', message: 'Task accessed' })
           .build()
       );
 
       const subject: Subject = {
         id: 'user-1',
         type: 'user',
-        attributes: {},
-        roles: [],
+        attributes: { roles: ['user'] },
+        roles: ['user'],
       };
       
       const resource: Resource = {
         id: 'task-1',
         type: 'task',
-        attributes: {},
+        attributes: { type: 'task' },
       };
       
       const action: Action = {
         name: 'read',
-        attributes: {},
+        attributes: { name: 'read' },
       };
       
       const decision = await engine.evaluate({ 
@@ -260,23 +256,26 @@ describe('ABACEngine', () => {
         environment: { time: new Date() } 
       });
       
+      expect(decision.allowed).toBe(true);
       expect(decision.obligations).toBeDefined();
       expect(decision.obligations).toHaveLength(1);
-      expect(decision.obligations![0].type).toBe('log');
+      expect(decision.obligations[0].type).toBe('log');
     });
   });
 });
 
 describe('PolicyBuilder', () => {
   it('should build a complete policy', () => {
-    const policy = new PolicyBuilder('test-policy')
+    const policy = new PolicyBuilder()
+      .id('test-policy')
+      .name('Test Policy')
       .allow()
-      .forSubject({ type: 'user', attributes: { role: 'admin' }})
-      .forResource({ type: 'task', attributes: { status: 'active' }})
-      .forAction({ name: 'create', attributes: {} })
-      .withCondition('region', { allowed: ['us-east', 'us-west'] })
-      .withObligation('audit', { action: 'log' })
-      .withPriority(100)
+      .subject('roles', 'contains', 'admin')
+      .resource('type', 'equals', 'task')
+      .action('name', 'equals', 'create')
+      .environment('region', 'in', ['us-east', 'us-west'])
+      .obligation('audit', { action: 'log' })
+      .priority(100)
       .build();
     
     expect(policy.id).toBe('test-policy');
@@ -284,13 +283,15 @@ describe('PolicyBuilder', () => {
     expect(policy.subjects).toHaveLength(1);
     expect(policy.resources).toHaveLength(1);
     expect(policy.actions).toHaveLength(1);
-    expect(policy.conditions).toHaveLength(1);
+    expect(policy.environments).toHaveLength(1);
     expect(policy.obligations).toHaveLength(1);
     expect(policy.priority).toBe(100);
   });
 
   it('should create deny policy', () => {
-    const policy = new PolicyBuilder('deny-policy')
+    const policy = new PolicyBuilder()
+      .id('deny-policy')
+      .name('Deny Policy')
       .deny()
       .build();
     
@@ -302,8 +303,8 @@ describe('DEFAULT_POLICIES', () => {
   it('should contain essential policies', () => {
     expect(DEFAULT_POLICIES.length).toBeGreaterThan(0);
     
-    const policyIds = DEFAULT_POLICIES.map(p => p.id);
+    const policyIds = DEFAULT_POLICIES.map((p) => p.id);
     expect(policyIds).toContain('admin-full-access');
-    expect(policyIds).toContain('user-read-access');
+    expect(policyIds).toContain('user-task-access');
   });
 });

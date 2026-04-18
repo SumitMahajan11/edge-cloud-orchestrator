@@ -1,60 +1,52 @@
-import Fastify, { type FastifyRequest, type FastifyReply } from 'fastify';
-import cors from '@fastify/cors';
-import rateLimit from '@fastify/rate-limit';
-import { Pool } from 'pg';
-import { EventBus, DEFAULT_TOPIC_CONFIG } from '@edgecloud/event-bus';
+import { 
+  initTelemetry,
+  createLogger,
+  fastifyLoggingPlugin,
+  GracefulShutdown,
+  HealthCheck
+} from '@edgecloud/shared-kernel';
+initTelemetry('task-service');
+
+const logger = createLogger('task-service');
+
+import { CircuitBreaker, CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
+import { DEFAULT_TOPIC_CONFIG,EventBus } from '@edgecloud/event-bus';
 import {
+  CancelTaskBodySchema,
+  CompleteTaskBodySchema,
   createAuthMiddleware,
-  requireRole,
-  requirePermission,
   CreateTaskSchema,
+  FailTaskBodySchema,
+  requirePermission,
+  requireRole,
+  ScheduleTaskBodySchema,
   TaskIdParamsSchema,
   TaskListQuerySchema,
-  CancelTaskBodySchema,
-  ScheduleTaskBodySchema,
-  CompleteTaskBodySchema,
-  FailTaskBodySchema,
   VERSION,
+  SecretManagerFactory,
+  validateRequiredSecrets,
 } from '@edgecloud/shared-kernel';
-import { CircuitBreaker, CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
+import cors from '@fastify/cors';
+import rateLimit from '@fastify/rate-limit';
+import Fastify, { type FastifyReply,type FastifyRequest } from 'fastify';
+import { Pool } from 'pg';
+
+import { metricsEndpoint,registerMetrics } from './metrics';
 import { PostgresTaskRepository } from './repository';
 import { TaskService } from './service';
-import { registerMetrics, metricsEndpoint } from './metrics';
 
 const app = Fastify({
-  logger: true,
+  logger: false,
   trustProxy: true,
 });
 
-// Configuration
-const config = {
-  jwtSecret: process.env.JWT_SECRET || 'jwt-secret',
-  serviceToken: process.env.SERVICE_TOKEN || 'dev-service-token',
-  database: {
-    host: process.env.DATABASE_HOST || 'localhost',
-    port: parseInt(process.env.DATABASE_PORT || '26257'),
-    database: process.env.DATABASE_NAME || 'edgecloud',
-    user: process.env.DATABASE_USER || 'root',
-    password: process.env.DATABASE_PASSWORD || '',
-    ssl: process.env.DATABASE_SSL === 'true' ? { rejectUnauthorized: false } : false,
-  },
-  kafka: {
-    brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
-  },
-};
-
-// Database connection
-const pool = new Pool(config.database);
-
-// Event bus
-const eventBus = new EventBus({
-  clientId: 'task-service',
-  brokers: config.kafka.brokers,
-});
-
-// Repository and service
-const repository = new PostgresTaskRepository(pool);
-const taskService = new TaskService(repository, eventBus);
+// Global dependencies (initialized in start)
+let pool: Pool;
+let eventBus: EventBus;
+let repository: PostgresTaskRepository;
+let taskService: TaskService;
+let jwtSecret: string;
+let serviceToken: string;
 
 // Circuit breaker registry
 const circuitBreakerRegistry = new CircuitBreakerRegistry();
@@ -74,46 +66,50 @@ const kafkaCircuitBreaker = circuitBreakerRegistry.getOrCreate('kafka', {
 
 // Register plugins
 async function registerPlugins() {
+  const secretManager = SecretManagerFactory.create();
+  const corsOriginsRaw = await secretManager.getSecret('CORS_ORIGINS');
+  const corsOrigins = corsOriginsRaw ? corsOriginsRaw.split(',') : true;
+
   // CORS
   await app.register(cors, {
-    origin: process.env.CORS_ORIGINS?.split(',') || true,
+    origin: corsOrigins,
     credentials: true,
   });
 
   // Rate limiting
+  const redisUrl = await secretManager.getSecret('REDIS_URL');
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
     cache: 10000,
     allowList: ['127.0.0.1'],
-    redis: process.env.REDIS_URL ? { url: process.env.REDIS_URL } : undefined,
+    redis: redisUrl ? { url: redisUrl } : undefined,
   });
 
   // Authentication middleware
   const authMiddleware = createAuthMiddleware({
-    jwtSecret: config.jwtSecret,
-    serviceToken: config.serviceToken,
+    jwtSecret: jwtSecret,
+    serviceToken: serviceToken,
     skipPaths: ['/health', '/metrics', '/ready'],
   });
+
+  // Global request ID middleware and standardized logging
+  await app.register(fastifyLoggingPlugin, { logger, serviceName: 'task-service' });
 
   app.addHook('preHandler', authMiddleware);
 }
 
-// Health check (no auth)
-app.get('/health', async () => {
-  const circuitBreakerMetrics = circuitBreakerRegistry.getAllMetrics();
-  const allHealthy = Object.values(circuitBreakerMetrics).every((m: any) => m.state !== 'OPEN');
-  
-  return {
-    status: allHealthy ? 'healthy' : 'degraded',
-    service: 'task-service',
-    timestamp: new Date().toISOString(),
-    version: VERSION,
-    circuitBreakers: circuitBreakerMetrics,
-  };
-});
+// Health checks
+app.get('/health', async () => HealthCheck.getLiveness());
+app.get('/health/live', async () => HealthCheck.getLiveness());
+app.get('/health/ready', async () => HealthCheck.getReadiness({
+  db: async () => {
+    try { await pool.query('SELECT 1'); return true; } catch { return false; }
+  }
+}));
+app.get('/health/startup', async () => HealthCheck.getStartup());
 
-// Readiness check
+// Legacy probe aliases (for backward compatibility if needed)
 app.get('/ready', async () => {
   try {
     await pool.query('SELECT 1');
@@ -245,6 +241,45 @@ app.post('/internal/tasks/:id/fail', async (request: FastifyRequest, reply: Fast
 
 // Start server
 async function start() {
+  const secretManager = SecretManagerFactory.create();
+
+  // Validate critical secrets
+  await validateRequiredSecrets(
+    secretManager,
+    ['DATABASE_HOST', 'DATABASE_PASSWORD', 'JWT_SECRET', 'KAFKA_BROKERS'],
+    'task-service'
+  );
+
+  // Load config
+  jwtSecret = await secretManager.getSecret('JWT_SECRET') || ''; // Already validated
+  serviceToken = await secretManager.getSecret('SERVICE_TOKEN') || 'dev-service-token';
+
+  const dbHost = await secretManager.getSecret('DATABASE_HOST');
+  const dbPort = parseInt(await secretManager.getSecret('DATABASE_PORT') || '26257');
+  const dbName = await secretManager.getSecret('DATABASE_NAME') || 'edgecloud';
+  const dbUser = await secretManager.getSecret('DATABASE_USER') || 'root';
+  const dbPass = await secretManager.getSecret('DATABASE_PASSWORD') || '';
+  const dbSsl = await secretManager.getSecret('DATABASE_SSL') === 'true';
+
+  pool = new Pool({
+    host: dbHost,
+    port: dbPort,
+    database: dbName,
+    user: dbUser,
+    password: dbPass,
+    ssl: dbSsl ? { rejectUnauthorized: false } : false,
+  });
+
+  const kafkaBrokers = (await secretManager.getSecret('KAFKA_BROKERS') || 'localhost:9092').split(',');
+
+  eventBus = new EventBus({
+    clientId: 'task-service',
+    brokers: kafkaBrokers,
+  });
+
+  repository = new PostgresTaskRepository(pool);
+  taskService = new TaskService(repository, eventBus);
+
   try {
     await registerPlugins();
     
@@ -252,38 +287,37 @@ async function start() {
     try {
       await eventBus.connect();
       await eventBus.createTopics(DEFAULT_TOPIC_CONFIG);
-      console.log('Event bus connected');
+      logger.info(`Event bus connected to ${kafkaBrokers.join(',')} using ${SecretManagerFactory.create().constructor.name}`);
     } catch (kafkaErr) {
-      console.warn('Event bus connection failed, continuing without Kafka:', (kafkaErr as Error).message);
+      logger.warn(`Event bus connection failed, continuing without Kafka: ${(kafkaErr as Error).message}`);
     }
     
     // Register metrics
     registerMetrics();
     
-    const port = parseInt(process.env.PORT || '3001', 10);
+    const port = parseInt(await secretManager.getSecret('PORT') || '3001', 10);
     await app.listen({ port, host: '0.0.0.0' });
     
-    console.log(`Task Service running on port ${port}`);
+    // Initialize shutdown manager
+    GracefulShutdown.init();
+    GracefulShutdown.registerHandler('bus', async () => {
+      if (eventBus) await eventBus.disconnect();
+    });
+    GracefulShutdown.registerHandler('db', async () => {
+      if (pool) await pool.end();
+    });
+    GracefulShutdown.registerHandler('app', async () => {
+      await app.close();
+    });
+
+    HealthCheck.setReady(true);
+
+    logger.info(`Task Service running on port ${port} using ${SecretManagerFactory.create().constructor.name}`);
   } catch (err) {
-    app.log.error(err);
+    logger.error(err, 'Task Service fatal error on start');
     process.exit(1);
   }
 }
 
-// Graceful shutdown
-process.on('SIGTERM', async () => {
-  console.log('Shutting down gracefully...');
-  await eventBus.disconnect();
-  await pool.end();
-  await app.close();
-  process.exit(0);
-});
-
-process.on('SIGINT', async () => {
-  await eventBus.disconnect();
-  await pool.end();
-  await app.close();
-  process.exit(0);
-});
-
+// Start the application
 start();

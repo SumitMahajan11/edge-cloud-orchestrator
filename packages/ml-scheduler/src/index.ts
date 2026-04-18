@@ -1,2 +1,6 @@
-export { MultiObjectiveScorer, type ScoreWeights, type NodeScoreResult } from './scoring';
 export { SchedulingPredictor, type TrainingExample } from './predictor';
+export { MultiObjectiveScorer, type NodeScoreResult, type ScoreWeights } from './scoring';
+export { MLScheduler } from './ml-scheduler';
+export { DriftDetector, type PredictionOutcome } from './drift-detector';
+export { ModelRegistry, type ModelMetadata } from './registry';
+export { FeatureExtractor, type TrainingRow } from './training/feature-extractor';

@@ -1,10 +1,9 @@
 export {
-  ResourceReservationManager,
-  GangScheduler,
+  type AffinityConstraint,
   AffinityScorer,
+  GangScheduler,
+  type GangSchedulingRequest,
+  type PreemptionCandidate,
   PreemptionManager,
   type ResourceReservation,
-  type GangSchedulingRequest,
-  type AffinityConstraint,
-  type PreemptionCandidate
-} from './advanced-scheduling';
+  ResourceReservationManager} from './advanced-scheduling';

@@ -1,4 +1,4 @@
-export type NodeStatus = 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE';
+import { NodeStatus } from '../types/domain';
 
 export interface EdgeNode {
   id: string;

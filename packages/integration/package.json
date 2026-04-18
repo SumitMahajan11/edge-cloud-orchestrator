@@ -22,7 +22,6 @@
     "@edgecloud/sandbox": "workspace:*",
     "@edgecloud/websocket-client": "workspace:*",
     "@edgecloud/ml-scheduler": "workspace:*",
-    "@edgecloud/raft-consensus": "workspace:*",
     "eventemitter3": "^5.0.0"
   },
   "devDependencies": {

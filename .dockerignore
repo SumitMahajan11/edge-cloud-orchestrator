@@ -1,0 +1,14 @@
+node_modules
+.git
+.github
+dist
+*.md
+tests
+monitoring
+docs
+infrastructure
+*.log
+.env*
+backend/node_modules
+packages/*/node_modules
+apps/*/node_modules

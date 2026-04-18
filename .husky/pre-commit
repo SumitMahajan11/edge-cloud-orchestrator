@@ -1,0 +1,12 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+# Reject any commit containing sensitive certificate files
+STAGED_FILES=$(git diff --staged --name-only | grep -E "\.(crt|pfx|pem|key)$")
+
+if [ ! -z "$STAGED_FILES" ]; then
+  echo "❌ ERROR: Sensitive certificate files detected in staged changes:"
+  echo "$STAGED_FILES"
+  echo "Please remove these files and use a secure secret manager instead."
+  exit 1
+fi

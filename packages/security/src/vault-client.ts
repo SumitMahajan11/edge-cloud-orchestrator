@@ -135,7 +135,7 @@ export class VaultClient extends EventEmitter {
   // Database Secrets Engine
   async getDatabaseCredentials(role: string): Promise<DatabaseCredentials> {
     const response = await this.client.get(`/v1/database/creds/${role}`);
-    const data = response.data.data;
+    const {data} = response.data;
 
     const creds: DatabaseCredentials = {
       username: data.username,
@@ -195,7 +195,7 @@ export class VaultClient extends EventEmitter {
       ip_sans: options?.ipSans?.join(','),
     });
 
-    const data = response.data.data;
+    const {data} = response.data;
     return {
       certificate: data.certificate,
       issuingCa: data.issuing_ca,

@@ -1,16 +1,16 @@
-import { NodeSDK } from '@opentelemetry/sdk-node';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
+import { Context, context as apiContext,Span, SpanStatusCode, trace, Tracer } from '@opentelemetry/api';
 import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
-import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
-import { BatchSpanProcessor, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
-import { trace, Tracer, Span, SpanStatusCode, Context, context as apiContext } from '@opentelemetry/api';
+import { ZipkinExporter } from '@opentelemetry/exporter-zipkin';
 import { ExpressInstrumentation } from '@opentelemetry/instrumentation-express';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
-import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { KafkaJsInstrumentation } from '@opentelemetry/instrumentation-kafkajs';
+import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
+import { Resource } from '@opentelemetry/resources';
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { BatchSpanProcessor, SimpleSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { NodeTracerProvider } from '@opentelemetry/sdk-trace-node';
+import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
 
 export interface TracingConfig {
   serviceName: string;

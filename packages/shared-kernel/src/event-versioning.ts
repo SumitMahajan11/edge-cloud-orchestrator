@@ -321,7 +321,7 @@ export class EventVersioningService {
 
       converted = schema.upconverter!(converted);
       currentVersion = Object.keys(registration.schemas).find(
-        v => registration.schemas[v].upconvertFrom === currentVersion
+        (v) => registration.schemas[v].upconvertFrom === currentVersion
       ) || targetVersion;
     }
 

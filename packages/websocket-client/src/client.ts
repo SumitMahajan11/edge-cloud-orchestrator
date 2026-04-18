@@ -118,7 +118,7 @@ export class ResilientWebSocketClient extends EventEmitter {
   private connectSSE(): void {
     try {
       const url = new URL(this.config.sseFallbackUrl);
-      this.subscriptions.forEach(channel => url.searchParams.append('channels', channel));
+      this.subscriptions.forEach((channel) => url.searchParams.append('channels', channel));
       
       this.eventSource = new EventSource(url.toString());
       this.connectionType = 'sse';
@@ -174,7 +174,7 @@ export class ResilientWebSocketClient extends EventEmitter {
   }
 
   subscribe(channels: string[]): void {
-    channels.forEach(channel => this.subscriptions.add(channel));
+    channels.forEach((channel) => this.subscriptions.add(channel));
     
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.send({ type: 'subscribe', channels });
@@ -182,7 +182,7 @@ export class ResilientWebSocketClient extends EventEmitter {
   }
 
   unsubscribe(channels: string[]): void {
-    channels.forEach(channel => this.subscriptions.delete(channel));
+    channels.forEach((channel) => this.subscriptions.delete(channel));
     
     if (this.ws?.readyState === WebSocket.OPEN) {
       this.send({ type: 'unsubscribe', channels });

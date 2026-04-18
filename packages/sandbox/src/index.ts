@@ -1,10 +1,10 @@
 export {
-  SandboxRuntime,
+  DockerRuntime,
   FirecrackerRuntime,
   GVisorRuntime,
-  DockerRuntime,
-  SandboxRuntimeFactory,
   type SandboxConfig,
   type SandboxResult,
+  SandboxRuntime,
+  SandboxRuntimeFactory,
   type TaskExecutionRequest,
 } from './runtime';

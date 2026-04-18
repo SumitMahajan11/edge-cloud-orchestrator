@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventemitter3';
-import { Producer, Message } from 'kafkajs';
+import { Message,Producer } from 'kafkajs';
 
 // Define types locally to avoid direct Prisma dependency
 export type OutboxStatus = 'PENDING' | 'PROCESSING' | 'PUBLISHED' | 'FAILED';
@@ -124,7 +124,7 @@ export class OutboxManager extends EventEmitter {
     }).then(() => 
       tx.outboxEvent.findMany({
         where: {
-          aggregateId: { in: events.map(e => e.aggregateId) },
+          aggregateId: { in: events.map((e) => e.aggregateId) },
           status: 'PENDING',
         },
         orderBy: { createdAt: 'desc' },

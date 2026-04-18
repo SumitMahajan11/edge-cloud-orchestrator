@@ -1,5 +1,10 @@
+import { Prisma,PrismaClient } from '@prisma/client';
 import { EventEmitter } from 'eventemitter3';
-import { PrismaClient, SagaStatus, StepStatus } from '@prisma/client';
+import Redis from 'ioredis';
+
+// Type definitions for saga status (since Prisma types may not be generated)
+type SagaStatus = 'STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'COMPENSATING';
+type StepStatus = 'PENDING' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'COMPENSATED';
 
 // ============================================================================
 // Types and Interfaces
@@ -75,11 +80,91 @@ export class SagaOrchestrator extends EventEmitter {
   private activeSagas: Set<string> = new Set();
   private recoveryInterval: ReturnType<typeof setInterval> | null = null;
   private isRecovering: boolean = false;
+  private redis: Redis | null = null;
 
-  constructor(prisma: PrismaClient, config: Partial<SagaConfig> = {}) {
+  constructor(prisma: PrismaClient, config: Partial<SagaConfig> = {}, redis?: Redis) {
     super();
     this.prisma = prisma;
     this.config = { ...DEFAULT_SAGA_CONFIG, ...config };
+    this.redis = redis || null;
+  }
+
+  /**
+   * Acquire distributed lock for saga
+   */
+  private async acquireLock(sagaId: string, ttlMs: number = 30000): Promise<boolean> {
+    if (!this.redis) {return true;} // Skip if Redis not configured
+    
+    const lockKey = `saga:lock:${sagaId}`;
+    const token = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const acquired = await this.redis.set(lockKey, token, 'PX', ttlMs, 'NX');
+    
+    if (acquired === 'OK') {
+      await this.redis.set(`saga:lock-token:${sagaId}`, token, 'EX', 60);
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Release distributed lock
+   */
+  private async releaseLock(sagaId: string): Promise<void> {
+    if (!this.redis) {return;}
+    
+    const lockKey = `saga:lock:${sagaId}`;
+    const tokenKey = `saga:lock-token:${sagaId}`;
+    
+    const [currentToken, storedToken] = await Promise.all([
+      this.redis.get(lockKey),
+      this.redis.get(tokenKey),
+    ]);
+    
+    if (currentToken === storedToken) {
+      await this.redis.del(lockKey, tokenKey);
+    }
+  }
+
+  /**
+   * Start auto-extending lock for long-running operations
+   */
+  private startLockExtension(sagaId: string, intervalMs: number = 10000): ReturnType<typeof setInterval> | null {
+    if (!this.redis) {return null;}
+    
+    const extend = async () => {
+      const lockKey = `saga:lock:${sagaId}`;
+      const tokenKey = `saga:lock-token:${sagaId}`;
+      const token = await this.redis?.get(tokenKey);
+      
+      if (token) {
+        await this.redis?.pexpire(lockKey, 30000);
+      }
+    };
+    
+    return setInterval(extend, intervalMs);
+  }
+
+  /**
+   * Check if step was already executed (idempotency)
+   */
+  private async wasStepExecuted(sagaId: string, stepName: string, idempotencyKey: string): Promise<boolean> {
+    if (!this.redis) {return false;}
+    
+    const key = `saga:${sagaId}:step:${stepName}`;
+    const stored = await this.redis.get(key);
+    return stored === idempotencyKey;
+  }
+
+  /**
+   * Mark step as executed for idempotency
+   */
+  private async markStepExecuted(sagaId: string, stepName: string, idempotencyKey: string): Promise<void> {
+    if (!this.redis) {return;}
+    
+    const key = `saga:${sagaId}:step:${stepName}`;
+    await this.redis.set(key, idempotencyKey, 'EX', 86400); // 24h retention
   }
 
   /**
@@ -113,7 +198,7 @@ export class SagaOrchestrator extends EventEmitter {
         status: 'STARTED' as SagaStatus,
         currentStep: 0,
         totalSteps: definition.steps.length,
-        context: initialContext as Record<string, unknown>,
+        context: initialContext as unknown as Prisma.InputJsonValue,
       },
       include: { steps: true },
     });
@@ -127,7 +212,7 @@ export class SagaOrchestrator extends EventEmitter {
           stepName: step.name,
           stepOrder: i,
           status: 'PENDING' as StepStatus,
-          input: initialContext as Record<string, unknown>,
+          input: initialContext as unknown as Prisma.InputJsonValue,
         },
       });
     }
@@ -150,7 +235,15 @@ export class SagaOrchestrator extends EventEmitter {
       return; // Already executing
     }
 
+    // Acquire distributed lock
+    const acquired = await this.acquireLock(sagaId);
+    if (!acquired) {
+      this.emit('saga_locked', { sagaId });
+      return; // Another instance is handling this saga
+    }
+
     this.activeSagas.add(sagaId);
+    const lockExtension = this.startLockExtension(sagaId);
 
     try {
       const saga = await this.prisma.sagaInstance.findUnique({
@@ -173,12 +266,21 @@ export class SagaOrchestrator extends EventEmitter {
         data: { status: 'IN_PROGRESS' as SagaStatus },
       });
 
-      // Execute steps sequentially
+      // Execute steps sequentially with idempotency
       let context = saga.context as Record<string, unknown>;
 
       for (let i = saga.currentStep; i < definition.steps.length; i++) {
         const stepDef = definition.steps[i];
         const stepRecord = saga.steps[i];
+
+        // Generate idempotency key
+        const idempotencyKey = `${sagaId}:${stepDef.name}:${i}`;
+
+        // Check if step was already executed (idempotency check)
+        if (await this.wasStepExecuted(sagaId, stepDef.name, idempotencyKey)) {
+          this.emit('step_skipped', { sagaId, stepName: stepDef.name, reason: 'already_executed' });
+          continue;
+        }
 
         // Update step to in progress
         await this.prisma.sagaStep.update({
@@ -206,17 +308,20 @@ export class SagaOrchestrator extends EventEmitter {
             where: { id: stepRecord.id },
             data: {
               status: 'COMPLETED' as StepStatus,
-              output: result,
+              output: result as unknown as Prisma.InputJsonValue,
               completedAt: new Date(),
             },
           });
+
+          // Mark step as executed for idempotency
+          await this.markStepExecuted(sagaId, stepDef.name, idempotencyKey);
 
           // Update saga progress
           await this.prisma.sagaInstance.update({
             where: { id: sagaId },
             data: {
               currentStep: i + 1,
-              context,
+              context: context as unknown as Prisma.InputJsonValue,
             },
           });
 
@@ -239,7 +344,9 @@ export class SagaOrchestrator extends EventEmitter {
 
       this.emit('saga_completed', { sagaId, sagaType: saga.sagaType });
     } finally {
+      if (lockExtension) {clearInterval(lockExtension);}
       this.activeSagas.delete(sagaId);
+      await this.releaseLock(sagaId);
     }
   }
 
@@ -294,7 +401,7 @@ export class SagaOrchestrator extends EventEmitter {
       include: { steps: { orderBy: { stepOrder: 'asc' } } },
     });
 
-    if (!saga) return;
+    if (!saga) {return;}
 
     // Update failed step
     await this.prisma.sagaStep.update({
@@ -315,7 +422,7 @@ export class SagaOrchestrator extends EventEmitter {
 
       if (stepRecord.status === 'COMPLETED') {
         try {
-          await stepDef.compensate(context as Record<string, unknown>, i);
+          await stepDef.compensate(context, i);
 
           await this.prisma.sagaStep.update({
             where: { id: stepRecord.id },
@@ -378,7 +485,7 @@ export class SagaOrchestrator extends EventEmitter {
    * Recover sagas that were interrupted
    */
   private async recoverIncompleteSagas(): Promise<void> {
-    if (this.isRecovering) return;
+    if (this.isRecovering) {return;}
     this.isRecovering = true;
 
     try {
@@ -391,7 +498,7 @@ export class SagaOrchestrator extends EventEmitter {
       });
 
       for (const saga of incompleteSagas) {
-        if (this.activeSagas.has(saga.id)) continue;
+        if (this.activeSagas.has(saga.id)) {continue;}
 
         this.emit('saga_recovered', { sagaId: saga.id, sagaType: saga.sagaType });
         this.executeSaga(saga.id).catch((error) => {

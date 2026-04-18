@@ -1,4 +1,5 @@
 import { EventEmitter } from 'eventemitter3';
+
 import { CircuitBreaker, CircuitBreakerOpenError } from './circuit-breaker';
 
 export interface RetryConfig {
@@ -118,7 +119,7 @@ export class RetryPolicy extends EventEmitter {
   }
 
   private checkRetryBudget(): boolean {
-    if (!this.config.retryBudget) return true;
+    if (!this.config.retryBudget) {return true;}
 
     const now = Date.now();
     
@@ -137,7 +138,7 @@ export class RetryPolicy extends EventEmitter {
     }
 
     if (this.config.retryableErrors && this.config.retryableErrors.length > 0) {
-      return this.config.retryableErrors.some(e => 
+      return this.config.retryableErrors.some((e) => 
         error.name.includes(e) || error.message.includes(e)
       );
     }
@@ -153,14 +154,14 @@ export class RetryPolicy extends EventEmitter {
       'NetworkError',
     ];
 
-    return retryablePatterns.some(pattern => 
+    return retryablePatterns.some((pattern) => 
       error.message.includes(pattern) || error.name.includes(pattern)
     );
   }
 
   private calculateDelay(attempt: number): number {
     const baseDelay = this.config.initialDelay;
-    const maxDelay = this.config.maxDelay;
+    const {maxDelay} = this.config;
     const multiplier = this.config.backoffMultiplier;
 
     switch (this.config.jitterType) {
@@ -195,7 +196,7 @@ export class RetryPolicy extends EventEmitter {
   }
 
   private sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise((resolve) => setTimeout(resolve, ms));
   }
 }
 

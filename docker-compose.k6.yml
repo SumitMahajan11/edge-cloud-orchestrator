@@ -1,0 +1,17 @@
+services:
+  k6:
+    image: grafana/k6:latest
+    volumes:
+      # Mount the tests/load directory as /scripts inside the container
+      - ./tests/load:/scripts:ro
+      # Mount results directory (writable) for JSON output
+      - ./tests/load/results:/home/k6/results
+    environment:
+      BASE_URL:  ${SMOKE_BASE_URL:-http://api-gateway}
+      API_KEY:   ${LOAD_TEST_API_KEY:-test-key}
+      ADMIN_KEY: ${LOAD_TEST_ADMIN_KEY:-admin-key}
+    networks:
+      - edgecloud-network
+    # k6 exits after the test — it's not a long-running service
+    profiles:
+      - load-test

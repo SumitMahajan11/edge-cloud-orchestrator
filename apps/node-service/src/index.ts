@@ -25,13 +25,29 @@ const eventBus = new EventBus({
 // Circuit breaker registry
 const circuitBreakerRegistry = new CircuitBreakerRegistry();
 
-// Configuration
+// Configuration - JWT_SECRET validation
+const jwtSecret = process.env.JWT_SECRET
+if (!jwtSecret) {
+  throw new Error('FATAL: JWT_SECRET environment variable is required')
+}
+if (jwtSecret.length < 32) {
+  throw new Error('FATAL: JWT_SECRET must be at least 32 characters')
+}
+
 const config = {
-  jwtSecret: process.env.JWT_SECRET || 'jwt-secret',
+  jwtSecret,
   serviceToken: process.env.SERVICE_TOKEN || 'dev-service-token',
 };
 
-app.register(cors, { origin: true, credentials: true });
+// CORS configuration with whitelist - restricted origins for security
+const corsOrigins = process.env.CORS_ORIGINS 
+  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
+  : ['http://localhost:5173', 'http://localhost:3000'];
+
+app.register(cors, { 
+  origin: corsOrigins,
+  credentials: true 
+});
 
 // Rate limiting
 app.register(rateLimit, {
@@ -209,6 +225,8 @@ function mapRowToNode(row: any): EdgeNode {
     bandwidthInMbps: row.bandwidth_in_mbps,
     bandwidthOutMbps: row.bandwidth_out_mbps,
     isMaintenanceMode: row.is_maintenance_mode,
+    healthScore: row.health_score ?? 1.0,
+    consecutiveFailures: row.consecutive_failures ?? 0,
     capabilities: row.capabilities,
     labels: row.labels,
     lastHeartbeat: row.last_heartbeat,

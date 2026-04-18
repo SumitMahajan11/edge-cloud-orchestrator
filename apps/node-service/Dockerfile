@@ -1,69 +1,65 @@
-# Node Service Dockerfile
-FROM node:20-alpine AS builder
-
+# Stage 1: Dependency installation
+FROM node:20-alpine AS deps
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Enable pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy package files
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+# Copy workspace manifests
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
 COPY packages/shared-kernel/package.json ./packages/shared-kernel/
-COPY packages/shared-kernel/tsconfig.json ./packages/shared-kernel/
 COPY packages/event-bus/package.json ./packages/event-bus/
-COPY packages/event-bus/tsconfig.json ./packages/event-bus/
-COPY packages/security/package.json ./packages/security/
-COPY packages/security/tsconfig.json ./packages/security/
-COPY packages/observability/package.json ./packages/observability/
-COPY packages/observability/tsconfig.json ./packages/observability/
-COPY packages/performance/package.json ./packages/performance/
-COPY packages/performance/tsconfig.json ./packages/performance/
+COPY packages/circuit-breaker/package.json ./packages/circuit-breaker/
 COPY apps/node-service/package.json ./apps/node-service/
-COPY apps/node-service/tsconfig.json ./apps/node-service/
 
-# Install dependencies with hoisted node_modules
-RUN pnpm install --frozen-lockfile --shamefully-hoist
+RUN corepack enable pnpm && \
+    pnpm install --frozen-lockfile --prefer-offline
 
-# Copy source code
-COPY packages/shared-kernel ./packages/shared-kernel
-COPY packages/event-bus ./packages/event-bus
-COPY packages/security ./packages/security
-COPY packages/observability ./packages/observability
-COPY packages/performance ./packages/performance
-COPY apps/node-service ./apps/node-service
-COPY tsconfig.json ./
+# Stage 2: Build
+FROM node:20-alpine AS builder
+WORKDIR /app
 
-# Build all packages from root using npx with workspace resolution
-RUN npx --yes tsc --build packages/shared-kernel
-RUN npx --yes tsc --build packages/event-bus
-RUN npx --yes tsc --build packages/security
-RUN npx --yes tsc --build packages/observability
-RUN npx --yes tsc --build packages/performance
-RUN npx --yes tsc --build apps/node-service
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/packages ./packages
+COPY . .
 
-# Production image
-FROM node:20-alpine
+RUN corepack enable pnpm && \
+    pnpm --filter "@edgecloud/*" build && \
+    pnpm --filter "@edgecloud/node-service" build
+
+# Stage 3: Production runtime
+FROM node:20-alpine AS runtime
+
+RUN addgroup -g 1001 edgecloud && \
+    adduser -u 1001 -G edgecloud -s /bin/sh -D edgecloud
 
 WORKDIR /app
 
-COPY --from=builder /app/packages/shared-kernel/dist ./packages/shared-kernel/dist
-COPY --from=builder /app/packages/shared-kernel/package*.json ./packages/shared-kernel/
-COPY --from=builder /app/packages/event-bus/dist ./packages/event-bus/dist
-COPY --from=builder /app/packages/event-bus/package*.json ./packages/event-bus/
-COPY --from=builder /app/packages/security/dist ./packages/security/dist
-COPY --from=builder /app/packages/security/package*.json ./packages/security/
-COPY --from=builder /app/packages/observability/dist ./packages/observability/dist
-COPY --from=builder /app/packages/observability/package*.json ./packages/observability/
-COPY --from=builder /app/packages/performance/dist ./packages/performance/dist
-COPY --from=builder /app/packages/performance/package*.json ./packages/performance/
-COPY --from=builder /app/apps/node-service/dist ./apps/node-service/dist
-COPY --from=builder /app/apps/node-service/package*.json ./apps/node-service/
-COPY --from=builder /app/node_modules ./node_modules
-COPY --from=builder /app/package*.json ./
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/shared-kernel/dist ./packages/shared-kernel/dist
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/shared-kernel/package.json ./packages/shared-kernel/
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/event-bus/dist ./packages/event-bus/dist
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/event-bus/package.json ./packages/event-bus/
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/circuit-breaker/dist ./packages/circuit-breaker/dist
+COPY --from=builder --chown=edgecloud:edgecloud /app/packages/circuit-breaker/package.json ./packages/circuit-breaker/
+COPY --from=builder --chown=edgecloud:edgecloud /app/apps/node-service/dist ./apps/node-service/dist
+COPY --from=builder --chown=edgecloud:edgecloud /app/apps/node-service/package.json ./apps/node-service/
+COPY --from=builder --chown=edgecloud:edgecloud /app/node_modules ./node_modules
 
-ENV NODE_ENV=production
-ENV PORT=3002
+COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
+RUN corepack enable pnpm && \
+    pnpm install --frozen-lockfile --prod --prefer-offline && \
+    pnpm store prune
 
-EXPOSE 3002
+USER edgecloud
+
+ARG BUILD_DATE
+ARG GIT_SHA
+ENV BUILD_DATE=${BUILD_DATE} \
+    GIT_SHA=${GIT_SHA} \
+    NODE_ENV=production \
+    PORT=3004
+
+EXPOSE 3004 9090
+
+HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
+  CMD wget -qO- http://localhost:3004/health || exit 1
 
 CMD ["node", "apps/node-service/dist/index.js"]

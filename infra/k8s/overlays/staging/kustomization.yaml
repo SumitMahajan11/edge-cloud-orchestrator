@@ -1,0 +1,26 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - ../../base
+
+namePrefix: staging-
+namespace: edgecloud-staging
+
+patches:
+  # Downscale for staging to save costs
+  - target:
+      kind: Deployment
+    patch: |-
+      - op: replace
+        path: /spec/replicas
+        value: 1
+
+configMapGenerator:
+  - name: app-config
+    behavior: merge
+    literals:
+      - NODE_ENV=staging
+      - LOG_LEVEL=debug
+
+# Images are updated by the CD pipeline using 'kustomize edit set image'

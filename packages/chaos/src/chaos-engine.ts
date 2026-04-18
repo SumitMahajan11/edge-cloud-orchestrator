@@ -1,5 +1,5 @@
-import { EventEmitter } from 'eventemitter3';
 import { EventBus } from '@edgecloud/event-bus';
+import { EventEmitter } from 'eventemitter3';
 
 export interface ChaosExperiment {
   id: string;
@@ -316,7 +316,7 @@ export class ChaosEngine extends EventEmitter {
   }
 
   private calculateRecoveryTime(result: ExperimentResult): number {
-    if (!result.endTime) return 0;
+    if (!result.endTime) {return 0;}
     return result.endTime.getTime() - result.startTime.getTime();
   }
 }

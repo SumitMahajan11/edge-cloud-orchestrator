@@ -31,7 +31,7 @@ export class InMemoryCheckpointStore implements CheckpointStore {
     const taskCheckpoints = this.checkpoints.get(taskId) || [];
     
     if (checkpointId) {
-      return taskCheckpoints.find(c => c.id === checkpointId) || null;
+      return taskCheckpoints.find((c) => c.id === checkpointId) || null;
     }
     
     // Return latest checkpoint
@@ -47,7 +47,7 @@ export class InMemoryCheckpointStore implements CheckpointStore {
   async delete(taskId: string, checkpointId?: string): Promise<void> {
     if (checkpointId) {
       const taskCheckpoints = this.checkpoints.get(taskId) || [];
-      const filtered = taskCheckpoints.filter(c => c.id !== checkpointId);
+      const filtered = taskCheckpoints.filter((c) => c.id !== checkpointId);
       this.checkpoints.set(taskId, filtered);
     } else {
       this.checkpoints.delete(taskId);

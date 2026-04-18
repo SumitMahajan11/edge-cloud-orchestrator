@@ -1,3 +1,5 @@
+import { TaskStatus, Priority as TaskPriority } from '../types/domain';
+
 export type TaskType = 
   | 'IMAGE_CLASSIFICATION'
   | 'DATA_AGGREGATION'
@@ -8,15 +10,6 @@ export type TaskType =
   | 'ANOMALY_DETECTION'
   | 'CUSTOM';
 
-export type TaskStatus = 
-  | 'PENDING'
-  | 'SCHEDULED'
-  | 'RUNNING'
-  | 'COMPLETED'
-  | 'FAILED'
-  | 'CANCELLED';
-
-export type TaskPriority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 export type ExecutionTarget = 'EDGE' | 'CLOUD';
 
 export interface Task {

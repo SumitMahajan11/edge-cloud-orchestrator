@@ -1,5 +1,7 @@
-import { Kafka, Producer, Consumer, Message } from 'kafkajs';
-import { DomainEvent, generateEventId, generateCorrelationId } from '@edgecloud/shared-kernel';
+import { DomainEvent, generateCorrelationId,generateEventId, injectTraceHeaders, extractTraceContext } from '@edgecloud/shared-kernel';
+import { Consumer, Kafka, Message,Producer } from 'kafkajs';
+
+import { DeadLetterQueue, DLQConfig } from './dead-letter-queue';
 
 export interface EventBusConfig {
   brokers: string[];
@@ -23,6 +25,7 @@ export class EventBus {
   private producer: Producer;
   private consumers: Map<string, Consumer> = new Map();
   private isConnected: boolean = false;
+  private dlq: DeadLetterQueue | null = null;
 
   constructor(private config: EventBusConfig) {
     this.kafka = new Kafka({
@@ -37,8 +40,20 @@ export class EventBus {
     });
   }
 
+  async initializeDLQ(prisma: any, topics: string[], config?: Partial<DLQConfig>): Promise<void> {
+    this.dlq = new DeadLetterQueue(this.kafka, this.producer, prisma, config);
+    await this.dlq.ensureDLQTopics(topics);
+  }
+
+  async retryFailedEvent(eventId: string): Promise<boolean> {
+    if (!this.dlq) {
+      throw new Error('DLQ not initialized');
+    }
+    return this.dlq.retryEvent(eventId);
+  }
+
   async connect(): Promise<void> {
-    if (this.isConnected) return;
+    if (this.isConnected) {return;}
     
     await this.producer.connect();
     this.isConnected = true;
@@ -75,8 +90,9 @@ export class EventBus {
       headers: {
         'event-type': fullEvent.eventType,
         'correlation-id': options?.correlationId || generateCorrelationId(),
+        'x-request-id': (await import('@edgecloud/shared-kernel')).getRequestId() || '',
         'timestamp': fullEvent.timestamp.toISOString(),
-        ...options?.headers,
+        ...injectTraceHeaders(options?.headers || {}),
       },
     };
 
@@ -108,15 +124,57 @@ export class EventBus {
 
     await consumer.run({
       eachMessage: async ({ message }: { message: Message }) => {
-        if (!message.value) return;
+        if (!message.value) {return;}
 
-        try {
-          const event = JSON.parse(message.value.toString()) as T;
-          await handler(event);
-        } catch (error) {
-          console.error(`Error handling event from ${topic}:`, error);
-          // In production, send to dead letter queue
-        }
+        // Extract requestId and trace context from Kafka headers
+        const requestId = message.headers?.['x-request-id']?.toString() || '';
+        const extractedContext = extractTraceContext(message.headers || {});
+        const tracer = (await import('@opentelemetry/api')).trace.getTracer('event-bus');
+        const { runWithRequestId } = await import('@edgecloud/shared-kernel');
+
+        await tracer.startActiveSpan(`process ${topic}`, { 
+          kind: (await import('@opentelemetry/api')).SpanKind.CONSUMER,
+          attributes: {
+            'messaging.system': 'kafka',
+            'messaging.destination': topic,
+            'messaging.operation': 'process',
+          }
+        }, extractedContext, async (span) => {
+          await runWithRequestId(requestId, async () => {
+            try {
+              const event = JSON.parse(message.value!.toString()) as T;
+              span.setAttributes({
+                'messaging.event_type': event.eventType,
+                'messaging.aggregate_id': event.aggregateId,
+              });
+              await handler(event);
+              span.setStatus({ code: (await import('@opentelemetry/api')).SpanStatusCode.OK });
+            } catch (error: any) {
+              console.error(`Error handling event from ${topic}:`, error);
+              span.recordException(error);
+              span.setStatus({ 
+                code: (await import('@opentelemetry/api')).SpanStatusCode.ERROR,
+                message: error.message 
+              });
+              
+              // Forward to DLQ if configured
+              if (this.dlq) {
+                const eventId = message.headers?.['event-id']?.toString() || 
+                  message.key?.toString() || 
+                  `evt-${Date.now()}`;
+                
+                await this.dlq.sendToDLQ(
+                  topic,
+                  message,
+                  error as Error,
+                  eventId
+                );
+              }
+            } finally {
+              span.end();
+            }
+          });
+        });
       },
     });
 
@@ -128,11 +186,11 @@ export class EventBus {
     await admin.connect();
 
     const existingTopics = await admin.listTopics();
-    const topicsToCreate = topics.filter(t => !existingTopics?.includes(t.topic));
+    const topicsToCreate = topics.filter((t) => !existingTopics?.includes(t.topic));
     
     if (topicsToCreate.length > 0) {
       await admin.createTopics({
-        topics: topicsToCreate.map(t => ({
+        topics: topicsToCreate.map((t) => ({
           topic: t.topic,
           numPartitions: t.partitions,
           replicationFactor: t.replicationFactor,
