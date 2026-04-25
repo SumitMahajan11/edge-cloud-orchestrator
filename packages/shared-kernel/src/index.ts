@@ -85,3 +85,6 @@ export * from './logger/express-middleware';
 export * from './lifecycle/shutdown';
 export * from './lifecycle/health';
 
+// Environment validation
+export * from './validate-env';
+

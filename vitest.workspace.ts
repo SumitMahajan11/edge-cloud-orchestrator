@@ -17,29 +17,29 @@ const sharedConfig = {
 export default defineWorkspace([
   {
     ...sharedConfig,
+    root: './packages/shared-kernel',
     test: {
       ...sharedConfig.test,
       name: 'shared-kernel',
-      root: './packages/shared-kernel',
-      include: ['src/domain/__tests__/**/*.spec.ts'],
+      include: ['src/domain/__tests__/**/*.spec.ts', 'src/**/*.spec.ts'],
     }
   },
   {
     ...sharedConfig,
+    root: './packages/ml-scheduler',
     test: {
       ...sharedConfig.test,
       name: 'ml-scheduler',
-      root: './packages/ml-scheduler',
       include: ['src/__tests__/**/*.spec.ts'],
     }
   },
   {
     ...sharedConfig,
+    root: './apps/api',
     test: {
       ...sharedConfig.test,
       name: 'api',
-      root: './apps/api',
-      include: ['src/services/__tests__/**/*.spec.ts'],
+      include: ['src/services/__tests__/**/*.spec.ts', 'tests/**/*.test.ts'],
     }
   }
 ])

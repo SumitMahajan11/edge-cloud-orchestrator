@@ -15,7 +15,6 @@ import {
 } from 'lucide-react'
 import { format } from 'date-fns'
 import type { SchedulingDecision } from '../../types'
-import { tasksApi } from '../../lib/realApi'
 import { cn } from '../../lib/utils'
 
 interface DecisionLogPanelProps {
@@ -25,7 +24,7 @@ interface DecisionLogPanelProps {
 export function DecisionLogPanel({ nodeId }: DecisionLogPanelProps) {
   const [decisions, setDecisions] = useState<SchedulingDecision[]>([])
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const [, setError] = useState<string | null>(null)
   const [expandedId, setExpandedId] = useState<string | null>(null)
 
   useEffect(() => {

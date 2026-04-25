@@ -4,7 +4,7 @@ import * as path from 'path';
 import { parse } from 'yaml';
 
 // Load OpenAPI specification from YAML file
-function loadOpenAPISpec(): Record<string, unknown> {
+function loadOpenAPISpec(): Record<string, unknown> | null {
   try {
     // Assuming the plugin is in backend/src/plugins/, go up to backend/ then to openapi.yml
     const openapiPath = path.join(__dirname, '../../../openapi.yml');
@@ -18,18 +18,23 @@ function loadOpenAPISpec(): Record<string, unknown> {
 
     return spec;
   } catch (error) {
-    console.error('Failed to load OpenAPI specification:', error);
-    throw new Error('Could not load openapi.yml file');
+    console.warn('Failed to load OpenAPI specification, skipping Swagger UI:', error);
+    return null;
   }
 }
 
 export const swaggerPlugin: FastifyPluginAsync = async (fastify) => {
+  const spec = loadOpenAPISpec();
+  if (!spec) {
+    return; // Skip swagger registration if spec not found
+  }
+
   // Register Swagger with the loaded OpenAPI spec
   const swagger = await import('@fastify/swagger');
   await fastify.register(swagger.default, {
     mode: 'static',
     specification: {
-      document: loadOpenAPISpec() as any, // Type assertion needed for OpenAPI spec
+      document: spec as any, // Type assertion needed for OpenAPI spec
     },
   });
 

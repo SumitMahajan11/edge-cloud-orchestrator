@@ -1,8 +1,7 @@
-import { Request, Response, NextFunction } from 'express';
+import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
 import { runWithContext } from './context';
-import { Logger } from 'pino';
-import { sanitize } from './fastify-plugin';
+import type { Logger } from 'pino';
 
 /**
  * Standardized logging middleware for Express (used by edge-agent).

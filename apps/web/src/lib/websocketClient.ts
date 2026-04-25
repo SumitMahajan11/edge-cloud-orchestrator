@@ -306,10 +306,8 @@ export function useWebSocket() {
     const unsubDisconnect = wsClient.onDisconnect(() => setIsConnected(false))
     const unsubError = wsClient.onError((e) => setError(e))
 
-    // Auto-connect if not connected
-    if (!wsClient.isConnected) {
-      wsClient.connect().catch(console.error)
-    }
+    // Don't auto-connect — connection should be triggered after authentication
+    // Call wsClient.connect() explicitly when authenticated
 
     return () => {
       unsubConnect()

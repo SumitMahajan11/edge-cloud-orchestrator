@@ -139,13 +139,12 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'ChaosExperimentCompleted',
       aggregateId: experimentId,
-      timestamp: new Date(),
       version: 1,
       experimentId,
       duration: result.metrics.recoveryTime,
       tasksAffected: result.metrics.tasksAffected,
       nodesAffected: result.metrics.nodesAffected,
-    });
+    } as any);
   }
 
   getExperimentResult(experimentId: string): ExperimentResult | undefined {
@@ -168,12 +167,11 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('nodes.events', {
       eventType: 'NodeFailed',
       aggregateId: experiment.target.nodeId || 'unknown',
-      timestamp: new Date(),
       version: 1,
       nodeId: experiment.target.nodeId,
       reason: 'CHAOS_EXPERIMENT',
       experimentId: experiment.id,
-    });
+    } as any);
 
     const result = this.experiments.get(experiment.id)!;
     result.metrics.nodesAffected = 1;
@@ -192,12 +190,11 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'NetworkPartition',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       service: experiment.target.service,
       region: experiment.target.region,
       duration: experiment.duration,
-    });
+    } as any);
   }
 
   private async injectLatency(experiment: ChaosExperiment): Promise<void> {
@@ -212,11 +209,10 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'LatencyInjected',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       latencyMs: experiment.intensity * 100,
       target: experiment.target,
-    });
+    } as any);
   }
 
   private async injectPacketLoss(experiment: ChaosExperiment): Promise<void> {
@@ -230,11 +226,10 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'PacketLossInjected',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       packetLossPercent: experiment.intensity * 100,
       target: experiment.target,
-    });
+    } as any);
   }
 
   private async injectCPUStress(experiment: ChaosExperiment): Promise<void> {
@@ -248,11 +243,10 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'CPUStressInjected',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       cpuPercent: experiment.intensity * 100,
       target: experiment.target,
-    });
+    } as any);
   }
 
   private async injectMemoryStress(experiment: ChaosExperiment): Promise<void> {
@@ -266,11 +260,10 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'MemoryStressInjected',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       memoryPercent: experiment.intensity * 100,
       target: experiment.target,
-    });
+    } as any);
   }
 
   private async simulateDatabaseFailure(experiment: ChaosExperiment): Promise<void> {
@@ -284,10 +277,9 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'DatabaseFailure',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       failureType: 'connection_refused',
-    });
+    } as any);
   }
 
   private async simulateKafkaFailure(experiment: ChaosExperiment): Promise<void> {
@@ -301,10 +293,9 @@ export class ChaosEngine extends EventEmitter {
     await this.eventBus.publish('system.alerts', {
       eventType: 'KafkaFailure',
       aggregateId: experiment.id,
-      timestamp: new Date(),
       version: 1,
       failureType: 'broker_unavailable',
-    });
+    } as any);
   }
 
   private logEvent(experimentId: string, event: ChaosEvent): void {

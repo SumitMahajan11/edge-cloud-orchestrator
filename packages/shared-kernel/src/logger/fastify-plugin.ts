@@ -1,8 +1,8 @@
-import { FastifyInstance, FastifyPluginAsync, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 import { v4 as uuidv4 } from 'uuid';
 import { runWithContext } from './context';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 
 export interface LoggingPluginOptions {
   logger: Logger;
@@ -17,7 +17,7 @@ const SENSITIVE_KEYS = /password|secret|token|key|credential|authorization|cooki
 export function sanitize(obj: any): any {
   if (!obj || typeof obj !== 'object') return obj;
   
-  const result = Array.isArray(obj) ? [] : {};
+  const result: any = Array.isArray(obj) ? [] : {};
   
   for (const [key, value] of Object.entries(obj)) {
     if (SENSITIVE_KEYS.test(key)) {
@@ -72,7 +72,7 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
     }, `Finished ${request.method} ${request.url} with ${reply.statusCode}`);
   });
 
-  fastify.addHook('onError', async (request, reply, error) => {
+  fastify.addHook('onError', async (request, _reply, error) => {
     logger.error({
       type: 'request_error',
       method: request.method,

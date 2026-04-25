@@ -4,7 +4,8 @@ import {
   transformMetricsFromApi,
   transformNodesFromApi,
   transformNodeToApi,
-  transformTasksFromApi,} from '../lib/typeTransformers'
+  transformTasksFromApi,
+  transformTaskToApi,} from '../lib/typeTransformers'
 import { wsClient } from '../lib/websocketClient'
 import type {
   EdgeNode,
@@ -17,7 +18,7 @@ import type {
 } from '../types'
 
 const MAX_LOGS = 500
-const POLLING_INTERVAL = 5000 // 5 seconds
+// const POLLING_INTERVAL = 5000 // 5 seconds (polling disabled)
 
 interface OrchestratorState {
   nodes: EdgeNode[]
@@ -153,7 +154,15 @@ export function useRealOrchestrator(): OrchestratorState & OrchestratorActions {
     let unsubDisconnect: (() => void) | null = null
     
     const setupSubscriptions = async () => {
-      // Wait for connection first
+      // Only connect WebSocket if user is authenticated
+      const token = authStorage.getToken()
+      if (!token) {
+        setIsConnected(false)
+        return
+      }
+      
+      // Set token and connect
+      wsClient.setToken(token)
       await wsClient.connect()
       
       // Then subscribe to channels

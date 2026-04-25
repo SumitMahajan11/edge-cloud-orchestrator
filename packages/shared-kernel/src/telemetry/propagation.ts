@@ -1,10 +1,12 @@
 import { 
   context, 
   propagation, 
+  ROOT_CONTEXT 
+} from '@opentelemetry/api';
+import type { 
   TextMapGetter, 
   TextMapSetter, 
-  Context, 
-  ROOT_CONTEXT 
+  Context 
 } from '@opentelemetry/api';
 
 /**

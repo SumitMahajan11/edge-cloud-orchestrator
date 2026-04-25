@@ -1,0 +1,100 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Edge-Cloud Orchestrator",
+    "tags": ["edgecloud"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Total Nodes",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "edgecloud_nodes_total",
+            "legendFormat": "Total"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 0, "y": 0 }
+      },
+      {
+        "id": 2,
+        "title": "Healthy Nodes",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "edgecloud_nodes_healthy",
+            "legendFormat": "Healthy"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 6, "y": 0 }
+      },
+      {
+        "id": 3,
+        "title": "Tasks Submitted",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(edgecloud_tasks_submitted_total[5m])",
+            "legendFormat": "Rate"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 12, "y": 0 }
+      },
+      {
+        "id": 4,
+        "title": "Task Success Rate",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "rate(edgecloud_tasks_completed_total[5m]) / rate(edgecloud_tasks_submitted_total[5m]) * 100",
+            "legendFormat": "Success %"
+          }
+        ],
+        "gridPos": { "h": 4, "w": 6, "x": 18, "y": 0 }
+      },
+      {
+        "id": 5,
+        "title": "Task Duration",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.50, rate(edgecloud_task_duration_seconds_bucket[5m]))",
+            "legendFormat": "50th percentile"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(edgecloud_task_duration_seconds_bucket[5m]))",
+            "legendFormat": "95th percentile"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 }
+      },
+      {
+        "id": 6,
+        "title": "API Request Rate",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "rate(edgecloud_api_requests_total[5m])",
+            "legendFormat": "Requests/sec"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 }
+      },
+      {
+        "id": 7,
+        "title": "Active Connections",
+        "type": "graph",
+        "targets": [
+          {
+            "expr": "edgecloud_active_connections",
+            "legendFormat": "Connections"
+          }
+        ],
+        "gridPos": { "h": 8, "w": 24, "x": 0, "y": 12 }
+      }
+    ],
+    "time": { "from": "now-1h", "to": "now" },
+    "refresh": "10s"
+  }
+}

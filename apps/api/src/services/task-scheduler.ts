@@ -25,6 +25,7 @@ type TaskStatusType =
   | 'RUNNING'
   | 'COMPLETED'
   | 'FAILED'
+  | 'FAILED_PERMANENT'
   | 'CANCELLED';
 
 interface Task {
@@ -71,7 +72,7 @@ export class TaskScheduler {
   private mlScheduler: MLScheduler;
   private driftDetector: DriftDetector;
   private modelRegistry: ModelRegistry;
-  private featureExtractor: FeatureExtractor;
+  private _featureExtractor: FeatureExtractor;
   private metrics: MetricsCollector;
 
   // Integration services
@@ -103,7 +104,7 @@ export class TaskScheduler {
     this.modelRegistry = new ModelRegistry(this.redis);
     this.driftDetector = new DriftDetector(this.metrics);
     this.mlScheduler = new MLScheduler(predictor, this.modelRegistry, this.driftDetector, this.metrics);
-    this.featureExtractor = new FeatureExtractor((prisma as any)._pool || (prisma as any).$pool); // Attempt to get underlying pool
+    this._featureExtractor = new FeatureExtractor((prisma as any)._pool || (prisma as any).$pool); // Attempt to get underlying pool
 
     // Default weights - can be updated via API
     this.schedulerWeights = {
@@ -194,11 +195,7 @@ export class TaskScheduler {
 
   private async checkActiveModel() {
     try {
-      const activeVersion = await this.modelRegistry.getActiveVersion();
-      if (activeVersion && activeVersion !== this.mlScheduler.getModelVersion()) {
-        this.logger.info({ old: this.mlScheduler.getModelVersion(), new: activeVersion }, 'New ML model version detected, updating active model');
-        await this.mlScheduler.updateModel(activeVersion);
-      }
+      await this.mlScheduler.checkHotSwap();
     } catch (error) {
       this.logger.error({ error }, 'Failed to check/update active ML model');
     }
@@ -530,7 +527,7 @@ export class TaskScheduler {
     try {
       const task = await this.prisma.task.findUnique({
         where: { id: taskId },
-        select: { id: true, policy: true, metadata: true }
+        select: { id: true, policy: true, metadata: true, nodeId: true }
       });
 
       if (!task || task.policy !== 'ml-optimized') return;
@@ -550,6 +547,7 @@ export class TaskScheduler {
         predictedScore: metadata.predictedScore,
         actualScore,
         modelVersion: metadata.modelVersion,
+        nodeId: task.nodeId || 'unknown',
         timestamp: new Date()
       });
 
@@ -712,7 +710,7 @@ export class TaskScheduler {
       this.logger.error({ 
         taskId: task.id, 
         error: errorMessage, 
-        predictor: !!this.predictor,
+        predictor: !!this.mlScheduler,
         graceful: !!this._gracefulDegradation 
       }, 'Task execution failed');
 

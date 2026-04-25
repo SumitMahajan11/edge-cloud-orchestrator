@@ -6,8 +6,7 @@ import {
   RefreshCw, 
   Scale, 
   Check,
-  Code2,
-  Database
+  Code2
 } from 'lucide-react'
 import type { SchedulingPolicy } from '../types'
 import { cn } from '../lib/utils'
@@ -69,7 +68,18 @@ ELSE:
   route_to_cloud()
   reason = "All edge nodes at capacity"`,
   },
-    reason = "Edge load too high"`,
+  {
+    id: 'load-balanced',
+    name: 'Load Balanced',
+    description: 'Sophisticated resource-aware balancing based on real-time CPU and memory metrics',
+    icon: Scale,
+    pseudocode: `FOR node IN nodes:
+  score = (1 - node.cpu) * 0.7 + (1 - node.memory) * 0.3
+best_node = find_max_score(nodes)
+IF best_node.score > 0.4:
+  route_to_edge(best_node)
+ELSE:
+  route_to_cloud()`,
   },
   {
     id: 'ml-optimized',
@@ -89,7 +99,7 @@ ELSE:
   },
 ]
 
-export function Policies({ currentPolicy, onPolicyChange }: PoliciesProps) {
+export function Policies({ currentPolicy, onPolicyChange, thresholds, onThresholdChange }: PoliciesProps) {
   const [selectedPolicy, setSelectedPolicy] = useState<SchedulingPolicy>(currentPolicy)
   
   const handlePolicySelect = (policy: SchedulingPolicy) => {

@@ -13,10 +13,15 @@ function getApiBaseUrl(): string {
 }
 
 function getWsUrl(): string {
-  if (typeof window !== 'undefined' && window.location.origin.includes('localhost:300')) {
-    return '/ws'
+  if (typeof window !== 'undefined') {
+    // Use Vite proxy (relative) when served from Vite dev server or backend
+    const host = window.location.host
+    if (host.startsWith('localhost:') || host.startsWith('127.0.0.1:')) {
+      const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:'
+      return `${proto}//${window.location.host}/ws`
+    }
   }
-  return import.meta.env.VITE_WS_URL || 'ws://localhost:3006/ws'
+  return import.meta.env.VITE_WS_URL || 'ws://localhost:3090/ws'
 }
 
 export const config = {

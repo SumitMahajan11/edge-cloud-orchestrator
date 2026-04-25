@@ -1,6 +1,6 @@
 import Redis from 'ioredis';
 import Redlock, { Lock } from 'redlock';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 import { EventEmitter } from 'eventemitter3';
 import { Gauge, Registry, register } from 'prom-client';
 
@@ -23,13 +23,17 @@ export class LeaderElection extends EventEmitter {
   private renewalInterval: ReturnType<typeof setInterval> | null = null;
   private leaderGauge: Gauge | null = null;
   private serviceId: string = 'unknown';
+  private logger: Logger;
+  private config: LeaderElectionConfig;
 
   constructor(
-    private redis: Redis,
-    private logger: Logger,
-    private config: LeaderElectionConfig
+    redis: Redis,
+    logger: Logger,
+    config: LeaderElectionConfig
   ) {
     super();
+    this.logger = logger;
+    this.config = config;
     this.redlock = new Redlock([redis], {
       driftFactor: 0.01,
       retryCount: 0,
@@ -37,7 +41,7 @@ export class LeaderElection extends EventEmitter {
       retryJitter: 200,
     });
 
-    this.redlock.on('error', (error) => {
+    this.redlock.on('error', (error: any) => {
       this.logger.error({ error }, 'Redlock error');
     });
 

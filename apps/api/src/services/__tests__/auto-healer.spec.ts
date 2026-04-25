@@ -1,5 +1,6 @@
 import { AutoHealer } from '../auto-healer';
-import { createMockNode, createMockTask } from '../../../../../packages/shared-kernel/src/domain/__tests__/factories';
+import { describe, expect, it, vi, beforeEach } from 'vitest';
+const createMockTask = (overrides: any = {}) => ({ id: 'task-1', ...overrides });
 
 // Mock dependencies
 const mockPrisma = {
