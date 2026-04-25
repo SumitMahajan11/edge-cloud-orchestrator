@@ -46,5 +46,5 @@ export function validateEnv(schema: z.ZodObject<any> = envSchema): EnvConfig {
     }
   }
 
-  return result.success ? result.data : (process.env as any);
+  return (result.success ? result.data : process.env) as EnvConfig;
 }

@@ -261,6 +261,10 @@ export class ResilientWebSocketClient extends EventEmitter {
     return this.ws?.readyState === WebSocket.OPEN || 
            this.eventSource?.readyState === EventSource.OPEN;
   }
+
+  getConnectionId(): string | null {
+    return this.connectionId;
+  }
 }
 
 // Export for use in frontend

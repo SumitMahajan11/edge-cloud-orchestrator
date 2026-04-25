@@ -4,8 +4,15 @@
   "description": "Performance optimization utilities including caching and connection pooling",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "dev": "tsc --watch",
     "test": "jest"
   },

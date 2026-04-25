@@ -1,4 +1,5 @@
-import pino, { Logger, LoggerOptions } from 'pino';
+import pino from 'pino';
+import type { Logger, LoggerOptions } from 'pino';
 import { trace, context } from '@opentelemetry/api';
 import { getRequestId } from './context';
 import { VERSION } from '../index';
@@ -64,3 +65,5 @@ export function createLogger(serviceName: string): Logger {
 
   return pino(options);
 }
+
+export const logger = createLogger('shared-kernel');

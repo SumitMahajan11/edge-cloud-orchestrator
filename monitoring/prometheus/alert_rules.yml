@@ -1,0 +1,65 @@
+groups:
+  - name: edgecloud_alerts
+    rules:
+      - alert: InstanceDown
+        expr: up == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Instance {{ $labels.instance }} down"
+          description: "{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 1 minute."
+
+      - alert: HighCpuUsage
+        expr: node_load1 > 0.8
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU load is > 0.8 for 5 minutes"
+
+      - alert: HighMemoryUsage
+        expr: (node_memory_MemTotal_bytes - node_memory_MemAvailable_bytes) / node_memory_MemTotal_bytes > 0.9
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage on {{ $labels.instance }}"
+          description: "Memory usage is > 90%"
+
+      - alert: HighErrorRate
+        expr: rate(edgecloud_http_requests_total{status=~"5.."}[5m]) / rate(edgecloud_http_requests_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High error rate detected"
+          description: "Error rate is above 10% for more than 2 minutes"
+
+      - alert: NodeDown
+        expr: edgecloud_nodes_healthy == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "All edge nodes are down"
+          description: "No healthy edge nodes available"
+
+      - alert: HighLatency
+        expr: histogram_quantile(0.95, rate(edgecloud_task_duration_seconds_bucket[5m])) > 30
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High task latency"
+          description: "95th percentile latency is above 30 seconds"
+
+      - alert: LowTaskThroughput
+        expr: rate(edgecloud_tasks_completed_total[5m]) < 1
+        for: 10m
+        labels:
+          severity: info
+        annotations:
+          summary: "Low task throughput"
+          description: "Task completion rate is unusually low"

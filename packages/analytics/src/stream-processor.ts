@@ -46,7 +46,7 @@ export class StreamProcessor extends EventEmitter {
   async start(): Promise<void> {
     // Subscribe to raw metrics topic
     await this.eventBus.subscribe(TOPICS.METRICS_RAW, 'stream-processor', async (event) => {
-      await this.processEvent(event as StreamEvent);
+      await this.processEvent(event as unknown as StreamEvent);
     });
 
     // Start window processing loop
@@ -111,10 +111,10 @@ export class StreamProcessor extends EventEmitter {
 
     const results = this.aggregateWindow(rule, window);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await this.eventBus.publish(rule.outputTopic, {
       eventType: 'WindowAggregated',
       aggregateId: windowKey,
-      timestamp: new Date(),
       version: 1,
       window: {
         startTime: window.startTime,
@@ -123,7 +123,7 @@ export class StreamProcessor extends EventEmitter {
       },
       aggregations: results,
       eventCount: window.events.length,
-    });
+    } as any);
 
     this.emit('windowProcessed', { windowKey, results });
   }
@@ -233,10 +233,9 @@ export class RealTimeAnalytics extends EventEmitter {
     this.eventBus.publish('metrics.realtime', {
       eventType: 'RealtimeMetrics',
       aggregateId: 'dashboard',
-      timestamp: new Date(),
       version: 1,
       metrics: latest,
-    });
+    } as any);
   }
 
   getLatestMetrics(): DashboardMetrics | null {

@@ -1,4 +1,4 @@
-import { TaskStatus, Priority as TaskPriority } from '../types/domain';
+import type { TaskStatus, Priority as TaskPriority } from '../types/domain';
 
 export type TaskType = 
   | 'IMAGE_CLASSIFICATION'

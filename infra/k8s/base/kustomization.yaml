@@ -3,17 +3,23 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
-  - configmaps/app-config.yaml
   - deployments/api.yaml
   - deployments/api-gateway.yaml
   - deployments/scheduler-service.yaml
   - deployments/task-service.yaml
   - deployments/node-service.yaml
   - deployments/websocket-gateway.yaml
+  - deployments/agent.yaml
+  - deployments/metrics-service.yaml
   - services/internal-services.yaml
   - services/api-gateway.yaml
   - hpa/autoscalers.yaml
   - pdb/disruption-budgets.yaml
+
+configMapGenerator:
+  - name: app-config
+    envs:
+      - configmaps/app.env
 
 commonLabels:
   app.kubernetes.io/part-of: edgecloud

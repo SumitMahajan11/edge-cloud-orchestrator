@@ -3,6 +3,9 @@ kind: DaemonSet
 metadata:
   name: edge-agent
   namespace: edgecloud
+  labels:
+    app.kubernetes.io/name: agent
+    app.kubernetes.io/component: edge-runtime
 spec:
   selector:
     matchLabels:
@@ -11,6 +14,8 @@ spec:
     metadata:
       labels:
         app: edge-agent
+        app.kubernetes.io/name: agent
+        app.kubernetes.io/component: edge-runtime
     spec:
       serviceAccountName: edgecloud-sa
       priorityClassName: high-priority

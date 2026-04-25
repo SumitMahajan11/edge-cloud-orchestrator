@@ -41,12 +41,13 @@ describe('RetryManager', () => {
 
     it('should throw after max attempts', async () => {
       const retryManager = new RetryManager({ maxAttempts: 2, initialDelayMs: 100 })
-      const operation = vi.fn().mockRejectedValue(new Error('ECONNRESET'))
+      const operation = vi.fn().mockImplementation(() => Promise.reject(new Error('ECONNRESET')))
 
       const resultPromise = retryManager.execute(operation, 'test')
+      const expectation = expect(resultPromise).rejects.toThrow('ECONNRESET')
+      
       await vi.runAllTimersAsync()
-
-      await expect(resultPromise).rejects.toThrow('ECONNRESET')
+      await expectation
       expect(operation).toHaveBeenCalledTimes(2)
     })
 

@@ -58,7 +58,7 @@ export class GracefulShutdown {
         ]);
         logger.info(`[Shutdown] Handler completed: ${handler.name}`);
       } catch (err) {
-        logger.error(`[Shutdown] Handler failed or timed out: ${handler.name}`, { error: err });
+        logger.error({ error: err }, `[Shutdown] Handler failed or timed out: ${handler.name}`);
       }
 
       if (Date.now() - startTime > this.totalTimeoutMs) {

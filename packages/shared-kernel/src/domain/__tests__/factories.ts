@@ -1,4 +1,4 @@
-import { DomainNode, DomainTask, Priority } from '../types/domain';
+import { DomainNode, DomainTask, Priority } from '../../types/domain';
 
 export const createMockNode = (overrides: Partial<DomainNode> = {}): DomainNode => ({
   id: `node-${Math.random().toString(36).substr(2, 9)}`,

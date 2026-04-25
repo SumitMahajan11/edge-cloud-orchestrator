@@ -56,7 +56,7 @@ describe('TaskScheduler', () => {
     mockRedis = new Redis();
     mockWsManager = {
       broadcast: vi.fn(),
-      sendToNode: vi.fn(),
+      broadcastToUser: vi.fn(),
     };
     mockLogger = {
       info: vi.fn(),
@@ -166,7 +166,7 @@ describe('TaskScheduler', () => {
       await scheduler.enqueue(task);
 
       // CRITICAL = 100, plus ~1 point for age = ~101
-      const callArgs = vi.mocked(mockRedis.zadd).mock.calls[0];
+      const callArgs = vi.mocked(mockRedis.zadd).mock.calls[0] as any[];
       expect(callArgs[1]).toBeGreaterThan(100);
       expect(callArgs[1]).toBeLessThanOrEqual(110);
     });

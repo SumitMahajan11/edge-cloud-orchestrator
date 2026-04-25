@@ -1,4 +1,5 @@
 // Type definitions for mock data
+import bcrypt from 'bcryptjs';
 export interface MockUser {
   id: string;
   email: string;
@@ -110,6 +111,21 @@ const mockUsers = new Map<string, MockUser>();
 const mockSessions = new Map<string, MockSession>();
 const mockTasks = new Map<string, MockTask>();
 const mockNodes = new Map<string, MockNode>();
+
+// Seed default admin user for development
+// Password: admin123
+mockUsers.set('user-admin-seed', {
+  id: 'user-admin-seed',
+  email: 'admin@example.com',
+  passwordHash: bcrypt.hashSync('admin123', 10),
+  name: 'Admin User',
+  role: 'ADMIN',
+  isActive: true,
+  emailVerified: true,
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastLoginAt: null,
+});
 
 export const mockPrisma = {
   user: {
@@ -261,6 +277,59 @@ export const mockPrisma = {
       let nodes = Array.from(mockNodes.values());
       if (where?.status) nodes = nodes.filter((n) => n.status === where.status);
       return nodes;
+    },
+  },
+  // edgeNode is the Prisma model name for nodes (PascalCase → camelCase)
+  edgeNode: {
+    findMany: async ({ where, orderBy, skip, take, include }: any = {}): Promise<any[]> => {
+      let nodes = Array.from(mockNodes.values()) as any[];
+      if (where?.status) nodes = nodes.filter((n) => n.status === where.status);
+      if (where?.region) nodes = nodes.filter((n) => n.region === where.region);
+      if (orderBy) {
+        const [field, dir] = Object.entries(orderBy)[0] as [string, string];
+        nodes.sort((a, b) => dir === 'asc' ? (a[field] > b[field] ? 1 : -1) : (a[field] < b[field] ? 1 : -1));
+      }
+      if (skip) nodes = nodes.slice(skip);
+      if (take) nodes = nodes.slice(0, take);
+      if (include?._count) nodes = nodes.map(n => ({ ...n, _count: { tasks: 0 } }));
+      return nodes;
+    },
+    findUnique: async ({ where }: any): Promise<any | null> => {
+      return mockNodes.get(where.id) || null;
+    },
+    create: async ({ data }: any): Promise<any> => {
+      const node = { id: data.id || `node-${Date.now()}`, ...data, createdAt: new Date(), updatedAt: new Date() };
+      mockNodes.set(node.id, node);
+      return node;
+    },
+    update: async ({ where, data }: any): Promise<any> => {
+      const node = mockNodes.get(where.id);
+      if (!node) throw new Error('Node not found');
+      const updated = { ...node, ...data, updatedAt: new Date() };
+      mockNodes.set(where.id, updated);
+      return updated;
+    },
+    delete: async ({ where }: any): Promise<any> => {
+      const node = mockNodes.get(where.id);
+      mockNodes.delete(where.id);
+      return node;
+    },
+    count: async ({ where }: any = {}): Promise<number> => {
+      let nodes = Array.from(mockNodes.values());
+      if (where?.status) nodes = nodes.filter((n: any) => n.status === where.status);
+      if (where?.region) nodes = nodes.filter((n: any) => n.region === where.region);
+      return nodes.length;
+    },
+    upsert: async ({ where, create, update }: any): Promise<any> => {
+      const existing = mockNodes.get(where.id);
+      if (existing) {
+        const updated = { ...existing, ...update, updatedAt: new Date() };
+        mockNodes.set(where.id, updated);
+        return updated;
+      }
+      const node = { id: where.id || `node-${Date.now()}`, ...create, createdAt: new Date(), updatedAt: new Date() };
+      mockNodes.set(node.id, node);
+      return node;
     },
   },
   $connect: async () => {},

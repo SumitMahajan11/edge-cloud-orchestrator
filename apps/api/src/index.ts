@@ -11,6 +11,21 @@ initTelemetry('orchestrator-api');
 
 const logger = createLogger('orchestrator-api');
 
+// Prevent background timer errors from crashing the process in development
+if (process.env.NODE_ENV !== 'production') {
+  process.on('uncaughtException', (err: any) => {
+    // Let fatal startup errors (port in use, etc.) kill the process normally
+    if (err.code === 'EADDRINUSE' || err.code === 'EACCES') {
+      logger.error({ err: err.message }, 'Fatal startup error - exiting');
+      process.exit(1);
+    }
+    logger.error({ err: err.message }, 'Uncaught exception (dev mode - keeping server up)');
+  });
+  process.on('unhandledRejection', (reason: any) => {
+    logger.error({ reason }, 'Unhandled rejection (dev mode - keeping server up)');
+  });
+}
+
 import 'dotenv/config';
 
 import cookie from '@fastify/cookie';
@@ -140,6 +155,7 @@ async function registerPlugins() {
 
   const rateLimitMax = parseInt(await secretManager.getSecret('RATE_LIMIT_MAX') || '100', 10);
   const rateLimitWindow = parseInt(await secretManager.getSecret('RATE_LIMIT_WINDOW_MS') || '60000', 10);
+  const redisUrlForRateLimit = await secretManager.getSecret('REDIS_URL');
 
   await app.register(rateLimit, {
     max: async (request: any) => {
@@ -150,7 +166,7 @@ async function registerPlugins() {
     timeWindow: rateLimitWindow,
     cache: 10000,
     allowList: ['127.0.0.1'],
-    redis: redis,
+    ...(redisUrlForRateLimit ? { redis: redis } : {}),
   });
 
   // WebSocket
@@ -224,6 +240,14 @@ async function registerPlugins() {
 async function registerRoutes() {
   const frontendDist = path.resolve(process.cwd(), '..', 'dist');
 
+  // WebSocket route - registered first to take priority over wildcard
+  app.get('/ws', { websocket: true }, (socket: any, req: any) => {
+    wsManager.handleConnection(socket, req.raw);
+  });
+
+  // API V1 Routes
+  await app.register(v1Routes, { prefix: '/v1' });
+
   await app.register(staticPlugin, {
     root: frontendDist,
     prefix: '/',
@@ -242,9 +266,6 @@ async function registerRoutes() {
     }
     return reply.sendFile('index.html');
   });
-
-  // API V1 Routes
-  await app.register(v1Routes, { prefix: '/v1' });
 
   // Maintenance Endpoints (Outside Versioning)
   app.get('/health', async () => HealthCheck.getLiveness());
@@ -293,13 +314,42 @@ async function start() {
     const mockStorage = new Map<string, any>();
     redis = {
       get: async (key: string) => mockStorage.get(key) || null,
-      set: async (key: string, value: any) => { mockStorage.set(key, value); return 'OK'; },
+      set: async (key: string, value: any, ...args: any[]) => { mockStorage.set(key, value); return 'OK'; },
       setex: async (key: string, _s: number, value: any) => { mockStorage.set(key, value); return 'OK'; },
       del: async (...keys: string[]) => { keys.forEach(k => mockStorage.delete(k)); return keys.length; },
       ping: async () => 'PONG',
-      on: () => {},
+      publish: async () => 0,
+      subscribe: async () => {},
+      on: () => redis,
       disconnect: () => {},
       duplicate: () => redis,
+      defineCommand: () => {},
+      zrange: async () => [],
+      zadd: async () => 0,
+      zrem: async () => 0,
+      zcard: async () => 0,
+      lrange: async () => [],
+      lpush: async () => 0,
+      rpush: async () => 0,
+      llen: async () => 0,
+      expire: async () => 1,
+      ttl: async () => -1,
+      keys: async () => [],
+      hset: async () => 0,
+      hget: async () => null,
+      hgetall: async () => null,
+      hdel: async () => 0,
+      incr: async () => 1,
+      incrby: async () => 1,
+      setnx: async () => 1,
+      pipeline: () => {
+        const cmds: any[] = [];
+        const p: any = { exec: async () => cmds.map(() => [null, 0]) };
+        ['get','set','setex','del','incr','incrby','expire','ttl','zadd','zrem','zrange','zcard','zremrangebyscore','lrange','lpush','rpush','llen','hset','hget','hdel'].forEach(fn => {
+          p[fn] = (..._args: any[]) => { cmds.push(fn); return p; };
+        });
+        return p;
+      },
     } as any;
     const { SLAMonitor } = await import('./services/sla-monitor.js');
     new SLAMonitor(prisma, redis);

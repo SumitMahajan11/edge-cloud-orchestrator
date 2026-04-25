@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "import/no-internal-modules": [
+      "error",
+      {
+        "allow": [
+          "**/index.ts",
+          "**/types/**",
+          "**/schemas/**"
+        ]
+      }
+    ]
+  }
+}

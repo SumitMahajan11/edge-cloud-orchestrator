@@ -1,0 +1,8 @@
+-----BEGIN CERTIFICATE-----==>-----BEGIN [REDACTED]-----
+-----END CERTIFICATE-----==>-----END [REDACTED]-----
+-----BEGIN PRIVATE KEY-----==>-----BEGIN [REDACTED]-----
+-----END PRIVATE KEY-----==>-----END [REDACTED]-----
+-----BEGIN RSA PRIVATE KEY-----==>-----BEGIN [REDACTED]-----
+-----END RSA PRIVATE KEY-----==>-----END [REDACTED]-----
+-----BEGIN CERTIFICATE REQUEST-----==>-----BEGIN [REDACTED]-----
+-----END CERTIFICATE REQUEST-----==>-----END [REDACTED]-----

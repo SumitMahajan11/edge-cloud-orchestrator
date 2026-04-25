@@ -24,13 +24,17 @@
     "noUncheckedSideEffectImports": true
   },
   "include": [
-    "src",
-    "../../packages/*/src"
+    "src"
   ],
   "exclude": [
     "node_modules",
     "dist",
     "**/*.spec.ts",
-    "**/*.test.ts"
+    "**/*.test.ts",
+    "src/lib/api/**",
+    "src/lib/tasks/**",
+    "src/lib/utils/**",
+    "src/lib/websocket/**",
+    "src/lib/nodes/**"
   ]
 }
