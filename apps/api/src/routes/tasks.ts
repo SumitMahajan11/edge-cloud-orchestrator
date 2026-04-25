@@ -187,7 +187,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
-          userId: request.user.id,
+          userId: request.user!.id,
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,

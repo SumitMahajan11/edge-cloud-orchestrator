@@ -21,6 +21,7 @@ export async function authenticate(
       id: decoded.id,
       email: decoded.email,
       role: decoded.role,
+      permissions: decoded.permissions || [],
     };
   } catch (error) {
     return reply.status(401).send({ error: 'Authentication failed' });

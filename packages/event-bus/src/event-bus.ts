@@ -41,8 +41,8 @@ export class EventBus {
   }
 
   async initializeDLQ(prisma: any, topics: string[], config?: Partial<DLQConfig>): Promise<void> {
-    this.dlq = new DeadLetterQueue(this.kafka, this.producer, prisma, config);
-    await this.dlq.ensureDLQTopics(topics);
+    const redisUrl = this.config.brokers[0] || 'redis://localhost:6379'; // Use first broker as Redis URL for now
+    this.dlq = new DeadLetterQueue(redisUrl, prisma, config);
   }
 
   async retryFailedEvent(eventId: string): Promise<boolean> {
@@ -140,7 +140,8 @@ export class EventBus {
             'messaging.operation': 'process',
           }
         }, extractedContext, async (span) => {
-          await runWithRequestId(requestId, async () => {
+          const traceId = span.spanContext()?.traceId;
+          await runWithRequestId(requestId, traceId, async () => {
             try {
               const event = JSON.parse(message.value!.toString()) as T;
               span.setAttributes({
@@ -165,7 +166,11 @@ export class EventBus {
                 
                 await this.dlq.sendToDLQ(
                   topic,
-                  message,
+                  {
+                    key: message.key || undefined,
+                    value: message.value || undefined,
+                    headers: message.headers as Record<string, string> || {},
+                  },
                   error as Error,
                   eventId
                 );

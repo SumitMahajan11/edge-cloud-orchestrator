@@ -2,6 +2,7 @@ import { AsyncLocalStorage } from 'async_hooks';
 
 export interface LogContext {
   requestId?: string;
+  traceId?: string;
   [key: string]: any;
 }
 
@@ -12,6 +13,13 @@ const storage = new AsyncLocalStorage<LogContext>();
  */
 export function getRequestId(): string | undefined {
   return storage.getStore()?.requestId;
+}
+
+/**
+ * Get the current trace ID from context
+ */
+export function getTraceId(): string | undefined {
+  return storage.getStore()?.traceId;
 }
 
 /**
@@ -29,9 +37,9 @@ export function runWithContext<T>(context: LogContext, fn: () => T): T {
 }
 
 /**
- * Run a function with just a request ID
+ * Run a function with just a request ID and optionally trace ID
  */
-export function runWithRequestId<T>(requestId: string, fn: () => T): T {
+export function runWithRequestId<T>(requestId: string, traceId: string | undefined, fn: () => T): T {
   const existing = storage.getStore() || {};
-  return storage.run({ ...existing, requestId }, fn);
+  return storage.run({ ...existing, requestId, traceId: traceId || requestId }, fn);
 }

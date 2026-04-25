@@ -1,6 +1,7 @@
-import { diag, DiagConsoleLogger, DiagLogLevel } from '@opentelemetry/api';
+import { diag, DiagConsoleLogger, DiagLogLevel, trace, SpanKind, SpanStatusCode } from '@opentelemetry/api';
+export { SpanKind, SpanStatusCode };
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
+import { JaegerExporter } from '@opentelemetry/exporter-jaeger';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { Resource } from '@opentelemetry/resources';
 import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
@@ -11,8 +12,8 @@ if (process.env.OTEL_DEBUG === 'true') {
 }
 
 export function initTelemetry(serviceName: string) {
-  const exporter = new OTLPTraceExporter({
-    url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://jaeger:4317',
+  const exporter = new JaegerExporter({
+    endpoint: process.env.JAEGER_ENDPOINT || 'http://jaeger:6831',
   });
 
   const sdk = new NodeSDK({
@@ -30,7 +31,7 @@ export function initTelemetry(serviceName: string) {
           requestHook: (span, info) => {
             if (info.request.params) {
               span.setAttributes(
-                Object.entries(info.request.params).reduce((acc, [k, v]) => ({
+                Object.entries(info.request.params as Record<string, any>).reduce((acc, [k, v]) => ({
                   ...acc,
                   [`http.route.param.${k}`]: v
                 }), {})
@@ -53,3 +54,5 @@ export function initTelemetry(serviceName: string) {
 
   return sdk;
 }
+
+export const tracer = trace.getTracer('edge-cloud-orchestrator');

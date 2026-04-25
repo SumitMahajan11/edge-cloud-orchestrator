@@ -69,3 +69,14 @@ scrape_configs:
     params:
       format: ['prometheus']
     scrape_interval: 15s
+
+  # Nginx API Gateway Metrics
+  - job_name: 'nginx-api-gateway'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+    scrape_interval: 10s
+    metrics_path: '/metrics'
+    # Track rate limiting metrics:
+    # - nginx_http_requests_total (by status code)
+    # - nginx_limiting_requests_total (rate-limited requests)
+    # - nginx_connections_active (active connections)

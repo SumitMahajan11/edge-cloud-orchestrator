@@ -234,6 +234,9 @@ model Task {
   // Timing
   submittedAt  DateTime   @default(now())
   
+  // Duration limit (seconds)
+  maxDurationSeconds Int   @default(3600) // 1 hour default
+  
   // Retry configuration
   maxRetries   Int        @default(3)
   

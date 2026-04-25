@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+
 
 // Mock PrismaClient
 vi.mock('@prisma/client', () => ({
@@ -13,13 +13,14 @@ vi.mock('@prisma/client', () => ({
 }));
 
 describe('PrismaClientWithReplicas', () => {
-  const originalEnv = process.env;
+  const originalEnv = { ...process.env };
 
   beforeEach(() => {
-    process.env = { ...originalEnv };
-    vi.clearAllMocks();
-    // Clear module cache to get fresh instance
     vi.resetModules();
+    vi.clearAllMocks();
+    process.env = { ...originalEnv };
+    // Clear global singleton
+    (global as any).prisma = undefined;
   });
 
   afterEach(() => {
@@ -30,7 +31,7 @@ describe('PrismaClientWithReplicas', () => {
     process.env.DATABASE_URL = 'postgresql://primary:5432/db';
     delete process.env.DATABASE_READ_URL;
 
-    const { prisma } = await import('../client');
+    const { prisma } = await import('../client.js');
 
     expect(PrismaClient).toHaveBeenCalledTimes(1);
     expect(prisma.read).toBe(prisma.write); // Same client for both
@@ -40,13 +41,14 @@ describe('PrismaClientWithReplicas', () => {
     process.env.DATABASE_URL = 'postgresql://primary:5432/db';
     process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
 
-    const { prisma } = await import('../client');
+    const { prisma: _prisma } = await import('../client.js');
 
     // Should create two clients
     expect(PrismaClient).toHaveBeenCalledTimes(2);
 
     // Second call should have read replica datasource
     const secondCall = vi.mocked(PrismaClient).mock.calls[1];
+    if (!secondCall) throw new Error('Second call to PrismaClient not found');
     expect(secondCall[0]).toMatchObject({
       datasources: {
         db: {
@@ -60,8 +62,7 @@ describe('PrismaClientWithReplicas', () => {
     process.env.DATABASE_URL = 'postgresql://primary:5432/db';
     process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
 
-    const { prisma } = await import('../client');
-
+    const { prisma } = await import('../client.js');
     await prisma.$connect();
 
     // Both clients should connect
@@ -73,8 +74,7 @@ describe('PrismaClientWithReplicas', () => {
     process.env.DATABASE_URL = 'postgresql://primary:5432/db';
     process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
 
-    const { prisma } = await import('../client');
-
+    const { prisma } = await import('../client.js');
     await prisma.$disconnect();
 
     const instances = vi.mocked(PrismaClient).mock.results;
@@ -85,7 +85,7 @@ describe('PrismaClientWithReplicas', () => {
     process.env.DATABASE_URL = 'postgresql://primary:5432/db';
     process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
 
-    const { prisma } = await import('../client');
+    const { prisma } = await import('../client.js');
 
     const health = await prisma.healthCheck();
 
@@ -96,7 +96,7 @@ describe('PrismaClientWithReplicas', () => {
   it('should expose $transaction on primary client', async () => {
     process.env.DATABASE_URL = 'postgresql://primary:5432/db';
 
-    const { prisma } = await import('../client');
+    const { prisma } = await import('../client.js');
 
     const transactionFn = vi.fn();
     await prisma.$transaction(transactionFn);

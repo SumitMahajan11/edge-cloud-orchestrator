@@ -3,6 +3,7 @@ import fp from 'fastify-plugin';
 import { v4 as uuidv4 } from 'uuid';
 import { runWithContext } from './context';
 import type { Logger } from 'pino';
+import { tracer } from '../telemetry';
 
 export interface LoggingPluginOptions {
   logger: Logger;
@@ -42,11 +43,14 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
 
   fastify.addHook('onRequest', async (request, reply) => {
     const requestId = (request.headers['x-request-id'] as string) || uuidv4();
+    const traceId = (request.headers['x-trace-id'] as string) || requestId;
+    
     reply.header('x-request-id', requestId);
+    reply.header('x-trace-id', traceId);
 
     // Set up AsyncLocalStorage context for the entire request duration
     return new Promise<void>((resolve) => {
-      runWithContext({ requestId }, () => {
+      runWithContext({ requestId, traceId }, () => {
         // Log request start
         logger.info({
           type: 'request_start',
@@ -54,11 +58,26 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
           url: request.url,
           remoteAddress: request.ip,
           requestId,
+          traceId,
         }, `Incoming ${request.method} ${request.url}`);
         
         resolve();
       });
     });
+  });
+
+  fastify.addHook('preHandler', async (request, reply) => {
+    // Create OTel span for the request
+    const span = tracer.startSpan(`http:${request.method}:${request.routerPath || request.url}`);
+    span.setAttributes({
+      'http.method': request.method,
+      'http.url': request.url,
+      'http.request_id': (request.headers['x-request-id'] as string) || request.id,
+      'http.trace_id': (request.headers['x-trace-id'] as string),
+    });
+    
+    // Attach span to request for manual instrumentation in handlers
+    (request as any).span = span;
   });
 
   fastify.addHook('onResponse', async (request, reply) => {
@@ -70,6 +89,13 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
       statusCode: reply.statusCode,
       duration,
     }, `Finished ${request.method} ${request.url} with ${reply.statusCode}`);
+
+    // End OTel span
+    const span = (request as any).span;
+    if (span) {
+      span.setAttribute('http.status_code', reply.statusCode);
+      span.end();
+    }
   });
 
   fastify.addHook('onError', async (request, _reply, error) => {
@@ -79,11 +105,14 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
       url: request.url,
       error: sanitize(error),
     }, `Error in ${request.method} ${request.url}: ${error.message}`);
-  });
 
-  // Global serializer for all logs in this fastify instance
-  // Note: Pino doesn't easily allow runtime injection into its serializers via Fastify hooks,
-  // but we can provide sanitized objects to the logger.
+    // Record error in OTel span
+    const span = (request as any).span;
+    if (span) {
+      span.recordException(error);
+      span.setStatus({ code: 2, message: error.message }); // 2 = ERROR
+    }
+  });
 };
 
 export const fastifyLoggingPlugin = fp(loggingPluginCallback);

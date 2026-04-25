@@ -33,7 +33,7 @@ The system uses a **GitOps** model with the following components:
   - `ARGOCD_AUTH_TOKEN`: Token for ArgoCD API access.
 - **Kubernetes Secrets** (Must be in cluster):
   - `ghcr-credentials`: Image pull secret for GHCR.
-  - `edgecloud-secrets`: Contains `DATABASE_URL`, `REDIS_URL`, `KAFKA_BROKERS`, etc.
+  - `edgecloud-secrets`: Contains `DATABASE_URL`, `REDIS_URL`, `VAULT_TOKEN`, etc.
 
 ## Setup Instructions
 

@@ -4,7 +4,7 @@
   "description": "WebSocket Gateway with auto-reconnect and SSE fallback",
   "main": "dist/index.js",
   "scripts": {
-    "build": "npx tsc",
+    "build": "tsc",
     "dev": "ts-node-dev --respawn src/index.ts",
     "start": "node dist/index.js"
   },

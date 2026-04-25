@@ -77,3 +77,15 @@ certs/
 
 # Build artifacts (additional patterns)
 coverage/.tmp/
+
+# ML Models (trained artifacts - do not commit)
+packages/ml-scheduler/models/*.xgb.json
+packages/ml-scheduler/models/*.joblib
+packages/ml-scheduler/models/*.bin
+packages/ml-scheduler/models/*.weights
+packages/ml-scheduler/training/__pycache__/
+packages/ml-scheduler/**/*.pyc
+
+# Exception: Keep metadata templates and latest.json
+!packages/ml-scheduler/models/latest.json
+!packages/ml-scheduler/models/README.md

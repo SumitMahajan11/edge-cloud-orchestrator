@@ -1,10 +1,19 @@
+import { 
+  initTelemetry, 
+  createLogger, 
+  fastifyLoggingPlugin,
+  GracefulShutdown,
+  HealthCheck
+} from '@edgecloud/shared-kernel';
+initTelemetry('metrics-service');
+
+const logger = createLogger('metrics-service');
+
 import Fastify from 'fastify';
 import { Registry, collectDefaultMetrics, Gauge, Histogram, Counter } from 'prom-client';
-import pino from 'pino';
 import Redis from 'ioredis';
 
-const logger = pino({ level: process.env.LOG_LEVEL || 'info' });
-const fastify = Fastify({ logger: false });
+const app = Fastify({ logger: false });
 
 // Redis for stream monitoring
 const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
@@ -139,7 +148,7 @@ async function aggregateBusinessMetrics() {
 }
 
 // Routes
-fastify.get('/metrics', async (request, reply) => {
+app.get('/metrics', async (request, reply) => {
   await aggregateBusinessMetrics();
   
   // Start with our own metrics
@@ -163,15 +172,36 @@ fastify.get('/metrics', async (request, reply) => {
 });
 
 // Health Endpoints
-fastify.get('/health/live', async () => ({ status: 'UP', service: 'metrics-service' }));
-fastify.get('/health/ready', async () => ({ status: 'UP' }));
-fastify.get('/health/startup', async () => ({ status: 'UP' }));
+app.get('/health', async () => HealthCheck.getLiveness());
+app.get('/health/live', async () => HealthCheck.getLiveness());
+app.get('/health/ready', async () => HealthCheck.getReadiness({
+  redis: async () => {
+    try { return (await redis.ping()) === 'PONG'; } catch { return false; }
+  }
+}));
+app.get('/health/startup', async () => HealthCheck.getStartup());
 
 const start = async () => {
   try {
     await redis.connect();
+    
+    // Register unified logging
+    await app.register(fastifyLoggingPlugin, { logger, serviceName: 'metrics-service' });
+
     const port = parseInt(process.env.PORT || '3005');
-    await fastify.listen({ port, host: '0.0.0.0' });
+    await app.listen({ port, host: '0.0.0.0' });
+
+    // Initialize shutdown manager
+    GracefulShutdown.init();
+    GracefulShutdown.registerHandler('redis', async () => {
+      if (redis) redis.disconnect();
+    });
+    GracefulShutdown.registerHandler('app', async () => {
+      await app.close();
+    });
+
+    HealthCheck.setReady(true);
+    
     logger.info(`Metrics Service (Aggregator) listening on port ${port}`);
   } catch (err) {
     logger.error(err);

@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventemitter3';
-import { Consumer, EachMessagePayload,Kafka, Message, Producer } from 'kafkajs';
+import Redis from 'ioredis';
 
 // ============================================================================
 // Types
@@ -10,6 +10,11 @@ export interface DLQConfig {
   maxRetries: number;
   retryDelayMs: number;
   enabled: boolean;
+  redisStreams: {
+    enabled: boolean;
+    redisUrl: string;
+    retryDelays: number[]; // [1000, 5000, 30000] for exponential backoff
+  };
 }
 
 export interface FailedEvent {
@@ -38,14 +43,22 @@ export const DEFAULT_DLQ_CONFIG: DLQConfig = {
   maxRetries: 3,
   retryDelayMs: 5000,
   enabled: true,
+  redisStreams: {
+    enabled: true,
+    redisUrl: 'redis://localhost:6379',
+    retryDelays: [1000, 5000, 30000], // 1s, 5s, 30s backoff
+  },
 };
 
-// PrismaClient-like interface for dead letter events
-interface PrismaClientLike {
+// ============================================================================
+// Prisma Client Type (duck-typed)
+// ============================================================================
+
+export interface PrismaClientLike {
   deadLetterEvent: {
     create: (args: any) => Promise<any>;
-    findUnique: (args: any) => Promise<any | null>;
     findMany: (args: any) => Promise<any[]>;
+    findUnique: (args: any) => Promise<any | null>;
     count: (args: any) => Promise<number>;
     update: (args: any) => Promise<any>;
     updateMany: (args: any) => Promise<any>;
@@ -55,76 +68,51 @@ interface PrismaClientLike {
 }
 
 // ============================================================================
-// Dead Letter Queue Manager
+// Dead Letter Queue Manager (Redis Streams only)
 // ============================================================================
 
 export class DeadLetterQueue extends EventEmitter {
-  private kafka: Kafka;
-  private producer: Producer;
   private prisma: PrismaClientLike;
   private config: DLQConfig;
-  private dlqTopics: Set<string> = new Set();
+  private redisClient: Redis;
 
   constructor(
-    kafka: Kafka,
-    producer: Producer,
+    redisUrl: string,
     prisma: PrismaClientLike,
     config: Partial<DLQConfig> = {}
   ) {
     super();
-    this.kafka = kafka;
-    this.producer = producer;
     this.prisma = prisma;
-    this.config = { ...DEFAULT_DLQ_CONFIG, ...config };
+    this.config = { 
+      ...DEFAULT_DLQ_CONFIG, 
+      ...config, 
+      redisStreams: { 
+        enabled: true, 
+        redisUrl, 
+        retryDelays: config.redisStreams?.retryDelays || [1000, 5000, 30000] 
+      } 
+    };
+    
+    // Initialize Redis client
+    this.redisClient = new Redis(redisUrl);
+    this.redisClient.on('error', (err: Error) => {
+      console.error('Redis DLQ connection error:', err);
+    });
   }
 
   /**
-   * Get the DLQ topic name for a given original topic
+   * Get Redis DLQ stream name for a given topic
    */
-  getDLQTopic(originalTopic: string): string {
-    return `${originalTopic}${this.config.dlqTopicSuffix}`;
+  getRedisDLQStream(streamName: string): string {
+    return `${streamName}:dlq`;
   }
 
   /**
-   * Create DLQ topics for existing topics
-   */
-  async ensureDLQTopics(topics: string[]): Promise<void> {
-    const admin = this.kafka.admin();
-    await admin.connect();
-
-    try {
-      const existingTopics = await admin.listTopics();
-      const dlqTopics = topics.map((t) => this.getDLQTopic(t));
-      const topicsToCreate = dlqTopics.filter((t) => !existingTopics.includes(t));
-
-      if (topicsToCreate.length > 0) {
-        await admin.createTopics({
-          topics: topicsToCreate.map((topic) => ({
-            topic,
-            numPartitions: 6,
-            replicationFactor: 3,
-            configEntries: [
-              { name: 'retention.ms', value: '604800000' }, // 7 days
-              { name: 'cleanup.policy', value: 'compact' },
-            ],
-          })),
-        });
-      }
-
-      for (const topic of dlqTopics) {
-        this.dlqTopics.add(topic);
-      }
-    } finally {
-      await admin.disconnect();
-    }
-  }
-
-  /**
-   * Send a failed event to the DLQ
+   * Send a failed event to the DLQ (Redis Streams + PostgreSQL)
    */
   async sendToDLQ(
     originalTopic: string,
-    message: Message,
+    message: { key?: string | Buffer; value?: string | Buffer; headers?: Record<string, string> },
     error: Error,
     originalEventId?: string
   ): Promise<void> {
@@ -132,14 +120,12 @@ export class DeadLetterQueue extends EventEmitter {
       return;
     }
 
-    const dlqTopic = this.getDLQTopic(originalTopic);
-
     const failedEvent: FailedEvent = {
       id: `dlq-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       originalTopic,
       originalKey: message.key?.toString() || null,
       payload: message.value ? JSON.parse(message.value.toString()) : {},
-      headers: this.parseHeaders(message.headers),
+      headers: message.headers || {},
       error: error.message,
       errorStack: error.stack,
       attempts: 1,
@@ -161,21 +147,36 @@ export class DeadLetterQueue extends EventEmitter {
       },
     });
 
-    // Also send to Kafka DLQ topic for visibility
-    await this.producer.send({
-      topic: dlqTopic,
-      messages: [{
-        key: failedEvent.id,
-        value: JSON.stringify(failedEvent),
-        headers: {
-          'original-topic': originalTopic,
-          'error': error.message,
-          'failed-at': new Date().toISOString(),
-        },
-      }],
-    });
+    // Store in Redis Streams for fast inspection
+    await this.sendToRedisDLQ(originalTopic, failedEvent, error);
 
     this.emit('event_added', { eventId: failedEvent.id, originalTopic, error });
+  }
+
+  /**
+   * Store event in Redis DLQ stream
+   */
+  private async sendToRedisDLQ(
+    originalTopic: string,
+    event: FailedEvent,
+    error: Error
+  ): Promise<void> {
+    const dlqStream = this.getRedisDLQStream(originalTopic);
+    
+    await this.redisClient.xadd(
+      dlqStream,
+      '*',
+      'id', event.id,
+      'originalTopic', originalTopic,
+      'originalKey', event.originalKey || '',
+      'payload', JSON.stringify(event.payload),
+      'headers', JSON.stringify(event.headers),
+      'error', error.message,
+      'errorStack', error.stack || '',
+      'attempts', String(event.attempts),
+      'originalEventId', event.originalEventId || '',
+      'timestamp', event.timestamp.toISOString()
+    );
   }
 
   /**
@@ -219,6 +220,66 @@ export class DeadLetterQueue extends EventEmitter {
   }
 
   /**
+   * Get DLQ statistics
+   */
+  async getStats(): Promise<DLQStats> {
+    const dbStats = await this.prisma.deadLetterEvent.groupBy({
+      by: ['status'],
+      _count: { id: true },
+    });
+
+    const stats: DLQStats = {
+      totalEvents: 0,
+      pendingRetry: 0,
+      permanentlyFailed: 0,
+      reprocessed: 0,
+      byTopic: {},
+    };
+
+    dbStats.forEach((s: { status: string; _count: { id: number } }) => {
+      const count = s._count.id;
+      stats.totalEvents += count;
+      
+      switch (s.status) {
+        case 'PENDING':
+          stats.pendingRetry += count;
+          break;
+        case 'PERMANENTLY_FAILED':
+          stats.permanentlyFailed += count;
+          break;
+        case 'REPROCESSED':
+          stats.reprocessed += count;
+          break;
+      }
+    });
+
+    // Get Redis DLQ sizes
+    try {
+      const redisStats = await this.getRedisDLQStats();
+      stats.byTopic = redisStats;
+    } catch (err) {
+      console.error('Failed to get Redis DLQ stats:', err);
+    }
+
+    return stats;
+  }
+
+  /**
+   * Get Redis DLQ stream sizes
+   */
+  private async getRedisDLQStats(): Promise<Record<string, number>> {
+    const keys = await this.redisClient.keys('*:dlq');
+    const sizes: Record<string, number> = {};
+
+    for (const key of keys) {
+      const len = await this.redisClient.xlen(key);
+      sizes[key] = len;
+    }
+
+    return sizes;
+  }
+
+  /**
    * Retry a failed event
    */
   async retryEvent(eventId: string): Promise<boolean> {
@@ -227,146 +288,107 @@ export class DeadLetterQueue extends EventEmitter {
     });
 
     if (!event) {
-      throw new Error(`Event ${eventId} not found`);
-    }
-
-    if (event.status === 'REPROCESSED') {
-      throw new Error('Event already reprocessed');
+      return false;
     }
 
     // Update status
     await this.prisma.deadLetterEvent.update({
       where: { id: eventId },
-      data: {
-        status: 'RETRYING',
-        attempts: { increment: 1 },
-        lastAttemptAt: new Date(),
-      },
+      data: { status: 'RETRYING', attempts: { increment: 1 } },
     });
 
+    // Remove from Redis DLQ
+    const dlqStream = this.getRedisDLQStream(event.originalTopic);
     try {
-      // Re-publish to original topic
-      await this.producer.send({
-        topic: event.originalTopic,
-        messages: [{
-          key: event.originalKey || undefined,
-          value: JSON.stringify(event.payload),
-          headers: {
-            ...event.headers as Record<string, string>,
-            'dlq-retry': 'true',
-            'dlq-event-id': eventId,
-            'dlq-attempt': String(event.attempts + 1),
-          },
-        }],
-      });
-
-      // Mark as reprocessed
-      await this.prisma.deadLetterEvent.update({
-        where: { id: eventId },
-        data: { status: 'REPROCESSED' },
-      });
-
-      this.emit('event_reprocessed', { eventId, originalTopic: event.originalTopic });
-      return true;
-    } catch (error) {
-      // Check if max retries exceeded
-      if (event.attempts + 1 >= this.config.maxRetries) {
-        await this.prisma.deadLetterEvent.update({
-          where: { id: eventId },
-          data: { status: 'PERMANENTLY_FAILED' },
-        });
-        this.emit('event_permanently_failed', { eventId, error });
-      } else {
-        await this.prisma.deadLetterEvent.update({
-          where: { id: eventId },
-          data: { status: 'PENDING' },
-        });
+      const entries = await this.redisClient.xrange(dlqStream, '-', '+') as Array<[string, string[]]>;
+      for (const [entryId, fields] of entries) {
+        // fields is an array: [field1, value1, field2, value2, ...]
+        for (let i = 0; i < fields.length; i += 2) {
+          if (fields[i] === 'id' && fields[i + 1] === eventId) {
+            await this.redisClient.xdel(dlqStream, entryId);
+            break;
+          }
+        }
       }
-      throw error;
+    } catch (err) {
+      console.error('Failed to remove event from Redis DLQ:', err);
     }
+
+    this.emit('event_retried', { eventId, originalTopic: event.originalTopic });
+    return true;
   }
 
   /**
-   * Retry multiple events
+   * Process event with retry logic using Redis Streams
    */
-  async retryEvents(eventIds: string[]): Promise<{
-    succeeded: string[];
-    failed: { id: string; error: string }[];
-  }> {
-    const succeeded: string[] = [];
-    const failed: { id: string; error: string }[] = [];
+  async processEventWithRetry(
+    streamName: string,
+    event: any,
+    handler: (event: any) => Promise<void>
+  ): Promise<boolean> {
+    const dlqStream = this.getRedisDLQStream(streamName);
+    const retryDelays = this.config.redisStreams.retryDelays;
+    let retries = 0;
 
-    for (const eventId of eventIds) {
+    while (retries < this.config.maxRetries) {
       try {
-        await this.retryEvent(eventId);
-        succeeded.push(eventId);
-      } catch (error) {
-        failed.push({ id: eventId, error: (error as Error).message });
+        await handler(event);
+        return true;
+      } catch (err: any) {
+        retries++;
+        
+        if (retries >= this.config.maxRetries) {
+          // Max retries exceeded, send to DLQ
+          await this.redisClient.xadd(dlqStream, '*',
+            'event', JSON.stringify(event),
+            'error', err.message,
+            'failedAt', new Date().toISOString(),
+            'retries', String(retries)
+          );
+          
+          this.emit('event_dlq', { 
+            streamName, 
+            event, 
+            error: err.message,
+            retries 
+          });
+          
+          return false;
+        }
+        
+        // Wait before retry with exponential backoff
+        const delay = retryDelays[retries - 1] || retryDelays[retryDelays.length - 1];
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
-
-    return { succeeded, failed };
-  }
-
-  /**
-   * Get DLQ statistics
-   */
-  async getStats(): Promise<DLQStats> {
-    const [totalEvents, pendingRetry, permanentlyFailed, reprocessed, byTopic] = await Promise.all([
-      this.prisma.deadLetterEvent.count({}),
-      this.prisma.deadLetterEvent.count({ where: { status: 'PENDING' } }),
-      this.prisma.deadLetterEvent.count({ where: { status: 'PERMANENTLY_FAILED' } }),
-      this.prisma.deadLetterEvent.count({ where: { status: 'REPROCESSED' } }),
-      this.prisma.deadLetterEvent.groupBy({
-        by: ['originalTopic'],
-        _count: { id: true },
-        where: { status: 'PENDING' },
-      }),
-    ]);
-
-    return {
-      totalEvents,
-      pendingRetry,
-      permanentlyFailed,
-      reprocessed,
-      byTopic: byTopic.reduce((acc: Record<string, number>, item: { originalTopic: string; _count: { id: number } }) => {
-        acc[item.originalTopic] = item._count.id;
-        return acc;
-      }, {} as Record<string, number>),
-    };
-  }
-
-  /**
-   * Purge old events
-   */
-  async purgeOldEvents(olderThanDays: number = 7): Promise<number> {
-    const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
     
-    const result = await this.prisma.deadLetterEvent.deleteMany({
-      where: {
-        status: { in: ['REPROCESSED', 'PERMANENTLY_FAILED'] },
-        createdAt: { lt: cutoff },
-      },
-    });
-
-    this.emit('purged', { count: result.count });
-    return result.count;
+    return false;
   }
 
   /**
-   * Parse Kafka headers
+   * Purge all DLQ events
    */
-  private parseHeaders(headers?: Record<string, any>): Record<string, string> {
-    if (!headers) {return {};}
-    
-    const result: Record<string, string> = {};
-    for (const [key, value] of Object.entries(headers)) {
-      if (Buffer.isBuffer(value)) {
-        result[key] = value.toString();
-      } else if (typeof value === 'string') {
-        result[key] = value;
+  async purge(): Promise<void> {
+    // Clear PostgreSQL
+    await this.prisma.deadLetterEvent.deleteMany({});
+
+    // Clear Redis DLQ streams
+    try {
+      const keys = await this.redisClient.keys('*:dlq');
+      if (keys.length > 0) {
+        await this.redisClient.del(...keys);
       }
+    } catch (err) {
+      console.error('Failed to purge Redis DLQ:', err);
     }
-    return result;
+
+    this.emit('dlq_purged');
+  }
+
+  /**
+   * Graceful shutdown
+   */
+  async shutdown(): Promise<void> {
+    await this.redisClient.quit();
   }
 }

@@ -108,6 +108,22 @@ export class CircuitBreaker extends EventEmitter {
     this.emit('failure', { name: this.config.name, failures: this.failures });
   }
 
+  public reset(): void {
+    this.state = 'CLOSED';
+    this.failures = 0;
+    this.successes = 0;
+    this.consecutiveSuccesses = 0;
+    this.totalCalls = 0;
+    this.rejectedCalls = 0;
+    this.lastFailureTime = undefined;
+    this.halfOpenCalls = 0;
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = undefined;
+    }
+    this.emit('reset', { name: this.config.name });
+  }
+
   private openCircuit(): void {
     if (this.state === 'OPEN') {return;}
 

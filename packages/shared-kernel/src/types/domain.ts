@@ -41,6 +41,20 @@ export interface ScoreWeights {
   health: number;
 }
 
+/**
+ * Default scoring weights for multi-objective node selection.
+ * Weights sum to 1.0 and prioritize CPU (40%), memory (30%), and latency (30%).
+ */
+export const DEFAULT_SCORE_WEIGHTS: ScoreWeights = {
+  cpu: 0.40,
+  memory: 0.30,
+  latency: 0.30,
+  cost: 0.0,
+  network: 0.0,
+  ml: 0.0,
+  health: 0.0,
+} as const;
+
 export interface HealingAction {
   type: 'reschedule-tasks' | 'restart-service' | 'scale-up' | 'scale-down' | 'clear-queue';
   target: string;

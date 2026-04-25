@@ -1,7 +1,7 @@
 import type { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+
 
 import { TaskScheduler } from '../task-scheduler';
 import type { WebSocketManager } from '../websocket-manager';

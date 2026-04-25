@@ -1,3 +1,6 @@
+import { initTelemetry, createLogger, fastifyLoggingPlugin } from '@edgecloud/shared-kernel';
+initTelemetry('node-service');
+
 import Fastify from 'fastify';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -7,7 +10,11 @@ import { EdgeNode, RegisterNodeCommand, NodeStatus, type NodeRegisteredEvent, ty
 import { CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
-const app = Fastify({ logger: true, trustProxy: true });
+const logger = createLogger('node-service');
+const app = Fastify({ logger: false, trustProxy: true });
+
+// Standardized Logging & Tracing
+app.register(fastifyLoggingPlugin, { logger, serviceName: 'node-service' });
 
 const pool = new Pool({
   host: process.env.DATABASE_HOST || 'localhost',
@@ -19,7 +26,7 @@ const pool = new Pool({
 
 const eventBus = new EventBus({
   clientId: 'node-service',
-  brokers: (process.env.KAFKA_BROKERS || 'localhost:9092').split(','),
+  brokers: (process.env.REDIS_URL || 'redis://localhost:6379').split(','),
 });
 
 // Circuit breaker registry
@@ -90,7 +97,7 @@ app.post('/nodes', async (request: FastifyRequest, reply: FastifyReply) => {
   
   const node = mapRowToNode(result.rows[0]);
   
-  // Publish event (non-blocking - don't fail if Kafka is not available)
+  // Publish event (non-blocking - don't fail if Redis is not available)
   try {
     await eventBus.publish<NodeRegisteredEvent>(TOPICS.NODE_EVENTS, {
       eventType: 'NodeRegistered',
@@ -102,7 +109,7 @@ app.post('/nodes', async (request: FastifyRequest, reply: FastifyReply) => {
       capabilities: node.capabilities || [],
     });
   } catch (err) {
-    console.warn('Failed to publish node registered event:', (err as Error).message);
+    logger.warn({ err: (err as Error).message }, 'Failed to publish node registered event:');
   }
   
   reply.status(201).send(node);
@@ -183,7 +190,7 @@ app.post('/nodes/:id/heartbeat', async (request: FastifyRequest, reply: FastifyR
       },
     });
   } catch (err) {
-    console.warn('Failed to publish heartbeat event:', (err as Error).message);
+    logger.warn({ err: (err as Error).message }, 'Failed to publish heartbeat event:');
   }
   
   return node;
@@ -238,23 +245,23 @@ function mapRowToNode(row: any): EdgeNode {
 async function start() {
   try {
     await eventBus.connect();
-    console.log('Event bus connected');
+    logger.info('Event bus connected');
   } catch (err) {
-    console.warn('Event bus connection failed, continuing without Kafka:', (err as Error).message);
+    logger.warn({ err: (err as Error).message }, 'Event bus connection failed, continuing without Redis Streams:');
   }
   const port = parseInt(process.env.PORT || '3002');
   await app.listen({ port, host: '0.0.0.0' });
-  console.log('Node Service running on port', port);
+  logger.info(`Node Service running on port ${port}`);
 }
 
 // Graceful shutdown
 let isShuttingDown = false;
 
-process.on('SIGTERM', async () => {
+const shutdown = async () => {
   if (isShuttingDown) return;
   isShuttingDown = true;
   
-  console.log('Shutting down gracefully...');
+  logger.info('Shutting down gracefully...');
   
   // Stop accepting new connections
   await app.close();
@@ -265,18 +272,11 @@ process.on('SIGTERM', async () => {
   // Close database connections
   await pool.end();
   
-  console.log('Shutdown complete');
+  logger.info('Shutdown complete');
   process.exit(0);
-});
+};
 
-process.on('SIGINT', async () => {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
-  
-  await app.close();
-  await eventBus.disconnect();
-  await pool.end();
-  process.exit(0);
-});
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);
 
 start();

@@ -445,7 +445,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         summary: 'Get scheduling history for a node',
       },
     },
-    async (request, reply) => {
+    async (request, _reply) => {
       const { id } = request.params;
       const { days = 7 } = request.query;
       

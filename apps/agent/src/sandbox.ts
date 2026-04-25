@@ -30,6 +30,11 @@ export class DockerSandbox {
     const startTime = Date.now();
     let container: Docker.Container | undefined;
 
+    // Calculate timeout from payload (default 1 hour)
+    const maxDurationSeconds = payload.maxDurationSeconds || 3600;
+    const timeoutMs = maxDurationSeconds * 1000;
+    let timeoutTimer: NodeJS.Timeout | null = null;
+
     try {
       // 1. Pull image if not local
       await this.pullImage(payload.image);
@@ -66,38 +71,76 @@ export class DockerSandbox {
         }
       });
 
-      // 5. Start and wait
+      // 5. Start container
       await container.start();
       
-      const stream = await container.logs({ stdout: true, stderr: true, follow: true });
-      let stdout = '', stderr = '';
-      
-      // Demux logs (Dockerode logs stream is multiplexed)
-      this.docker.modem.demuxStream(stream, {
-        write: (chunk: Buffer) => stdout += chunk.toString(),
-      } as any, {
-        write: (chunk: Buffer) => stderr += chunk.toString(),
-      } as any);
+      // 6. Set up timeout enforcement
+      const timeoutPromise = new Promise<ExecutionResult>((_, reject) => {
+        timeoutTimer = setTimeout(async () => {
+          logger.warn(`Task ${payload.taskId} exceeded max duration (${maxDurationSeconds}s), sending SIGTERM`);
+          try {
+            // Send SIGTERM first (grace period)
+            await container!.kill({ signal: 'SIGTERM' });
+            
+            // Wait 15 seconds for graceful shutdown
+            await new Promise(resolve => setTimeout(resolve, 15000));
+            
+            // Force kill if still running
+            logger.warn(`Task ${payload.taskId} did not stop after SIGTERM, sending SIGKILL`);
+            await container!.kill({ signal: 'SIGKILL' });
+          } catch (err) {
+            logger.error(`Failed to kill container for task ${payload.taskId}:`, err);
+          }
+          
+          reject(new Error(`Task exceeded max duration: ${maxDurationSeconds}s`));
+        }, timeoutMs);
+      });
 
-      const waitResult = await container.wait();
-      
-      return {
-        taskId: payload.taskId,
-        status: waitResult.StatusCode === 0 ? 'completed' : 'failed',
-        exitCode: waitResult.StatusCode,
-        stdout: stdout.substring(0, 5000), // Limit output size
-        stderr: stderr.substring(0, 5000),
-        executionTime: Date.now() - startTime
-      };
+      // 7. Monitor container with timeout
+      const executionPromise = (async (): Promise<ExecutionResult> => {
+        const stream = await container!.logs({ stdout: true, stderr: true, follow: true });
+        let stdout = '', stderr = '';
+        
+        // Demux logs (Dockerode logs stream is multiplexed)
+        this.docker.modem.demuxStream(stream, {
+          write: (chunk: Buffer) => stdout += chunk.toString(),
+        } as any, {
+          write: (chunk: Buffer) => stderr += chunk.toString(),
+        } as any);
+
+        const waitResult = await container!.wait();
+        
+        return {
+          taskId: payload.taskId,
+          status: waitResult.StatusCode === 0 ? 'completed' : 'failed',
+          exitCode: waitResult.StatusCode,
+          stdout: stdout.substring(0, 5000), // Limit output size
+          stderr: stderr.substring(0, 5000),
+          executionTime: Date.now() - startTime
+        };
+      })();
+
+      // Race between execution and timeout
+      const result = await Promise.race([executionPromise, timeoutPromise]);
+      return result;
 
     } catch (err: any) {
+      // Check if this is a timeout error (SIGKILL exit code 137)
+      const isTimeout = err.message.includes('exceeded max duration') || err.statusCode === 137;
+      
       logger.error(`Task ${payload.taskId} failed:`, err);
       return {
         taskId: payload.taskId,
-        status: 'failed',
+        status: isTimeout ? 'timeout' : 'failed',
         error: err.message,
+        exitCode: isTimeout ? 137 : undefined,
         executionTime: Date.now() - startTime
       };
+    } finally {
+      // Clean up timeout timer if still active
+      if (timeoutTimer) {
+        clearTimeout(timeoutTimer);
+      }
     }
   }
 
@@ -105,6 +148,7 @@ export class DockerSandbox {
     return new Promise((resolve, reject) => {
       this.docker.pull(image, {}, (err, stream) => {
         if (err) return reject(err);
+        if (!stream) return reject(new Error('Failed to create pull stream'));
         this.docker.modem.followProgress(stream, (err, output) => {
           if (err) return reject(err);
           resolve();

@@ -1,7 +1,11 @@
 import { 
   initTelemetry,
   createLogger,
-  createExpressLoggingMiddleware
+  createExpressLoggingMiddleware,
+  withExtractedContext,
+  tracer,
+  SpanKind,
+  SpanStatusCode
 } from '@edgecloud/shared-kernel';
 initTelemetry('edge-agent');
 
@@ -102,22 +106,43 @@ app.get('/metrics', async (req, res) => {
 });
 
 app.post('/run-task', async (req, res) => {
-  const payload = req.body as TaskPayload;
-  
-  const validation = validateTaskPayload(payload, config);
-  if (!validation.valid) {
-    return res.status(400).json({ error: validation.error });
-  }
+  await withExtractedContext(req.headers, async () => {
+    const payload = req.body as TaskPayload;
+    
+    const validation = validateTaskPayload(payload, config);
+    if (!validation.valid) {
+      return res.status(400).json({ error: validation.error });
+    }
 
-  nodeStats.tasksRunning++;
-  logger.info(`Starting task ${payload.taskId} - Image: ${payload.image}`);
-  
-  const result = await sandbox.runTask(payload);
-  
-  nodeStats.tasksRunning--;
-  if (result.status === 'completed') nodeStats.tasksCompleted++; else nodeStats.tasksFailed++;
-  
-  res.json(result);
+    nodeStats.tasksRunning++;
+    logger.info(`Starting task ${payload.taskId} - Image: ${payload.image}`);
+    
+    const result = await tracer.startActiveSpan('agent:run_task', {
+      kind: SpanKind.SERVER,
+      attributes: {
+        'task.id': payload.taskId,
+        'task.image': payload.image,
+        'node.id': config.NODE_ID,
+      }
+    }, async (span) => {
+      try {
+        const res = await sandbox.runTask(payload);
+        span.setStatus({ code: SpanStatusCode.OK });
+        return res;
+      } catch (err: any) {
+        span.recordException(err);
+        span.setStatus({ code: SpanStatusCode.ERROR });
+        throw err;
+      } finally {
+        span.end();
+      }
+    });
+    
+    nodeStats.tasksRunning--;
+    if (result.status === 'completed') nodeStats.tasksCompleted++; else nodeStats.tasksFailed++;
+    
+    res.json(result);
+  });
 });
 
 let server: http.Server | https.Server;

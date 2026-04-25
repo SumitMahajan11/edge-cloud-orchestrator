@@ -212,7 +212,7 @@ export class SchedulingPredictor {
 
     const originalFeatures = this.encodeTaskAndNode(task, node);
     const baselineScore = await this.predictAsync(task, node);
-    const importance = [];
+    const importance: Array<{ name: string; contribution: number; direction: 'positive' | 'negative' }> = [];
 
     for (let i = 0; i < originalFeatures.length; i++) {
       // Perturb the feature: move toward the other extreme of the 0-1 scale

@@ -31,6 +31,7 @@ export interface TaskPayload {
     memory?: string; // e.g. "512m"
   };
   network?: 'none' | 'bridge' | 'host';
+  maxDurationSeconds?: number; // Task timeout in seconds (default: 3600)
 }
 
 export interface ExecutionResult {
