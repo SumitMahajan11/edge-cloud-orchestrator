@@ -168,7 +168,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
-          userId: request.user.id,
+          userId: request.user!.id,
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
@@ -546,7 +546,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
-          userId: request.user.id,
+          userId: request.user!.id,
           action: 'task.cancelled',
           entityType: 'task',
           entityId: id,
@@ -719,7 +719,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
-          userId: request.user.id,
+          userId: request.user!.id,
           action: 'task.retried',
           entityType: 'task',
           entityId: newTask.id,

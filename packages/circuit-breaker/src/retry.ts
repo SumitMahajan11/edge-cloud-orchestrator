@@ -19,6 +19,9 @@ export interface RetryConfig {
   
   // Circuit Breaker Integration
   circuitBreaker?: CircuitBreaker;
+  
+  // Custom retry logic
+  shouldRetry?: (error: Error) => boolean;
 }
 
 export interface RetryContext {
@@ -137,10 +140,16 @@ export class RetryPolicy extends EventEmitter {
       return false;
     }
 
+    if (this.config.shouldRetry && this.config.shouldRetry(error)) {
+      return true;
+    }
+
     if (this.config.retryableErrors && this.config.retryableErrors.length > 0) {
-      return this.config.retryableErrors.some((e) => 
-        error.name.includes(e) || error.message.includes(e)
-      );
+      return this.config.retryableErrors.some((e) => {
+        const name = error.name || '';
+        const message = error.message || '';
+        return name.includes(e) || message.includes(e);
+      });
     }
 
     // Default: retry on network/timeout errors
@@ -154,8 +163,11 @@ export class RetryPolicy extends EventEmitter {
       'NetworkError',
     ];
 
+    const name = error.name || '';
+    const message = error.message || '';
+
     return retryablePatterns.some((pattern) => 
-      error.message.includes(pattern) || error.name.includes(pattern)
+      message.includes(pattern) || name.includes(pattern)
     );
   }
 

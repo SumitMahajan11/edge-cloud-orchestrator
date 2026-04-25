@@ -1,4 +1,14 @@
-import { selectNode, LeaderElection, evaluateBackpressure, type ScoreWeights } from '@edgecloud/shared-kernel';
+import { 
+  selectNode, 
+  LeaderElection, 
+  evaluateBackpressure, 
+  type ScoreWeights,
+  tracer,
+  getTraceId,
+  getRequestId,
+  SpanKind,
+  SpanStatusCode
+} from '@edgecloud/shared-kernel';
 import { SchedulingPredictor, MLScheduler, ModelRegistry, DriftDetector, FeatureExtractor } from '@edgecloud/ml-scheduler';
 import axios from 'axios';
 import { CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
@@ -72,7 +82,7 @@ export class TaskScheduler {
   private mlScheduler: MLScheduler;
   private driftDetector: DriftDetector;
   private modelRegistry: ModelRegistry;
-  private _featureExtractor: FeatureExtractor;
+  public featureExtractor: FeatureExtractor;
   private metrics: MetricsCollector;
 
   // Integration services
@@ -104,7 +114,7 @@ export class TaskScheduler {
     this.modelRegistry = new ModelRegistry(this.redis);
     this.driftDetector = new DriftDetector(this.metrics);
     this.mlScheduler = new MLScheduler(predictor, this.modelRegistry, this.driftDetector, this.metrics);
-    this._featureExtractor = new FeatureExtractor((prisma as any)._pool || (prisma as any).$pool); // Attempt to get underlying pool
+    this.featureExtractor = new FeatureExtractor((prisma as any)._pool || (prisma as any).$pool); // Attempt to get underlying pool
 
     // Default weights - can be updated via API
     this.schedulerWeights = {
@@ -334,104 +344,122 @@ export class TaskScheduler {
   }
 
   private async processQueue() {
-    try {
-      // Check backpressure before processing
-      if (this.backpressureController) {
-        // Collect metrics for backpressure evaluation
-        const metrics = await this.getSystemMetrics();
-        const decision = evaluateBackpressure(
-          metrics,
-          'MEDIUM',
-          this.backpressureController.getConfig(),
-        );
+    await tracer.startActiveSpan('scheduler:process_queue', async (span) => {
+      try {
+        // Check backpressure before processing
+        if (this.backpressureController) {
+          // Collect metrics for backpressure evaluation
+          const metrics = await this.getSystemMetrics();
+          const decision = evaluateBackpressure(
+            metrics,
+            'MEDIUM',
+            this.backpressureController.getConfig(),
+          );
 
-        if (decision.shouldThrottle) {
+          if (decision.shouldThrottle) {
+            span.setAttribute('scheduler.throttled', true);
+            span.setAttribute('scheduler.throttle_reason', decision.reason);
+            this.logger.debug(
+              { reason: decision.reason },
+              'Backpressure throttling task processing',
+            );
+            return;
+          }
+        }
+
+        // Get highest priority task (from priority scheduler if available)
+        let taskId: string | null = null;
+
+        if (this.priorityScheduler) {
+          const batch = await this.priorityScheduler.getNextBatch(1);
+          if (batch.length > 0) {
+            taskId = batch[0].id;
+          }
+        } else {
+          // Fallback to legacy queue
+          const taskIds = await this.redis.zrevrange(this.queueKey, 0, 0);
+          taskId = taskIds[0] || null;
+        }
+
+        if (!taskId) {
+          span.setAttribute('scheduler.queue_empty', true);
+          return;
+        }
+
+        span.setAttribute('task.id', taskId);
+
+        // Get task from database
+        const task = await this.prisma.task.findUnique({ where: { id: taskId } });
+
+        if (!task || task.status !== 'PENDING') {
+          // Remove from queue if not pending
+          await this.redis.zrem(this.queueKey, taskId);
+          span.setAttribute('task.invalid_status', task?.status || 'NOT_FOUND');
+          return;
+        }
+
+        // Check rate limiting
+        if (this.schedulerRateLimiter) {
+          const userId = (task as any).userId || 'system';
+          const rateLimitCheck = await this.schedulerRateLimiter.checkRateLimit(
+            taskId,
+            userId,
+            'pending',
+          );
+          if (!rateLimitCheck.allowed) {
+            span.setAttribute('scheduler.rate_limited', true);
+            this.logger.debug(
+              { taskId, reason: rateLimitCheck.reason },
+              'Rate limit exceeded, deferring task',
+            );
+            return;
+          }
+        }
+
+        // Find suitable node
+        const node = await this.findNode(task);
+
+        if (!node) {
+          span.setAttribute('scheduler.no_node_found', true);
           this.logger.debug(
-            { reason: decision.reason },
-            'Backpressure throttling task processing',
+            { taskId },
+            'No suitable node found, task remains in queue',
           );
           return;
         }
-      }
 
-      // Get highest priority task (from priority scheduler if available)
-      let taskId: string | null = null;
+        span.setAttribute('node.id', node.id);
 
-      if (this.priorityScheduler) {
-        const batch = await this.priorityScheduler.getNextBatch(1);
-        if (batch.length > 0) {
-          taskId = batch[0].id;
+        // Check circuit breaker
+        if (await this.isCircuitOpen(node.id)) {
+          span.setAttribute('node.circuit_open', true);
+          this.logger.debug(
+            { taskId, nodeId: node.id },
+            'Circuit breaker open, skipping node',
+          );
+          return;
         }
-      } else {
-        // Fallback to legacy queue
-        const taskIds = await this.redis.zrevrange(this.queueKey, 0, 0);
-        taskId = taskIds[0] || null;
-      }
 
-      if (!taskId) {
-        return;
-      }
-
-      // Get task from database
-      const task = await this.prisma.task.findUnique({ where: { id: taskId } });
-
-      if (!task || task.status !== 'PENDING') {
-        // Remove from queue if not pending
+        // Remove from queue
         await this.redis.zrem(this.queueKey, taskId);
-        return;
-      }
 
-      // Check rate limiting
-      if (this.schedulerRateLimiter) {
-        const userId = (task as any).userId || 'system';
-        const rateLimitCheck = await this.schedulerRateLimiter.checkRateLimit(
-          taskId,
-          userId,
-          'pending',
-        );
-        if (!rateLimitCheck.allowed) {
-          this.logger.debug(
-            { taskId, reason: rateLimitCheck.reason },
-            'Rate limit exceeded, deferring task',
-          );
-          return;
+        // Record rate limit usage
+        if (this.schedulerRateLimiter) {
+          const userId = (task as any).userId || 'system';
+          await this.schedulerRateLimiter.recordTaskScheduled(userId, node.id);
         }
+
+        // Assign task to node
+        await this.assignTask(task, node as any, (node as any).mlResult);
+        span.setStatus({ code: SpanStatusCode.OK });
+      } catch (error: any) {
+        span.recordException(error);
+        span.setStatus({ code: SpanStatusCode.ERROR });
+        this.logger.error({ error }, 'Error processing task queue');
+      } finally {
+        span.end();
       }
-
-      // Find suitable node
-      const node = await this.findNode(task);
-
-      if (!node) {
-        this.logger.debug(
-          { taskId },
-          'No suitable node found, task remains in queue',
-        );
-        return;
-      }
-
-      // Check circuit breaker
-      if (await this.isCircuitOpen(node.id)) {
-        this.logger.debug(
-          { taskId, nodeId: node.id },
-          'Circuit breaker open, skipping node',
-        );
-        return;
-      }
-
-      // Remove from queue
-      await this.redis.zrem(this.queueKey, taskId);
-
-      // Record rate limit usage
-      if (this.schedulerRateLimiter) {
-        const userId = (task as any).userId || 'system';
-        await this.schedulerRateLimiter.recordTaskScheduled(userId, node.id);
-      }
-
-      // Assign task to node
-      await this.assignTask(task, node as any, (node as any).mlResult);
-    } catch (error) {
-      this.logger.error({ error }, 'Error processing task queue');
-    }
+    });
   }
 
   private async getSystemMetrics() {
@@ -639,7 +667,8 @@ export class TaskScheduler {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT);
 
-      const requestId = `${task.id}-${Date.now()}`;
+      const requestId = getRequestId() || `${task.id}-${Date.now()}`;
+      const traceId = getTraceId() || requestId;
 
       // Get or create circuit breaker for this node
       const breaker = this.circuitBreakerRegistry.getOrCreate(node.id, {
@@ -650,25 +679,44 @@ export class TaskScheduler {
 
       // Execute HTTP call with circuit breaker protection
       await breaker.execute(async () => {
-        await axios.post(
-          `${node.url}/run-task`,
-          {
-            taskId: task.id,
-            taskName: task.name,
-            type: task.type,
-            input: task.input,
-            timeout: TASK_TIMEOUT,
-          },
-          {
-            timeout: REQUEST_TIMEOUT,
-            signal: controller.signal,
-            headers: {
-              'X-Request-ID': requestId,
-              'X-Trace-ID': requestId,
-              'X-Source': 'task-scheduler',
-            },
-          },
-        );
+        await tracer.startActiveSpan('scheduler:dispatch_task', {
+          kind: SpanKind.CLIENT,
+          attributes: {
+            'http.method': 'POST',
+            'http.url': `${node.url}/run-task`,
+            'task.id': task.id,
+            'node.id': node.id,
+          }
+        }, async (span) => {
+          try {
+            await axios.post(
+              `${node.url}/run-task`,
+              {
+                taskId: task.id,
+                taskName: task.name,
+                type: task.type,
+                input: task.input,
+                timeout: TASK_TIMEOUT,
+              },
+              {
+                timeout: REQUEST_TIMEOUT,
+                signal: controller.signal,
+                headers: {
+                  'X-Request-ID': requestId,
+                  'X-Trace-ID': traceId,
+                  'X-Source': 'task-scheduler',
+                },
+              },
+            );
+            span.setStatus({ code: SpanStatusCode.OK });
+          } catch (err: any) {
+            span.recordException(err);
+            span.setStatus({ code: SpanStatusCode.ERROR });
+            throw err;
+          } finally {
+            span.end();
+          }
+        });
       });
 
       clearTimeout(timeoutId);

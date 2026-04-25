@@ -58,7 +58,7 @@ const dbCircuitBreaker = circuitBreakerRegistry.getOrCreate('database', {
   halfOpenMaxCalls: 3,
 });
 
-const kafkaCircuitBreaker = circuitBreakerRegistry.getOrCreate('kafka', {
+const redisStreamCircuitBreaker = circuitBreakerRegistry.getOrCreate('redis-streams', {
   failureThreshold: 3,
   resetTimeout: 15000,
   halfOpenMaxCalls: 2,
@@ -246,7 +246,7 @@ async function start() {
   // Validate critical secrets
   await validateRequiredSecrets(
     secretManager,
-    ['DATABASE_HOST', 'DATABASE_PASSWORD', 'JWT_SECRET', 'KAFKA_BROKERS'],
+    ['DATABASE_HOST', 'DATABASE_PASSWORD', 'JWT_SECRET', 'REDIS_URL'],
     'task-service'
   );
 
@@ -270,11 +270,11 @@ async function start() {
     ssl: dbSsl ? { rejectUnauthorized: false } : false,
   });
 
-  const kafkaBrokers = (await secretManager.getSecret('KAFKA_BROKERS') || 'localhost:9092').split(',');
+  const redisUrl = await secretManager.getSecret('REDIS_URL') || 'redis://localhost:6379';
 
   eventBus = new EventBus({
     clientId: 'task-service',
-    brokers: kafkaBrokers,
+    brokers: [redisUrl],
   });
 
   repository = new PostgresTaskRepository(pool);
@@ -287,9 +287,9 @@ async function start() {
     try {
       await eventBus.connect();
       await eventBus.createTopics(DEFAULT_TOPIC_CONFIG);
-      logger.info(`Event bus connected to ${kafkaBrokers.join(',')} using ${SecretManagerFactory.create().constructor.name}`);
-    } catch (kafkaErr) {
-      logger.warn(`Event bus connection failed, continuing without Kafka: ${(kafkaErr as Error).message}`);
+      logger.info(`Event bus connected to Redis Streams at ${redisUrl}`);
+    } catch (redisErr) {
+      logger.warn(`Event bus connection failed, continuing without Redis Streams: ${(redisErr as Error).message}`);
     }
     
     // Register metrics
@@ -312,7 +312,7 @@ async function start() {
 
     HealthCheck.setReady(true);
 
-    logger.info(`Task Service running on port ${port} using ${SecretManagerFactory.create().constructor.name}`);
+    logger.info(`Task Service running on port ${port}`);
   } catch (err) {
     logger.error(err, 'Task Service fatal error on start');
     process.exit(1);

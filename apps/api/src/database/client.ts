@@ -1,19 +1,14 @@
 import { PrismaClient } from '@prisma/client';
 
-// Read replica URL for scaling read operations
-const readReplicaUrl =
-  process.env.DATABASE_READ_URL || process.env.DATABASE_URL;
-
-// Primary database URL for writes
-const primaryUrl = process.env.DATABASE_URL;
-
-// Extended Prisma client with read replica support
 class PrismaClientWithReplicas {
   private primary: PrismaClient;
   private readReplica: PrismaClient | null = null;
   private useReadReplica: boolean;
 
   constructor() {
+    const primaryUrl = process.env.DATABASE_URL;
+    const readReplicaUrl = process.env.DATABASE_READ_URL || primaryUrl;
+
     this.primary = new PrismaClient({
       log:
         process.env.NODE_ENV === 'development'

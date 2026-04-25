@@ -15,7 +15,7 @@
     "format:check": "prettier --check .",
     "format:write": "prettier --write .",
     "typecheck": "pnpm -r exec tsc --noEmit",
-    "test": "pnpm -r test",
+    "test": "vitest run",
     "test:coverage": "pnpm --filter '@edgecloud/shared-kernel' run test -- --coverage",
     "test:integration": "vitest run tests/integration --reporter=verbose --outputFile=tests/integration/results/results.json",
     "test:smoke": "vitest run tests/smoke --reporter=verbose --outputFile=tests/smoke/results/results.json",

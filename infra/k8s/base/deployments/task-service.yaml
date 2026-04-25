@@ -56,11 +56,6 @@ spec:
                 secretKeyRef:
                   name: edgecloud-secrets
                   key: REDIS_URL
-            - name: KAFKA_BROKERS
-              valueFrom:
-                secretKeyRef:
-                  name: edgecloud-secrets
-                  key: KAFKA_BROKERS
           startupProbe:
             httpGet:
               path: /health/startup

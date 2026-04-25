@@ -49,7 +49,6 @@ import { errorHandler } from './plugins/error-handler';
 // Plugins
 import { prismaPlugin } from './plugins/prisma';
 import { redisPlugin } from './plugins/redis';
-import { requestLogger } from './plugins/request-logger';
 import { swaggerPlugin } from './plugins/swagger';
 import { v1Routes } from './routes/v1-manifest';
 import versionNegotiationPlugin from './plugins/version-negotiation';
@@ -153,12 +152,11 @@ async function registerPlugins() {
     },
   });
 
-  const rateLimitMax = parseInt(await secretManager.getSecret('RATE_LIMIT_MAX') || '100', 10);
   const rateLimitWindow = parseInt(await secretManager.getSecret('RATE_LIMIT_WINDOW_MS') || '60000', 10);
   const redisUrlForRateLimit = await secretManager.getSecret('REDIS_URL');
 
   await app.register(rateLimit, {
-    max: async (request: any) => {
+    max: async () => {
       // Adaptive rate limit based on system load
       const limit = await backpressureController.getAdaptiveRateLimit();
       return limit;
@@ -215,7 +213,6 @@ async function registerPlugins() {
   await app.register(redisPlugin, { redis });
   await app.register(authPlugin);
   await app.register(errorHandler);
-  await app.register(requestLogger);
   
   // API Versioning and Negotiation
   await app.register(versionNegotiationPlugin, {
@@ -314,7 +311,7 @@ async function start() {
     const mockStorage = new Map<string, any>();
     redis = {
       get: async (key: string) => mockStorage.get(key) || null,
-      set: async (key: string, value: any, ...args: any[]) => { mockStorage.set(key, value); return 'OK'; },
+      set: async (key: string, value: any, ..._args: any[]) => { mockStorage.set(key, value); return 'OK'; },
       setex: async (key: string, _s: number, value: any) => { mockStorage.set(key, value); return 'OK'; },
       del: async (...keys: string[]) => { keys.forEach(k => mockStorage.delete(k)); return keys.length; },
       ping: async () => 'PONG',

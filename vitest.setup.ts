@@ -1,24 +1,30 @@
 import { vi } from 'vitest'
 
 // Mock Opentelemetry and Trace APIs to avoid binary/resolution issues in monorepo tests
-vi.mock('@opentelemetry/api', () => ({
-  trace: {
-    getSpan: vi.fn(),
-    getTracer: vi.fn().mockReturnValue({
-      startSpan: vi.fn().mockReturnValue({
-        end: vi.fn(),
-        spanContext: vi.fn().mockReturnValue({ traceId: '1', spanId: '1' }),
+vi.mock('@opentelemetry/api', async (importOriginal) => {
+  const actual = (await importOriginal()) as any;
+  return {
+    ...actual,
+    trace: {
+      getSpan: vi.fn(),
+      getTracer: vi.fn().mockReturnValue({
+        startSpan: vi.fn().mockReturnValue({
+          end: vi.fn(),
+          spanContext: vi.fn().mockReturnValue({ traceId: '1', spanId: '1' }),
+          setStatus: vi.fn(),
+          setAttribute: vi.fn(),
+        }),
       }),
-    }),
-  },
-  context: {
-    active: vi.fn(),
-  },
-  propagation: {
-    inject: vi.fn(),
-    extract: vi.fn(),
-  },
-}))
+    },
+    context: {
+      active: vi.fn(),
+    },
+    propagation: {
+      inject: vi.fn(),
+      extract: vi.fn(),
+    },
+  };
+})
 
 // Mock fastify-plugin which often fails in Vite/CJS environments
 vi.mock('fastify-plugin', () => ({

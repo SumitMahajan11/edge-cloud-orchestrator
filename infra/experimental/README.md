@@ -1,37 +1,60 @@
-# infra/experimental/
+# Experimental Infrastructure
 
-This directory contains **future-roadmap and non-production infrastructure** that is intentionally excluded from all ArgoCD sync paths.
+> ⚠️ **NOT FOR PRODUCTION USE**
 
-> **IMPORTANT:** Nothing in this directory is applied to staging or production.
-> ArgoCD Applications point exclusively to `infra/k8s/overlays/{staging,production}`.
+This directory contains exploratory and future-state infrastructure configurations
+that are **NOT** part of the current production deployment.
 
----
+These files are **NOT** applied by ArgoCD. Do not reference them from:
+- `infra/k8s/overlays/staging/kustomization.yaml`
+- `infra/k8s/overlays/production/kustomization.yaml`
+- `docker-compose.yml` or `docker-compose.dev.yml`
 
 ## Contents
 
-### multi-region/
-Federation configs for future multi-region deployment. Not applied to production.
+| Directory | Status | Description |
+|---|---|---|
+| `multi-region/` | Future (v2) | Multi-cloud federation configs (Kafka/CockroachDB era — predates current Redis/PostgreSQL stack) |
+| `chaos/` | Dev tool only | Chaos engineering manifests (LitmusChaos / Chaos Mesh) |
 
-- `k8s-multi-region.yaml` — Kubernetes Deployments, Services, and global Ingress for us-east, us-west, eu-west, ap-south regions. References CockroachDB regional topology and Redis Streams per-region brokers.
-- `docker-compose.region.yml` — Local simulation of a multi-region topology for development testing.
+## Note on Technology References
 
-**Roadmap target:** Q3–Q4 (see docs/decisions/ for multi-region ADR).
+Some files in `multi-region/` reference **Kafka** and **CockroachDB**. These reflect
+a previous architecture that was superseded. They are kept for historical
+reference only.
 
-### chaos/
-Chaos Mesh operator experiment definitions for resilience testing. Not applied to production.
+**Current production stack uses:**
+- **Database**: PostgreSQL 16 (not CockroachDB)
+- **Event Bus**: Redis Streams (not Kafka)
+- **Leader Election**: Redlock via Redis (not Raft consensus)
 
-- `chaos-experiments.yaml` — Chaos Mesh `PodChaos`, `NetworkChaos`, `StressChaos`, and `Schedule` resources. Requires [Chaos Mesh](https://chaos-mesh.org/) installed in the target cluster.
+## Production Stack Reference
 
-**Usage:** Apply manually to a dedicated test cluster only:
-```bash
-kubectl apply -f infra/experimental/chaos/chaos-experiments.yaml -n edgecloud
-```
-Do NOT add this path to any ArgoCD Application manifest.
+| Component | Technology | Location |
+|---|---|---|
+| Database | PostgreSQL 16 | `infra/k8s/base/deployments/` |
+| Event Bus | Redis Streams | `packages/event-bus/` |
+| Leader Election | Redlock (Redis) | `packages/shared-kernel/src/leader-election/` |
+| API Gateway | Nginx + Lua | `apps/api-gateway/` |
+| Deployment | Kustomize + ArgoCD | `infra/k8s/` |
+| Monitoring | Prometheus + Grafana | `monitoring/` |
 
----
+## When to Update This Directory
 
-## Adding New Experimental Configs
+✅ **DO update when:**
+- Testing new infrastructure patterns locally
+- Exploring future architecture options (v2+)
+- Running chaos engineering experiments in dev
 
-1. Create a subdirectory: `infra/experimental/<feature>/`
-2. Add a section to this README describing: what it does, what it depends on, and what roadmap item it tracks.
-3. Confirm the new path is NOT referenced in `infra/k8s/argocd/production-app.yaml` or `staging-app.yaml`.
+❌ **DO NOT update when:**
+- Modifying production infrastructure (use `infra/k8s/`)
+- Changing backup strategies (use `infra/backup/`)
+- Updating service configurations (use `apps/*/` or `packages/*/`)
+
+## Migration History
+
+| Date | Change | Details |
+|---|---|---|
+| 2026-04 | CockroachDB → PostgreSQL | Simplified to single-node PostgreSQL for edge-cloud use case |
+| 2026-04 | Kafka → Redis Streams | Reduced infrastructure complexity, unified Redis usage |
+| 2026-04 | Raft → Redlock | Leader election via Redis distributed locks instead of custom Raft |

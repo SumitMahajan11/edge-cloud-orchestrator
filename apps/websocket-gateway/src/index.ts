@@ -9,7 +9,9 @@ import {
   extractTraceContext,
   getRequestHeaders,
   GracefulShutdown,
-  HealthCheck
+  HealthCheck,
+  runWithRequestId,
+  tracer
 } from '@edgecloud/shared-kernel';
 initTelemetry('websocket-gateway');
 
@@ -23,6 +25,7 @@ import jwt from 'jsonwebtoken';
 import Redis from 'ioredis';
 import axios from 'axios';
 import type { WebSocket } from 'ws';
+import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 
 let secretManager: SecretManager;
 let JWT_SECRET: string;
@@ -192,6 +195,8 @@ class ConnectionManager extends EventEmitter {
   }
 }
 
+const connectionManager = new ConnectionManager();
+
 interface ManagedConnection {
   id: string;
   socket: WebSocket;
@@ -254,27 +259,26 @@ async function start() {
         const envelope = JSON.parse(message);
         const otelMetadata = envelope._otel || {};
         const requestId = otelMetadata.requestId || '';
+        const traceId = otelMetadata.traceId || requestId;
         const data = envelope.payload || envelope;
 
         const extractedContext = extractTraceContext(otelMetadata);
-        const tracer = (await import('@opentelemetry/api')).trace.getTracer('websocket-gateway');
-        const { runWithRequestId } = await import('@edgecloud/shared-kernel');
 
         await tracer.startActiveSpan('WSGateway.broadcast', {
-          kind: (await import('@opentelemetry/api')).SpanKind.SERVER,
+          kind: SpanKind.SERVER,
           attributes: { 'messaging.system': 'redis', 'messaging.destination': channel }
         }, extractedContext, async (span) => {
-          await runWithRequestId(requestId, async () => {
+          await runWithRequestId(requestId, traceId, async () => {
             try {
               connectionManager.broadcast('nodes', {
                 ...data,
                 _traceId: span.spanContext().traceId,
                 _requestId: requestId
               });
-              span.setStatus({ code: (await import('@opentelemetry/api')).SpanStatusCode.OK });
+              span.setStatus({ code: SpanStatusCode.OK });
             } catch (err: any) {
               span.recordException(err);
-              span.setStatus({ code: (await import('@opentelemetry/api')).SpanStatusCode.ERROR });
+              span.setStatus({ code: SpanStatusCode.ERROR });
             } finally {
               span.end();
             }
@@ -293,9 +297,6 @@ async function start() {
   await app.register(fastifyLoggingPlugin, { logger, serviceName: 'websocket-gateway' });
 
   app.register(websocket);
-
-  // We still use Kafka for non-realtime business events if needed, but not for high-frequency heartbeats
-  // await eventBus.subscribe(TOPICS.TASK_EVENTS, 'ws-gateway', async (ev) => connectionManager.broadcast('tasks', ev));
 
   app.register(async (fastify) => {
     fastify.get('/ws', { websocket: true }, (connection, req) => {

@@ -94,21 +94,18 @@ export async function reliableCall<T>(
 
   // Create retry policy
   const retryPolicy = new RetryPolicy({
-    maxAttempts: settings.retries!,
+    maxAttempts: settings.retries! + 1,
     initialDelay: 1000,
     maxDelay: settings.timeoutMs! / 2,
     backoffMultiplier: 2,
     jitterType: 'full',
-    circuitBreaker: settings.circuitBreaker,
-    retryableErrors: (settings.retryableStatusCodes || []).map(
-      (code) => `HTTP_${code}`,
-    ),
+    shouldRetry: (err) => isRetryableError(err, settings.retryableStatusCodes),
   });
 
   let lastError: Error | undefined;
   let attemptCount = 0;
 
-  try {
+  const executeWithReliability = async () => {
     return await retryPolicy.execute(async (context) => {
       attemptCount = context.attempt;
 
@@ -128,6 +125,13 @@ export async function reliableCall<T>(
 
       return result;
     });
+  };
+
+  try {
+    if (settings.circuitBreaker) {
+      return await settings.circuitBreaker.execute(executeWithReliability);
+    }
+    return await executeWithReliability();
   } catch (error) {
     lastError = error as Error;
 
@@ -183,28 +187,29 @@ export async function reliableFetch<T>(
 /**
  * Check if an error is retryable
  */
-export function isRetryableError(error: unknown): boolean {
+export function isRetryableError(error: unknown, retryableStatusCodes: number[] = [408, 429, 500, 502, 503, 504]): boolean {
   if (!error) return false;
 
-  const err = error as Error;
+  const err = error as any;
 
   // Network errors are retryable
+  const message = err.message || '';
   if (
-    err.message.includes('ECONNRESET') ||
-    err.message.includes('ETIMEDOUT') ||
-    err.message.includes('ENOTFOUND')
+    message.includes('ECONNRESET') ||
+    message.includes('ETIMEDOUT') ||
+    message.includes('ENOTFOUND') ||
+    message.includes('ECONNREFUSED') ||
+    message.includes('EPIPE')
   ) {
     return true;
   }
 
   // HTTP status codes
-  if (axios.isAxiosError(error)) {
-    const status = error.response?.status;
-    return (
-      status === 408 ||
-      status === 429 ||
-      (!!status && status >= 500 && status <= 599)
-    );
+  if (axios.isAxiosError(error) || err.response?.status || err.status) {
+    const status = err.response?.status || err.status;
+    if (status && retryableStatusCodes.includes(status)) {
+      return true;
+    }
   }
 
   // Timeout errors are NOT retryable (we set the timeout)

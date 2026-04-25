@@ -207,3 +207,60 @@ interface MetricsCollector {
   report(metrics: SystemMetrics): Promise<void>
 }
 ```
+
+---
+
+## ML-Driven Scheduling
+
+The system uses a hybrid approach to task placement, combining deterministic constraints with predictive modeling.
+
+### Architecture
+- **ML Scheduler**: Python-trained TensorFlow/Keras model exported to TF.js format.
+  - Trains on node heartbeat history and task execution outcomes.
+  - Falls back to bin-packing algorithm when confidence < threshold or model unavailable.
+  - Cold-start period: ~50 heartbeats per node before model predictions are reliable.
+  - Model retrained manually via `packages/ml-scheduler/src/training/train_model.py`
+- **Predictor**: TensorFlow.js-based inference engine loading Python-trained models.
+- **Scorer**: Multi-objective function combining ML predictions with heuristics (latency, cost).
+- **Registry**: File-based model store (`packages/ml-scheduler/models/`) supporting versioning and hot-swapping.
+- **Drift Detector**: Statistical monitor to identify when production data deviates from training sets.
+
+### Model Lifecycle
+1. **Data Collection**: Metrics from the Data Plane are stored in PostgreSQL.
+2. **Offline Training**: Python script (XGBoost) processes data and exports artifacts.
+3. **Promotion**: Validated models saved to `packages/ml-scheduler/models/` with versioned metadata.
+4. **Inference**: `scheduler-service` loads active model and performs real-time scoring.
+5. **Fallback**: If the ML engine is unavailable, system reverts to heuristic bin-packing.
+
+---
+
+## Tech Stack
+
+### Backend Services
+- **Runtime**: Node.js 18+ with TypeScript 5.x
+- **API Framework**: Fastify v4 (all services)
+- **Database**: PostgreSQL 16 (primary datastore)
+- **Cache/Event Bus**: Redis 7 (Streams, pub/sub, distributed locks)
+- **ORM**: Prisma 5.x
+
+### ML Scheduler
+- **ML Training**: Python 3.9+ (training only, not runtime)
+  - Framework: XGBoost (primary), scikit-learn (fallback)
+  - Libraries: pandas, numpy, joblib
+  - Script: `packages/ml-scheduler/src/training/train_model.py`
+- **ML Runtime**: TensorFlow.js (loaded in Node.js scheduler-service)
+  - Inference: ~2-5ms per prediction
+  - Model format: XGBoost JSON → TensorFlow.js compatible
+
+### Infrastructure
+- **API Gateway**: Nginx (reverse proxy, rate limiting, request validation)
+- **Deployment**: Kubernetes with Kustomize overlays + ArgoCD GitOps
+- **Monitoring**: Prometheus + Grafana
+- **Logging**: OpenTelemetry + Pino (structured JSON logs)
+- **Secrets Management**: HashiCorp Vault
+
+### Frontend
+- **Framework**: React 18+ with Vite
+- **State Management**: Zustand
+- **UI Library**: Tailwind CSS + shadcn/ui
+- **Real-time**: WebSocket client + SSE fallback

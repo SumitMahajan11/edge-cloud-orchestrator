@@ -1,10 +1,11 @@
-import { EdgeNode, Task, createLogger, ScoreWeights } from '@edgecloud/shared-kernel';
+import { EdgeNode, Task, createLogger, ScoreWeights, tracer } from '@edgecloud/shared-kernel';
 import { MetricsCollector } from '@edgecloud/observability';
 import path from 'path';
 import { SchedulingPredictor } from './predictor';
 import { MultiObjectiveScorer, NodeScoreResult } from './scoring';
 import { ModelRegistry } from './registry';
 import { DriftDetector } from './drift-detector';
+import { SpanStatusCode } from '@opentelemetry/api';
 
 const logger = createLogger('ml-scheduler-orchestrator');
 
@@ -28,73 +29,100 @@ export class MLScheduler {
     modelVersion: string | null;
     fallbackUsed: boolean;
   } | null> {
-    const startTime = Date.now();
-    const TIMEOUT_MS = 50;
+    return await tracer.startActiveSpan('ml:node_score_calculation', async (span) => {
+      const startTime = Date.now();
+      const TIMEOUT_MS = 50;
 
-    // 1. Check if ML is disabled due to drift
-    if (this.driftDetector.isDrifting()) {
-      logger.warn('ML scheduling suppressed due to model drift');
-      this.metrics.recordMLFallback('drift', 'load-balanced');
-      const fallback = this.ruleBasedFallback(task, nodes);
-      if (!fallback) return null;
-      return {
-        decision: fallback,
-        explanation: { top_features: [] },
-        candidateNodes: nodes.map(n => ({ nodeId: n.id, score: 0, reason: 'fallback' })),
-        modelVersion: this.predictor.getVersion(),
-        fallbackUsed: true
-      };
-    }
+      span.setAttribute('task.id', task.id);
+      span.setAttribute('nodes.count', nodes.length);
 
-    try {
-      // 2. Attempt ML-based scoring with timeout
-      const predictionPromise = this.scorer.rankNodes(task, nodes);
-      
-      const timeoutPromise = new Promise<null>((_, reject) =>
-        setTimeout(() => reject(new Error('ML_TIMEOUT')), TIMEOUT_MS)
-      );
-
-      const rankedNodes = await Promise.race([predictionPromise, timeoutPromise]) as NodeScoreResult[];
-
-      if (!rankedNodes || rankedNodes.length === 0) {
-        throw new Error('ML_INVALID_SCORE');
+      // 1. Check if ML is disabled due to drift
+      if (this.driftDetector.isDrifting()) {
+        span.setAttribute('ml.drift_detected', true);
+        logger.warn('ML scheduling suppressed due to model drift');
+        this.metrics.recordMLFallback('drift', 'load-balanced');
+        const fallback = this.ruleBasedFallback(task, nodes);
+        if (!fallback) {
+          span.end();
+          return null;
+        }
+        span.end();
+        return {
+          decision: fallback,
+          explanation: { top_features: [] },
+          candidateNodes: nodes.map(n => ({ nodeId: n.id, score: 0, reason: 'fallback' })),
+          modelVersion: this.predictor.getVersion(),
+          fallbackUsed: true
+        };
       }
 
-      const bestNodeResult = rankedNodes[0];
-      const bestNode = nodes.find(n => n.id === bestNodeResult.nodeId)!;
+      try {
+        // 2. Attempt ML-based scoring with timeout
+        const predictionPromise = this.scorer.rankNodes(task, nodes);
+        
+        const timeoutPromise = new Promise<null>((_, reject) =>
+          setTimeout(() => reject(new Error('ML_TIMEOUT')), TIMEOUT_MS)
+        );
 
-      // Calculate feature importance for the selected node
-      const importance = await this.predictor.getFeatureImportance(task, bestNode);
+        const rankedNodes = await Promise.race([predictionPromise, timeoutPromise]) as NodeScoreResult[];
 
-      const duration = Date.now() - startTime;
-      this.metrics.recordSchedulingDecision('ml-optimized', 'success', duration / 1000);
-      
-      return {
-        decision: bestNodeResult,
-        explanation: { top_features: importance.slice(0, 5) },
-        candidateNodes: rankedNodes.slice(0, 5).map(r => ({ nodeId: r.nodeId, score: r.score, reason: 'ml-score' })),
-        modelVersion: this.predictor.getVersion(),
-        fallbackUsed: false
-      };
+        if (!rankedNodes || rankedNodes.length === 0) {
+          throw new Error('ML_INVALID_SCORE');
+        }
 
-    } catch (error: any) {
-      const reason = error.message === 'ML_TIMEOUT' ? 'timeout' : 'error';
-      logger.warn({ reason, error: error.message }, 'ML scheduling failed, falling back to rule-based');
-      
-      // Record fallback metric
-      this.metrics.recordMLFallback(reason, 'load-balanced');
-      
-      // 3. Mandatory Fallback Strategy: Load Balanced
-      const fallback = this.ruleBasedFallback(task, nodes);
-      if (!fallback) return null;
-      return {
-        decision: fallback,
-        explanation: { top_features: [] },
-        candidateNodes: nodes.map(n => ({ nodeId: n.id, score: 0, reason: 'fallback' })),
-        modelVersion: this.predictor.getVersion(),
-        fallbackUsed: true
-      };
-    }
+        const bestNodeResult = rankedNodes[0];
+        const bestNode = nodes.find(n => n.id === bestNodeResult.nodeId)!;
+
+        // Calculate feature importance for the selected node
+        const importance = await this.predictor.getFeatureImportance(task, bestNode);
+
+        const duration = Date.now() - startTime;
+        this.metrics.recordSchedulingDecision('ml-optimized', 'success', duration / 1000);
+        
+        span.setAttribute('ml.decision.nodeId', bestNodeResult.nodeId);
+        span.setAttribute('ml.decision.score', bestNodeResult.score);
+        span.setStatus({ code: SpanStatusCode.OK });
+
+        return {
+          decision: bestNodeResult,
+          explanation: { top_features: importance.slice(0, 5) },
+          candidateNodes: rankedNodes.slice(0, 5).map(r => ({ nodeId: r.nodeId, score: r.score, reason: 'ml-score' })),
+          modelVersion: this.predictor.getVersion(),
+          fallbackUsed: false
+        };
+
+      } catch (error: any) {
+        const reason = error.message === 'ML_TIMEOUT' ? 'timeout' : 'error';
+        span.setAttribute('ml.fallback_reason', reason);
+        if (reason === 'timeout') {
+          span.setAttribute('ml.timeout_ms', TIMEOUT_MS);
+        }
+        
+        logger.warn({ reason, error: error.message }, 'ML scheduling failed, falling back to rule-based');
+        
+        // Record fallback metric
+        this.metrics.recordMLFallback(reason, 'load-balanced');
+        
+        // 3. Mandatory Fallback Strategy: Load Balanced
+        const fallback = this.ruleBasedFallback(task, nodes);
+        if (!fallback) {
+          span.setStatus({ code: SpanStatusCode.ERROR, message: 'No nodes available for fallback' });
+          return null;
+        }
+
+        span.setStatus({ code: SpanStatusCode.OK, message: `Fallback used: ${reason}` });
+
+        return {
+          decision: fallback,
+          explanation: { top_features: [] },
+          candidateNodes: nodes.map(n => ({ nodeId: n.id, score: 0, reason: 'fallback' })),
+          modelVersion: this.predictor.getVersion(),
+          fallbackUsed: true
+        };
+      } finally {
+        span.end();
+      }
+    });
   }
 
 

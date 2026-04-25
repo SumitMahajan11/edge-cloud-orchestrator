@@ -39,10 +39,11 @@ export class AuthService {
    * Generates a pair of signed JWT access token and a database-backed refresh token.
    */
   async generateTokens(
-    user: UserPayload,
+    user: Omit<UserPayload, 'permissions'>,
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+    const permissions = this.getPermissionsForRole(user.role);
     const accessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user.id, email: user.email, role: user.role, permissions },
       this.jwtSecret,
       { expiresIn: this.jwtExpiresIn as any },
     );
@@ -91,6 +92,7 @@ export class AuthService {
       id: session.user.id,
       email: session.user.email,
       role: session.user.role as any,
+      permissions: this.getPermissionsForRole(session.user.role),
     };
 
     const newTokens = await this.generateTokens(userPayload);
@@ -128,5 +130,18 @@ export class AuthService {
       default:
         return new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000); // Default 7 days
     }
+  }
+
+  /**
+   * Returns permissions for a given role.
+   */
+  private getPermissionsForRole(role: string): string[] {
+    const rolePermissions: Record<string, string[]> = {
+      ADMIN: ['*'],
+      OPERATOR: ['tasks:*', 'nodes:*', 'schedule:*', 'metrics:read'],
+      VIEWER: ['tasks:read', 'nodes:read', 'metrics:read'],
+      SERVICE: ['tasks:execute', 'nodes:heartbeat', 'metrics:write'],
+    };
+    return rolePermissions[role.toUpperCase()] || [];
   }
 }

@@ -21,12 +21,13 @@ import type { z } from 'zod';
 // User Types
 // ============================================================================
 
-export type UserRole = 'ADMIN' | 'OPERATOR' | 'VIEWER';
+export type UserRole = 'ADMIN' | 'OPERATOR' | 'VIEWER' | 'SERVICE';
 
 export interface UserPayload {
   id: string;
   email: string;
   role: UserRole;
+  permissions: string[];
 }
 
 // ============================================================================

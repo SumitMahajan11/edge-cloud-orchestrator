@@ -142,7 +142,7 @@ Communication between planes uses gRPC/HTTPS for task assignment, and WebSocket/
 | `@edgecloud/security` | JWT verification, ABAC policy engine |
 | `@edgecloud/analytics` | Stream processing, real-time metrics calculation |
 | `@edgecloud/chaos` | Chaos engineering engine (fault injection) |
-| `@edgecloud/integration` | Service container, Raft consensus stub, health aggregation |
+| `@edgecloud/integration` | Service container, Redlock leader election stub, health aggregation |
 | `@edgecloud/observability` | OpenTelemetry tracing, structured logging |
 | `@edgecloud/outbox` | Outbox pattern for reliable event delivery |
 | `@edgecloud/performance` | Performance profiling, benchmarking utilities |

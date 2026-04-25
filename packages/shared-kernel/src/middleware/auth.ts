@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 export interface AuthUser {
   id: string;
   email: string;
-  role: 'admin' | 'operator' | 'user' | 'service';
+  role: 'ADMIN' | 'OPERATOR' | 'VIEWER' | 'SERVICE';
   permissions: string[];
   region?: string;
 }
@@ -41,7 +41,7 @@ export function createAuthMiddleware(config: AuthConfig) {
         request.user = {
           id: 'service',
           email: 'service@internal',
-          role: 'service',
+          role: 'SERVICE',
           permissions: ['*'],
         };
         return;
@@ -72,7 +72,7 @@ export function createAuthMiddleware(config: AuthConfig) {
         request.user = {
           id: apiKey,
           email: `agent@${request.ip}`,
-          role: 'service',
+          role: 'SERVICE',
           permissions: ['tasks:execute', 'nodes:heartbeat'],
         };
         return;
@@ -96,7 +96,7 @@ export function requireRole(...roles: string[]) {
       });
     }
 
-    if (!roles.includes(request.user.role) && request.user.role !== 'admin') {
+    if (!roles.includes(request.user.role) && request.user.role !== 'ADMIN') {
       return reply.status(403).send({
         error: 'Insufficient permissions',
         code: 'AUTH_FORBIDDEN',
@@ -140,7 +140,7 @@ export function requireRegion() {
     }
 
     // Admin can access all regions
-    if (request.user.role === 'admin') {
+    if (request.user.role === 'ADMIN') {
       return;
     }
 
@@ -164,10 +164,10 @@ export function generateToken(user: Omit<AuthUser, 'permissions'>, secret: strin
 
 function getPermissionsForRole(role: string): string[] {
   const rolePermissions: Record<string, string[]> = {
-    admin: ['*'],
-    operator: ['tasks:*', 'nodes:*', 'schedule:*', 'metrics:read'],
-    user: ['tasks:create', 'tasks:read', 'tasks:update', 'tasks:delete:own'],
-    service: ['tasks:execute', 'nodes:heartbeat', 'metrics:write'],
+    ADMIN: ['*'],
+    OPERATOR: ['tasks:*', 'nodes:*', 'schedule:*', 'metrics:read'],
+    VIEWER: ['tasks:read', 'nodes:read', 'metrics:read'],
+    SERVICE: ['tasks:execute', 'nodes:heartbeat', 'metrics:write'],
   };
-  return rolePermissions[role] || [];
+  return rolePermissions[role.toUpperCase()] || [];
 }

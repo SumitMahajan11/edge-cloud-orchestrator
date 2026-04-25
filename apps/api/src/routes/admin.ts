@@ -265,7 +265,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         summary: 'Trigger ML model retraining',
       },
     },
-    async (request, reply) => {
+    async (_request, reply) => {
       const scheduler = (fastify as any).taskScheduler;
       if (!scheduler) {
         return reply.status(500).send({ error: 'TaskScheduler not initialized' });
@@ -289,7 +289,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const pythonScript = path.join(process.cwd(), '../../packages/ml-scheduler/src/training/train_model.py');
       const modelDir = path.join(process.cwd(), 'models');
 
-      return new Promise((resolve, reject) => {
+      return new Promise((resolve, _reject) => {
         const pyProcess = spawn('python', [pythonScript, tempPath, modelDir]);
         
         let output = '';
@@ -323,6 +323,194 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           }
         });
       });
+    },
+  );
+
+  // ============================================
+  // DLQ Monitoring Endpoints
+  // ============================================
+
+  // Get DLQ statistics
+  fastify.get(
+    '/dlq/stats',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      schema: {
+        tags: ['admin'],
+        summary: 'Get DLQ statistics across all streams',
+      },
+    },
+    async (_request, _reply) => {
+      const dbStats = await fastify.prisma.deadLetterEvent.groupBy({
+        by: ['status'],
+        _count: { id: true },
+      });
+
+      const byTopic = await fastify.prisma.deadLetterEvent.groupBy({
+        by: ['originalTopic'],
+        _count: { id: true },
+        where: { status: 'PENDING' },
+      });
+
+      const stats: any = {
+        totalEvents: 0,
+        pendingRetry: 0,
+        permanentlyFailed: 0,
+        reprocessed: 0,
+        byTopic: {} as Record<string, number>,
+      };
+
+      dbStats.forEach((s: { status: string; _count: { id: number } }) => {
+        stats.totalEvents += s._count.id;
+        if (s.status === 'PENDING') stats.pendingRetry = s._count.id;
+        if (s.status === 'PERMANENTLY_FAILED') stats.permanentlyFailed = s._count.id;
+        if (s.status === 'REPROCESSED') stats.reprocessed = s._count.id;
+      });
+
+      byTopic.forEach((t: { originalTopic: string; _count: { id: number } }) => {
+        stats.byTopic[t.originalTopic] = t._count.id;
+      });
+
+      return stats;
+    },
+  );
+
+  // List DLQ events
+  fastify.get<{
+    Querystring: {
+      topic?: string;
+      status?: 'PENDING' | 'RETRYING' | 'REPROCESSED' | 'PERMANENTLY_FAILED';
+      limit?: number;
+      offset?: number;
+    };
+  }>(
+    '/dlq/events',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      schema: {
+        querystring: {
+          type: 'object',
+          properties: {
+            topic: { type: 'string' },
+            status: { type: 'string', enum: ['PENDING', 'RETRYING', 'REPROCESSED', 'PERMANENTLY_FAILED'] },
+            limit: { type: 'number', default: 50 },
+            offset: { type: 'number', default: 0 },
+          },
+        },
+        tags: ['admin'],
+        summary: 'List DLQ events with filtering',
+      },
+    },
+    async (request, _reply) => {
+      const { topic, status, limit = 50, offset = 0 } = request.query;
+
+      const where: any = {};
+      if (topic) where.originalTopic = topic;
+      if (status) where.status = status;
+
+      const events = await fastify.prisma.deadLetterEvent.findMany({
+        where,
+        orderBy: { createdAt: 'desc' },
+        take: limit,
+        skip: offset,
+      });
+
+      const total = await fastify.prisma.deadLetterEvent.count({ where });
+
+      return {
+        events,
+        pagination: {
+          total,
+          limit,
+          offset,
+          hasMore: offset + limit < total,
+        },
+      };
+    },
+  );
+
+  // Retry DLQ event
+  fastify.post<{ Params: { id: string } }>(
+    '/dlq/events/:id/retry',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      schema: {
+        params: {
+          type: 'object',
+          properties: { id: { type: 'string' } },
+          required: ['id'],
+        },
+        tags: ['admin'],
+        summary: 'Retry a specific DLQ event',
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+
+      try {
+        const event = await fastify.prisma.deadLetterEvent.findUnique({
+          where: { id },
+        });
+
+        if (!event) {
+          return reply.status(404).send({ error: 'Event not found' });
+        }
+
+        if (event.status === 'REPROCESSED') {
+          return reply.status(400).send({ error: 'Event already reprocessed' });
+        }
+
+        // Update status to RETRYING
+        await fastify.prisma.deadLetterEvent.update({
+          where: { id },
+          data: {
+            status: 'RETRYING',
+            attempts: { increment: 1 },
+            lastAttemptAt: new Date(),
+          },
+        });
+
+        // TODO: Republish to Kafka topic via event bus
+        // For now, just mark as retrying
+
+        return { success: true, eventId: id, message: 'Event marked for retry' };
+      } catch (err: any) {
+        return reply.status(400).send({ error: err.message });
+      }
+    },
+  );
+
+  // Purge old DLQ events
+  fastify.post<{
+    Body: { olderThanDays?: number };
+  }>(
+    '/dlq/purge',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            olderThanDays: { type: 'number', default: 7 },
+          },
+        },
+        tags: ['admin'],
+        summary: 'Purge old DLQ events',
+      },
+    },
+    async (request, _reply) => {
+      const { olderThanDays = 7 } = request.body;
+
+      const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
+
+      const result = await fastify.prisma.deadLetterEvent.deleteMany({
+        where: {
+          status: { in: ['REPROCESSED', 'PERMANENTLY_FAILED'] },
+          createdAt: { lt: cutoff },
+        },
+      });
+
+      return { purged: result.count, olderThanDays };
     },
   );
 }
