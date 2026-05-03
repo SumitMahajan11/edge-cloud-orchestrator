@@ -1,17 +1,18 @@
 import { PrismaClient } from '@prisma/client';
 import {
   createHash,
-  generateKeyPairSync,
   randomBytes,
   X509Certificate,
+  webcrypto,
 } from 'crypto';
+import * as x509 from '@peculiar/x509';
 import fs from 'fs/promises';
 import path from 'path';
 import type { Logger } from 'pino';
 
-// ============================================================================
-// Types and Constants
-// ============================================================================
+import { 
+  SecretManagerFactory
+} from '@edgecloud/shared-kernel';
 
 interface CertificateConfig {
   validityDays: number;
@@ -49,15 +50,15 @@ interface BootstrapToken {
 }
 
 const CERT_CONFIG: CertificateConfig = {
-  validityDays: 90,
+  validityDays: 365,
   keySize: 2048,
   hashAlgorithm: 'sha256',
 };
 
 const CA_CONFIG: CertificateConfig = {
   validityDays: 3650, // 10 years
-  keySize: 4096,
-  hashAlgorithm: 'sha384',
+  keySize: 2048,
+  hashAlgorithm: 'sha256',
 };
 
 // ============================================================================
@@ -124,22 +125,31 @@ export class CertificateAuthorityManager {
    * - Private key should be stored in HSM/KMS
    */
   private async createCA(): Promise<CertificateAuthority> {
-    const { privateKey, publicKey } = generateKeyPairSync('rsa', {
-      modulusLength: CA_CONFIG.keySize,
-      publicKeyEncoding: { type: 'spki', format: 'pem' },
-      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    });
+    const keys = await webcrypto.subtle.generateKey(
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: CA_CONFIG.keySize,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: 'SHA-256',
+      },
+      true,
+      ['sign', 'verify']
+    );
+
+    const privateKeyBuffer = await webcrypto.subtle.exportKey('pkcs8', keys.privateKey);
+    const publicKeyBuffer = await webcrypto.subtle.exportKey('spki', keys.publicKey);
+
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privateKeyBuffer).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END PRIVATE KEY-----`;
+    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(publicKeyBuffer).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END PUBLIC KEY-----`;
 
     const serialNumber = this.generateSerial('CA');
     const now = new Date();
     const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + CA_CONFIG.validityDays);
 
-    // Create self-signed CA certificate (simplified)
-    // In production, use proper X.509 library like node-forge or pkijs
-    const certificate = this.createCACertificate(
-      publicKey,
-      privateKey,
+    const certificate = await this.createCACertificate(
+      keys.publicKey,
+      keys.privateKey,
       serialNumber,
       now,
       expiresAt,
@@ -191,7 +201,7 @@ export class CertificateAuthorityManager {
    * Sign a Certificate Signing Request (CSR)
    */
   async signCSR(
-    csrPem: string,
+    _csrPem: string,
     nodeId: string,
     bootstrapToken: string,
   ): Promise<AgentCertificate> {
@@ -202,43 +212,35 @@ export class CertificateAuthorityManager {
     // Validate and atomically consume bootstrap token (prevents race conditions)
     await this.validateAndConsumeBootstrapToken(bootstrapToken, nodeId);
 
-    // Extract public key from CSR
-    const publicKey = this.extractPublicKeyFromCSR(csrPem);
-
-    // Generate certificate
-    const serialNumber = this.generateSerial('NODE');
+    // Use Vault PKI to issue a certificate instead of local signing
+    const secretManager = SecretManagerFactory.create();
+    const certBundle = await secretManager.issueCertificate?.('edge-agent', nodeId, `${CERT_CONFIG.validityDays}d`);
+    if (!certBundle) {
+      throw new Error('Vault PKI issueCertificate not available');
+    }
+    const certificate = certBundle.certificate;
+    const serialNumber = certBundle.serial_number;
     const now = new Date();
     const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + CERT_CONFIG.validityDays);
 
-    const certificate = this.createAgentCertificate(
-      publicKey,
-      nodeId,
-      serialNumber,
-      now,
-      expiresAt,
-    );
-
-    // Generate fingerprint
+    // Generate fingerprint for the issued certificate
     const fingerprint = this.calculateFingerprint(certificate);
 
-    // Store certificate in database
+    // Store certificate in database (public key not needed as agent holds its key)
     await this.prisma.nodeCertificate.create({
       data: {
         nodeId,
         serialNumber,
         certificatePem: certificate,
-        publicKeyPem: publicKey,
+        publicKeyPem: '', // Not stored; agents provide their own public key separately if needed
         issuedAt: now,
         expiresAt,
         isActive: true,
       },
     });
 
-    this.logger.info(
-      { nodeId, serialNumber, expiresAt },
-      'Issued agent certificate',
-    );
+    this.logger.info({ nodeId, serialNumber, expiresAt }, 'Issued agent certificate via Vault PKI');
 
     return {
       nodeId,
@@ -287,8 +289,36 @@ export class CertificateAuthorityManager {
   }
 
   // ... helper methods
-  private generateSerial(prefix: string): string {
-    return `${prefix}-${Date.now()}-${randomBytes(8).toString('hex').toUpperCase()}`;
+  private generateSerial(_prefix: string): string {
+    return randomBytes(16).toString('hex');
+  }
+
+  private async createCACertificate(
+    publicKey: webcrypto.CryptoKey,
+    privateKey: webcrypto.CryptoKey,
+    serialNumber: string,
+    notBefore: Date,
+    notAfter: Date,
+  ): Promise<string> {
+    const cert = await x509.X509CertificateGenerator.createSelfSigned({
+      serialNumber,
+      name: 'CN=EdgeCloud-CA, O=EdgeCloud',
+      notBefore,
+      notAfter,
+      signingAlgorithm: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      keys: {
+        publicKey,
+        privateKey,
+      },
+      extensions: [
+        new x509.BasicConstraintsExtension(true, undefined, true),
+        new x509.KeyUsagesExtension(
+          x509.KeyUsageFlags.keyCertSign | x509.KeyUsageFlags.cRLSign,
+          true,
+        ),
+      ],
+    });
+    return cert.toString('pem');
   }
 
   private calculateFingerprint(cert: string): string {
@@ -296,85 +326,45 @@ export class CertificateAuthorityManager {
     return hash.match(/.{2}/g)?.join(':').toUpperCase() || hash;
   }
 
-  private createCACertificate(
-    publicKey: string,
-    _privateKey: string,
-    serialNumber: string,
-    notBefore: Date,
-    notAfter: Date,
-  ): string {
-    // Simplified - use node-forge or pkijs for real implementation
-    return `-----BEGIN [REDACTED]-----
-MIID... (CA Certificate)
-Subject: CN=EdgeCloud-CA, O=EdgeCloud, OU=Certificate Authority
-Serial: ${serialNumber}
-Valid From: ${notBefore.toISOString()}
-Valid Until: ${notAfter.toISOString()}
-${publicKey}
------END [REDACTED]-----`;
-  }
-
-  private createAgentCertificate(
-    publicKey: string,
-    nodeId: string,
-    serialNumber: string,
-    notBefore: Date,
-    notAfter: Date,
-  ): string {
-    return `-----BEGIN [REDACTED]-----
-MIID... (Agent Certificate)
-Subject: CN=${nodeId}, O=EdgeCloud, OU=Edge Nodes
-Serial: ${serialNumber}
-Valid From: ${notBefore.toISOString()}
-Valid Until: ${notAfter.toISOString()}
-X509v3 Extensions:
-  Basic Constraints: CA:FALSE
-  Key Usage: Digital Signature, Key Encipherment
-  Extended Key Usage: TLS Web Client Authentication
-  Subject Alternative Name: DNS:${nodeId}.edge.internal
-${publicKey}
------END [REDACTED]-----`;
-  }
-
-  private extractPublicKeyFromCSR(csrPem: string): string {
-    // Simplified - extract public key from CSR
-    return csrPem; // Return as-is for demo
-  }
-
   private async validateAndConsumeBootstrapToken(
     token: string,
     nodeId: string,
-  ): Promise<void> {
-    // Use atomic update to prevent race conditions
-    // Only updates if token is unused and not expired
-    const result = await this.prisma.bootstrapToken.updateMany({
-      where: {
-        token,
-        usedAt: null,
-        expiresAt: { gt: new Date() },
-      },
-      data: { usedAt: new Date(), usedBy: nodeId },
-    });
+  ): Promise<any> {
+    try {
+      return await this.prisma.$transaction(async (tx) => {
+        const t = await tx.bootstrapToken.findUnique({
+          where: { token },
+          include: {
+            user: {
+              include: {
+                tenantUsers: {
+                  take: 1
+                }
+              }
+            }
+          }
+        });
 
-    if (result.count === 0) {
-      // Check why it failed for better error message
-      const dbToken = await this.prisma.bootstrapToken.findUnique({
-        where: { token },
+        if (!t) throw new Error('Invalid bootstrap token');
+        if (t.usedAt) throw new Error('Bootstrap token already used');
+        if (t.expiresAt < new Date()) throw new Error('Bootstrap token expired');
+
+        return await tx.bootstrapToken.update({
+          where: { token },
+          data: { usedAt: new Date(), usedBy: nodeId },
+          include: {
+            user: {
+              include: {
+                tenantUsers: {
+                  take: 1
+                }
+              }
+            }
+          }
+        });
       });
-
-      if (!dbToken) {
-        throw new Error('Invalid bootstrap token');
-      }
-
-      if (dbToken.usedAt) {
-        throw new Error('Bootstrap token already used');
-      }
-
-      if (dbToken.expiresAt < new Date()) {
-        throw new Error('Bootstrap token expired');
-      }
-
-      throw new Error('Bootstrap token consumption failed');
+    } catch (error: any) {
+      throw new Error(error.message || 'Bootstrap token consumption failed');
     }
   }
 }
@@ -389,23 +379,41 @@ export class AgentCertificateGenerator {
    *
    * SECURITY: Private key NEVER leaves the edge agent
    */
-  static generateKeyPairAndCSR(
+  static async generateKeyPairAndCSR(
     nodeId: string,
     region: string,
-  ): {
+  ): Promise<{
     privateKey: string;
     publicKey: string;
     csr: string;
-  } {
-    // Generate key pair
-    const { privateKey, publicKey } = generateKeyPairSync('rsa', {
-      modulusLength: CERT_CONFIG.keySize,
-      publicKeyEncoding: { type: 'spki', format: 'pem' },
-      privateKeyEncoding: { type: 'pkcs8', format: 'pem' },
-    });
+  }> {
+    const keys = await webcrypto.subtle.generateKey(
+      {
+        name: 'RSASSA-PKCS1-v1_5',
+        modulusLength: CERT_CONFIG.keySize,
+        publicExponent: new Uint8Array([1, 0, 1]),
+        hash: 'SHA-256',
+      },
+      true,
+      ['sign', 'verify'],
+    );
 
-    // Create CSR (Certificate Signing Request)
-    const csr = this.createCSR(publicKey, nodeId, region);
+    const privateKeyBuffer = await webcrypto.subtle.exportKey(
+      'pkcs8',
+      keys.privateKey,
+    );
+    const publicKeyBuffer = await webcrypto.subtle.exportKey('spki', keys.publicKey);
+
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privateKeyBuffer)
+      .toString('base64')
+      .match(/.{1,64}/g)
+      ?.join('\n')}\n-----END PRIVATE KEY-----`;
+    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(publicKeyBuffer)
+      .toString('base64')
+      .match(/.{1,64}/g)
+      ?.join('\n')}\n-----END PUBLIC KEY-----`;
+
+    const csr = await this.createCSR(keys.publicKey, keys.privateKey, nodeId, region);
 
     return { privateKey, publicKey, csr };
   }
@@ -413,17 +421,21 @@ export class AgentCertificateGenerator {
   /**
    * Create a Certificate Signing Request
    */
-  private static createCSR(
-    publicKey: string,
+  private static async createCSR(
+    publicKey: webcrypto.CryptoKey,
+    privateKey: webcrypto.CryptoKey,
     nodeId: string,
     region: string,
-  ): string {
-    // Simplified CSR - use node-forge for real implementation
-    return `-----BEGIN [REDACTED]-----
-MIIC... (CSR)
-Subject: CN=${nodeId}, O=EdgeCloud, OU=Edge Nodes, L=${region}
-${publicKey}
------END [REDACTED]-----`;
+  ): Promise<string> {
+    const csr = await x509.Pkcs10CertificateRequestGenerator.create({
+      name: `CN=${nodeId}, O=EdgeCloud, OU=Edge Nodes, L=${region}`,
+      signingAlgorithm: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+      keys: {
+        publicKey,
+        privateKey,
+      },
+    });
+    return csr.toString('pem');
   }
 
   /**
@@ -474,7 +486,7 @@ export interface CertificateValidationResult {
 export class CertificateValidator {
   private prisma: PrismaClient;
   private logger: Logger;
-  private crlCache: Set<string> = new Set();
+  private crlCache: Map<string, { revoked: boolean; expiresAt: number }> = new Map();
   private crlLastRefresh: Date = new Date(0);
 
   constructor(prisma: PrismaClient, logger: Logger) {
@@ -574,8 +586,10 @@ export class CertificateValidator {
    * Check if certificate serial number is in CRL
    */
   private async isRevoked(serialNumber: string): Promise<boolean> {
-    if (this.crlCache.has(serialNumber)) {
-      return true;
+    const cached = this.crlCache.get(serialNumber);
+    if (cached) {
+      if (cached.revoked) return true;
+      if (cached.expiresAt > Date.now()) return false;
     }
 
     // Check database
@@ -583,7 +597,17 @@ export class CertificateValidator {
       where: { serialNumber },
     });
 
-    return revoked !== null;
+    if (revoked) {
+      this.crlCache.set(serialNumber, { revoked: true, expiresAt: Infinity });
+      return true;
+    } else {
+      // Cache non-revoked certs for 5 minutes (300,000ms) to prevent DB thundering herd
+      this.crlCache.set(serialNumber, {
+        revoked: false,
+        expiresAt: Date.now() + 300_000,
+      });
+      return false;
+    }
   }
 
   /**
@@ -596,9 +620,14 @@ export class CertificateValidator {
 
     if (cacheAge > CACHE_TTL) {
       const revoked = await this.prisma.certificateRevocation.findMany();
-      this.crlCache = new Set(revoked.map((r) => r.serialNumber));
+      
+      // Pre-populate cache with revoked serial numbers
+      revoked.forEach((r) => {
+        this.crlCache.set(r.serialNumber, { revoked: true, expiresAt: Infinity });
+      });
+
       this.crlLastRefresh = now;
-      this.logger.info({ count: this.crlCache.size }, 'Refreshed CRL cache');
+      this.logger.info({ count: revoked.length }, 'Refreshed CRL cache');
     }
   }
 }
@@ -683,6 +712,10 @@ export class AgentRegistrationService {
     nodeName: string;
     region: string;
     ipAddress: string;
+    port: number;
+    cpuCores: number;
+    memoryGB: number;
+    storageGB: number;
     hardwareId?: string;
   }): Promise<{
     certificate: string;
@@ -690,32 +723,26 @@ export class AgentRegistrationService {
     nodeId: string;
     expiresAt: Date;
   }> {
-    // Validate bootstrap token
-    const token = await this.prisma.bootstrapToken.findUnique({
-      where: { token: request.bootstrapToken },
-    });
-
-    if (!token) {
-      throw new Error('Invalid bootstrap token');
-    }
-
-    if (token.usedAt) {
-      throw new Error('Bootstrap token already used');
-    }
-
-    if (token.expiresAt < new Date()) {
-      throw new Error('Bootstrap token expired');
-    }
-
     // Generate node ID
     const nodeId = `node-${randomBytes(8).toString('hex')}`;
 
-    // Sign CSR
+    // Sign CSR (Atomics handled inside signCSR)
     const agentCert = await this.caManager.signCSR(
       request.csr,
       nodeId,
       request.bootstrapToken,
     );
+
+    // Get tenant info from the newly signed cert's session/token context
+    // Actually, signCSR should return the token data too or we fetch it after consumption
+    const token = await this.prisma.bootstrapToken.findUnique({
+      where: { token: request.bootstrapToken },
+      include: {
+        user: { include: { tenantUsers: { take: 1 } } }
+      }
+    }) as any;
+
+    const tenantId = token.user.tenantUsers[0]!.tenantId;
 
     // Create node record
     await this.prisma.edgeNode.create({
@@ -725,15 +752,21 @@ export class AgentRegistrationService {
         location: request.region,
         region: request.region,
         ipAddress: request.ipAddress,
-        url: `https://${request.ipAddress}:4001`,
+        port: request.port,
+        url: `https://${request.ipAddress}:${request.port}`,
         status: 'OFFLINE',
-      } as any,
+        cpuCores: request.cpuCores,
+        memoryGB: request.memoryGB,
+        storageGB: request.storageGB,
+        tenantId,
+      },
     });
 
     // Audit log
     await this.prisma.auditLog.create({
       data: {
         userId: token.createdBy,
+        tenantId,
         action: 'node.registered',
         entityType: 'node',
         entityId: nodeId,
@@ -1110,12 +1143,11 @@ export async function setupMTLSServer(
 
   // Initialize validator
   const validator = new CertificateValidator(prisma, logger);
+  const { env } = await import('../config/env.js');
 
   // Load certificates from environment-configured paths
-  const serverCertPath =
-    process.env.MTLS_SERVER_CERT || '/etc/edgecloud/server.crt';
-  const serverKeyPath =
-    process.env.MTLS_SERVER_KEY || '/etc/edgecloud/server.key';
+  const serverCertPath = env.MTLS_SERVER_CERT;
+  const serverKeyPath = env.MTLS_SERVER_KEY;
 
   // Validate certificate files exist
   try {
@@ -1172,7 +1204,13 @@ export async function setupMTLSServer(
         });
       }
 
-      const { csr } = request.body as { csr: string };
+      const body = request.body as { csr: string } | undefined;
+      if (!body || !body.csr) {
+        return reply.status(400).send({
+          error: 'CSR is required',
+        });
+      }
+      const { csr } = body;
       const rotationService = new CertificateRotationService(
         caManager,
         prisma,
