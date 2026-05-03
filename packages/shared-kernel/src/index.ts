@@ -1,18 +1,51 @@
+import { injectTraceHeaders } from './telemetry/propagation.js';
+import { getRequestId } from './logger/context.js';
+
+// Constants
+export { 
+  VERSION, 
+  REGIONS, 
+  Region, 
+  REDIS_CHANNELS, 
+  NODE_OFFLINE_THRESHOLD_MS, 
+  NODE_STALE_THRESHOLD_MS, 
+  RAFT_DEFAULTS,
+  SCHEDULER_CONSTANTS,
+  API_CONSTANTS
+} from './constants.js';
+
 // Domain models
-export * from './domain/node';
-export * from './domain/task';
+export { 
+  EdgeNode, 
+  NodeMetrics, 
+  RegisterNodeCommand, 
+  NodeHealthScore 
+} from './domain/node.js';
+export { 
+  Task, 
+  TaskType, 
+  ExecutionTarget, 
+  CreateTaskCommand, 
+  TaskScore 
+} from './domain/task.js';
 
 // Telemetry
-export * from './telemetry';
-export * from './telemetry/propagation';
+export { 
+  initTelemetry, 
+  tracer, 
+  SpanKind, 
+  SpanStatusCode 
+} from './telemetry/index.js';
+export { 
+  injectTraceHeaders, 
+  extractTraceContext, 
+  withExtractedContext 
+} from './telemetry/propagation.js';
 
 /**
  * Get unified request headers for outgoing calls (OTel + Correlation ID)
  */
 export function getRequestHeaders(extraHeaders: Record<string, string> = {}): Record<string, string> {
-  const { injectTraceHeaders } = require('./telemetry/propagation');
-  const { getRequestId } = require('./logger/context');
-  
   const headers = injectTraceHeaders(extraHeaders);
   const requestId = getRequestId();
   
@@ -24,67 +57,178 @@ export function getRequestHeaders(extraHeaders: Record<string, string> = {}): Re
 }
 
 // Domain logic
-export * from './domain/scheduler';
-export * from './domain/recovery';
-export * from './domain/backpressure';
+export { 
+  selectNode, 
+  calculateNodeScore, 
+  validateWeights, 
+  MLPredictor, 
+  SelectNodeOptions, 
+  SchedulingError 
+} from './domain/scheduler.js';
+export { 
+  determineHealingAction, 
+  shouldRetry, 
+  calculateRetryDelay, 
+  processBatchAlerts, 
+  RecoveryConfig 
+} from './domain/recovery.js';
+export { 
+  evaluateBackpressure, 
+  calculateLoadScore, 
+  BackpressureConfig 
+} from './domain/backpressure.js';
 
 // Leader Election
-export * from './leader-election';
+export { 
+  LeaderElection, 
+  LeaderElectionConfig, 
+  LeaderEvents 
+} from './leader-election/index.js';
 
 // Types
-export * from './types/domain';
+export { 
+  TaskStatus, 
+  NodeStatus, 
+  Priority, 
+  DomainTask, 
+  DomainNode, 
+  ScoreWeights, 
+  DEFAULT_SCORE_WEIGHTS, 
+  HealingAction, 
+  Alert, 
+  SystemLoad, 
+  BackpressureDecision 
+} from './types/domain.js';
+export { ApiError } from './types/errors.js';
+
+export * from './interfaces/scheduler.js';
+export * from './interfaces/metrics.js';
+export * from './interfaces/event-bus.js';
 
 // Events
-export * from './events/domain-events';
+export { 
+  DomainEvent, 
+  TaskCreatedEvent, 
+  TaskScheduledEvent, 
+  TaskStartedEvent, 
+  TaskCompletedEvent, 
+  TaskFailedEvent, 
+  TaskCancelledEvent, 
+  NodeRegisteredEvent, 
+  NodeStatusChangedEvent, 
+  NodeHeartbeatEvent, 
+  NodeFailedEvent, 
+  SchedulingDecisionEvent, 
+  SystemAlertEvent, 
+  EdgeCloudEvent 
+} from './events/domain-events.js';
 
 // Utilities
-export * from './utils/id-generator';
-export * from './utils/validation';
-export * from './utils/secrets-validation';
+export { 
+  generateId, 
+  generateShortId, 
+  generateEventId, 
+  generateCorrelationId 
+} from './utils/id-generator.js';
+export { 
+  TaskTypeSchema, 
+  TaskStatusSchema, 
+  TaskPrioritySchema, 
+  ExecutionTargetSchema, 
+  NodeStatusSchema, 
+  CreateTaskSchema, 
+  TaskIdParamsSchema, 
+  TaskListQuerySchema, 
+  CancelTaskBodySchema, 
+  ScheduleTaskBodySchema, 
+  CompleteTaskBodySchema, 
+  FailTaskBodySchema, 
+  RegisterNodeSchema, 
+  NodeIdParamsSchema, 
+  NodeListQuerySchema, 
+  NodeMetricsBodySchema, 
+  ErrorSchema, 
+  HealthSchema, 
+  CreateTaskCommandSchema, 
+  RegisterNodeCommandSchema, 
+  CreateTaskInput, 
+  TaskIdParams, 
+  TaskListQuery, 
+  RegisterNodeInput, 
+  NodeIdParams, 
+  NodeListQuery, 
+  NodeMetricsInput 
+} from './utils/validation.js';
+export { validateRequiredSecrets } from './utils/secrets-validation.js';
+export { RedisFactory } from './utils/redis-factory.js';
 
 // Secrets Management
-export * from './secrets/SecretManager';
-export * from './secrets/SecretManagerFactory';
+export { SecretManager } from './secrets/SecretManager.js';
+export { SecretManagerFactory } from './secrets/SecretManagerFactory.js';
 
 // Middleware
-export * from './middleware/auth';
-
-// Constants
-export const REGIONS = ['us-east', 'us-west', 'eu', 'apac'] as const;
-export type Region = typeof REGIONS[number];
-
-export const REDIS_CHANNELS = {
-  NODE_HEARTBEAT: 'node:heartbeat',
-  TASK_UPDATES: 'task:updates',
-} as const;
-
-export const NODE_OFFLINE_THRESHOLD_MS = 30000;
-export const NODE_STALE_THRESHOLD_MS = 15000;
-
-export const RAFT_DEFAULTS = {
-  electionTimeoutMin: 150,
-  electionTimeoutMax: 300,
-  heartbeatInterval: 50,
-  maxLogEntriesPerRequest: 100,
-} as const;
+export { 
+  AuthUser, 
+  AuthConfig, 
+  createAuthMiddleware, 
+  requireRole, 
+  requirePermission, 
+  requireRegion, 
+  generateToken 
+} from './middleware/auth.js';
 
 // API Contracts
-export * as v1Contracts from './api-contracts/v1/task';
-export * as v1NodeContracts from './api-contracts/v1/node';
-
-// Version
-export const VERSION = '2.0.0';
+export * as v1Contracts from './api-contracts/v1/task.js';
+export * as v1NodeContracts from './api-contracts/v1/node.js';
 
 // Logging
-export * from './logger/index';
-export * from './logger/context';
-export * from './logger/fastify-plugin';
-export * from './logger/express-middleware';
+export { 
+  Logger, 
+  LoggerConfig, 
+  createLogger, 
+  logger 
+} from './logger/index.js';
+export { 
+  LogContext, 
+  getRequestId, 
+  getTraceId, 
+  getLogContext, 
+  runWithContext, 
+  runWithRequestId 
+} from './logger/context.js';
+export { fastifyLoggingPlugin } from './logger/fastify-plugin.js';
+export { createExpressLoggingMiddleware } from './logger/express-middleware.js';
+
+export { 
+  TenantContext,
+  tenantContext,
+  runWithTenantContext,
+  enterWithTenantContext,
+  getTenantId,
+  prismaForTenant
+} from './context/tenant.js';
+
+export {
+  isPrismaConnectionError,
+  isPrismaTimeoutError,
+  isPrismaPoolExhausted,
+  isPrismaNotFound,
+  isPrismaConflict
+} from './db/prisma-errors.js';
 
 // Lifecycle
-export * from './lifecycle/shutdown';
-export * from './lifecycle/health';
+export { GracefulShutdown } from './lifecycle/shutdown.js';
+export { HealthCheck } from './lifecycle/health.js';
 
 // Environment validation
-export * from './validate-env';
+export { 
+  baseEnvSchema, 
+  BaseEnv, 
+  validateEnv, 
+  validateJwtSecret 
+} from './validate-env.js';
 
+export { TaskInputSchema, TaskMetadataSchema } from './schemas/task.js';
+
+// Invariants
+export * from './invariants/system-invariants.js';
