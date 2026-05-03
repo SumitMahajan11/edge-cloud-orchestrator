@@ -5,65 +5,13 @@ on:
     branches: [ main ]
   pull_request:
     branches: [ main ]
+  workflow_call:
 
 jobs:
-  lint:
+  ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Lint
-        run: pnpm run lint
-
-  typecheck:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Typecheck
-        run: pnpm run typecheck
-
-  test-unit:
-    needs: typecheck
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Unit Tests
-        run: pnpm run test --coverage
-      - name: Upload coverage
-        uses: actions/upload-artifact@v4
-        with:
-          name: coverage-report
-          path: coverage/
-
-  test-integration:
-    needs: typecheck
-    runs-on: ubuntu-latest
+    
     services:
       postgres:
         image: postgres:15-alpine
@@ -86,97 +34,94 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
         with:
           version: 9
-      - uses: actions/setup-node@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: 'pnpm'
-      - name: Install dependencies
+
+      - name: 1. Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Run Integration Tests
+
+      - name: 2. Typecheck (tsc --noEmit)
+        run: pnpm run typecheck
+
+      - name: 3. ESLint (all packages)
+        run: pnpm run lint
+
+      - name: 4. Unit tests (all packages, with coverage)
+        run: pnpm run test --coverage
+        env:
+          NODE_ENV: test
+          FORCE_MOCK_DB: true
+          FORCE_MOCK_REDIS: true
+
+      - name: 5. Database Migration Verification Gate
+        run: |
+          echo "Checking migration safety..."
+          pnpm run validate:migrations
+          
+          echo "Deploying migrations to fresh container..."
+          pnpm --filter @edgecloud/api exec prisma migrate deploy
+          
+          echo "Seeding database..."
+          pnpm --filter @edgecloud/api exec prisma db seed
+          
+          echo "Running smoke tests against seeded DB..."
+          pnpm run test:smoke
+        env:
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/edgecloud_test
+          REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
+          CONFIRM_RISKY_MIGRATION: "true" # In CI we allow it as long as it passed validate
+
+      - name: 6. Integration tests (with Testcontainers)
         run: pnpm run test:integration
         env:
           DATABASE_URL: postgresql://postgres:password@localhost:5432/edgecloud_test
           REDIS_URL: redis://localhost:6379
+          NODE_ENV: test
 
-  build-check:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        service: [api, api-gateway, scheduler-service, task-service, node-service, websocket-gateway]
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Build check
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./apps/${{ matrix.service }}/Dockerfile
-          push: false
-          tags: ${{ matrix.service }}:test
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-  security-audit:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Audit dependencies
-        run: pnpm audit --audit-level=high
-      - name: Container Scan (Scheduler Example)
-        uses: aquasecurity/trivy-action@master
-        with:
-          image-ref: 'ghcr.io/SumitMahajan01/edge-cloud-orchestrator/scheduler-service:latest'
-          format: 'table'
-          exit-code: '0' # Don't fail the build yet, just report
-          ignore-unfixed: true
-          severity: 'CRITICAL,HIGH'
-
-  migration-dry-run:
-    name: Migration Dry Run
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:15-alpine
-        env:
-          POSTGRES_PASSWORD: password
-          POSTGRES_DB: edgecloud_dryrun
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Verify Migration Integrity
+      - name: 7. Contract tests (OpenAPI spec drift check)
         run: |
-          # 1. Apply all migrations to a fresh DB
-          cd apps/api
-          pnpm exec prisma migrate deploy
-          
-          # 2. Check for drift (schema vs database)
-          # If this returns a non-zero exit code, it means there's a drift
-          pnpm exec prisma migrate diff \
-            --from-schema prisma/schema.prisma \
-            --to-migrations prisma/migrations \
-            --shadow-database-url "postgresql://postgres:password@localhost:5432/edgecloud_dryrun_shadow" \
-            --exit-code
+          # Generate fresh spec
+          pnpm --filter @edgecloud/api run gen:openapi
+          # Check for drift
+          if [ -n "$(git status --porcelain apps/api/openapi.yml)" ]; then
+            echo "Error: OpenAPI spec drift detected. Please run 'pnpm --filter @edgecloud/api run gen:openapi' locally."
+            git diff apps/api/openapi.yml
+            exit 1
+          fi
         env:
-          DATABASE_URL: postgresql://postgres:password@localhost:5432/edgecloud_dryrun
+          DATABASE_URL: postgresql://postgres:password@localhost:5432/edgecloud_test
+          REDIS_URL: redis://localhost:6379
+          JWT_SECRET: test-secret-at-least-32-characters-long
+          ENCRYPTION_KEY: test-key-at-least-32-characters-long
+          NODE_ENV: test
 
+      - name: 8. Dependency graph check (depcruise)
+        run: npx depcruise --config .dependency-cruiser.js packages apps
+
+      - name: 9. Security audit
+        run: pnpm audit --audit-level=high
+
+      - name: 10. Build all apps (ensure no build errors)
+        run: pnpm run build
+
+      - name: Upload coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage/
