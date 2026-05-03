@@ -1,3 +1,5 @@
+-- MIGRATION_SAFETY: SAFE
+-- RATIONALE: Initial schema creation.
 -- CreateEnum
 CREATE TYPE "Role" AS ENUM ('ADMIN', 'OPERATOR', 'VIEWER');
 

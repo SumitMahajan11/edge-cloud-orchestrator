@@ -128,6 +128,161 @@ export const schedulerActiveInstances = new Gauge({
 });
 
 // ============================================================================
+// ML SCHEDULER METRICS
+// ============================================================================
+
+/**
+ * ML model fallback counter
+ */
+export const mlFallbackTotal = new Counter({
+  name: 'edgecloud_ml_fallback_total',
+  help: 'Total number of times ML scheduling fell back to rule-based logic',
+  labelNames: ['reason'],
+  registers: [register],
+});
+
+/**
+ * ML drift gauge
+ */
+export const mlDriftMae = new Gauge({
+  name: 'edgecloud_ml_drift_mae',
+  help: 'Mean Absolute Error of the active ML model as reported by drift detector',
+  labelNames: ['model_version'],
+  registers: [register],
+});
+
+/**
+ * ML Prediction Error (predicted vs actual latency)
+ */
+export const mlPredictionErrorSeconds = new Histogram({
+  name: 'edgecloud_ml_prediction_error_seconds',
+  help: 'Error in latency prediction (predicted - actual) in seconds',
+  labelNames: ['model_version'],
+  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1],
+  registers: [register],
+});
+
+/**
+ * ML Bandit Exploration Rate
+ */
+export const mlBanditExplorationRate = new Gauge({
+  name: 'edgecloud_ml_bandit_exploration_rate',
+  help: 'Current exploration rate for the multi-armed bandit scheduler',
+  registers: [register],
+});
+
+/**
+ * ML Model Info (version tracking)
+ */
+export const mlModelInfo = new Gauge({
+  name: 'edgecloud_ml_model_info',
+  help: 'Information about the currently active ML model',
+  labelNames: ['version', 'framework', 'last_trained'],
+  registers: [register],
+});
+
+/**
+ * ML Model last update timestamp
+ */
+export const mlModelUpdateTimestamp = new Gauge({
+  name: 'edgecloud_ml_model_update_timestamp',
+  help: 'Unix timestamp of the last model update',
+  registers: [register],
+});
+
+// ============================================================================
+// CARBON AND COST METRICS
+// ============================================================================
+
+/**
+ * Carbon Intensity by Region
+ */
+export const carbonIntensity = new Gauge({
+  name: 'edgecloud_carbon_intensity',
+  help: 'Real-time carbon intensity (gCO2/kWh) by region',
+  labelNames: ['region'],
+  registers: [register],
+});
+
+/**
+ * Carbon Saved Total
+ */
+export const carbonSavedTotal = new Counter({
+  name: 'edgecloud_carbon_saved_total',
+  help: 'Total grams of CO2 saved by carbon-aware scheduling',
+  labelNames: ['region', 'tier'],
+  registers: [register],
+});
+
+/**
+ * Estimated Compute Cost (Hourly)
+ */
+export const estimatedComputeCostHourly = new Gauge({
+  name: 'edgecloud_estimated_compute_cost_hourly',
+  help: 'Estimated hourly compute cost in USD across the fleet',
+  labelNames: ['region'],
+  registers: [register],
+});
+
+// ============================================================================
+// RELIABILITY METRICS
+// ============================================================================
+
+/**
+ * Circuit Breaker State Changes
+ */
+export const circuitBreakerOpenedTotal = new Counter({
+  name: 'edgecloud_circuit_breaker_opened_total',
+  help: 'Total number of times circuit breakers have opened',
+  labelNames: ['service'],
+  registers: [register],
+});
+
+/**
+ * Saga Compensations Total
+ */
+export const sagaCompensationsTotal = new Counter({
+  name: 'edgecloud_saga_compensations_total',
+  help: 'Total number of saga compensation cycles triggered',
+  labelNames: ['reason', 'saga_type'],
+  registers: [register],
+});
+
+/**
+ * Webhook Delivery Failures
+ */
+export const webhookDeliveryFailures = new Counter({
+  name: 'edgecloud_webhook_delivery_failures',
+  help: 'Total number of webhook delivery failures',
+  labelNames: ['target_url', 'event_type'],
+  registers: [register],
+});
+
+// ============================================================================
+// CONSISTENCY METRICS
+// ============================================================================
+
+/**
+ * Consistency violation counter
+ */
+export const consistencyViolationsTotal = new Counter({
+  name: 'edgecloud_consistency_violations_total',
+  help: 'Total number of system consistency violations detected',
+  labelNames: ['invariant_name'],
+  registers: [register],
+});
+
+/**
+ * Consistency auto-fixes counter
+ */
+export const consistencyAutoFixesTotal = new Counter({
+  name: 'edgecloud_consistency_auto_fixes_total',
+  help: 'Total number of system consistency auto-fixes applied',
+  labelNames: ['fix_name', 'status'], // status: success, failure
+  registers: [register],
+});
+
+// ============================================================================
 // TASK METRICS
 // ============================================================================
 
@@ -339,7 +494,7 @@ export const apiRequestsTotal = new Counter({
 export const apiErrorsTotal = new Counter({
   name: 'edgecloud_api_errors_total',
   help: 'Total number of API errors',
-  labelNames: ['method', 'endpoint', 'error_type', 'status_code'],
+  labelNames: ['code', 'route', 'method'],
   registers: [register],
 });
 
@@ -553,9 +708,9 @@ export function recordApiRequest(
   apiRequestsTotal.labels(method, endpoint, String(statusCode)).inc();
 
   if (statusCode >= 400) {
-    const errorType = statusCode >= 500 ? 'server_error' : 'client_error';
+    // Note: detailed error code is handled in the global error handler
     apiErrorsTotal
-      .labels(method, endpoint, errorType, String(statusCode))
+      .labels('UNKNOWN', endpoint, method)
       .inc();
   }
 }
