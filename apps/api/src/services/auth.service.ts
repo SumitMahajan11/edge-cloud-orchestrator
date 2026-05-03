@@ -1,8 +1,10 @@
+import crypto from 'crypto';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import type { PrismaClient } from '@prisma/client';
 import type { UserPayload } from '../types/fastify';
+import { env } from '../config/env';
 
 export class AuthService {
   private prisma: PrismaClient;
@@ -12,13 +14,9 @@ export class AuthService {
 
   constructor(prisma: PrismaClient) {
     this.prisma = prisma;
-    this.jwtSecret = process.env.JWT_SECRET!;
-    this.jwtExpiresIn = process.env.JWT_EXPIRES_IN || '15m';
-    this.refreshExpiresIn = process.env.REFRESH_TOKEN_EXPIRES_IN || '7d';
-
-    if (!this.jwtSecret || this.jwtSecret.length < 32) {
-      throw new Error('JWT_SECRET must be at least 32 characters');
-    }
+    this.jwtSecret = env.JWT_SECRET;
+    this.jwtExpiresIn = env.JWT_EXPIRES_IN;
+    this.refreshExpiresIn = env.REFRESH_TOKEN_EXPIRES_IN;
   }
 
   /**
@@ -43,12 +41,19 @@ export class AuthService {
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
     const permissions = this.getPermissionsForRole(user.role);
     const accessToken = jwt.sign(
-      { id: user.id, email: user.email, role: user.role, permissions },
+      { 
+        id: user.id, 
+        email: user.email, 
+        role: user.role, 
+        tenantId: user.tenantId,
+        permissions 
+      },
       this.jwtSecret,
       { expiresIn: this.jwtExpiresIn as any },
     );
 
     const refreshToken = uuidv4();
+    const hashedRefreshToken = this.hashToken(refreshToken);
     const expiresAt = this.calculateExpiry(this.refreshExpiresIn);
 
     // Create a new session for this refresh token
@@ -56,14 +61,14 @@ export class AuthService {
       data: {
         userId: user.id,
         token: accessToken, // We store the current access token reference if needed for logout
-        refreshToken,
+        refreshToken: hashedRefreshToken,
         expiresAt,
       },
     });
 
     return {
       accessToken,
-      refreshToken,
+      refreshToken, // Return the plaintext token to the user
       expiresAt,
     };
   }
@@ -74,8 +79,9 @@ export class AuthService {
   async rotateRefreshToken(
     oldRefreshToken: string,
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
+    const hashedOldToken = this.hashToken(oldRefreshToken);
     const session = await this.prisma.session.findUnique({
-      where: { refreshToken: oldRefreshToken },
+      where: { refreshToken: hashedOldToken },
       include: { user: true },
     });
 
@@ -92,6 +98,7 @@ export class AuthService {
       id: session.user.id,
       email: session.user.email,
       role: session.user.role as any,
+      tenantId: session.user.tenantId,
       permissions: this.getPermissionsForRole(session.user.role),
     };
 
@@ -107,9 +114,17 @@ export class AuthService {
    * Revokes a session based on refresh token.
    */
   async revokeSession(refreshToken: string): Promise<void> {
+    const hashedToken = this.hashToken(refreshToken);
     await this.prisma.session.deleteMany({
-      where: { refreshToken },
+      where: { refreshToken: hashedToken },
     });
+  }
+
+  /**
+   * Hashes a token using SHA-256 for secure database storage.
+   */
+  private hashToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
   }
 
   /**
