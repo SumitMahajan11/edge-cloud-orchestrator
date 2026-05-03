@@ -640,6 +640,14 @@ export async function init(overrides: any = {}) {
   // Validate configuration before starting
   // Environment validation is handled by config/env.ts on import
 
+  const jwtSecretStr = await secretManagerInstance.getSecret('JWT_SECRET') || env.JWT_SECRET || '';
+  if (jwtSecretStr.length < 32 && env.NODE_ENV === 'production') {
+    logger.fatal('JWT_SECRET must be at least 32 characters long in production');
+    process.exit(1);
+  } else if (jwtSecretStr.length < 32) {
+    logger.warn('JWT_SECRET is shorter than 32 characters. This is insecure for production use.');
+  }
+
   const dbUrl = await secretManager.getSecret('DATABASE_URL');
   const forceMock = env.FORCE_MOCK_DB;
   const useMockDb = isDevelopment && (!dbUrl || forceMock);
