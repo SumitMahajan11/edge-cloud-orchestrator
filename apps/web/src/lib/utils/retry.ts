@@ -1,6 +1,6 @@
 import { logger } from './logger'
 
-interface CircuitBreakerConfig {
+interface RetryCircuitBreakerConfig {
   failureThreshold?: number
   successThreshold?: number
   timeoutMs?: number
@@ -100,9 +100,9 @@ class RetryManager {
   }
 
   // Execute with circuit breaker pattern
-  async executeWithCircuitBreaker<T>(
+  async executeWithRetryCircuitBreaker<T>(
     operation: () => Promise<T>,
-    circuitBreaker: CircuitBreaker,
+    circuitBreaker: RetryCircuitBreaker,
     operationName = 'operation'
   ): Promise<T> {
     if (!circuitBreaker.canExecute()) {
@@ -121,15 +121,15 @@ class RetryManager {
 }
 
 // Circuit breaker for preventing cascade failures
-class CircuitBreaker {
+class RetryCircuitBreaker {
   private state: 'CLOSED' | 'OPEN' | 'HALF_OPEN' = 'CLOSED'
   private failureCount = 0
   private successCount = 0
   // private lastFailureTime?: number  // Reserved for future use
   private nextAttemptTime?: number
-  private config: Required<CircuitBreakerConfig>
+  private config: Required<RetryCircuitBreakerConfig>
 
-  constructor(config: CircuitBreakerConfig = {}) {
+  constructor(config: RetryCircuitBreakerConfig = {}) {
     this.config = {
       failureThreshold: 5,
       successThreshold: 3,
@@ -204,10 +204,10 @@ export function withRetry(config?: RetryConfig) {
 
 // Singleton instances
 export const retryManager = new RetryManager()
-export const apiCircuitBreaker = new CircuitBreaker({
+export const apiRetryCircuitBreaker = new RetryCircuitBreaker({
   failureThreshold: 5,
   timeoutMs: 30000,
 })
 
-export { CircuitBreaker,RetryManager }
+export { RetryCircuitBreaker,RetryManager }
 export type { RetryConfig }

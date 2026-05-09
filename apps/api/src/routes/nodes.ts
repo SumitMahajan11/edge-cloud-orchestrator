@@ -17,7 +17,28 @@ const Role = {
   VIEWER: 'VIEWER',
 } as const;
 
-export default async function nodeRoutes(fastify: FastifyInstance) {
+/**
+  * Transform flat Prisma node model to versioned API response schema
+  */
+ function transformNode(node: any) {
+   if (!node) return null;
+   
+   const { cpuCores, memoryGB, storageGB, ...rest } = node;
+   
+   return {
+     ...rest,
+     specs: {
+       cpuCores: cpuCores || 0,
+       memoryGB: memoryGB || 0,
+       storageGB: storageGB || 0,
+     },
+     // Ensure status is uppercase as per schema
+     status: (node.status || 'OFFLINE').toUpperCase(),
+     lastHeartbeat: (node.lastHeartbeat || node.createdAt || new Date()).toISOString(),
+   };
+ }
+ 
+ export default async function nodeRoutes(fastify: FastifyInstance) {
   // List nodes
   fastify.get<{ Querystring: v1NodeContracts.NodeQueryV1 }>(
     '/',
@@ -27,12 +48,30 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         querystring: zodToFastifySchema(v1NodeContracts.NodeQueryV1Schema),
         tags: ['nodes'],
         summary: 'List edge nodes',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              data: { type: 'array', items: zodToFastifySchema(v1NodeContracts.NodeV1ResponseSchema) },
+              pagination: {
+                type: 'object',
+                properties: {
+                  page: { type: 'number' },
+                  limit: { type: 'number' },
+                  total: { type: 'number' },
+                  totalPages: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
       },
     },
     async (request: FastifyRequest<{ Querystring: v1NodeContracts.NodeQueryV1 }>, _reply) => {
       const { region, status, page, limit, sortBy, sortOrder } = request.query;
 
-      const where = {
+      const where: any = {
+        tenantId: request.user!.tenantId!,
         ...(region && { region }),
         ...(status && {
           status: status as (typeof NodeStatus)[keyof typeof NodeStatus],
@@ -53,7 +92,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       ]);
 
       return {
-        data: nodes,
+        data: nodes.map(transformNode),
         pagination: {
           page,
           limit,
@@ -73,11 +112,17 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         params: zodToFastifySchema(idParamSchema),
         tags: ['nodes'],
         summary: 'Get node by ID',
+        response: {
+          200: zodToFastifySchema(v1NodeContracts.NodeV1ResponseSchema),
+          404: {
+            $ref: 'ErrorSchema#',
+          },
+        },
       },
     },
     async (request, reply) => {
-      const node = await fastify.prisma.edgeNode.findUnique({
-        where: { id: request.params.id },
+      const node = await fastify.prisma.edgeNode.findFirst({
+        where: { id: request.params.id, tenantId: request.user!.tenantId! },
         include: {
           tasks: {
             where: { status: 'RUNNING' },
@@ -91,10 +136,15 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       });
 
       if (!node) {
-        return reply.status(404).send({ error: 'Node not found' });
+        return reply.status(404).send({ 
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Node not found',
+          requestId: request.id,
+          timestamp: new Date().toISOString()
+        });
       }
 
-      return node;
+      return transformNode(node);
     },
   );
 
@@ -110,20 +160,34 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         body: zodToFastifySchema(v1NodeContracts.RegisterNodeV1Schema),
         tags: ['nodes'],
         summary: 'Register a new edge node',
+        response: {
+          201: zodToFastifySchema(v1NodeContracts.NodeV1ResponseSchema),
+          409: {
+            $ref: 'ErrorSchema#',
+          },
+        },
       },
     },
     async (request: FastifyRequest<{ Body: v1NodeContracts.RegisterNodeV1 }>, reply) => {
       const data = request.body;
 
-      // Check for duplicate name
-      const existing = await fastify.prisma.edgeNode.findUnique({
-        where: { name: data.name },
+      // Check for duplicate name within the same tenant
+      const existing = await fastify.prisma.edgeNode.findFirst({
+        where: { 
+          name: data.name,
+          tenantId: request.user!.tenantId!
+        },
       });
 
       if (existing) {
         return reply
           .status(409)
-          .send({ error: 'Node with this name already exists' });
+          .send({ 
+            code: 'RESOURCE_CONFLICT',
+            message: 'Node with this name already exists in your tenant',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          });
       }
 
       const node = await fastify.prisma.edgeNode.create({
@@ -148,6 +212,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           ...(data.bandwidthOutMbps !== undefined && {
             bandwidthOutMbps: data.bandwidthOutMbps,
           }),
+          tenantId: request.user!.tenantId!,
         },
       });
 
@@ -155,16 +220,17 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       await fastify.prisma.auditLog.create({
         data: {
           userId: (request.user as any).id,
+          tenantId: request.user!.tenantId!,
           action: 'node.created',
           entityType: 'node',
           entityId: node.id,
-          details: { name: node.name, region: node.region },
+          details: { name: node.name, region: node.region } as any,
           ipAddress: request.ip,
-          userAgent: request.headers['user-agent'],
+          userAgent: request.headers['user-agent'] ?? null,
         },
       });
 
-      return reply.status(201).send(node);
+      return reply.status(201).send(transformNode(node));
     },
   );
 
@@ -190,25 +256,37 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
       const data = request.body;
 
+      const existingNode = await fastify.prisma.edgeNode.findFirst({
+        where: { id, tenantId: request.user!.tenantId! },
+      });
+
+      if (!existingNode) {
+        return reply.status(404).send({
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Node not found',
+        });
+      }
+
       const node = await fastify.prisma.edgeNode.update({
-        where: { id },
-        data,
+        where: { id, tenantId: request.user!.tenantId! },
+        data: data as any,
       });
 
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
           userId: (request.user as any).id,
+          tenantId: request.user!.tenantId!,
           action: 'node.updated',
           entityType: 'node',
           entityId: node.id,
-          details: { changes: data },
+          details: { changes: data } as any,
           ipAddress: request.ip,
-          userAgent: request.headers['user-agent'],
+          userAgent: request.headers['user-agent'] ?? null,
         },
       });
 
-      return node;
+      return transformNode(node);
     },
   );
 
@@ -228,28 +306,43 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
 
       // Check for running tasks
       const runningTasks = await fastify.prisma.task.count({
-        where: { nodeId: id, status: 'RUNNING' },
+        where: { nodeId: id, status: 'RUNNING', tenantId: request.user!.tenantId! },
       });
 
       if (runningTasks > 0) {
         return reply.status(400).send({
-          error: 'Cannot delete node with running tasks',
-          runningTasks,
+          code: 'VALIDATION_ERROR',
+          message: 'Cannot delete node with running tasks',
+          details: { runningTasks } as any,
         });
       }
 
-      await fastify.prisma.edgeNode.delete({ where: { id } });
+      const existingNode = await fastify.prisma.edgeNode.findFirst({
+        where: { id, tenantId: request.user!.tenantId! },
+      });
+
+      if (!existingNode) {
+        return reply.status(404).send({
+          code: 'RESOURCE_NOT_FOUND',
+          message: 'Node not found',
+        });
+      }
+
+      await fastify.prisma.edgeNode.delete({ 
+        where: { id, tenantId: request.user!.tenantId! } 
+      });
 
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
           userId: (request.user as any).id,
+          tenantId: request.user!.tenantId!,
           action: 'node.deleted',
           entityType: 'node',
           entityId: id,
           details: {},
           ipAddress: request.ip,
-          userAgent: request.headers['user-agent'],
+          userAgent: request.headers['user-agent'] ?? null,
         },
       });
 
@@ -272,6 +365,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
   }>(
     '/:id/heartbeat',
     {
+      preHandler: [fastify.authenticate],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: {
@@ -293,13 +387,19 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       const { id } = request.params;
-      const metrics = request.body;
+      const metrics = (request as any).body;
 
-      // Verify node certificate (mTLS) - in production
-      // For now, just update the node
+      // Verify node belongs to user's tenant
+      const node = await fastify.prisma.edgeNode.findFirst({
+        where: { id, tenantId: request.user!.tenantId! }
+      });
+
+      if (!node) {
+        return reply.status(404).send({ error: 'Node not found or access denied' });
+      }
 
       await fastify.prisma.edgeNode.update({
-        where: { id },
+        where: { id, tenantId: request.user!.tenantId! },
         data: {
           cpuUsage: metrics.cpuUsage,
           memoryUsage: metrics.memoryUsage,
@@ -365,6 +465,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       const metrics = await fastify.prisma.nodeMetric.findMany({
         where: {
           nodeId: id,
+          node: { tenantId: request.user!.tenantId! },
           ...(from && { timestamp: { gte: new Date(from) } }),
           ...(to && { timestamp: { lte: new Date(to) } }),
         },
@@ -402,7 +503,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       const { enabled } = request.body;
 
       const node = await fastify.prisma.edgeNode.update({
-        where: { id },
+        where: { id, tenantId: request.user!.tenantId! },
         data: {
           isMaintenanceMode: enabled,
           status: enabled ? NodeStatus.MAINTENANCE : NodeStatus.ONLINE,
@@ -413,6 +514,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       await fastify.prisma.auditLog.create({
         data: {
           userId: (request.user as any).id,
+          tenantId: request.user!.tenantId!,
           action: enabled
             ? 'node.maintenance_enabled'
             : 'node.maintenance_disabled',
@@ -420,11 +522,114 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           entityId: id,
           details: {},
           ipAddress: request.ip,
-          userAgent: request.headers['user-agent'],
+          userAgent: request.headers['user-agent'] ?? null,
         },
       });
 
       return node;
+    },
+  );
+
+  // Drain node (stop accepting new tasks)
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/drain',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+      ],
+      schema: {
+        params: zodToFastifySchema(idParamSchema),
+        tags: ['nodes'],
+        summary: 'Start draining a node (stop accepting new tasks)',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              message: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { id } = request.params;
+
+      await fastify.prisma.edgeNode.update({
+        where: { id, tenantId: request.user!.tenantId! },
+        data: {
+          isMaintenanceMode: true,
+          status: NodeStatus.MAINTENANCE, // For now, we use MAINTENANCE as the underlying status
+        },
+      });
+
+      // Audit log
+      await fastify.prisma.auditLog.create({
+        data: {
+          userId: (request.user as any).id,
+          tenantId: request.user!.tenantId!,
+          action: 'node.drain_started',
+          entityType: 'node',
+          entityId: id,
+          details: {} as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return { success: true, message: 'Node is now draining' };
+    },
+  );
+
+  // Force node offline
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/offline',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+      ],
+      schema: {
+        params: zodToFastifySchema(idParamSchema),
+        tags: ['nodes'],
+        summary: 'Force a node to OFFLINE status',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              message: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, _reply) => {
+      const { id } = request.params;
+
+      await fastify.prisma.edgeNode.update({
+        where: { id, tenantId: request.user!.tenantId! },
+        data: {
+          status: NodeStatus.OFFLINE,
+        },
+      });
+
+      // Audit log
+      await fastify.prisma.auditLog.create({
+        data: {
+          userId: (request.user as any).id,
+          tenantId: request.user!.tenantId!,
+          action: 'node.forced_offline',
+          entityType: 'node',
+          entityId: id,
+          details: {} as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return { success: true, message: 'Node forced offline' };
     },
   );
 
@@ -455,6 +660,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       const history = await (fastify.prisma as any).schedulingDecision.findMany({
         where: {
           selectedNodeId: id,
+          node: { tenantId: request.user!.tenantId! },
           timestamp: { gte: startDate },
         },
         orderBy: { timestamp: 'desc' },
@@ -465,3 +671,5 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
     },
   );
 }
+
+

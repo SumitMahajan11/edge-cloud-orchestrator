@@ -103,11 +103,16 @@ export const NodeMetricsBodySchema = z.object({
 });
 
 // Common response schemas
-export const ErrorSchema = z.object({
-  error: z.string(),
-  code: z.string().optional(),
-  details: z.record(z.unknown()).optional(),
+export const ApiErrorSchema = z.object({
+  code: z.string().describe('Machine-readable error code'),
+  message: z.string().describe('Human-readable error description'),
+  requestId: z.string().describe('Unique request ID'),
+  timestamp: z.string().datetime().describe('ISO 8601 timestamp'),
+  details: z.unknown().optional().describe('Optional error details'),
+  stack: z.string().optional().describe('Error stack trace (non-production only)'),
 });
+
+export const ErrorSchema = ApiErrorSchema;
 
 export const HealthSchema = z.object({
   status: z.enum(['healthy', 'degraded', 'unhealthy']),

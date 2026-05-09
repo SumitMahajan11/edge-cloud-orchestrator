@@ -1,4 +1,4 @@
-import type { TaskStatus, Priority as TaskPriority } from '../types/domain';
+import type { TaskStatus, Priority as TaskPriority } from '../types/domain.js';
 
 export type TaskType = 
   | 'IMAGE_CLASSIFICATION'
@@ -20,6 +20,10 @@ export interface Task {
   priority: TaskPriority;
   target: ExecutionTarget;
   nodeId?: string;
+  specs?: {
+    cpuCores: number;
+    memoryGB: number;
+  };
   policy: string;
   reason: string;
   input?: Record<string, unknown>;
@@ -36,6 +40,9 @@ export interface Task {
   executionTimeMs?: number;
   cost?: number;
   region: string;
+  runtime: 'NATIVE' | 'DOCKER' | 'WASM';
+  affinity?: string;
+  traceId?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -46,9 +53,16 @@ export interface CreateTaskCommand {
   priority: TaskPriority;
   target?: ExecutionTarget;
   nodeId?: string;
+  specs?: {
+    cpuCores: number;
+    memoryGB: number;
+  };
   input?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   maxRetries?: number;
+  runtime?: 'NATIVE' | 'DOCKER' | 'WASM';
+  affinity?: string;
+  traceId?: string;
 }
 
 export interface TaskScore {

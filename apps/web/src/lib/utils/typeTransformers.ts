@@ -1,6 +1,6 @@
 // Type transformers to convert between frontend and backend types
 
-import type { EdgeNode, LogEntry, NodeStatus, SystemMetrics,Task, TaskPriority, TaskStatus, TaskType } from '../types'
+import type { EdgeNode, LogEntry, NodeStatus, SystemMetrics, Task, TaskPriority, TaskStatus, TaskType, RuntimeType } from '../../types'
 
 // Backend uses SCREAMING_SNAKE_CASE, frontend uses Title Case
 const TASK_TYPE_MAP: Record<string, TaskType> = {
@@ -174,6 +174,7 @@ export function transformTaskFromApi(apiTask: any): Task {
     cost: apiTask.cost || 0,
     latencyMs: apiTask.latencyMs || 0,
     reason: apiTask.reason || '',
+    runtime: (apiTask.runtime || 'native') as RuntimeType,
     retryCount: apiTask.retryCount || 0,
     maxRetries: apiTask.maxRetries || 3,
     metadata: apiTask.metadata,

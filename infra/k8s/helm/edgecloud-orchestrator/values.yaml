@@ -129,7 +129,7 @@ apiGateway:
 
 # CockroachDB
 cockroachdb:
-  enabled: true
+  enabled: false
   replicaCount: 3
   storage: 100Gi
   resources:
@@ -139,6 +139,48 @@ cockroachdb:
     limits:
       cpu: 2
       memory: 4Gi
+
+# PostgreSQL HA
+postgresql:
+  enabled: true
+  architecture: replication
+  auth:
+    database: edge_cloud
+    username: postgres
+    replicationUsername: repl_user
+  primary:
+    replicaCount: 1
+    extendedConfiguration: |-
+      synchronous_commit = on
+      synchronous_standby_names = '*'
+    pgHbaConfiguration: |-
+      local all all trust
+      host all all all md5
+      host replication repl_user all md5
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+    readinessProbe:
+      enabled: true
+      customCommand: 
+        - psql
+        - -U
+        - postgres
+        - -d
+        - edge_cloud
+        - -c
+        - "SELECT CASE WHEN pg_is_in_recovery() THEN 1 ELSE 0 END"
+  readReplicas:
+    replicaCount: 1
+    resources:
+      requests:
+        cpu: 250m
+        memory: 512Mi
+  pgbouncer:
+    enabled: true
+    poolMode: transaction
+    maxClientConn: 1000
 
 # Kafka
 kafka:
@@ -159,7 +201,11 @@ kafka:
 redis:
   enabled: true
   architecture: replication
+  auth:
+    enabled: false # Standard for internal dev, change in prod
   master:
+    readinessProbe:
+      enabled: true
     resources:
       requests:
         cpu: 100m
@@ -169,10 +215,25 @@ redis:
         memory: 512Mi
   replica:
     replicaCount: 2
+    readinessProbe:
+      enabled: true
     resources:
       requests:
         cpu: 100m
         memory: 256Mi
+  sentinel:
+    enabled: true
+    quorum: 2
+    staticID: true
+    readinessProbe:
+      enabled: true
+    resources:
+      requests:
+        cpu: 50m
+        memory: 64Mi
+      limits:
+        cpu: 100m
+        memory: 128Mi
 
 # Vault
 vault:

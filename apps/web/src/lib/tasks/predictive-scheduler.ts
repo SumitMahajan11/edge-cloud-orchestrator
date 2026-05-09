@@ -1,4 +1,4 @@
-import type { EdgeNode,Task } from '../types'
+import type { EdgeNode,Task } from '../../types'
 
 interface TaskHistory {
   taskType: string
@@ -17,7 +17,7 @@ interface NodeScore {
   confidence: number
 }
 
-interface PredictionModel {
+interface BasicPredictionModel {
   taskType: string
   avgExecutionTime: number
   stdDeviation: number
@@ -27,7 +27,7 @@ interface PredictionModel {
 
 class PredictiveScheduler {
   private history: TaskHistory[] = []
-  private models: Map<string, PredictionModel> = new Map()
+  private models: Map<string, BasicPredictionModel> = new Map()
   private maxHistorySize = 1000
   private modelUpdateInterval = 60000 // 1 minute
   private lastModelUpdate = 0
@@ -104,7 +104,7 @@ class PredictiveScheduler {
     return this.predictFromHeuristics(task, nodes)
   }
 
-  private predictFromModel(task: Task, nodes: EdgeNode[], model: PredictionModel): EdgeNode {
+  private predictFromModel(task: Task, nodes: EdgeNode[], model: BasicPredictionModel): EdgeNode {
     const scores: NodeScore[] = nodes.map((node) => {
       const nodePerformance = model.nodePerformance.get(node.id) || model.avgExecutionTime * 2
       const performanceScore = model.avgExecutionTime / nodePerformance
@@ -246,7 +246,7 @@ class PredictiveScheduler {
     this.lastModelUpdate = 0
   }
 
-  exportData(): { history: TaskHistory[]; models: PredictionModel[] } {
+  exportData(): { history: TaskHistory[]; models: BasicPredictionModel[] } {
     return {
       history: this.history,
       models: Array.from(this.models.values())
@@ -258,4 +258,4 @@ class PredictiveScheduler {
 export const predictiveScheduler = new PredictiveScheduler()
 
 export { PredictiveScheduler }
-export type { NodeScore, PredictionModel,TaskHistory }
+export type { NodeScore, BasicPredictionModel,TaskHistory }

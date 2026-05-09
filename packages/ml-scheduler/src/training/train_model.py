@@ -11,13 +11,25 @@ except ImportError:
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 
+def get_next_version(output_dir):
+    latest_path = os.path.join(output_dir, "latest.json")
+    if not os.path.exists(latest_path):
+        return "1.0.0"
+    try:
+        with open(latest_path, 'r') as f:
+            data = json.load(f)
+            v = data.get("version", "1.0.0")
+            major, minor, patch = map(int, v.split('.'))
+            return f"{major}.{minor}.{patch + 1}"
+    except:
+        return "1.0.0"
+
 def train_model(data_path, output_dir):
     print(f"Loading data from {data_path}...")
     try:
         df = pd.read_json(data_path)
     except Exception as e:
         print(f"Error loading JSON: {e}")
-        # Try reading as lines if it's JSONL
         try:
             df = pd.read_json(data_path, lines=True)
         except:
@@ -27,7 +39,6 @@ def train_model(data_path, output_dir):
         print("Error: Empty dataset")
         sys.exit(1)
         
-    # Feature engineering
     target_col = 'scheduling_score'
     if target_col not in df.columns:
         print(f"Error: Target column {target_col} not found")
@@ -35,8 +46,6 @@ def train_model(data_path, output_dir):
         
     X = df.drop(columns=[target_col])
     y = df[target_col]
-    
-    # Ensure all columns are numeric
     X = X.select_dtypes(include=[np.number])
     
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -54,54 +63,57 @@ def train_model(data_path, output_dir):
     
     predictions = model.predict(X_test)
     mae = mean_absolute_error(y_test, predictions)
-    print(f"Training complete. MAE: {mae:.4f}")
+    
+    # Model Validation Gate
+    errors = np.abs(y_test - predictions)
+    p99_error = np.percentile(errors, 99)
+    print(f"Validation Result - MAE: {mae:.4f}, P99 Error: {p99_error:.4f}ms")
+    
+    if p99_error >= 10.0:
+        print(f"CRITICAL: P99 error {p99_error:.4f}ms exceeds threshold of 10ms. Validation failed.")
+        sys.exit(1)
     
     # Create output directory
     os.makedirs(output_dir, exist_ok=True)
     
     # Versioning
-    version = datetime.now().strftime("%Y%m%d%H%M%S")
-    model_filename = f"model_{version}.json"
+    version = get_next_version(output_dir)
+    model_filename = f"model_{version}.xgb.json"
     model_path = os.path.join(output_dir, model_filename)
-    meta_path = os.path.join(output_dir, f"model_{version}.json") # Meta is also JSON
+    meta_path = os.path.join(output_dir, "model_metadata.json")
     
     # Save model
     if hasattr(model, 'save_model'):
         model.save_model(model_path)
     else:
-        # Fallback for sklearn
         import joblib
         model_path = os.path.join(output_dir, f"model_{version}.joblib")
         joblib.dump(model, model_path)
     
-    # Save metadata for registry
+    # Save metadata
     metadata = {
         "version": version,
         "algorithm": "XGBoost" if hasattr(model, 'save_model') else "GradientBoostingRegressor",
+        "accuracy": 1.0 - (mae / (y_test.mean() if y_test.mean() != 0 else 1)), # Proxy for accuracy
         "mae": float(mae),
+        "p99_error": float(p99_error),
         "features": X.columns.tolist(),
-        "created_at": datetime.now().isoformat(),
+        "trainedAt": datetime.now().isoformat(),
         "artifact_path": model_path
     }
-    
-    # Write metadata (this will overwrite model_path if using XGBoost and meta_path is same, 
-    # so let's use a different name for meta if they collide, but they shouldn't as versioned)
-    # Actually ModelRegistry expects model_{version}.json to be the metadata.
-    # Let's save model artifact as model_{version}.bin or .json and metadata as model_{version}.json
-    # If XGBoost saves to JSON, let's call it model_{version}.xgb.json
-    
-    xgb_model_path = os.path.join(output_dir, f"model_{version}.xgb.json")
-    if hasattr(model, 'save_model'):
-        model.save_model(xgb_model_path)
-        metadata["artifact_path"] = xgb_model_path
     
     with open(meta_path, 'w') as f:
         json.dump(metadata, f, indent=2)
         
-    print(f"Model saved: {metadata['artifact_path']}")
-    print(f"Metadata saved: {meta_path}")
+    # Also save versioned metadata
+    versioned_meta_path = os.path.join(output_dir, f"model_{version}.json")
+    with open(versioned_meta_path, 'w') as f:
+        json.dump(metadata, f, indent=2)
+        
+    print(f"Model saved: {model_path}")
+    print(f"Metadata updated: {meta_path}")
     
-    # Also update latest.json
+    # Update latest.json for backward compatibility if needed
     latest_meta_path = os.path.join(output_dir, "latest.json")
     with open(latest_meta_path, 'w') as f:
         json.dump(metadata, f, indent=2)

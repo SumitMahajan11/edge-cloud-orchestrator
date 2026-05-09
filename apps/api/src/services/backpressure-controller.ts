@@ -19,6 +19,7 @@ import {
 import { EventEmitter } from 'eventemitter3';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
+import { env } from '../config/env';
 
 // ============================================================================
 // Types
@@ -46,11 +47,11 @@ type LoadLevel = 'normal' | 'elevated' | 'high' | 'critical';
 // ============================================================================
 
 const DEFAULT_CONFIG: BackpressureConfig = {
-  maxQueueDepth: 1000,
-  maxConcurrentTasks: 100,
+  maxQueueDepth: env.BP_MAX_QUEUE,
+  maxConcurrentTasks: env.BP_MAX_CONCURRENT,
   maxTasksPerNode: 10,
-  loadShedThreshold: 0.9,
-  throttleThreshold: 0.7,
+  loadShedThreshold: env.BP_SHED_THRESHOLD,
+  throttleThreshold: env.BP_THROTTLE_THRESHOLD,
   samplingWindowMs: 60000, // 1 minute
   cooldownMs: 5000,
 };

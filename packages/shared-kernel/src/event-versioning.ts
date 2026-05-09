@@ -21,7 +21,7 @@ export interface VersionedEvent {
   timestamp: Date;
   source: string;
   payload: Record<string, unknown>;
-  metadata?: Record<string, unknown>;
+  metadata?: Record<string, unknown> | undefined;
 }
 
 export interface EventSchema {
@@ -203,12 +203,12 @@ export class EventVersioningService {
       };
     }
 
-    this.registry[schema.eventType].schemas[schema.version] = schema;
-    this.registry[schema.eventType].supportedVersions.push(schema.version);
+    this.registry[schema.eventType]!.schemas[schema.version] = schema;
+    this.registry[schema.eventType]!.supportedVersions.push(schema.version);
 
     // Update current version if newer
-    if (this.compareVersions(schema.version, this.registry[schema.eventType].currentVersion) > 0) {
-      this.registry[schema.eventType].currentVersion = schema.version;
+    if (this.compareVersions(schema.version, this.registry[schema.eventType]!.currentVersion) > 0) {
+      this.registry[schema.eventType]!.currentVersion = schema.version;
     }
   }
 
@@ -321,7 +321,7 @@ export class EventVersioningService {
 
       converted = schema.upconverter!(converted);
       currentVersion = Object.keys(registration.schemas).find(
-        (v) => registration.schemas[v].upconvertFrom === currentVersion
+        (v) => registration.schemas[v]!.upconvertFrom === currentVersion
       ) || targetVersion;
     }
 

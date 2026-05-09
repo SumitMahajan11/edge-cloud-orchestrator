@@ -40,7 +40,7 @@ export interface TrainingConfig {
   featureCount: number
 }
 
-export interface PredictionResult {
+export interface MLPredictionResult {
   estimatedTime: number
   confidence: number
   features: Record<string, number>
@@ -353,7 +353,7 @@ export class MLModelManager {
   /**
    * Predict execution time
    */
-  predict(task: Task, node: EdgeNode, historicalAvg?: number): PredictionResult {
+  predict(task: Task, node: EdgeNode, historicalAvg?: number): MLPredictionResult {
     const model = this.models.get(task.type)
     const features = this.extractFeatures(task, node, historicalAvg)
     
@@ -374,7 +374,7 @@ export class MLModelManager {
       featureMap[name] = features[i]
     })
 
-    const result: PredictionResult = {
+    const result: MLPredictionResult = {
       estimatedTime,
       confidence,
       features: featureMap,

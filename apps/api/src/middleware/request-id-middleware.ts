@@ -18,9 +18,9 @@ export interface RequestContext {
   requestId: string;
   traceId: string;
   spanId: string;
-  parentId?: string;
-  userId?: string;
-  tenantId?: string;
+  parentId?: string | undefined;
+  userId?: string | undefined;
+  tenantId?: string | undefined;
   source: string;
   startTime: number;
   metadata: Record<string, unknown>;
@@ -30,9 +30,9 @@ export interface TracingHeaders {
   'x-request-id': string;
   'x-trace-id': string;
   'x-span-id': string;
-  'x-parent-id'?: string;
-  'x-user-id'?: string;
-  'x-tenant-id'?: string;
+  'x-parent-id'?: string | undefined;
+  'x-user-id'?: string | undefined;
+  'x-tenant-id'?: string | undefined;
   'x-source': string;
 }
 
@@ -214,13 +214,13 @@ export function extractTracingHeaders(
   headers: Record<string, string | undefined>,
 ): Partial<RequestContext> {
   return {
-    requestId: headers['x-request-id'],
-    traceId: headers['x-trace-id'],
-    spanId: headers['x-span-id'],
-    parentId: headers['x-parent-id'],
-    userId: headers['x-user-id'],
-    tenantId: headers['x-tenant-id'],
-    source: headers['x-source'],
+    ...(headers['x-request-id'] && { requestId: headers['x-request-id'] }),
+    ...(headers['x-trace-id'] && { traceId: headers['x-trace-id'] }),
+    ...(headers['x-span-id'] && { spanId: headers['x-span-id'] }),
+    ...(headers['x-parent-id'] && { parentId: headers['x-parent-id'] }),
+    ...(headers['x-user-id'] && { userId: headers['x-user-id'] }),
+    ...(headers['x-tenant-id'] && { tenantId: headers['x-tenant-id'] }),
+    ...(headers['x-source'] && { source: headers['x-source'] }),
   };
 }
 

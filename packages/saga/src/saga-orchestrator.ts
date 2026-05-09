@@ -1,6 +1,22 @@
 import { Prisma,PrismaClient } from '@prisma/client';
 import { EventEmitter } from 'eventemitter3';
 import Redis from 'ioredis';
+import { trace, SpanKind } from '@opentelemetry/api';
+import { Gauge, Counter } from 'prom-client';
+
+// Prometheus metrics
+const activeSagasGauge = new Gauge({
+  name: 'active_sagas_total',
+  help: 'Total number of active sagas',
+});
+
+const sagaCompensationsCounter = new Counter({
+  name: 'saga_compensations_total',
+  help: 'Total number of saga compensations triggered',
+  labelNames: ['reason'],
+});
+
+const tracer = trace.getTracer('edge-cloud-saga');
 
 // Type definitions for saga status (since Prisma types may not be generated)
 type SagaStatus = 'STARTED' | 'IN_PROGRESS' | 'COMPLETED' | 'FAILED' | 'COMPENSATING';
@@ -44,6 +60,7 @@ export interface SagaInstance {
   error: string | null;
   startedAt: Date;
   completedAt: Date | null;
+  tenantId: string;
   updatedAt: Date;
 }
 
@@ -59,6 +76,7 @@ export interface SagaStep {
   attempts: number;
   startedAt: Date | null;
   completedAt: Date | null;
+  tenantId: string;
 }
 
 export const DEFAULT_SAGA_CONFIG: SagaConfig = {
@@ -93,6 +111,7 @@ export class SagaOrchestrator extends EventEmitter {
    * Acquire distributed lock for saga
    */
   private async acquireLock(sagaId: string, ttlMs: number = 30000): Promise<boolean> {
+    console.log(`[Orchestrator] Acquiring lock for saga ${sagaId}`);
     if (!this.redis) {return true;} // Skip if Redis not configured
     
     const lockKey = `saga:lock:${sagaId}`;
@@ -157,15 +176,6 @@ export class SagaOrchestrator extends EventEmitter {
     return stored === idempotencyKey;
   }
 
-  /**
-   * Mark step as executed for idempotency
-   */
-  private async markStepExecuted(sagaId: string, stepName: string, idempotencyKey: string): Promise<void> {
-    if (!this.redis) {return;}
-    
-    const key = `saga:${sagaId}:step:${stepName}`;
-    await this.redis.set(key, idempotencyKey, 'EX', 86400); // 24h retention
-  }
 
   /**
    * Register a saga definition
@@ -183,7 +193,8 @@ export class SagaOrchestrator extends EventEmitter {
   async startSaga<TContext extends Record<string, unknown>>(
     sagaType: string,
     correlationId: string,
-    initialContext: TContext
+    initialContext: TContext,
+    tenantId: string
   ): Promise<SagaInstance> {
     const definition = this.sagaDefinitions.get(sagaType);
     if (!definition) {
@@ -199,6 +210,7 @@ export class SagaOrchestrator extends EventEmitter {
         currentStep: 0,
         totalSteps: definition.steps.length,
         context: initialContext as unknown as Prisma.InputJsonValue,
+        tenantId,
       },
       include: { steps: true },
     });
@@ -209,18 +221,38 @@ export class SagaOrchestrator extends EventEmitter {
       await this.prisma.sagaStep.create({
         data: {
           sagaId: saga.id,
-          stepName: step.name,
+          stepName: step!.name,
           stepOrder: i,
           status: 'PENDING' as StepStatus,
           input: initialContext as unknown as Prisma.InputJsonValue,
+          tenantId,
         },
       });
     }
 
     this.emit('saga_started', { sagaId: saga.id, sagaType, correlationId });
 
+    // Store saga state in Redis with 10-minute TTL as a safety net
+    if (this.redis) {
+      console.log('--- SAGA REDIS KEYS ---', Object.keys(this.redis));
+      console.log('--- SAGA REDIS SET TYPE ---', typeof (this.redis as any).set);
+      await this.redis.set(
+        `saga:state:${saga.id}`,
+        JSON.stringify({
+          id: saga.id,
+          type: sagaType,
+          correlationId,
+          status: 'STARTED',
+          startedAt: saga.startedAt,
+        }),
+        'EX',
+        600 // 10 minutes
+      );
+    }
+
     // Start executing
-    this.executeSaga(saga.id).catch((error) => {
+    this.executeSaga(saga.id).catch((error: any) => {
+      console.error(`[Orchestrator] Error executing saga ${saga.id}:`, error);
       this.emit('error', { sagaId: saga.id, error, phase: 'execution' });
     });
 
@@ -231,6 +263,7 @@ export class SagaOrchestrator extends EventEmitter {
    * Execute a saga to completion
    */
   private async executeSaga(sagaId: string): Promise<void> {
+    console.log(`[Orchestrator] Executing saga ${sagaId}`);
     if (this.activeSagas.has(sagaId)) {
       return; // Already executing
     }
@@ -255,97 +288,186 @@ export class SagaOrchestrator extends EventEmitter {
         throw new Error(`Saga ${sagaId} not found`);
       }
 
+      console.log(`[Orchestrator] Saga context:`, JSON.stringify(saga.context));
+
       const definition = this.sagaDefinitions.get(saga.sagaType);
       if (!definition) {
         throw new Error(`Saga definition not found: ${saga.sagaType}`);
       }
 
-      // Update status to IN_PROGRESS
-      await this.prisma.sagaInstance.update({
-        where: { id: sagaId },
-        data: { status: 'IN_PROGRESS' as SagaStatus },
-      });
+      // Check global saga timeout
+      const sagaTimeout = definition.timeout || this.config.defaultTimeout;
+      const elapsed = Date.now() - saga.startedAt.getTime();
+      const isTimedOut = elapsed > sagaTimeout;
 
-      // Execute steps sequentially with idempotency
-      let context = saga.context as Record<string, unknown>;
+      if (saga.status === 'COMPENSATING' || isTimedOut) {
+        const error = isTimedOut ? new Error('Global saga timeout exceeded') : new Error(saga.error || 'Resuming compensation');
+        await this.handleStepFailure(sagaId, definition, saga.currentStep, saga.context as any, error);
+        return;
+      }
 
-      for (let i = saga.currentStep; i < definition.steps.length; i++) {
-        const stepDef = definition.steps[i];
-        const stepRecord = saga.steps[i];
-
-        // Generate idempotency key
-        const idempotencyKey = `${sagaId}:${stepDef.name}:${i}`;
-
-        // Check if step was already executed (idempotency check)
-        if (await this.wasStepExecuted(sagaId, stepDef.name, idempotencyKey)) {
-          this.emit('step_skipped', { sagaId, stepName: stepDef.name, reason: 'already_executed' });
-          continue;
-        }
-
-        // Update step to in progress
-        await this.prisma.sagaStep.update({
-          where: { id: stepRecord.id },
-          data: {
-            status: 'IN_PROGRESS' as StepStatus,
-            startedAt: new Date(),
-          },
-        });
-
+      // Wrapper for saga execution logic to support optional tracing
+      const executeBody = async (span?: any) => {
         try {
-          // Execute the step
-          const result = await this.executeStepWithTimeout(
-            stepDef,
-            context,
-            i,
-            stepDef.timeout || this.config.stepTimeoutMs
-          );
+          activeSagasGauge.inc();
+          
+          // Update status to IN_PROGRESS
+          await this.prisma.sagaInstance.update({
+            where: { id: sagaId },
+            data: { status: 'IN_PROGRESS' as SagaStatus },
+          });
 
-          // Merge result into context
-          context = { ...context, ...result };
+          // Update Redis state
+          if (this.redis) {
+            await this.redis.set(`saga:state:${sagaId}`, JSON.stringify({ ...saga, status: 'IN_PROGRESS' }), 'EX', 600);
+          }
 
-          // Mark step completed
-          await this.prisma.sagaStep.update({
-            where: { id: stepRecord.id },
+          // Execute steps sequentially with idempotency
+          let context = saga.context as Record<string, unknown>;
+          console.log(`[Orchestrator] Initial context:`, JSON.stringify(context));
+
+          for (let i = saga.currentStep; i < definition.steps.length; i++) {
+            const stepDef = definition.steps[i]!;
+            console.log(`[Orchestrator] Processing step ${i}: ${stepDef.name}`);
+            const stepRecord = saga.steps[i]!;
+
+            // Re-check global saga timeout between steps
+            const currentElapsed = Date.now() - saga.startedAt.getTime();
+            if (currentElapsed > sagaTimeout) {
+              throw new Error(`Global saga timeout exceeded after step ${i-1}`);
+            }
+
+            // Generate idempotency key
+            const idempotencyKey = `${sagaId}:${stepDef!.name}:${i}`;
+
+            // Check if step was already executed (idempotency check)
+            if (await this.wasStepExecuted(sagaId, stepDef!.name, idempotencyKey)) {
+              this.emit('step_skipped', { sagaId, stepName: stepDef!.name, reason: 'already_executed' });
+              continue;
+            }
+
+            // Execute step with optional tracing
+            const executeStep = async (stepSpan?: any) => {
+              try {
+                // Update step to in progress
+                await this.prisma.sagaStep.update({
+                  where: { id: stepRecord!.id },
+                  data: {
+                    status: 'IN_PROGRESS' as StepStatus,
+                    startedAt: new Date(),
+                  },
+                });
+
+                this.emit('step_started', { sagaId, stepName: stepDef!.name, stepIndex: i });
+
+                // Execute step with timeout
+                const stepTimeout = stepDef!.timeout || this.config.stepTimeoutMs;
+                const result = await this.executeStepWithTimeout(stepDef!, context, i, stepTimeout);
+                
+                // Update context
+                context = { ...context, ...result };
+
+                // Update step to completed
+                await this.prisma.sagaStep.update({
+                  where: { id: stepRecord!.id },
+                  data: {
+                    status: 'COMPLETED' as StepStatus,
+                    completedAt: new Date(),
+                    output: result as any,
+                  },
+                });
+
+                // Update saga current step
+                await this.prisma.sagaInstance.update({
+                  where: { id: sagaId },
+                  data: {
+                    currentStep: i + 1,
+                    context: context as any,
+                  },
+                });
+
+                this.emit('step_completed', { sagaId, stepName: stepDef!.name, stepIndex: i, result });
+              } catch (error: any) {
+                if (stepSpan) {
+                  stepSpan.recordException(error);
+                  stepSpan.setStatus({ code: 2, message: error.message });
+                }
+                throw error;
+              }
+            };
+
+            if (typeof tracer.startActiveSpan === 'function') {
+              await tracer.startActiveSpan(`saga_step:${stepDef!.name}`, {
+                attributes: {
+                  'saga.id': sagaId,
+                  'step.name': stepDef!.name,
+                  'step.index': i,
+                }
+              }, executeStep);
+            } else {
+              await executeStep();
+            }
+          }
+
+          // Update status to COMPLETED
+          await this.prisma.sagaInstance.update({
+            where: { id: sagaId },
             data: {
-              status: 'COMPLETED' as StepStatus,
-              output: result as unknown as Prisma.InputJsonValue,
+              status: 'COMPLETED' as SagaStatus,
               completedAt: new Date(),
             },
           });
 
-          // Mark step as executed for idempotency
-          await this.markStepExecuted(sagaId, stepDef.name, idempotencyKey);
+          // Cleanup Redis state
+          if (this.redis) {
+            await this.redis.del(`saga:state:${sagaId}`);
+          }
 
-          // Update saga progress
-          await this.prisma.sagaInstance.update({
-            where: { id: sagaId },
-            data: {
-              currentStep: i + 1,
-              context: context as unknown as Prisma.InputJsonValue,
-            },
-          });
-
-          this.emit('step_completed', { sagaId, stepName: stepDef.name, stepIndex: i });
-        } catch (error) {
-          // Step failed - start compensation
-          await this.handleStepFailure(sagaId, definition, i, context, error as Error);
-          return;
+          this.emit('saga_completed', { sagaId, sagaType: saga.sagaType, correlationId: saga.correlationId, context });
+        } catch (error: any) {
+          if (span) {
+            span.recordException(error);
+            span.setStatus({ code: 2, message: error.message });
+          }
+          throw error;
+        } finally {
+          activeSagasGauge.dec();
         }
-      }
+      };
 
-      // All steps completed successfully
-      await this.prisma.sagaInstance.update({
+      if (typeof tracer.startActiveSpan === 'function') {
+        return await tracer.startActiveSpan(`saga:${saga.sagaType}`, {
+          kind: SpanKind.INTERNAL,
+          attributes: {
+            'saga.id': sagaId,
+            'saga.type': saga.sagaType,
+            'saga.correlation_id': saga.correlationId,
+          },
+        }, executeBody);
+      } else {
+        return await executeBody();
+      }
+    } catch (error: any) {
+      console.error(`[Orchestrator] Error executing saga ${sagaId}:`, error);
+      this.emit('error', { sagaId: sagaId, error, phase: 'execution' });
+      
+      // Handle compensation on failure
+      const saga = await this.prisma.sagaInstance.findUnique({
         where: { id: sagaId },
-        data: {
-          status: 'COMPLETED' as SagaStatus,
-          completedAt: new Date(),
-        },
+        include: { steps: { orderBy: { stepOrder: 'asc' } } },
       });
 
-      this.emit('saga_completed', { sagaId, sagaType: saga.sagaType });
+      if (saga) {
+        const definition = this.sagaDefinitions.get(saga.sagaType);
+        if (definition) {
+          await this.handleStepFailure(sagaId, definition, saga.currentStep, saga.context as any, error);
+        }
+      }
     } finally {
-      if (lockExtension) {clearInterval(lockExtension);}
       this.activeSagas.delete(sagaId);
+      if (lockExtension) {
+        clearInterval(lockExtension);
+      }
       await this.releaseLock(sagaId);
     }
   }
@@ -376,17 +498,27 @@ export class SagaOrchestrator extends EventEmitter {
     });
   }
 
-  /**
-   * Handle step failure and start compensation
-   */
   private async handleStepFailure(
     sagaId: string,
-    definition: SagaDefinition,
+    definition: SagaDefinition<any>,
     failedStepIndex: number,
-    context: Record<string, unknown>,
+    context: any,
     error: Error
   ): Promise<void> {
-    // Update saga to compensating
+    // Update failed step record if it exists
+    try {
+      await this.prisma.sagaStep.updateMany({
+        where: { sagaId, stepOrder: failedStepIndex },
+        data: {
+          status: 'FAILED' as StepStatus,
+          error: error.message,
+        },
+      });
+    } catch (err) {
+      console.warn(`[Orchestrator] Failed to update failed step record: ${err}`);
+    }
+
+    // Update saga status
     await this.prisma.sagaInstance.update({
       where: { id: sagaId },
       data: {
@@ -395,71 +527,103 @@ export class SagaOrchestrator extends EventEmitter {
       },
     });
 
-    // Get all steps
+    // Fetch latest state with steps for compensation
     const saga = await this.prisma.sagaInstance.findUnique({
       where: { id: sagaId },
       include: { steps: { orderBy: { stepOrder: 'asc' } } },
     });
 
-    if (!saga) {return;}
-
-    // Update failed step
-    await this.prisma.sagaStep.update({
-      where: { id: saga.steps[failedStepIndex].id },
-      data: {
-        status: 'FAILED' as StepStatus,
-        error: error.message,
-        completedAt: new Date(),
-      },
-    });
-
-    this.emit('step_failed', { sagaId, stepIndex: failedStepIndex, error });
-
-    // Run compensating transactions in reverse order
-    for (let i = failedStepIndex - 1; i >= 0; i--) {
-      const stepDef = definition.steps[i];
-      const stepRecord = saga.steps[i];
-
-      if (stepRecord.status === 'COMPLETED') {
-        try {
-          await stepDef.compensate(context, i);
-
-          await this.prisma.sagaStep.update({
-            where: { id: stepRecord.id },
-            data: {
-              status: 'COMPENSATED' as StepStatus,
-            },
-          });
-
-          this.emit('step_compensated', { sagaId, stepName: stepDef.name, stepIndex: i });
-        } catch (compensateError) {
-          await this.prisma.sagaStep.update({
-            where: { id: stepRecord.id },
-            data: {
-              status: 'FAILED' as StepStatus,
-              error: (compensateError as Error).message,
-            },
-          });
-
-          this.emit('compensation_failed', { sagaId, stepIndex: i, error: compensateError });
-        }
-      }
+    if (!saga) {
+      this.emit('error', { sagaId, error: new Error('Saga not found during compensation') });
+      return;
     }
 
-    // Mark saga as compensated or failed
-    const hasFailedCompensations = await this.prisma.sagaStep.count({
-      where: { sagaId, status: 'FAILED' },
-    });
+    this.emit('step_failed', { sagaId, stepIndex: failedStepIndex, error });
+    
+    const reason = error.message.toLowerCase().includes('timeout') ? 'timeout' : 'failure';
+    sagaCompensationsCounter.inc({ reason });
 
-    await this.prisma.sagaInstance.update({
-      where: { id: sagaId },
-      data: {
-        status: hasFailedCompensations > 0 ? ('FAILED' as SagaStatus) : ('COMPENSATED' as SagaStatus),
-        completedAt: new Date(),
-      },
-    });
+    const lastCompletedStep = failedStepIndex;
 
-    this.emit('saga_compensated', { sagaId, hasFailedCompensations: hasFailedCompensations > 0 });
+    const compensateBody = async (span?: any) => {
+      try {
+        for (let i = lastCompletedStep; i >= 0; i--) {
+          const stepDef = definition.steps[i];
+          const stepRecord = saga.steps.find(s => s.stepOrder === i);
+
+          if (!stepRecord || (stepRecord.status !== 'COMPLETED' && stepRecord.status !== 'FAILED' && stepRecord.status !== 'IN_PROGRESS')) {
+            continue;
+          }
+
+          const compensateStep = async (stepSpan?: any) => {
+            try {
+              await stepDef!.compensate(context, i);
+
+              await this.prisma.sagaStep.update({
+                where: { id: stepRecord!.id },
+                data: { status: 'COMPENSATED' as StepStatus },
+              });
+
+              this.emit('step_compensated', { sagaId, stepName: stepDef!.name, stepIndex: i });
+            } catch (compError: any) {
+              if (stepSpan && typeof stepSpan.recordException === 'function') {
+                stepSpan.recordException(compError);
+                stepSpan.setStatus({ code: 2, message: compError.message });
+              }
+              console.error(`[Orchestrator] Compensation failed for step ${stepDef!.name}:`, compError);
+              this.emit('compensation_failed', { sagaId, stepIndex: i, error: compError });
+            }
+          };
+
+          if (typeof tracer.startActiveSpan === 'function') {
+            await tracer.startActiveSpan(`saga_compensate:${stepDef!.name}`, {
+              attributes: {
+                'saga.id': sagaId,
+                'step.name': stepDef!.name,
+                'step.index': i,
+              }
+            }, compensateStep);
+          } else {
+            await compensateStep();
+          }
+        }
+
+        // Finalize saga status
+        await this.prisma.sagaInstance.update({
+          where: { id: sagaId },
+          data: {
+            status: 'FAILED' as SagaStatus,
+            completedAt: new Date(),
+          },
+        });
+
+        this.emit('saga_failed', { sagaId, error });
+      } catch (err: any) {
+        if (span && typeof span.recordException === 'function') {
+          span.recordException(err);
+        }
+        console.error(`[Orchestrator] Critical error in compensation loop for saga ${sagaId}:`, err);
+        this.emit('error', { sagaId, error: err });
+      } finally {
+        if (span && typeof span.end === 'function') {
+          span.end();
+        }
+        this.activeSagas.delete(sagaId);
+        activeSagasGauge.dec();
+        await this.releaseLock(sagaId);
+      }
+    };
+
+    if (typeof tracer.startActiveSpan === 'function') {
+      await tracer.startActiveSpan(`saga_compensation:${saga.sagaType}`, {
+        attributes: {
+          'saga.id': sagaId,
+          'saga.type': saga.sagaType,
+        }
+      }, compensateBody);
+    } else {
+      await compensateBody();
+    }
   }
 
   /**
@@ -489,10 +653,10 @@ export class SagaOrchestrator extends EventEmitter {
     this.isRecovering = true;
 
     try {
-      // Find sagas in STARTED or IN_PROGRESS state
+      // Find sagas in STARTED, IN_PROGRESS, or COMPENSATING state
       const incompleteSagas = await this.prisma.sagaInstance.findMany({
         where: {
-          status: { in: ['STARTED' as SagaStatus, 'IN_PROGRESS' as SagaStatus] },
+          status: { in: ['STARTED' as SagaStatus, 'IN_PROGRESS' as SagaStatus, 'COMPENSATING' as SagaStatus] },
         },
         take: 10,
       });

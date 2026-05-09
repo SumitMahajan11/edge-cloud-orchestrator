@@ -9,7 +9,7 @@ interface BenchmarkResult {
   maxLatency: number
 }
 
-class Benchmark {
+export class Benchmark {
   private results: BenchmarkResult[] = []
 
   async run(

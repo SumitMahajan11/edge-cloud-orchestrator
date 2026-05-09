@@ -5,6 +5,12 @@ generator client {
   provider = "prisma-client-js"
 }
 
+// Recommended Pool Settings (to be applied in DATABASE_URL):
+// - connection_limit: 10 (Optimal for (2 * CPU cores + 1) for small instances)
+// - pool_timeout: 10 (Wait 10s for a connection before failing)
+// - connect_timeout: 5 (Wait 5s for initial connection)
+// 
+// Example: postgresql://user:pass@host:port/db?connection_limit=10&pool_timeout=10&connect_timeout=5
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
@@ -25,12 +31,13 @@ model User {
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   lastLoginAt   DateTime?
-  
-  sessions      Session[]
-  auditLogs     AuditLog[]
-  apiKeys       ApiKey[]
+
+  userSessions    UserSession[]
+  auditLogs       AuditLog[]
+  apiKeys         ApiKey[]
   bootstrapTokens BootstrapToken[]
-  
+  tenantUsers     TenantUser[]
+
   @@index([email])
   @@map("users")
 }
@@ -41,34 +48,41 @@ enum Role {
   VIEWER
 }
 
-model Session {
-  id           String   @id @default(uuid())
-  userId       String
-  token        String   @unique
-  refreshToken String   @unique
-  expiresAt    DateTime
-  createdAt    DateTime @default(now())
-  
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+model UserSession {
+  id               String   @id @default(cuid())
+  userId           String
+  refreshTokenHash String   @unique
+  accessTokenJti   String   @unique
+  ipAddress        String
+  userAgent        String
+  revoked          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  lastUsedAt       DateTime @default(now())
+  expiresAt        DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@index([userId])
-  @@index([token])
-  @@map("sessions")
+  @@index([refreshTokenHash])
+  @@index([accessTokenJti])
+  @@map("user_sessions")
 }
 
 model ApiKey {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   userId      String
   name        String
-  key         String   @unique
+  keyPrefix   String
+  hashedKey   String    @unique
   permissions Json
   expiresAt   DateTime?
-  createdAt   DateTime @default(now())
+  createdAt   DateTime  @default(now())
   lastUsedAt  DateTime?
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  @@index([key])
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId])
+  @@index([hashedKey])
   @@map("api_keys")
 }
 
@@ -77,41 +91,41 @@ model ApiKey {
 // ============================================
 
 model CertificateAuthority {
-  id              String   @id @default(uuid())
-  serialNumber    String   @unique
-  certificatePem  String
-  privateKeyPem   String   // Encrypted in production
-  publicKeyPem    String
-  issuedAt        DateTime @default(now())
-  expiresAt       DateTime
-  isActive        Boolean  @default(true)
-  
+  id             String   @id @default(uuid())
+  serialNumber   String   @unique
+  certificatePem String
+  privateKeyPem  String // Encrypted in production
+  publicKeyPem   String
+  issuedAt       DateTime @default(now())
+  expiresAt      DateTime
+  isActive       Boolean  @default(true)
+
   @@map("certificate_authorities")
 }
 
 model BootstrapToken {
-  id          String   @id @default(uuid())
-  token       String   @unique
-  nodeId      String?
-  createdBy   String
-  createdAt   DateTime @default(now())
-  expiresAt   DateTime
-  usedAt      DateTime?
-  usedBy      String?
-  
-  user        User     @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  
+  id        String    @id @default(uuid())
+  token     String    @unique
+  nodeId    String?
+  createdBy String
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  usedAt    DateTime?
+  usedBy    String?
+
+  user User @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+
   @@index([token])
   @@map("bootstrap_tokens")
 }
 
 model CertificateRevocation {
-  id            String   @id @default(uuid())
-  serialNumber  String   @unique
-  nodeId        String
-  reason        String
-  revokedAt     DateTime @default(now())
-  
+  id           String   @id @default(uuid())
+  serialNumber String   @unique
+  nodeId       String
+  reason       String
+  revokedAt    DateTime @default(now())
+
   @@index([serialNumber])
   @@map("certificate_revocations")
 }
@@ -121,54 +135,58 @@ model CertificateRevocation {
 // ============================================
 
 model EdgeNode {
-  id                String   @id @default(uuid())
-  name              String   @unique
-  location          String
-  region            String
-  status            NodeStatus @default(ONLINE)
-  ipAddress         String
-  port              Int
-  url               String
-  
+  id        String     @id @default(uuid())
+  name      String     @unique
+  location  String
+  region    String
+  status    NodeStatus @default(ONLINE)
+  ipAddress String
+  port      Int
+  url       String
+
   // Resources
-  cpuCores          Int
-  memoryGB          Int
-  storageGB         Int
-  
+  cpuCores  Int
+  memoryGB  Int
+  storageGB Int
+
   // Current metrics
-  cpuUsage          Float    @default(0)
-  memoryUsage       Float    @default(0)
-  storageUsage      Float    @default(0)
-  latency           Float    @default(0)
-  
+  cpuUsage     Float @default(0)
+  memoryUsage  Float @default(0)
+  storageUsage Float @default(0)
+  latency      Float @default(0)
+
   // Task info
-  tasksRunning      Int      @default(0)
-  maxTasks          Int      @default(10)
-  
+  tasksRunning Int @default(0)
+  maxTasks     Int @default(10)
+
   // Cost
-  costPerHour       Float    @default(0.05)
-  
+  costPerHour Float @default(0.05)
+
   // Network
-  bandwidthInMbps   Int      @default(100)
-  bandwidthOutMbps  Int      @default(100)
-  
+  bandwidthInMbps  Int @default(100)
+  bandwidthOutMbps Int @default(100)
+
   // Status
   isMaintenanceMode Boolean  @default(false)
   lastHeartbeat     DateTime @default(now())
-  
+
   // Timestamps
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
   // Relations
-  tasks             Task[]
-  taskExecutions    TaskExecution[]
-  metrics           NodeMetric[]
-  certificates      NodeCertificate[]
-  pricing           NodePricing?
-  
+  tasks          Task[]
+  taskExecutions TaskExecution[]
+  metrics        NodeMetric[]
+  certificates   NodeCertificate[]
+  pricing        NodePricing?
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   @@index([region])
-  @@index([status])
+  @@index([status, region])
+  @@index([tenantId])
   @@map("edge_nodes")
 }
 
@@ -180,10 +198,10 @@ enum NodeStatus {
 }
 
 model NodeMetric {
-  id           String   @id @default(uuid())
-  nodeId       String
-  timestamp    DateTime @default(now())
-  
+  id        String   @default(uuid())
+  nodeId    String
+  timestamp DateTime @default(now())
+
   cpuUsage     Float
   memoryUsage  Float
   storageUsage Float
@@ -191,10 +209,11 @@ model NodeMetric {
   tasksRunning Int
   networkIn    Float
   networkOut   Float
-  
-  node         EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  
-  @@index([nodeId, timestamp])
+
+  node EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
+  @@id([id, timestamp])
+  @@index([nodeId, timestamp(sort: Desc)])
   @@map("node_metrics")
 }
 
@@ -207,9 +226,9 @@ model NodeCertificate {
   issuedAt       DateTime @default(now())
   expiresAt      DateTime
   isActive       Boolean  @default(true)
-  
-  node           EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  
+
+  node EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
   @@index([nodeId])
   @@map("node_certificates")
 }
@@ -219,116 +238,132 @@ model NodeCertificate {
 // ============================================
 
 model Task {
-  id           String     @id @default(uuid())
-  name         String
-  type         TaskType
-  status       TaskStatus @default(PENDING)
-  priority     Priority   @default(MEDIUM)
-  target       ExecutionTarget
-  
+  id       String          @id @default(uuid())
+  name     String
+  type     TaskType
+  status   TaskStatus      @default(PENDING)
+  priority Priority        @default(MEDIUM)
+  target   ExecutionTarget
+
   // Scheduling
-  nodeId       String?
-  policy       String
-  reason       String
-  
+  nodeId   String?
+  policy   String
+  reason   String
+  runtime  Runtime @default(DOCKER)
+  image    String?
+  affinity String?
+  traceId  String?
+
   // Timing
-  submittedAt  DateTime   @default(now())
-  
+  submittedAt DateTime @default(now())
+
   // Duration limit (seconds)
-  maxDurationSeconds Int   @default(3600) // 1 hour default
-  
+  maxDurationSeconds Int @default(3600) // 1 hour default
+
   // Retry configuration
-  maxRetries   Int        @default(3)
-  
+  maxRetries Int @default(3)
+
   // Input/Output
-  input        Json?
-  
+  input Json?
+
   // Metadata
-  metadata     Json?
-  
+  metadata Json?
+
   // Relations
-  node         EdgeNode?  @relation(fields: [nodeId], references: [id])
-  executions   TaskExecution[]
-  logs         TaskLog[]
-  
+  node       EdgeNode?       @relation(fields: [nodeId], references: [id])
+  executions TaskExecution[]
+  logs       TaskLog[]
+  workflowTaskRuns WorkflowTaskRun[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   @@index([status])
   @@index([nodeId])
   @@index([submittedAt])
+  @@index([tenantId, status])
   @@map("tasks")
 }
 
 // TaskExecution tracks each actual execution attempt
 // This separates "what to run" (Task) from "how it ran" (TaskExecution)
 model TaskExecution {
-  id           String     @id @default(uuid())
-  taskId       String
-  
+  id     String @id @default(uuid())
+  taskId String
+
   // Execution identity
-  attemptNumber Int      @default(1)
-  
+  attemptNumber Int @default(1)
+
   // Node assignment (where it ran)
-  nodeId       String?
-  node         EdgeNode?  @relation(fields: [nodeId], references: [id])
-  nodeUrl      String?    // Snapshot of node URL at execution time
-  
+  nodeId  String?
+  node    EdgeNode? @relation(fields: [nodeId], references: [id])
+  nodeUrl String? // Snapshot of node URL at execution time
+  runtime Runtime @default(DOCKER)
+  affinity String?
+  traceId  String?
+
   // Timing (lifecycle tracking)
-  scheduledAt  DateTime   @default(now())  // When added to queue
-  startedAt    DateTime?                   // When container started
-  completedAt  DateTime?                   // When container finished
-  durationMs   Int?                        // Actual execution time (wall clock)
-  queueWaitMs  Int?                        // Time spent waiting in queue
-  
+  scheduledAt DateTime  @default(now()) // When added to queue
+  startedAt   DateTime? // When container started
+  completedAt DateTime? // When container finished
+  durationMs  Int? // Actual execution time (wall clock)
+  queueWaitMs Int? // Time spent waiting in queue
+
   // Status
-  status       ExecutionStatus @default(PENDING)
-  exitCode     Int?                        // Container exit code (0 = success)
-  
+  status   ExecutionStatus @default(PENDING)
+  exitCode Int? // Container exit code (0 = success)
+
   // Resource usage (actual measurements from container)
-  cpuUsageAvg      Float?                  // Average CPU % during execution
-  cpuUsagePeak     Float?                  // Peak CPU %
-  memoryUsageMax   Float?                  // Peak memory in GB
-  storageReadBytes Int?                    // Bytes read from disk
-  storageWriteBytes Int?                   // Bytes written to disk
-  networkIngressBytes Int?                 // Bytes received
-  networkEgressBytes Int?                  // Bytes sent
-  
+  cpuUsageAvg         Float? // Average CPU % during execution
+  cpuUsagePeak        Float? // Peak CPU %
+  memoryUsageMax      Float? // Peak memory in GB
+  storageReadBytes    Int? // Bytes read from disk
+  storageWriteBytes   Int? // Bytes written to disk
+  networkIngressBytes Int? // Bytes received
+  networkEgressBytes  Int? // Bytes sent
+
   // Cost (actual, calculated after execution)
-  costUSD      Float?     @default(0)
-  
+  costUSD Float? @default(0)
+
   // Output and results
-  output       Json?                       // Task output data
-  error        String?                     // Error message if failed
-  errorStack   String?                     // Stack trace if available
-  
+  output     Json? // Task output data
+  error      String? // Error message if failed
+  errorStack String? // Stack trace if available
+
   // Container information
-  containerId  String?                     // Docker container ID
-  image        String?                     // Container image used
-  imageDigest  String?                     // Image SHA256 digest
-  
+  containerId String? // Docker container ID
+  image       String? // Container image used
+  imageDigest String? // Image SHA256 digest
+
   // Metadata
-  retryReason  String?                     // Why this retry was needed
-  metadata     Json?                       // Additional execution metadata
-  
+  retryReason String? // Why this retry was needed
+  retryOf     String? // ID of the failed execution being retried
+  metadata    Json? // Additional execution metadata
+
   // Relations
-  task         Task       @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  logs         TaskLog[]  @relation("ExecutionLogs")
-  
-  @@index([taskId])
+  task     Task      @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  logs     TaskLog[] @relation("ExecutionLogs")
+  tenantId String
+  tenant   Tenant    @relation(fields: [tenantId], references: [id])
+
+  @@index([taskId, attemptNumber])
   @@index([nodeId])
   @@index([status])
   @@index([startedAt])
   @@index([completedAt])
+  @@index([tenantId])
   @@map("task_executions")
 }
 
 enum ExecutionStatus {
-  PENDING     // Queued, waiting for node
-  SCHEDULED   // Assigned to node, not yet started
-  RUNNING     // Container is executing
-  COMPLETED   // Finished successfully (exit 0)
-  FAILED      // Finished with error (exit != 0)
-  CANCELLED   // Cancelled by user
-  TIMEOUT     // Exceeded time limit
-  EVICTED     // Preempted by system
+  PENDING // Queued, waiting for node
+  SCHEDULED // Assigned to node, not yet started
+  RUNNING // Container is executing
+  COMPLETED // Finished successfully (exit 0)
+  FAILED // Finished with error (exit != 0)
+  CANCELLED // Cancelled by user
+  TIMEOUT // Exceeded time limit
+  EVICTED // Preempted by system
 }
 
 enum TaskType {
@@ -365,22 +400,31 @@ enum ExecutionTarget {
   HYBRID
 }
 
+enum Runtime {
+  NATIVE
+  DOCKER
+  WASM
+}
+
 model TaskLog {
-  id           String   @id @default(uuid())
-  taskId       String
-  executionId  String?  // Optional: link to specific execution
-  
-  timestamp    DateTime @default(now())
-  level        LogLevel
-  source       String   // 'scheduler', 'agent', 'container', etc.
-  message      String
-  metadata     Json?
-  
-  task         Task     @relation(fields: [taskId], references: [id], onDelete: Cascade)
-  execution    TaskExecution? @relation("ExecutionLogs", fields: [executionId], references: [id], onDelete: Cascade)
-  
+  id          String  @id @default(uuid())
+  taskId      String
+  executionId String? // Optional: link to specific execution
+
+  timestamp DateTime @default(now())
+  level     LogLevel
+  source    String // 'scheduler', 'agent', 'container', etc.
+  message   String
+  metadata  Json?
+
+  task      Task           @relation(fields: [taskId], references: [id], onDelete: Cascade)
+  execution TaskExecution? @relation("ExecutionLogs", fields: [executionId], references: [id], onDelete: Cascade)
+  tenantId  String
+  tenant    Tenant         @relation(fields: [tenantId], references: [id])
+
   @@index([taskId, timestamp])
   @@index([executionId])
+  @@index([tenantId])
   @@map("task_logs")
 }
 
@@ -395,81 +439,129 @@ enum LogLevel {
 // Workflows
 // ============================================
 
+enum WorkflowStatus {
+  PENDING
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum WorkflowExecutionStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
 model Workflow {
-  id          String   @id @default(uuid())
+  id          String   @id @default(cuid())
+  tenantId    String
   name        String
-  version     String
-  definition  Json
-  isActive    Boolean  @default(true)
+  description String?
+  status      WorkflowStatus @default(PENDING)
+  definition  Json     // DAG definition: { nodes: [], edges: [] }
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
   executions  WorkflowExecution[]
-  
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
   @@map("workflows")
 }
 
 model WorkflowExecution {
-  id           String   @id @default(uuid())
-  workflowId   String
-  status       ExecutionStatus @default(PENDING)
-  input        Json?
-  output       Json?
-  error        String?
-  startedAt    DateTime @default(now())
-  completedAt  DateTime?
-  
-  workflow     Workflow @relation(fields: [workflowId], references: [id])
-  
+  id          String   @id @default(cuid())
+  workflowId  String
+  tenantId    String
+  status      WorkflowExecutionStatus @default(RUNNING)
+  startedAt   DateTime @default(now())
+  completedAt DateTime?
+  taskRuns    WorkflowTaskRun[]
+  workflow    Workflow @relation(fields: [workflowId], references: [id])
+  tenant      Tenant   @relation(fields: [tenantId], references: [id])
+
   @@index([workflowId])
+  @@index([tenantId])
   @@map("workflow_executions")
 }
+
+model WorkflowTaskRun {
+  id              String   @id @default(cuid())
+  executionId     String
+  taskId          String   // references Task
+  stepName        String   // name of this step in the DAG
+  status          TaskStatus
+  startedAt       DateTime?
+  completedAt     DateTime?
+  
+  execution       WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  task            Task @relation(fields: [taskId], references: [id])
+
+  @@index([executionId])
+  @@index([taskId])
+  @@map("workflow_task_runs")
+}
+
 
 // ============================================
 // Policies & Configuration
 // ============================================
 
 model SchedulingPolicy {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  type        String
-  config      Json
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
+  id        String   @id @default(uuid())
+  name      String   @unique
+  type      String
+  config    Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
   @@map("scheduling_policies")
 }
 
 model AlertRule {
-  id          String   @id @default(uuid())
-  name        String
-  metric      String
-  operator    String
-  threshold   Float
-  duration    Int
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  
-  alerts      Alert[]
-  
+  id        String   @id @default(uuid())
+  name      String
+  metric    String
+  operator  String
+  threshold Float
+  duration  Int
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  alerts Alert[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
   @@map("alert_rules")
 }
 
 model Alert {
-  id           String   @id @default(uuid())
-  ruleId       String
-  entityId     String
-  entityType   String
-  severity     String
-  message      String
-  acknowledged Boolean  @default(false)
-  createdAt    DateTime @default(now())
+  id             String    @id @default(uuid())
+  ruleId         String
+  entityId       String
+  entityType     String
+  severity       String
+  message        String
+  acknowledged   Boolean   @default(false)
+  createdAt      DateTime  @default(now())
   acknowledgedAt DateTime?
-  
-  rule         AlertRule @relation(fields: [ruleId], references: [id])
-  
+
+  rule AlertRule @relation(fields: [ruleId], references: [id])
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   @@index([createdAt])
+  @@index([ruleId])
+  @@index([tenantId])
   @@map("alerts")
 }
 
@@ -478,33 +570,42 @@ model Alert {
 // ============================================
 
 model Webhook {
-  id          String   @id @default(uuid())
-  name        String
-  url         String
-  events      String[]
-  secret      String?
-  enabled     Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  
-  deliveries  WebhookDelivery[]
-  
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  events    String[]
+  secret    String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  deliveries WebhookDelivery[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
   @@map("webhooks")
 }
 
 model WebhookDelivery {
-  id           String   @id @default(uuid())
-  webhookId    String
-  event        String
-  payload      Json
-  statusCode   Int?
-  response     String?
-  deliveredAt  DateTime?
-  retryCount   Int      @default(0)
-  createdAt    DateTime @default(now())
-  
-  webhook      Webhook  @relation(fields: [webhookId], references: [id], onDelete: Cascade)
-  
+  id          String    @id @default(uuid())
+  webhookId   String
+  event       String
+  payload     Json
+  statusCode  Int?
+  response    String?
+  deliveredAt DateTime?
+  retryCount  Int       @default(0)
+  status      WebhookDeliveryStatus @default(PENDING)
+  nextRetryAt DateTime?
+  createdAt   DateTime              @default(now())
+
+  webhook  Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  tenantId String
+  tenant   Tenant  @relation(fields: [tenantId], references: [id])
+
   @@index([webhookId])
+  @@index([tenantId])
   @@map("webhook_deliveries")
 }
 
@@ -513,51 +614,57 @@ model WebhookDelivery {
 // ============================================
 
 model AuditLog {
-  id          String   @id @default(uuid())
-  userId      String?
-  action      String
-  entityType  String
-  entityId    String?
-  details     Json
-  ipAddress   String?
-  userAgent   String?
-  createdAt   DateTime @default(now())
-  
-  user        User?    @relation(fields: [userId], references: [id])
-  
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    Json
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id])
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   @@index([userId])
   @@index([action])
   @@index([createdAt])
+  @@index([tenantId])
   @@map("audit_logs")
 }
 
 model SchedulingDecision {
-  id              String   @id @default(uuid())
-  taskId          String   @unique
-  timestamp       DateTime @default(now())
-  selectedNodeId  String
-  policy          String   // "ml" | "latency" | "cost" | "round-robin" | "load-balanced"
-  score           Float
-  explanation     Json     // { top_features: [{ name: string, contribution: number, direction: string }] }
-  candidateNodes  Json     // [{ nodeId: string, score: number, reason: string }]
-  mlModelVersion  String?
-  fallbackUsed    Boolean  @default(false)
+  id             String   @id @default(uuid())
+  taskId         String   @unique
+  timestamp      DateTime @default(now())
+  selectedNodeId String
+  policy         String // "ml" | "latency" | "cost" | "round-robin" | "load-balanced"
+  score          Float
+  explanation    Json // { top_features: [{ name: string, contribution: number, direction: string }] }
+  candidateNodes Json // [{ nodeId: string, score: number, reason: string }]
+  mlModelVersion String?
+  fallbackUsed   Boolean  @default(false)
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
 
   @@index([selectedNodeId])
   @@index([timestamp])
+  @@index([tenantId])
   @@map("scheduling_decisions")
 }
 
-
 model ComplianceRecord {
-  id          String   @id @default(uuid())
-  type        String
-  category    String
-  data        Json
-  retention   Int      // days
-  expiresAt   DateTime
-  createdAt   DateTime @default(now())
-  
+  id        String   @id @default(uuid())
+  type      String
+  category  String
+  data      Json
+  retention Int // days
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
   @@index([type])
   @@index([expiresAt])
   @@map("compliance_records")
@@ -573,30 +680,41 @@ model FLModel {
   version      String
   architecture String
   parameters   Int
-  weights      Bytes?
+  weightsUrl       String?
+  weightsSize      Int?
+  weightsChecksum  String?
+  checksumAlgorithm String @default("SHA-256")
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
-  
-  sessions     FLSession[]
-  
+
+  sessions FLSession[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
   @@map("fl_models")
 }
 
 model FLSession {
-  id           String   @id @default(uuid())
+  id           String    @id @default(uuid())
   modelId      String
   status       String
-  currentRound Int      @default(0)
+  currentRound Int       @default(0)
   totalRounds  Int
   config       Json
   metrics      Json?
-  startedAt    DateTime @default(now())
+  startedAt    DateTime  @default(now())
   completedAt  DateTime?
-  
-  model        FLModel  @relation(fields: [modelId], references: [id])
-  
+
+  model FLModel @relation(fields: [modelId], references: [id])
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
   @@index([modelId])
+  @@index([tenantId])
   @@map("fl_sessions")
 }
 
@@ -605,124 +723,134 @@ model FLSession {
 // ============================================
 
 model NodePricing {
-  id                  String   @id @default(uuid())
-  nodeId              String   @unique
-  
+  id     String @id @default(uuid())
+  nodeId String @unique
+
   // Compute pricing ($/hour)
-  baseHourlyRate      Float    @default(0.05)
-  cpuCoreRate         Float    @default(0.02)
-  memoryGBRate        Float    @default(0.005)
-  gpuHourlyRate       Float?
-  
+  baseHourlyRate Float  @default(0.05)
+  cpuCoreRate    Float  @default(0.02)
+  memoryGBRate   Float  @default(0.005)
+  gpuHourlyRate  Float?
+
   // Data transfer pricing ($/GB)
-  ingressRate         Float    @default(0)
-  egressRate          Float    @default(0.09)
-  crossRegionMultiplier Float  @default(2.0)
-  
+  ingressRate           Float @default(0)
+  egressRate            Float @default(0.09)
+  crossRegionMultiplier Float @default(2.0)
+
   // Storage pricing ($/GB/hour)
-  ephemeralGBRate     Float    @default(0.0001)
-  persistentGBRate    Float    @default(0.0001)
-  
+  ephemeralGBRate  Float @default(0.0001)
+  persistentGBRate Float @default(0.0001)
+
   // Discount/premium modifiers
-  spotDiscount        Float    @default(0)    // 0.0-0.95 (e.g., 0.7 = 70% off)
-  reservedDiscount    Float    @default(0)    // 0.0-0.5
-  priorityPremium     Float    @default(0)    // 0.0-1.0
-  
+  spotDiscount     Float @default(0) // 0.0-0.95 (e.g., 0.7 = 70% off)
+  reservedDiscount Float @default(0) // 0.0-0.5
+  priorityPremium  Float @default(0) // 0.0-1.0
+
   // Metadata
-  currency            String   @default("USD")
-  region              String
-  availabilityZone    String?
-  pricingSource       String   @default("declared") // declared, aws, gcp, azure
-  lastUpdated         DateTime @default(now())
-  
-  node                EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
-  
+  currency         String   @default("USD")
+  region           String
+  availabilityZone String?
+  pricingSource    String   @default("declared") // declared, aws, gcp, azure
+  lastUpdated      DateTime @default(now())
+
+  node EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+
   @@map("node_pricing")
 }
 
 model TaskCostEstimate {
-  id                  String   @id @default(uuid())
-  taskId              String
-  nodeId              String
-  
+  id     String @id @default(uuid())
+  taskId String
+  nodeId String
+
   // Estimated costs (before execution)
-  estimatedCompute    Float    @default(0)
-  estimatedData       Float    @default(0)
-  estimatedStorage    Float    @default(0)
-  estimatedTotal      Float    @default(0)
-  estimatedDuration   Int      @default(0)  // minutes
-  
+  estimatedCompute  Float @default(0)
+  estimatedData     Float @default(0)
+  estimatedStorage  Float @default(0)
+  estimatedTotal    Float @default(0)
+  estimatedDuration Int   @default(0) // minutes
+
   // Actual costs (after execution)
-  actualCompute       Float?
-  actualData          Float?
-  actualStorage       Float?
-  actualTotal         Float?
-  actualDuration      Int?     // milliseconds
-  
+  actualCompute  Float?
+  actualData     Float?
+  actualStorage  Float?
+  actualTotal    Float?
+  actualDuration Int? // milliseconds
+
   // Variance tracking
-  costVariance        Float?   // (actual - estimated) / estimated
-  durationVariance    Float?
-  
+  costVariance     Float? // (actual - estimated) / estimated
+  durationVariance Float?
+
   // Metadata
-  pricingSnapshot     Json     // Pricing at time of estimate
-  confidence          Float    @default(0.8)  // 0.0-1.0
-  estimatedAt         DateTime @default(now())
-  actualizedAt        DateTime?
-  
+  pricingSnapshot Json // Pricing at time of estimate
+  confidence      Float     @default(0.8) // 0.0-1.0
+  estimatedAt     DateTime  @default(now())
+  actualizedAt    DateTime?
+  tenantId        String
+  tenant          Tenant    @relation(fields: [tenantId], references: [id])
+
   @@index([taskId])
   @@index([nodeId])
+  @@index([tenantId])
   @@map("task_cost_estimates")
 }
 
 model CostHistory {
-  id                  String   @id @default(uuid())
-  nodeId              String
-  taskType            String
-  
+  id       String @id @default(uuid())
+  nodeId   String
+  taskType String
+
   // Aggregated metrics
-  avgDurationMs       Float    @default(0)
-  avgComputeCost      Float    @default(0)
-  avgDataCost         Float    @default(0)
-  avgTotalCost        Float    @default(0)
-  
+  avgDurationMs  Float @default(0)
+  avgComputeCost Float @default(0)
+  avgDataCost    Float @default(0)
+  avgTotalCost   Float @default(0)
+
   // Sample statistics
-  sampleCount         Int      @default(0)
-  stdDeviation        Float    @default(0)
-  minCost             Float    @default(0)
-  maxCost             Float    @default(0)
-  
+  sampleCount  Int   @default(0)
+  stdDeviation Float @default(0)
+  minCost      Float @default(0)
+  maxCost      Float @default(0)
+
   // Time window
-  periodStart         DateTime
-  periodEnd           DateTime
-  
+  periodStart DateTime
+  periodEnd   DateTime
+
   @@index([nodeId, taskType])
   @@map("cost_history")
 }
 
 model CostRecord {
-  id          String   @id @default(uuid())
-  nodeId      String?
+  id           String   @id @default(uuid())
+  nodeId       String?
   resourceType String
-  amount      Float
-  unit        String
-  cost        Float
-  currency    String   @default("USD")
-  recordedAt  DateTime @default(now())
-  
+  amount       Float
+  unit         String
+  cost         Float
+  currency     String   @default("USD")
+  recordedAt   DateTime @default(now())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
   @@index([recordedAt])
+  @@index([nodeId])
+  @@index([tenantId])
   @@map("cost_records")
 }
 
 model CarbonMetric {
-  id          String   @id @default(uuid())
-  nodeId      String?
-  region      String
-  energyKwh   Float
-  carbonKg    Float
+  id               String   @id @default(uuid())
+  nodeId           String?
+  region           String
+  energyKwh        Float
+  carbonKg         Float
   renewablePercent Float
-  recordedAt  DateTime @default(now())
-  
+  recordedAt       DateTime @default(now())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id])
+
   @@index([recordedAt])
+  @@index([tenantId])
   @@map("carbon_metrics")
 }
 
@@ -731,17 +859,37 @@ model CarbonMetric {
 // ============================================
 
 model Tenant {
-  id          String   @id @default(uuid())
-  name        String   @unique
-  slug        String   @unique
-  plan        String   @default("starter")
-  config      Json
-  isActive    Boolean  @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  
-  users       TenantUser[]
-  
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  plan      String   @default("starter")
+  config    Json
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users              TenantUser[]
+  EdgeNode           EdgeNode[]
+  Task               Task[]
+  Workflow           Workflow[]
+  SchedulingPolicy   SchedulingPolicy[]
+  AlertRule          AlertRule[]
+  Alert              Alert[]
+  Webhook            Webhook[]
+  AuditLog           AuditLog[]
+  SchedulingDecision SchedulingDecision[]
+  FLModel            FLModel[]
+  FLSession          FLSession[]
+  TaskExecution      TaskExecution[]
+  TaskLog            TaskLog[]
+  WorkflowExecution  WorkflowExecution[]
+  WebhookDelivery    WebhookDelivery[]
+  TaskCostEstimate   TaskCostEstimate[]
+  CostRecord         CostRecord[]
+  CarbonMetric       CarbonMetric[]
+  SagaInstance       SagaInstance[]
+  SagaStep           SagaStep[]
+
   @@map("tenants")
 }
 
@@ -751,9 +899,10 @@ model TenantUser {
   userId    String
   role      String
   createdAt DateTime @default(now())
-  
-  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
-  
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   @@unique([tenantId, userId])
   @@map("tenant_users")
 }
@@ -763,19 +912,19 @@ model TenantUser {
 // ============================================
 
 model OutboxEvent {
-  id            String       @id @default(uuid())
-  aggregateId   String
-  eventType     String
-  idempotencyKey String     @unique
-  payload       Json
-  headers       Json?
-  status        OutboxStatus @default(PENDING)
-  attempts      Int          @default(0)
-  maxAttempts   Int          @default(5)
-  nextRetryAt   DateTime?
-  processedAt   DateTime?
-  createdAt     DateTime     @default(now())
-  updatedAt     DateTime     @updatedAt
+  id             String       @id @default(uuid())
+  aggregateId    String
+  eventType      String
+  idempotencyKey String       @unique
+  payload        Json
+  headers        Json?
+  status         OutboxStatus @default(PENDING)
+  attempts       Int          @default(0)
+  maxAttempts    Int          @default(5)
+  nextRetryAt    DateTime?
+  processedAt    DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
 
   @@index([status, createdAt])
   @@index([aggregateId])
@@ -795,14 +944,14 @@ enum OutboxStatus {
 // ============================================
 
 model IdempotencyRecord {
-  id             String   @id @default(uuid())
-  idempotencyKey String   @unique
+  id             String            @id @default(uuid())
+  idempotencyKey String            @unique
   resourceType   String
   resourceId     String
   requestHash    String?
   result         Json?
   status         IdempotencyStatus @default(PROCESSING)
-  createdAt      DateTime @default(now())
+  createdAt      DateTime          @default(now())
   expiresAt      DateTime
 
   @@index([idempotencyKey])
@@ -822,7 +971,7 @@ enum IdempotencyStatus {
 // ============================================
 
 model DLQMessage {
-  id                String   @id
+  id                String    @id
   originalTopic     String
   originalPartition Int
   originalOffset    String
@@ -831,13 +980,13 @@ model DLQMessage {
   headers           Json
   errorMessage      String
   errorStack        String?
-  retryCount        Int      @default(0)
-  maxRetries        Int      @default(5)
-  status            String   @default("pending")
+  retryCount        Int       @default(0)
+  maxRetries        Int       @default(5)
+  status            String    @default("pending")
   nextRetryAt       DateTime?
   resolvedAt        DateTime?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 
   @@index([status])
   @@index([originalTopic])
@@ -850,12 +999,12 @@ model DLQMessage {
 // ============================================
 
 model ProcessedOffset {
-  id             String   @id @default(uuid())
-  consumerGroup  String
-  topic          String
-  partition      Int
-  offset         String
-  processedAt    DateTime @default(now())
+  id            String   @id @default(uuid())
+  consumerGroup String
+  topic         String
+  partition     Int
+  offset        String
+  processedAt   DateTime @default(now())
 
   @@unique([consumerGroup, topic, partition, offset])
   @@index([consumerGroup])
@@ -869,22 +1018,25 @@ model ProcessedOffset {
 // ============================================
 
 model SagaInstance {
-  id            String      @id @default(uuid())
+  id            String     @id @default(uuid())
   sagaType      String
   correlationId String
-  status        SagaStatus  @default(STARTED)
-  currentStep   Int         @default(0)
+  status        SagaStatus @default(STARTED)
+  currentStep   Int        @default(0)
   totalSteps    Int
   context       Json
   error         String?
-  startedAt     DateTime    @default(now())
+  startedAt     DateTime   @default(now())
   completedAt   DateTime?
-  updatedAt     DateTime    @updatedAt
+  updatedAt     DateTime   @updatedAt
 
-  steps         SagaStep[]
+  steps    SagaStep[]
+  tenantId String
+  tenant   Tenant     @relation(fields: [tenantId], references: [id])
 
   @@index([correlationId])
   @@index([status])
+  @@index([tenantId])
   @@map("saga_instances")
 }
 
@@ -901,9 +1053,12 @@ model SagaStep {
   startedAt   DateTime?
   completedAt DateTime?
 
-  saga        SagaInstance @relation(fields: [sagaId], references: [id], onDelete: Cascade)
+  saga     SagaInstance @relation(fields: [sagaId], references: [id], onDelete: Cascade)
+  tenantId String
+  tenant   Tenant       @relation(fields: [tenantId], references: [id])
 
   @@index([sagaId])
+  @@index([tenantId])
   @@map("saga_steps")
 }
 
@@ -929,18 +1084,18 @@ enum StepStatus {
 // ============================================
 
 model DeadLetterEvent {
-  id             String   @id @default(uuid())
-  originalTopic  String
-  originalKey    String?
-  payload        Json
-  headers        Json?
-  error          String
-  errorStack     String?
-  attempts       Int      @default(0)
+  id              String    @id @default(uuid())
+  originalTopic   String
+  originalKey     String?
+  payload         Json
+  headers         Json?
+  error           String
+  errorStack      String?
+  attempts        Int       @default(0)
   originalEventId String?
-  status         DLQStatus @default(PENDING)
-  createdAt      DateTime @default(now())
-  lastAttemptAt  DateTime?
+  status          DLQStatus @default(PENDING)
+  createdAt       DateTime  @default(now())
+  lastAttemptAt   DateTime?
 
   @@index([status])
   @@index([originalTopic])
@@ -952,4 +1107,29 @@ enum DLQStatus {
   RETRYING
   REPROCESSED
   PERMANENTLY_FAILED
+}
+
+enum WebhookDeliveryStatus {
+  PENDING
+  DELIVERED
+  FAILED
+  DEAD_LETTERED
+}
+
+model OutcomeLog {
+  id                 String   @id @default(uuid())
+  taskId             String
+  nodeId             String
+  schedulingDecision Json     // The feature vector used
+  predictedLatency   Float
+  actualLatency      Float
+  predictedCpuUsage  Float
+  actualCpuUsage     Float
+  outcome            String   // 'SUCCESS' | 'FAILED' | 'TIMEOUT' | 'OOM'
+  timestamp          DateTime @default(now())
+
+  @@index([taskId])
+  @@index([nodeId])
+  @@index([timestamp])
+  @@map("ml_outcome_logs")
 }

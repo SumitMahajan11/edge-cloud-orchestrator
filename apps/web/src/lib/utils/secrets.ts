@@ -122,7 +122,7 @@ class SecretManager {
   // Environment variable integration
   loadFromEnv(prefix: string = 'EDGECLOUD_'): number {
     let count = 0
-    for (const [key, value] of Object.entries(import.meta.env)) {
+    for (const [key, value] of Object.entries(process.env)) {
       if (key.startsWith(prefix) && typeof value === 'string') {
         const secretKey = key.slice(prefix.length).toLowerCase()
         this.set(secretKey, value)

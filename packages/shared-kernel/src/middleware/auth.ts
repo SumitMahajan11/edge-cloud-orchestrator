@@ -6,7 +6,8 @@ export interface AuthUser {
   email: string;
   role: 'ADMIN' | 'OPERATOR' | 'VIEWER' | 'SERVICE';
   permissions: string[];
-  region?: string;
+  tenantId?: string | undefined;
+  region?: string | undefined;
 }
 
 export interface AuthConfig {
@@ -159,7 +160,7 @@ export function requireRegion() {
 // Generate JWT token (for login)
 export function generateToken(user: Omit<AuthUser, 'permissions'>, secret: string, expiresIn: string = '1h'): string {
   const permissions = getPermissionsForRole(user.role);
-  return jwt.sign({ ...user, permissions }, secret, { expiresIn: expiresIn as jwt.SignOptions['expiresIn'] });
+  return jwt.sign({ ...user, permissions }, secret, { expiresIn: expiresIn as any });
 }
 
 function getPermissionsForRole(role: string): string[] {

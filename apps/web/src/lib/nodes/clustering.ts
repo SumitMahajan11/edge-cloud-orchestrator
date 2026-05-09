@@ -207,7 +207,7 @@ class ClusterManager {
 }
 
 // Leader election for distributed coordination
-class LeaderElection {
+class BasicLeaderElection {
   private nodeId: string
   private isLeader = false
   private leaderId: string | null = null
@@ -255,5 +255,5 @@ class LeaderElection {
 // Singleton instance
 export const clusterManager = new ClusterManager()
 
-export { ClusterManager, LeaderElection }
+export { ClusterManager, BasicLeaderElection }
 export type { ClusterConfig, ClusterNode, TaskDistribution }

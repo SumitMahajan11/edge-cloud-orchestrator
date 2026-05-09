@@ -110,18 +110,21 @@ export async function reliableCall<T>(
       attemptCount = context.attempt;
 
       // Execute with timeout
+      let timeoutId: NodeJS.Timeout;
       const result = await Promise.race([
         fn(),
-        new Promise<never>((_, reject) =>
-          setTimeout(
+        new Promise<never>((_, reject) => {
+          timeoutId = setTimeout(
             () =>
               reject(
                 new TimeoutError(settings.operationName!, settings.timeoutMs!),
               ),
             settings.timeoutMs,
-          ),
-        ),
-      ]);
+          );
+        }),
+      ]).finally(() => {
+        if (timeoutId) clearTimeout(timeoutId);
+      });
 
       return result;
     });

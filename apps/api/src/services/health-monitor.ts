@@ -9,6 +9,7 @@ import { PrismaClient } from '@prisma/client';
 import { EventEmitter } from 'eventemitter3';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
+import { env } from '../config/env';
 import {
   collectDefaultMetrics,
   Counter,
@@ -225,7 +226,7 @@ export class HealthMonitor extends EventEmitter {
     const healthStatus: HealthStatus = {
       status: overallStatus,
       timestamp: new Date(),
-      version: process.env.npm_package_version || '1.0.0',
+      version: env.APP_VERSION,
       uptime: Date.now() - this.startTime.getTime(),
       checks,
     };
@@ -349,12 +350,6 @@ export class HealthMonitor extends EventEmitter {
         return {
           status: 'healthy',
           message: 'Kafka connection OK',
-        };
-      } else {
-        checkCounter.inc({ component: 'kafka', status: 'degraded' });
-        return {
-          status: 'degraded',
-          message: 'Kafka connection uncertain',
         };
       }
     } catch (error) {

@@ -1,4 +1,13 @@
-import { initTelemetry, createLogger, fastifyLoggingPlugin } from '@edgecloud/shared-kernel';
+import { env } from './config/env';
+import { 
+  initTelemetry, 
+  createLogger, 
+  fastifyLoggingPlugin,
+  SecretManagerFactory,
+  RedisFactory,
+  GracefulShutdown,
+  HealthCheck
+} from '@edgecloud/shared-kernel';
 initTelemetry('node-service');
 
 import Fastify from 'fastify';
@@ -16,51 +25,31 @@ const app = Fastify({ logger: false, trustProxy: true });
 // Standardized Logging & Tracing
 app.register(fastifyLoggingPlugin, { logger, serviceName: 'node-service' });
 
-const pool = new Pool({
-  host: process.env.DATABASE_HOST || 'localhost',
-  port: parseInt(process.env.DATABASE_PORT || '26257'),
-  database: process.env.DATABASE_NAME || 'edgecloud',
-  user: process.env.DATABASE_USER || 'root',
-  password: process.env.DATABASE_PASSWORD || '',
-});
-
-const eventBus = new EventBus({
-  clientId: 'node-service',
-  brokers: (process.env.REDIS_URL || 'redis://localhost:6379').split(','),
-});
+let pool: Pool;
+let eventBus: EventBus;
+let jwtSecret: string;
+let serviceToken: string;
+let redisClient: any;
 
 // Circuit breaker registry
 const circuitBreakerRegistry = new CircuitBreakerRegistry();
 
-// Configuration - JWT_SECRET validation
-const jwtSecret = process.env.JWT_SECRET
-if (!jwtSecret) {
-  throw new Error('FATAL: JWT_SECRET environment variable is required')
-}
-if (jwtSecret.length < 32) {
-  throw new Error('FATAL: JWT_SECRET must be at least 32 characters')
-}
-
-const config = {
-  jwtSecret,
-  serviceToken: process.env.SERVICE_TOKEN || 'dev-service-token',
-};
-
-// CORS configuration with whitelist - restricted origins for security
-const corsOrigins = process.env.CORS_ORIGINS 
-  ? process.env.CORS_ORIGINS.split(',').map(o => o.trim())
-  : ['http://localhost:5173', 'http://localhost:3000'];
-
-app.register(cors, { 
-  origin: corsOrigins,
-  credentials: true 
-});
-
 // Rate limiting
-app.register(rateLimit, {
-  max: 100,
-  timeWindow: '1 minute',
-  allowList: ['127.0.0.1'],
+app.register(async (instance) => {
+  if (redisClient) {
+    instance.register(rateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
+      allowList: ['127.0.0.1'],
+      redis: redisClient,
+    });
+  } else {
+    instance.register(rateLimit, {
+      max: 100,
+      timeWindow: '1 minute',
+      allowList: ['127.0.0.1'],
+    });
+  }
 });
 
 // Health check with circuit breaker status
@@ -243,40 +232,59 @@ function mapRowToNode(row: any): EdgeNode {
 }
 
 async function start() {
+  // Config is already validated via env.ts
+  jwtSecret = env.JWT_SECRET;
+  serviceToken = env.SERVICE_TOKEN;
+
+  pool = new Pool(
+    env.DATABASE_URL 
+      ? { connectionString: env.DATABASE_URL }
+      : {
+          host: env.DATABASE_HOST,
+          port: env.DATABASE_PORT,
+          database: env.DATABASE_NAME,
+          user: env.DATABASE_USER,
+          password: env.DATABASE_PASSWORD,
+        }
+  );
+
+  if (env.REDIS_URL || env.REDIS_SENTINELS) {
+    const secretManager = SecretManagerFactory.create();
+    redisClient = await RedisFactory.createClient(secretManager);
+  }
+
+  const kafkaBrokers = env.KAFKA_BROKERS.split(',');
+  
+  eventBus = new EventBus({
+    clientId: 'node-service',
+    brokers: kafkaBrokers,
+    redis: redisClient,
+  });
+
+  const corsOrigins = env.CORS_ORIGINS === '*' ? true : env.CORS_ORIGINS.split(',');
+  await app.register(cors, { origin: corsOrigins, credentials: true });
+
   try {
     await eventBus.connect();
     logger.info('Event bus connected');
   } catch (err) {
     logger.warn({ err: (err as Error).message }, 'Event bus connection failed, continuing without Redis Streams:');
   }
-  const port = parseInt(process.env.PORT || '3002');
+
+  const port = env.PORT;
   await app.listen({ port, host: '0.0.0.0' });
+
+  GracefulShutdown.init();
+  GracefulShutdown.registerHandler('eventbus', () => eventBus.disconnect());
+  GracefulShutdown.registerHandler('db', () => pool.end());
+  GracefulShutdown.registerHandler('app', () => app.close());
+
+  HealthCheck.setReady(true);
   logger.info(`Node Service running on port ${port}`);
 }
 
 // Graceful shutdown
 let isShuttingDown = false;
 
-const shutdown = async () => {
-  if (isShuttingDown) return;
-  isShuttingDown = true;
-  
-  logger.info('Shutting down gracefully...');
-  
-  // Stop accepting new connections
-  await app.close();
-  
-  // Disconnect from event bus
-  await eventBus.disconnect();
-  
-  // Close database connections
-  await pool.end();
-  
-  logger.info('Shutdown complete');
-  process.exit(0);
-};
-
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
-
+// Start the application
 start();

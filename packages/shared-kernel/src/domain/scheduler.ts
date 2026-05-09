@@ -1,4 +1,4 @@
-import { DomainNode, DomainTask, ScoreWeights } from '../types/domain';
+import { DomainNode, DomainTask, ScoreWeights } from '../types/domain.js';
 
 export type MLPredictor = (node: DomainNode, task: DomainTask) => Promise<number>;
 
@@ -38,11 +38,11 @@ export async function selectNode(
       const candidates = availableNodes.filter(n => (n.cpuUsage || 0) < 80);
       
       if (candidates.length > 0) {
-        return candidates.sort((a, b) => (a.latency || 999) - (b.latency || 999))[0];
+        return candidates.sort((a, b) => (a.latency || 999) - (b.latency || 999))[0]!;
       }
       
       // Fallback to round-robin (weighted by least tasks) when all nodes exceed CPU threshold
-      return availableNodes.sort((a, b) => a.tasksRunning - b.tasksRunning)[0];
+      return availableNodes.sort((a, b) => a.tasksRunning - b.tasksRunning)[0]!;
     }
 
     case 'cost-aware': {
@@ -66,7 +66,7 @@ export async function selectNode(
           return (a.latency || 999) - (b.latency || 999);
         }
         return costA - costB;
-      })[0];
+      })[0]!;
     }
 
     case 'ml-optimized': {
@@ -76,7 +76,7 @@ export async function selectNode(
           score: await calculateNodeScore(node, task, weights, predictor),
         }))
       );
-      return scoredNodes.sort((a, b) => b.score - a.score)[0].node;
+      return scoredNodes.sort((a, b) => b.score - a.score)[0]!.node;
     }
 
     case 'load-balanced':
@@ -89,7 +89,7 @@ export async function selectNode(
           (n.memoryUsage || 0) * 0.3 + 
           (n.latency || 0) * 0.3;
         return score(a) - score(b);
-      })[0];
+      })[0]!;
     }
   }
 }

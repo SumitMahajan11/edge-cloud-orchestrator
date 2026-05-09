@@ -27,7 +27,12 @@ export interface UserPayload {
   id: string;
   email: string;
   role: UserRole;
+  tenantId?: string | undefined;
   permissions: string[];
+  jti?: string;
+  iat?: number;
+  iss?: string;
+  aud?: string;
 }
 
 // ============================================================================

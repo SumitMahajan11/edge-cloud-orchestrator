@@ -17,6 +17,7 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { seedLogger as logger } from '../lib/logger';
+import { env } from '../config/env';
 
 const prisma = new PrismaClient();
 
@@ -72,7 +73,7 @@ async function main() {
 
   // Create admin user
   const adminPassword = await bcrypt.hash(
-    process.env.ADMIN_PASSWORD || 'admin123',
+    env.ADMIN_PASSWORD || 'admin123',
     10,
   );
   const admin = await prisma.user.upsert({
@@ -92,7 +93,7 @@ async function main() {
 
   // Create operator user
   const operatorPassword = await bcrypt.hash(
-    process.env.OPERATOR_PASSWORD || 'operator123',
+    env.OPERATOR_PASSWORD || 'operator123',
     10,
   );
   const operator = await prisma.user.upsert({
@@ -112,7 +113,7 @@ async function main() {
 
   // Create viewer user
   const viewerPassword = await bcrypt.hash(
-    process.env.VIEWER_PASSWORD || 'viewer123',
+    env.VIEWER_PASSWORD || 'viewer123',
     10,
   );
   const viewer = await prisma.user.upsert({

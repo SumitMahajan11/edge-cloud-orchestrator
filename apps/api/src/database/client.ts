@@ -1,36 +1,65 @@
 import { PrismaClient } from '@prisma/client';
+import { trace } from '@opentelemetry/api';
+import { env } from '../config/env';
+
+/**
+ * Extension to record slow database queries in OpenTelemetry traces
+ */
+const slowQueryExtension = {
+  query: {
+    async $allOperations({ operation, model, args, query }: any) {
+      const start = Date.now();
+      const result = await query(args);
+      const duration = Date.now() - start;
+
+      if (duration > 500) {
+        const span = trace.getActiveSpan();
+        if (span) {
+          span.addEvent('slow_db_query', {
+            'db.operation': operation,
+            'db.model': model || 'unknown',
+            'db.duration_ms': duration,
+          });
+        }
+      }
+      return result;
+    },
+  },
+};
 
 class PrismaClientWithReplicas {
-  private primary: PrismaClient;
-  private readReplica: PrismaClient | null = null;
+  private primary: any;
+  private readReplica: any = null;
   private useReadReplica: boolean;
 
   constructor() {
-    const primaryUrl = process.env.DATABASE_URL;
-    const readReplicaUrl = process.env.DATABASE_READ_URL || primaryUrl;
+    const primaryUrl = env.DATABASE_URL;
+    const readReplicaUrl = env.DATABASE_READ_URL || primaryUrl;
 
-    this.primary = new PrismaClient({
+    const basePrimary = new PrismaClient({
       log:
-        process.env.NODE_ENV === 'development'
+        env.NODE_ENV === 'development'
           ? ['query', 'error', 'warn']
           : ['error'],
     });
+    this.primary = basePrimary.$extends(slowQueryExtension);
 
     // Only create read replica client if URL is different from primary
     this.useReadReplica = readReplicaUrl !== primaryUrl && !!readReplicaUrl;
 
     if (this.useReadReplica) {
-      this.readReplica = new PrismaClient({
+      const baseReplica = new PrismaClient({
         datasources: {
           db: {
-            url: readReplicaUrl,
+            url: readReplicaUrl!,
           },
         },
         log:
-          process.env.NODE_ENV === 'development'
+          env.NODE_ENV === 'development'
             ? ['query', 'error', 'warn']
             : ['error'],
       });
+      this.readReplica = baseReplica.$extends(slowQueryExtension);
     }
   }
 
@@ -59,6 +88,9 @@ class PrismaClientWithReplicas {
    * Connect both clients
    */
   async $connect() {
+    // Note: $extends clients don't have $connect themselves, use base
+    // Actually they usually do, but let's be safe if they don't.
+    // In Prisma 5+, they do have it.
     await this.primary.$connect();
     if (this.readReplica) {
       await this.readReplica.$connect();
@@ -110,7 +142,7 @@ const globalForPrisma = global as unknown as {
 
 export const prisma = globalForPrisma.prisma || new PrismaClientWithReplicas();
 
-if (process.env.NODE_ENV !== 'production') {
+if (env.NODE_ENV !== 'production') {
   globalForPrisma.prisma = prisma;
 }
 

@@ -30,7 +30,7 @@ export interface NodeColdStartState {
   successRate: number;
   mlConfidence: number; // 0-1
   joinedAt: Date;
-  lastTaskAt?: Date;
+  lastTaskAt?: Date | undefined;
 }
 
 export interface ColdStartConfig {
@@ -107,6 +107,25 @@ export class ColdStartHandler extends EventEmitter {
     this.emit('node-initialized', state);
 
     return state;
+  }
+
+  /**
+   * Sync all ONLINE nodes from database and initialize them if needed
+   */
+  async syncAllNodes(prisma: PrismaClient): Promise<void> {
+    const nodes = await prisma.edgeNode.findMany({
+      where: { status: 'ONLINE' },
+      select: { id: true },
+    });
+
+    for (const node of nodes) {
+      const state = await this.getNodeState(node.id);
+      if (!state) {
+        await this.initializeNode(node.id);
+      }
+    }
+
+    this.logger.info({ nodeCount: nodes.length }, 'Cold start sync complete');
   }
 
   /**

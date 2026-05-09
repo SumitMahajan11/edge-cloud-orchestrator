@@ -371,6 +371,7 @@ export class WorkflowEngine {
       cost: 0,
       latencyMs: 0,
       reason: `Workflow task: ${node.name}`,
+      runtime: 'native',
       retryCount: 0,
       maxRetries: 3,
     }

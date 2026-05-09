@@ -27,6 +27,26 @@ services:
     ports:
       - '5432:5432'
 
+  # PgBouncer Connection Pooler
+  pgbouncer:
+    image: bitnami/pgbouncer:latest
+    container_name: edge-cloud-pgbouncer
+    environment:
+      - PGBOUNCER_DATABASE_HOST=postgres
+      - PGBOUNCER_DATABASE_PORT=5432
+      - PGBOUNCER_DATABASE_USER=postgres
+      - PGBOUNCER_DATABASE_PASSWORD_FILE=/run/secrets/postgres_password
+      - PGBOUNCER_DATABASE_NAME=edge_cloud
+      - PGBOUNCER_PORT=5432
+      - PGBOUNCER_POOL_MODE=transaction
+    secrets:
+      - postgres_password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - backend
+
   # Redis Cache (Primary)
   redis:
     image: redis:7-alpine
@@ -87,7 +107,7 @@ services:
     container_name: edge-cloud-backend
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-edge_cloud}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@pgbouncer:5432/${POSTGRES_DB:-edge_cloud}?schema=public
       DATABASE_READ_URL: ${DATABASE_READ_URL:-}
       REDIS_URL: redis://:${REDIS_PASSWORD:-}@redis:6379
       RABBITMQ_URL: amqp://${RABBITMQ_USER:-admin}:${RABBITMQ_PASSWORD:-admin}@rabbitmq:5672
@@ -111,6 +131,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      pgbouncer:
+        condition: service_started
       redis:
         condition: service_healthy
       rabbitmq:

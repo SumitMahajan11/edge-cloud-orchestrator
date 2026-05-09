@@ -1,4 +1,4 @@
-import type { Task, TaskPriority, TaskType } from '../types'
+import type { Task, TaskPriority, TaskType, RuntimeType } from '../../types'
 import { taskQueue } from './task-queue'
 
 interface BatchConfig {
@@ -16,6 +16,7 @@ interface BatchTask {
   count: number
   interval: number // ms between tasks
   data?: Record<string, unknown>
+  runtime?: RuntimeType
 }
 
 interface BatchStats {
@@ -132,6 +133,7 @@ class BatchProcessor {
         reason: 'batch-task',
         retryCount: 0,
         maxRetries: 3,
+        runtime: config.runtime || 'native',
         metadata: {
           ...config.data,
           batchId: config.id,

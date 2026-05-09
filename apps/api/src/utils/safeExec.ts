@@ -297,3 +297,4 @@ export async function commandExists(command: string): Promise<boolean> {
     return false;
   }
 }
+

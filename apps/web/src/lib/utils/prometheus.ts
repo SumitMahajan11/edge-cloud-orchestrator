@@ -1,4 +1,4 @@
-interface MetricValue {
+interface PrometheusMetricValue {
   value: number
   timestamp: number
   labels: Record<string, string>
@@ -12,7 +12,7 @@ interface MetricDefinition {
 
 class PrometheusMetrics {
   private metrics: Map<string, MetricDefinition> = new Map()
-  private values: Map<string, MetricValue[]> = new Map()
+  private values: Map<string, PrometheusMetricValue[]> = new Map()
   private histogramBuckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10]
 
   register(definition: MetricDefinition): void {
@@ -200,7 +200,7 @@ class PrometheusMetrics {
     return `{${labelStr}}`
   }
 
-  getMetric(name: string): MetricValue[] {
+  getMetric(name: string): PrometheusMetricValue[] {
     return this.values.get(name) || []
   }
 
@@ -268,4 +268,4 @@ orchestratorMetrics.register({
 })
 
 export { orchestratorMetrics,PrometheusMetrics }
-export type { MetricDefinition,MetricValue }
+export type { MetricDefinition,PrometheusMetricValue }

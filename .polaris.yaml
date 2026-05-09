@@ -1,0 +1,18 @@
+checks:
+  # Reliability
+  cpuRequestsMissing: warning
+  cpuLimitsMissing: warning
+  memoryRequestsMissing: warning
+  memoryLimitsMissing: warning
+  readinessProbeMissing: warning
+  livenessProbeMissing: warning
+  # Security
+  hostIPCSet: danger
+  hostNetworkSet: danger
+  hostPIDSet: danger
+  notReadOnlyRootFilesystem: warning
+  privilegeEscalationAllowed: danger
+  runAsRootAllowed: warning
+  runAsPrivileged: danger
+  # Networking
+  networkPolicyMissing: warning

@@ -3,6 +3,7 @@ import { AuthService } from '../services/auth.service';
 import { RateLimitService } from '../services/rate-limit.service';
 import { InferSchema } from '../types/fastify';
 import { loginSchema, registerSchema, refreshTokenSchema } from '../schemas';
+import { env } from '../config/env';
 
 export class AuthController {
   private authService: AuthService;
@@ -59,12 +60,13 @@ export class AuthController {
       id: user.id,
       email: user.email,
       role: user.role,
-    });
+      tenantId: (user as any).tenantId,
+    }, request.ip, request.headers['user-agent'] || 'unknown');
 
     // 6. Set refresh token in httpOnly cookie
     reply.setCookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       expires: tokens.expiresAt,
       path: '/api/auth',
@@ -125,11 +127,15 @@ export class AuthController {
     }
 
     try {
-      const tokens = await this.authService.rotateRefreshToken(refreshToken);
+      const tokens = await this.authService.rotateRefreshToken(
+        refreshToken,
+        request.ip,
+        request.headers['user-agent'] || 'unknown'
+      );
 
       reply.setCookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === 'production',
+        secure: env.NODE_ENV === 'production',
         sameSite: 'strict',
         expires: tokens.expiresAt,
         path: '/api/auth',
@@ -140,10 +146,15 @@ export class AuthController {
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       };
-    } catch (error) {
+    } catch (error: any) {
+      // If security alert or reuse detected, we might want to be more specific or generic
+      const message = error.message.includes('reuse detected') 
+        ? 'Security alert: Refresh token reuse detected. All sessions invalidated.'
+        : 'Invalid or expired refresh token';
+        
       return reply
         .status(401)
-        .send({ error: 'Invalid or expired refresh token' });
+        .send({ error: message });
     }
   }
 
@@ -153,6 +164,40 @@ export class AuthController {
       await this.authService.revokeSession(refreshToken);
     }
     reply.clearCookie('refreshToken', { path: '/api/auth' });
+    return { success: true };
+  }
+
+  async me(request: FastifyRequest, _reply: FastifyReply) {
+    const user = await (request.server as any).prisma.user.findUnique({
+      where: { id: request.user!.id },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        role: true,
+        createdAt: true,
+        lastLoginAt: true,
+      },
+    });
+    return user;
+  }
+
+  async listSessions(request: FastifyRequest, _reply: FastifyReply) {
+    const userId = request.user!.id;
+    const sessions = await this.authService.listUserSessions(userId);
+    return sessions;
+  }
+
+  async revokeSession(request: FastifyRequest<{ Params: { id: string } }>, _reply: FastifyReply) {
+    const userId = request.user!.id;
+    const sessionId = request.params.id;
+    await this.authService.revokeSessionById(sessionId, userId);
+    return { success: true };
+  }
+
+  async revokeAllSessions(request: FastifyRequest, _reply: FastifyReply) {
+    const userId = request.user!.id;
+    await this.authService.revokeAllUserSessions(userId);
     return { success: true };
   }
 }

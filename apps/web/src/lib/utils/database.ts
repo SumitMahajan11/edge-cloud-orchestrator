@@ -1,5 +1,5 @@
-import type { AuditLog,EdgeNode, LogEntry, Task } from '../types'
-import type { WebhookConfig, WebhookDelivery } from '../types/webhook'
+import type { AuditLog,EdgeNode, LogEntry, Task } from '../../types'
+import type { WebhookConfig, WebhookDelivery } from '../../types/webhook'
 
 const DB_NAME = 'EdgeCloudOrchestratorDB'
 const DB_VERSION = 1
@@ -13,7 +13,7 @@ interface DatabaseSchema {
   webhookDeliveries: WebhookDelivery
 }
 
-class Database {
+export class Database {
   private db: IDBDatabase | null = null
   private initPromise: Promise<void> | null = null
 

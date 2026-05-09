@@ -1,17 +1,17 @@
+import { env } from './config/env';
 import { 
   initTelemetry,
   createLogger,
   fastifyLoggingPlugin,
-  SecretManager, 
-  SecretManagerFactory, 
-  validateRequiredSecrets,
   REDIS_CHANNELS,
   extractTraceContext,
   getRequestHeaders,
   GracefulShutdown,
   HealthCheck,
   runWithRequestId,
-  tracer
+  tracer,
+  SecretManagerFactory,
+  RedisFactory
 } from '@edgecloud/shared-kernel';
 initTelemetry('websocket-gateway');
 
@@ -27,14 +27,6 @@ import axios from 'axios';
 import type { WebSocket } from 'ws';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 
-let secretManager: SecretManager;
-let JWT_SECRET: string;
-let PORT: number;
-let HEARTBEAT_INTERVAL: number;
-let RECONNECT_BACKOFF_BASE: number;
-let RECONNECT_BACKOFF_MAX: number;
-let NODE_SERVICE_URL: string;
-let serviceToken: string;
 let redis: Redis;
 let redisSub: Redis;
 
@@ -47,7 +39,7 @@ class ConnectionManager extends EventEmitter {
 
   constructor() {
     super();
-    this.heartbeatInterval = setInterval(() => this.sendHeartbeats(), HEARTBEAT_INTERVAL);
+    this.heartbeatInterval = setInterval(() => this.sendHeartbeats(), env.HEARTBEAT_INTERVAL);
   }
 
   addConnection(socketStream: SocketStream, metadata: ConnectionMetadata): string {
@@ -80,9 +72,9 @@ class ConnectionManager extends EventEmitter {
       type: 'connected',
       connectionId,
       config: {
-        heartbeatInterval: HEARTBEAT_INTERVAL,
-        reconnectBackoffBase: RECONNECT_BACKOFF_BASE,
-        reconnectBackoffMax: RECONNECT_BACKOFF_MAX,
+        heartbeatInterval: env.HEARTBEAT_INTERVAL,
+        reconnectBackoffBase: env.RECONNECT_BACKOFF_BASE,
+        reconnectBackoffMax: env.RECONNECT_BACKOFF_MAX,
       },
     });
 
@@ -119,10 +111,10 @@ class ConnectionManager extends EventEmitter {
       if (ch === 'nodes') {
         // Fetch snapshot for nodes on subscription
         try {
-          const response = await axios.get(`${NODE_SERVICE_URL}/nodes`, {
+          const response = await axios.get(`${env.NODE_SERVICE_URL}/nodes`, {
             headers: { 
               ...getRequestHeaders(),
-              'Authorization': `Bearer ${serviceToken}` 
+              'Authorization': `Bearer ${env.SERVICE_TOKEN}` 
             }
           });
           this.send(connectionId, { 
@@ -228,7 +220,7 @@ function validateWebSocketToken(req: any): any {
   const token = (req.query).token || req.headers['authorization']?.replace('Bearer ', '');
   if (!token) return { valid: false, error: 'No token' };
   try {
-    const decoded = jwt.verify(token, JWT_SECRET!) as any;
+    const decoded = jwt.verify(token, env.JWT_SECRET) as any;
     return { valid: true, userId: decoded.userId, role: decoded.role || 'VIEWER' };
   } catch (err) {
     return { valid: false, error: 'Invalid' };
@@ -236,21 +228,10 @@ function validateWebSocketToken(req: any): any {
 }
 
 async function start() {
-  secretManager = SecretManagerFactory.create();
-  await validateRequiredSecrets(secretManager, ['JWT_SECRET'], 'websocket-gateway');
-
-  JWT_SECRET = (await secretManager.getSecret('JWT_SECRET'))!;
-  serviceToken = await secretManager.getSecret('SERVICE_TOKEN') || 'internal-default';
-  PORT = parseInt(await secretManager.getSecret('PORT') || '3004', 10);
-  HEARTBEAT_INTERVAL = parseInt(await secretManager.getSecret('HEARTBEAT_INTERVAL') || '30000', 10);
-  RECONNECT_BACKOFF_BASE = parseInt(await secretManager.getSecret('RECONNECT_BACKOFF_BASE') || '1000', 10);
-  RECONNECT_BACKOFF_MAX = parseInt(await secretManager.getSecret('RECONNECT_BACKOFF_MAX') || '30000', 10);
-  NODE_SERVICE_URL = await secretManager.getSecret('NODE_SERVICE_URL') || 'http://localhost:3001';
-
-  const redisHost = await secretManager.getSecret('REDIS_HOST') || 'localhost';
-  const redisPort = parseInt(await secretManager.getSecret('REDIS_PORT') || '6379');
-  redis = new Redis({ host: redisHost, port: redisPort });
-  redisSub = new Redis({ host: redisHost, port: redisPort });
+  const secretManager = SecretManagerFactory.create();
+  
+  redis = await RedisFactory.createClient(secretManager);
+  redisSub = await RedisFactory.createClient(secretManager);
 
   redisSub.subscribe(REDIS_CHANNELS.NODE_HEARTBEAT);
   redisSub.on('message', async (channel, message) => {
@@ -290,7 +271,7 @@ async function start() {
     }
   });
 
-  const corsOrigins = (await secretManager.getSecret('CORS_ORIGINS') || 'http://localhost:5173,http://localhost:3000').split(',');
+  const corsOrigins = env.CORS_ORIGINS.split(',');
   app.register(cors, { origin: corsOrigins, credentials: true });
 
   // Register unified logging
@@ -322,7 +303,7 @@ async function start() {
   app.get('/health/startup', async () => HealthCheck.getStartup());
 
   try {
-    await app.listen({ port: PORT, host: '0.0.0.0' });
+    await app.listen({ port: env.PORT, host: '0.0.0.0' });
     
     // Initialize shutdown manager
     GracefulShutdown.init();
@@ -343,7 +324,7 @@ async function start() {
 
     HealthCheck.setReady(true);
     
-    logger.info(`WebSocket Gateway running on port ${PORT} using ${secretManager.constructor.name}`);
+    logger.info(`WebSocket Gateway running on port ${env.PORT}`);
   } catch (err) {
     logger.error({ err }, 'Failed to start WebSocket Gateway');
     process.exit(1);

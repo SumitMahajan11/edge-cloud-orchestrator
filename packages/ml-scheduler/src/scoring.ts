@@ -1,4 +1,4 @@
-import { DEFAULT_SCORE_WEIGHTS,EdgeNode, Task, TaskScore } from '@edgecloud/shared-kernel';
+import { DEFAULT_SCORE_WEIGHTS,EdgeNode, Task } from '@edgecloud/shared-kernel';
 
 import { SchedulingPredictor } from './predictor';
 
@@ -23,19 +23,14 @@ export interface NodeScoreResult {
     network: number;
     mlPrediction: number;
     health: number;
+    carbon: number;
   };
 }
 
 export class MultiObjectiveScorer {
-  private predictor: SchedulingPredictor;
-  private weights: ScoreWeights;
+  constructor(private predictor: SchedulingPredictor, private weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS) {}
 
-  constructor(predictor: SchedulingPredictor, weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS) {
-    this.predictor = predictor;
-    this.weights = weights;
-  }
-
-  async calculateScore(task: Task, node: EdgeNode): Promise<NodeScoreResult> {
+  async calculateScore(task: Task, node: EdgeNode, maxCarbon?: number): Promise<NodeScoreResult> {
     // Normalize metrics to 0-1 scale (higher is better)
     const latencyScore = this.normalizeLatency(node.latency);
     const cpuScore = this.normalizeCpuUsage(node.cpuUsage);
@@ -43,10 +38,11 @@ export class MultiObjectiveScorer {
     const costScore = this.normalizeCost(node.costPerHour);
     const networkScore = this.calculateNetworkScore(task, node);
     const healthScore = this.normalizeHealthScore(node.healthScore);
-
+    const carbonScore = this.normalizeCarbon(node.carbonIntensity, maxCarbon);
+ 
     // ML prediction
     const mlPrediction = await this.predictor.predictAsync(task, node);
-
+ 
     // Weighted sum
     const score =
       this.weights.latency * latencyScore +
@@ -55,8 +51,9 @@ export class MultiObjectiveScorer {
       this.weights.cost * costScore +
       this.weights.network * networkScore +
       this.weights.ml * mlPrediction +
-      this.weights.health * healthScore;
-
+      this.weights.health * healthScore +
+      (this.weights as any).carbon * carbonScore;
+ 
     return {
       nodeId: node.id,
       score,
@@ -68,19 +65,21 @@ export class MultiObjectiveScorer {
         network: networkScore,
         mlPrediction,
         health: healthScore,
+        carbon: carbonScore,
       },
     };
   }
 
   async rankNodes(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult[]> {
-    const scores = await Promise.all(nodes.map((node) => this.calculateScore(task, node)));
+    const maxCarbon = Math.max(...nodes.map((n) => n.carbonIntensity || 400), 1);
+    const scores = await Promise.all(nodes.map((node) => this.calculateScore(task, node, maxCarbon)));
     return scores.sort((a, b) => b.score - a.score);
   }
 
   async selectBestNode(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult | null> {
     if (nodes.length === 0) {return null;}
     const ranked = await this.rankNodes(task, nodes);
-    return ranked[0];
+    return ranked[0] ?? null;
   }
 
   // Normalization functions
@@ -88,6 +87,7 @@ export class MultiObjectiveScorer {
     // Lower latency is better
     // Assume 0-500ms range
     const maxLatency = 500;
+    if (latency === undefined || latency === null) return 0.5; // Median score
     return Math.max(0, 1 - latency / maxLatency);
   }
 
@@ -115,6 +115,19 @@ export class MultiObjectiveScorer {
       return 1.0;
     }
     return Math.max(0, Math.min(1, healthScore));
+  }
+
+  private normalizeCarbon(carbonIntensity: number, maxCarbon?: number): number {
+    // Lower carbon intensity is better
+    if (carbonIntensity === undefined || carbonIntensity === null) return 0.5;
+    
+    // Relative normalization if maxCarbon is provided
+    if (maxCarbon && maxCarbon > 0) {
+      return Math.max(0, 1 - carbonIntensity / maxCarbon);
+    }
+    
+    // Absolute fallback (assume 0-1000g range)
+    return Math.max(0, 1 - carbonIntensity / 1000);
   }
 
   private calculateNetworkScore(task: Task, node: EdgeNode): number {

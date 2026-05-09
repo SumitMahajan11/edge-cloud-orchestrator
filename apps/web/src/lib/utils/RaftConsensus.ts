@@ -5,7 +5,7 @@
 
 type RaftState = 'follower' | 'candidate' | 'leader'
 
-interface LogEntry {
+interface RaftLogEntry {
   term: number
   index: number
   command: RaftCommand
@@ -43,7 +43,7 @@ interface AppendEntriesRequest {
   leaderId: string
   prevLogIndex: number
   prevLogTerm: number
-  entries: LogEntry[]
+  entries: RaftLogEntry[]
   leaderCommit: number
 }
 
@@ -82,7 +82,7 @@ export class RaftConsensus {
   // Persistent state
   private currentTerm = 0
   private votedFor: string | null = null
-  private log: LogEntry[] = []
+  private log: RaftLogEntry[] = []
 
   // Volatile state
   private commitIndex = 0
@@ -412,7 +412,7 @@ export class RaftConsensus {
   /**
    * Apply a log entry to the state machine
    */
-  private applyToStateMachine(entry: LogEntry): void {
+  private applyToStateMachine(entry: RaftLogEntry): void {
     const { command } = entry
     
     switch (command.type) {
@@ -443,7 +443,7 @@ export class RaftConsensus {
       return false
     }
 
-    const entry: LogEntry = {
+    const entry: RaftLogEntry = {
       term: this.currentTerm,
       index: this.log.length,
       command,
@@ -603,4 +603,4 @@ export function createRaftCluster(nodeIds: string[]): RaftConsensus[] {
   })
 }
 
-export type { LogEntry, RaftCommand, RaftConfig, RaftMetrics,RaftState }
+export type { RaftLogEntry, RaftCommand, RaftConfig, RaftMetrics,RaftState }

@@ -13,6 +13,8 @@ import {
   scryptSync,
 } from 'crypto';
 
+import { env } from '../config/env';
+
 const ALGORITHM = 'aes-256-gcm';
 const IV_LENGTH = 16;
 const AUTH_TAG_LENGTH = 16;
@@ -23,17 +25,7 @@ const SALT_LENGTH = 32;
  * Uses scrypt for key derivation
  */
 function getEncryptionKey(): Buffer {
-  const encryptionKey = process.env.ENCRYPTION_KEY;
-
-  if (!encryptionKey) {
-    throw new Error(
-      'ENCRYPTION_KEY environment variable is required for field encryption',
-    );
-  }
-
-  if (encryptionKey.length < 32) {
-    throw new Error('ENCRYPTION_KEY must be at least 32 characters');
-  }
+  const encryptionKey = env.ENCRYPTION_KEY;
 
   // Use scrypt to derive a proper 256-bit key
   return scryptSync(encryptionKey, 'edgecloud-salt', 32);

@@ -13,6 +13,8 @@
 import {
   determineHealingAction,
   type HealingAction as DomainHealingAction,
+  LeaderElection,
+  SCHEDULER_CONSTANTS,
 } from '@edgecloud/shared-kernel';
 import { PrismaClient } from '@prisma/client';
 import { spawn } from 'child_process';
@@ -21,6 +23,7 @@ import Redis from 'ioredis';
 import type { Logger } from 'pino';
 
 import { retry } from '../utils/retry.util';
+import { env } from '../config/env';
 // Constants for spawn operations
 const SPAWN_TIMEOUT_MS = 10000; // 10 seconds timeout for kubectl commands
 
@@ -64,11 +67,11 @@ export interface AutoHealerConfig {
 // ============================================================================
 
 const DEFAULT_CONFIG: AutoHealerConfig = {
-  cooldownMs: 60000, // 1 minute cooldown between actions
-  maxConcurrentActions: 5,
-  enableKubernetesActions: true,
-  kubernetesNamespace: 'default',
-  prometheusUrl: 'http://prometheus:9090',
+  cooldownMs: env.HEALER_COOLDOWN_MS,
+  maxConcurrentActions: env.HEALER_MAX_CONCURRENT,
+  enableKubernetesActions: env.HEALER_K8S_ENABLED,
+  kubernetesNamespace: env.HEALER_K8S_NAMESPACE,
+  prometheusUrl: env.PROMETHEUS_URL,
 };
 
 // Recovery storm prevention
@@ -94,6 +97,8 @@ export class AutoHealer extends EventEmitter {
   private actionHistory: HealingAction[] = [];
   private isProcessing: boolean = false;
   private alertCheckInterval: ReturnType<typeof setInterval> | null = null;
+  private leaderElection: LeaderElection;
+  private instanceId: string;
 
   constructor(
     prisma: PrismaClient,
@@ -106,32 +111,44 @@ export class AutoHealer extends EventEmitter {
     this.redis = redis;
     this.logger = logger;
     this.config = { ...DEFAULT_CONFIG, ...config };
+    this.instanceId = `healer-${Math.random().toString(36).substring(2, 9)}`;
+    
+    this.leaderElection = new LeaderElection(redis, logger, {
+      lockKey: SCHEDULER_CONSTANTS.HEALER_LOCK_KEY,
+      ttl: SCHEDULER_CONSTANTS.LEADER_LOCK_TTL_MS,
+      unlockOnStop: true,
+    });
   }
 
   /**
    * Start the auto-healer
    */
-  start(): void {
+  async start(): Promise<void> {
     // Subscribe to alert channel
     this.subscribeToAlerts();
+
+    // Start leader election
+    await this.leaderElection.start(this.instanceId, SCHEDULER_CONSTANTS.LEADER_LOCK_TTL_MS);
 
     // Periodic health check
     this.alertCheckInterval = setInterval(() => {
       this.performHealthChecks();
     }, 30000);
 
-    this.logger.info('Auto-healer started');
+    this.logger.info({ instanceId: this.instanceId }, 'Auto-healer started');
     this.emit('started');
   }
 
   /**
    * Stop the auto-healer
    */
-  stop(): void {
+  async stop(): Promise<void> {
     if (this.alertCheckInterval) {
       clearInterval(this.alertCheckInterval);
       this.alertCheckInterval = null;
     }
+
+    await this.leaderElection.stop();
 
     this.logger.info('Auto-healer stopped');
     this.emit('stopped');
@@ -543,7 +560,7 @@ export class AutoHealer extends EventEmitter {
    * Perform periodic health checks
    */
   private async performHealthChecks(): Promise<void> {
-    if (this.isProcessing) {
+    if (this.isProcessing || !this.leaderElection.isCurrentlyLeader()) {
       return;
     }
     this.isProcessing = true;
@@ -596,8 +613,38 @@ export class AutoHealer extends EventEmitter {
    * Check service health
    */
   private async checkServiceHealth(): Promise<void> {
-    // This would check Kubernetes pod health
-    // For now, we rely on Prometheus alerts
+    if (!this.config.enableKubernetesActions) return;
+
+    try {
+      const namespace = this.config.kubernetesNamespace;
+      const stdout = await this.spawnWithTimeout(
+        'kubectl',
+        ['get', 'pods', '-n', namespace, '-o', 'json'],
+        `check pod health in ${namespace}`
+      );
+
+      const pods = JSON.parse(stdout);
+      for (const pod of pods.items || []) {
+        const containerStatuses = pod.status?.containerStatuses || [];
+        for (const status of containerStatuses) {
+          if (status.state?.waiting?.reason === 'CrashLoopBackOff') {
+            const serviceName = pod.metadata?.labels?.app || pod.metadata?.name;
+            if (serviceName) {
+              this.logger.warn({ serviceName, pod: pod.metadata.name }, 'Detected CrashLoopBackOff');
+              await this.initiateHealing('restart-service', {
+                labels: { alertname: 'ServiceCrashLooping', service: serviceName },
+                annotations: { summary: `Service ${serviceName} is crashlooping in ${namespace}` },
+                state: 'firing',
+                activeAt: new Date().toISOString(),
+                value: '1',
+              });
+            }
+          }
+        }
+      }
+    } catch (error) {
+      this.logger.error({ error }, 'Failed to check service health via Kubernetes');
+    }
   }
 
   /**
@@ -608,7 +655,15 @@ export class AutoHealer extends EventEmitter {
 
     if (queueLength > 100) {
       this.logger.warn({ queueLength }, 'High queue depth detected');
-      // Could trigger scaling here
+      
+      // Trigger scaling for the task-service if queue is backed up
+      await this.initiateHealing('scale-up', {
+        labels: { alertname: 'QueueBacklog', service: 'task-service' },
+        annotations: { summary: `Task queue depth is ${queueLength}, exceeding threshold of 100` },
+        state: 'firing',
+        activeAt: new Date().toISOString(),
+        value: queueLength.toString(),
+      });
     }
   }
 

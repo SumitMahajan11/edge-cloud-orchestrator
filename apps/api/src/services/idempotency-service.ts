@@ -138,7 +138,7 @@ export class IdempotencyService {
           idempotencyKey,
           resourceType,
           resourceId,
-          requestHash,
+          requestHash: requestHash ?? null,
           status: 'PROCESSING',
           expiresAt: new Date(Date.now() + ttl),
         },
@@ -197,7 +197,7 @@ export class IdempotencyService {
       where: { idempotencyKey },
       data: {
         status: 'FAILED',
-        result: error ? { error } : undefined,
+        result: error ? { error } : ({} as any),
       },
     });
 

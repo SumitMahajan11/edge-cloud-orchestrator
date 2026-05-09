@@ -1,0 +1,2848 @@
+openapi: 3.0.3
+info:
+  title: Edge-Cloud Orchestrator API
+  description: Production API documentation for the Edge-Cloud Orchestrator Control Plane
+  version: 1.0.0
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    def-0:
+      type: object
+      properties:
+        code:
+          type: string
+          description: Machine-readable error code
+        message:
+          type: string
+          description: Human-readable error description
+        requestId:
+          type: string
+          description: Unique request ID
+        timestamp:
+          type: string
+          format: date-time
+          description: ISO 8601 timestamp
+        details:
+          description: Optional error details
+        stack:
+          type: string
+          description: Error stack trace (non-production only)
+      required:
+        - code
+        - message
+        - requestId
+        - timestamp
+      additionalProperties: false
+      title: ErrorSchema
+    def-1:
+      type: object
+      properties:
+        status:
+          type: string
+          enum:
+            - healthy
+            - degraded
+            - unhealthy
+        service:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        checks:
+          type: object
+          additionalProperties:
+            type: boolean
+        version:
+          type: string
+      required:
+        - status
+        - service
+        - timestamp
+      additionalProperties: false
+      title: HealthSchema
+paths:
+  /v2/admin/audit-logs:
+    get:
+      summary: Get audit logs
+      tags:
+        - admin
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: userId
+          required: false
+        - schema:
+            type: string
+          in: query
+          name: action
+          required: false
+        - schema:
+            type: number
+            default: 100
+          in: query
+          name: limit
+          required: false
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/cleanup:
+    post:
+      summary: Clean up old data
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                olderThanDays:
+                  type: number
+                types:
+                  type: array
+                  items:
+                    type: string
+              required:
+                - olderThanDays
+                - types
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/dlq/events:
+    get:
+      summary: List DLQ events with filtering
+      tags:
+        - admin
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: topic
+          required: false
+        - schema:
+            type: string
+            enum:
+              - PENDING
+              - RETRYING
+              - REPROCESSED
+              - PERMANENTLY_FAILED
+          in: query
+          name: status
+          required: false
+        - schema:
+            type: number
+            default: 50
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: number
+            default: 0
+          in: query
+          name: offset
+          required: false
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/dlq/events/{id}/retry:
+    post:
+      summary: Retry a specific DLQ event
+      tags:
+        - admin
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/dlq/purge:
+    post:
+      summary: Purge old DLQ events
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                olderThanDays:
+                  type: number
+                  default: 7
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/dlq/stats:
+    get:
+      summary: Get DLQ statistics across all streams
+      tags:
+        - admin
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/health:
+    get:
+      summary: Get system health
+      tags:
+        - admin
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/ml/retrain:
+    post:
+      summary: Trigger ML model retraining
+      tags:
+        - admin
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/users:
+    get:
+      summary: List all users
+      tags:
+        - admin
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/users/{id}/deactivate:
+    post:
+      summary: Deactivate user
+      tags:
+        - admin
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/users/{id}/role:
+    patch:
+      summary: Update user role
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                role:
+                  type: string
+                  enum:
+                    - ADMIN
+                    - OPERATOR
+                    - VIEWER
+              required:
+                - role
+        required: true
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/agents/ca:
+    get:
+      summary: Get CA certificate
+      tags:
+        - agents
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  certificate:
+                    type: string
+  /v2/agents/certificates/sign:
+    post:
+      summary: Bootstrap agent certificate and register node
+      tags:
+        - agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - csr
+                - bootstrapToken
+                - nodeName
+                - region
+              properties:
+                csr:
+                  type: string
+                  description: PEM encoded Certificate Signing Request
+                bootstrapToken:
+                  type: string
+                  description: One-time bootstrap token
+                nodeName:
+                  type: string
+                region:
+                  type: string
+                ipAddress:
+                  type: string
+                port:
+                  type: number
+                cpuCores:
+                  type: number
+                memoryGB:
+                  type: number
+                storageGB:
+                  type: number
+                hardwareId:
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  certificate:
+                    type: string
+                  caCertificate:
+                    type: string
+                  nodeId:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "403":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/agents/heartbeat:
+    post:
+      summary: Agent heartbeat
+      tags:
+        - agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                timestamp:
+                  type: number
+                status:
+                  type: string
+                metrics:
+                  type: object
+                  properties:
+                    cpu_usage:
+                      type: number
+                    memory_usage:
+                      type: number
+      responses:
+        "200":
+          description: Default Response
+  /v2/agents/tasks/pending:
+    get:
+      summary: Poll for pending tasks
+      tags:
+        - agents
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  task_id:
+                    type: string
+                  runtime:
+                    type: string
+                  image:
+                    type: string
+                  input:
+                    type: object
+                    additionalProperties: true
+                  memory_limit_mb:
+                    type: number
+                  cpu_fuel:
+                    type: number
+                    nullable: true
+                  timeout_seconds:
+                    type: number
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+  /v2/agents/tasks/{taskId}/result:
+    post:
+      summary: Report task result
+      tags:
+        - agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+                - exit_code
+              properties:
+                status:
+                  type: string
+                exit_code:
+                  type: number
+                stdout:
+                  type: string
+                stderr:
+                  type: string
+                duration_ms:
+                  type: number
+                error:
+                  type: string
+                  nullable: true
+        required: true
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: taskId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/alerts/:
+    get:
+      summary: Get alert history
+      tags:
+        - alerts
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - critical
+              - warning
+              - info
+          in: query
+          name: severity
+          required: false
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      summary: Clear alert history
+      tags:
+        - alerts
+      responses:
+        "200":
+          description: Default Response
+  /v2/alerts/test:
+    post:
+      summary: Send test alert
+      tags:
+        - alerts
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - severity
+                - title
+                - message
+              properties:
+                severity:
+                  type: string
+                  enum:
+                    - critical
+                    - warning
+                    - info
+                title:
+                  type: string
+                message:
+                  type: string
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/auth/login:
+    post:
+      summary: Login and get tokens
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 1
+              required:
+                - email
+                - password
+              additionalProperties: false
+        required: true
+      responses:
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "429":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/auth/logout:
+    post:
+      summary: Logout and invalidate session
+      tags:
+        - auth
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+  /v2/auth/me:
+    get:
+      summary: Get current user profile
+      tags:
+        - auth
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                  email:
+                    type: string
+                  name:
+                    type: string
+                  role:
+                    type: string
+                  createdAt:
+                    type: string
+                  lastLoginAt:
+                    type: string
+                    nullable: true
+  /v2/auth/refresh:
+    post:
+      summary: Refresh access token
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+                  minLength: 1
+              required:
+                - refreshToken
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/auth/register:
+    post:
+      summary: Register a new user
+      tags:
+        - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+                  minLength: 8
+                  allOf:
+                    - pattern: "[A-Z]"
+                    - pattern: "[a-z]"
+                    - pattern: "[0-9]"
+                name:
+                  type: string
+                  minLength: 2
+                  maxLength: 100
+              required:
+                - email
+                - password
+                - name
+              additionalProperties: false
+        required: true
+      responses:
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "409":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/carbon/by-region:
+    get:
+      summary: Get carbon breakdown by region
+      tags:
+        - carbon
+      responses:
+        "200":
+          description: Default Response
+  /v2/carbon/metrics:
+    get:
+      summary: Get carbon metrics
+      tags:
+        - carbon
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: region
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: from
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: to
+          required: false
+        - schema:
+            type: string
+            enum:
+              - hour
+              - day
+              - week
+              - month
+            default: day
+          in: query
+          name: granularity
+          required: false
+      responses:
+        "200":
+          description: Default Response
+  /v2/carbon/record:
+    post:
+      summary: Record carbon metric
+      tags:
+        - carbon
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                nodeId:
+                  type: string
+                region:
+                  type: string
+                energyKwh:
+                  type: number
+                carbonKg:
+                  type: number
+                renewablePercent:
+                  type: number
+              required:
+                - region
+                - energyKwh
+                - carbonKg
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/carbon/summary:
+    get:
+      summary: Get carbon footprint summary
+      tags:
+        - carbon
+      responses:
+        "200":
+          description: Default Response
+  /v2/cost/by-node:
+    get:
+      summary: Get cost breakdown by node
+      tags:
+        - cost
+      responses:
+        "200":
+          description: Default Response
+  /v2/cost/projections:
+    get:
+      summary: Get cost projections
+      tags:
+        - cost
+      responses:
+        "200":
+          description: Default Response
+  /v2/cost/records:
+    get:
+      summary: Get cost records
+      tags:
+        - cost
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: nodeId
+          required: false
+        - schema:
+            type: string
+          in: query
+          name: resourceType
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: from
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: to
+          required: false
+        - schema:
+            type: string
+            enum:
+              - hour
+              - day
+              - week
+              - month
+            default: day
+          in: query
+          name: granularity
+          required: false
+      responses:
+        "200":
+          description: Default Response
+  /v2/cost/summary:
+    get:
+      summary: Get cost summary
+      tags:
+        - cost
+      responses:
+        "200":
+          description: Default Response
+  /v2/fl/models:
+    get:
+      summary: List FL models
+      tags:
+        - federated-learning
+      responses:
+        "200":
+          description: Default Response
+    post:
+      summary: Register a FL model
+      tags:
+        - federated-learning
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                version:
+                  type: string
+                  pattern: ^\d+\.\d+\.\d+$
+                architecture:
+                  type: string
+                  minLength: 1
+                parameters:
+                  type: integer
+                  minimum: 1
+                weightsUrl:
+                  type: string
+                  format: uri
+                weightsSize:
+                  type: integer
+                  minimum: 0
+              required:
+                - name
+                - version
+                - architecture
+                - parameters
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/fl/models/{id}:
+    get:
+      summary: Get FL model
+      tags:
+        - federated-learning
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/fl/models/{id}/weights:
+    post:
+      summary: Upload weights for a FL model
+      tags:
+        - federated-learning
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+    get:
+      summary: Download weights for a FL model
+      tags:
+        - federated-learning
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/fl/sessions:
+    post:
+      summary: Start FL training session
+      tags:
+        - federated-learning
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                modelId:
+                  type: string
+                  format: uuid
+                totalRounds:
+                  type: integer
+                  minimum: 1
+                  maximum: 100
+                  default: 10
+                config:
+                  type: object
+                  properties:
+                    minClients:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 3
+                    maxClients:
+                      type: integer
+                      minimum: 1
+                      maximum: 1000
+                      default: 10
+                    localEpochs:
+                      type: integer
+                      minimum: 1
+                      maximum: 100
+                      default: 5
+                    learningRate:
+                      type: number
+                      minimum: 0.0001
+                      maximum: 1
+                      default: 0.01
+                    aggregationStrategy:
+                      type: string
+                      enum:
+                        - fedavg
+                        - fedprox
+                        - fedadam
+                      default: fedavg
+                    privacyBudget:
+                      type: number
+                      minimum: 0
+                      maximum: 10
+                    noiseMultiplier:
+                      type: number
+                      minimum: 0
+                      maximum: 10
+                    gradientClipNorm:
+                      type: number
+                      minimum: 0
+                      maximum: 100
+                  additionalProperties: false
+              required:
+                - modelId
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/fl/sessions/{id}:
+    get:
+      summary: Get FL session
+      tags:
+        - federated-learning
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/fl/sessions/{id}/stop:
+    post:
+      summary: Stop FL session
+      tags:
+        - federated-learning
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/logs/:
+    get:
+      summary: Get system-wide logs
+      tags:
+        - logs
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: taskId
+          required: false
+        - schema:
+            type: string
+          in: query
+          name: nodeId
+          required: false
+        - schema:
+            type: string
+            enum:
+              - DEBUG
+              - INFO
+              - WARN
+              - ERROR
+          in: query
+          name: level
+          required: false
+        - schema:
+            type: number
+            default: 100
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: number
+            default: 0
+          in: query
+          name: offset
+          required: false
+      responses:
+        "200":
+          description: Default Response
+  /v2/logs/stats:
+    get:
+      summary: Get log statistics
+      tags:
+        - logs
+      responses:
+        "200":
+          description: Default Response
+  /v2/metrics/:
+    get:
+      summary: Get system metrics
+      tags:
+        - metrics
+      responses:
+        "200":
+          description: Default Response
+  /v2/metrics/ml:
+    get:
+      summary: Get ML-specific metrics
+      tags:
+        - metrics
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeModels:
+                    type: number
+                  trainingJobs:
+                    type: number
+                  avgAccuracy:
+                    type: number
+                  totalPredictions:
+                    type: number
+  /v2/metrics/network:
+    get:
+      summary: Get network performance metrics
+      tags:
+        - metrics
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ingressGbps:
+                    type: number
+                  egressGbps:
+                    type: number
+                  avgLatency:
+                    type: number
+                  packetLoss:
+                    type: number
+  /v2/metrics/nodes:
+    get:
+      summary: Get node metrics summary
+      tags:
+        - metrics
+      responses:
+        "200":
+          description: Default Response
+  /v2/metrics/prometheus:
+    get:
+      summary: Get Prometheus metrics
+      tags:
+        - metrics
+      description: Returns metrics in Prometheus exposition format
+      responses:
+        "200":
+          description: Default Response
+  /v2/metrics/requests:
+    get:
+      summary: Get request metrics
+      tags:
+        - metrics
+      responses:
+        "200":
+          description: Default Response
+  /v2/metrics/system:
+    get:
+      summary: Get system metrics
+      tags:
+        - metrics
+      responses:
+        "401":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/nodes/:
+    get:
+      summary: List edge nodes
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: region
+          required: false
+        - schema:
+            type: string
+            enum:
+              - ONLINE
+              - OFFLINE
+              - DEGRADED
+              - MAINTENANCE
+          in: query
+          name: status
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            default: 1
+          in: query
+          name: page
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: string
+            enum:
+              - name
+              - region
+              - status
+              - createdAt
+            default: createdAt
+          in: query
+          name: sortBy
+          required: false
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          in: query
+          name: sortOrder
+          required: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        location:
+                          type: string
+                        region:
+                          type: string
+                        status:
+                          type: string
+                          enum:
+                            - ONLINE
+                            - OFFLINE
+                            - DEGRADED
+                            - MAINTENANCE
+                        ipAddress:
+                          type: string
+                        port:
+                          type: number
+                        specs:
+                          type: object
+                          properties:
+                            cpuCores:
+                              type: number
+                            memoryGB:
+                              type: number
+                            storageGB:
+                              type: number
+                          required:
+                            - cpuCores
+                            - memoryGB
+                            - storageGB
+                          additionalProperties: false
+                        load:
+                          type: object
+                          properties:
+                            cpuUsage:
+                              type: number
+                            memoryUsage:
+                              type: number
+                            activeTasks:
+                              type: number
+                          required:
+                            - activeTasks
+                          additionalProperties: false
+                        lastHeartbeat:
+                          type: string
+                          format: date-time
+                      required:
+                        - id
+                        - name
+                        - location
+                        - region
+                        - status
+                        - ipAddress
+                        - port
+                        - specs
+                        - lastHeartbeat
+                      additionalProperties: false
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: number
+                      limit:
+                        type: number
+                      total:
+                        type: number
+                      totalPages:
+                        type: number
+    post:
+      summary: Register a new edge node
+      tags:
+        - nodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                location:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                region:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                ipAddress:
+                  type: string
+                  format: ipv4
+                port:
+                  type: integer
+                  minimum: 1
+                  maximum: 65535
+                cpuCores:
+                  type: integer
+                  minimum: 1
+                  maximum: 128
+                memoryGB:
+                  type: integer
+                  minimum: 1
+                  maximum: 1024
+                storageGB:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                costPerHour:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                maxTasks:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                bandwidthInMbps:
+                  type: integer
+                  minimum: 1
+                bandwidthOutMbps:
+                  type: integer
+                  minimum: 1
+              required:
+                - name
+                - location
+                - region
+                - ipAddress
+                - port
+                - cpuCores
+                - memoryGB
+                - storageGB
+              additionalProperties: false
+        required: true
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  location:
+                    type: string
+                  region:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - ONLINE
+                      - OFFLINE
+                      - DEGRADED
+                      - MAINTENANCE
+                  ipAddress:
+                    type: string
+                  port:
+                    type: number
+                  specs:
+                    type: object
+                    properties:
+                      cpuCores:
+                        type: number
+                      memoryGB:
+                        type: number
+                      storageGB:
+                        type: number
+                    required:
+                      - cpuCores
+                      - memoryGB
+                      - storageGB
+                    additionalProperties: false
+                  load:
+                    type: object
+                    properties:
+                      cpuUsage:
+                        type: number
+                      memoryUsage:
+                        type: number
+                      activeTasks:
+                        type: number
+                    required:
+                      - activeTasks
+                    additionalProperties: false
+                  lastHeartbeat:
+                    type: string
+                    format: date-time
+                required:
+                  - id
+                  - name
+                  - location
+                  - region
+                  - status
+                  - ipAddress
+                  - port
+                  - specs
+                  - lastHeartbeat
+                additionalProperties: false
+        "409":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/nodes/{id}:
+    get:
+      summary: Get node by ID
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  location:
+                    type: string
+                  region:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - ONLINE
+                      - OFFLINE
+                      - DEGRADED
+                      - MAINTENANCE
+                  ipAddress:
+                    type: string
+                  port:
+                    type: number
+                  specs:
+                    type: object
+                    properties:
+                      cpuCores:
+                        type: number
+                      memoryGB:
+                        type: number
+                      storageGB:
+                        type: number
+                    required:
+                      - cpuCores
+                      - memoryGB
+                      - storageGB
+                    additionalProperties: false
+                  load:
+                    type: object
+                    properties:
+                      cpuUsage:
+                        type: number
+                      memoryUsage:
+                        type: number
+                      activeTasks:
+                        type: number
+                    required:
+                      - activeTasks
+                    additionalProperties: false
+                  lastHeartbeat:
+                    type: string
+                    format: date-time
+                required:
+                  - id
+                  - name
+                  - location
+                  - region
+                  - status
+                  - ipAddress
+                  - port
+                  - specs
+                  - lastHeartbeat
+                additionalProperties: false
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+    patch:
+      summary: Update node configuration
+      tags:
+        - nodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                location:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                region:
+                  type: string
+                  minLength: 1
+                  maxLength: 50
+                cpuCores:
+                  type: integer
+                  minimum: 1
+                  maximum: 128
+                memoryGB:
+                  type: integer
+                  minimum: 1
+                  maximum: 1024
+                storageGB:
+                  type: integer
+                  minimum: 1
+                  maximum: 10000
+                costPerHour:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                maxTasks:
+                  type: integer
+                  minimum: 1
+                  maximum: 1000
+                isMaintenanceMode:
+                  type: boolean
+              additionalProperties: false
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      summary: Deregister an edge node
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/nodes/{id}/drain:
+    post:
+      summary: Start draining a node (stop accepting new tasks)
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /v2/nodes/{id}/heartbeat:
+    post:
+      summary: Receive heartbeat from edge agent
+      tags:
+        - nodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cpuUsage:
+                  type: number
+                memoryUsage:
+                  type: number
+                storageUsage:
+                  type: number
+                latency:
+                  type: number
+                tasksRunning:
+                  type: number
+                networkIn:
+                  type: number
+                networkOut:
+                  type: number
+              required:
+                - cpuUsage
+                - memoryUsage
+        required: true
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/nodes/{id}/maintenance:
+    post:
+      summary: Enable/disable maintenance mode
+      tags:
+        - nodes
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                enabled:
+                  type: boolean
+              required:
+                - enabled
+        required: true
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/nodes/{id}/metrics:
+    get:
+      summary: Get node metrics history
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: from
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: to
+          required: false
+        - schema:
+            type: number
+            default: 100
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/nodes/{id}/offline:
+    post:
+      summary: Force a node to OFFLINE status
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /v2/nodes/{id}/scheduling-history:
+    get:
+      summary: Get scheduling history for a node
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: number
+            default: 7
+          in: query
+          name: days
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/policies/:
+    get:
+      summary: List available scheduling policies
+      tags:
+        - policies
+      responses:
+        "200":
+          description: Default Response
+  /v2/policies/active:
+    get:
+      summary: Get the currently active scheduling policy
+      tags:
+        - policies
+      responses:
+        "200":
+          description: Default Response
+    patch:
+      summary: Update the active scheduling policy
+      tags:
+        - policies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                policy:
+                  type: string
+              required:
+                - policy
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/policies/config:
+    get:
+      summary: Get detailed configuration for all policies
+      tags:
+        - policies
+      responses:
+        "200":
+          description: Default Response
+  /v2/policies/thresholds:
+    get:
+      summary: Get system health thresholds
+      tags:
+        - policies
+      responses:
+        "200":
+          description: Default Response
+    patch:
+      summary: Update system health thresholds
+      tags:
+        - policies
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                cpu:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                memory:
+                  type: number
+                  minimum: 0
+                  maximum: 100
+                latency:
+                  type: number
+                  minimum: 0
+              additionalProperties: false
+      responses:
+        "200":
+          description: Default Response
+  /v2/scheduler/metrics:
+    get:
+      summary: Get scheduler-specific metrics
+      tags:
+        - scheduler
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  queueLength:
+                    type: number
+                  avgSchedulingTime:
+                    type: number
+                  throughput:
+                    type: number
+                  efficiency:
+                    type: number
+  /v2/status:
+    get:
+      responses:
+        "200":
+          description: Default Response
+  /v2/system/circuit-breakers:
+    get:
+      summary: Get system circuit breaker status
+      tags:
+        - system
+      responses:
+        "200":
+          description: Default Response
+  /v2/system/info:
+    get:
+      summary: Get system information
+      tags:
+        - system
+      responses:
+        "200":
+          description: Default Response
+  /v2/tasks/:
+    get:
+      summary: List tasks
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+            enum:
+              - PENDING
+              - SCHEDULED
+              - RUNNING
+              - COMPLETED
+              - FAILED
+              - CANCELLED
+          in: query
+          name: status
+          required: false
+        - schema:
+            type: string
+          in: query
+          name: type
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: nodeId
+          required: false
+        - schema:
+            type: string
+            enum:
+              - CRITICAL
+              - HIGH
+              - MEDIUM
+              - LOW
+          in: query
+          name: priority
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            default: 1
+          in: query
+          name: page
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: string
+            enum:
+              - submittedAt
+              - priority
+              - status
+              - duration
+              - createdAt
+              - updatedAt
+              - name
+            default: submittedAt
+          in: query
+          name: sortBy
+          required: false
+        - schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+          in: query
+          name: sortOrder
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: from
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: to
+          required: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          format: uuid
+                        name:
+                          type: string
+                        type:
+                          type: string
+                        status:
+                          type: string
+                          enum:
+                            - PENDING
+                            - SCHEDULED
+                            - RUNNING
+                            - COMPLETED
+                            - FAILED
+                            - CANCELLED
+                        priority:
+                          type: string
+                        nodeId:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                                  format: uuid
+                            - type: "null"
+                        specs:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: object
+                                  properties:
+                                    cpuCores:
+                                      type: number
+                                    memoryGB:
+                                      type: number
+                                  required:
+                                    - cpuCores
+                                    - memoryGB
+                                  additionalProperties: false
+                            - type: "null"
+                        submittedAt:
+                          type: string
+                          format: date-time
+                        startedAt:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                                  format: date-time
+                            - type: "null"
+                        completedAt:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                                  format: date-time
+                            - type: "null"
+                        error:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                            - type: "null"
+                        metadata:
+                          type: object
+                          additionalProperties: {}
+                        runtime:
+                          type: string
+                          enum:
+                            - NATIVE
+                            - DOCKER
+                            - WASM
+                        image:
+                          type: string
+                        affinity:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                            - type: "null"
+                        traceId:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                            - type: "null"
+                      required:
+                        - id
+                        - name
+                        - type
+                        - status
+                        - priority
+                        - submittedAt
+                        - runtime
+                        - image
+                      additionalProperties: false
+                  pagination:
+                    type: object
+                    properties:
+                      page:
+                        type: number
+                      limit:
+                        type: number
+                      total:
+                        type: number
+                      totalPages:
+                        type: number
+    post:
+      summary: Create and schedule a new task
+      tags:
+        - tasks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                type:
+                  type: string
+                  enum:
+                    - IMAGE_CLASSIFICATION
+                    - DATA_AGGREGATION
+                    - MODEL_INFERENCE
+                    - SENSOR_FUSION
+                    - VIDEO_PROCESSING
+                    - LOG_ANALYSIS
+                    - ANOMALY_DETECTION
+                    - DATA_PROCESSING
+                    - ETL_PIPELINE
+                    - ML_TRAINING
+                    - NLP
+                    - COMPUTER_VISION
+                    - SPEECH_RECOGNITION
+                    - RECOMMENDATION_ENGINE
+                    - FRAUD_DETECTION
+                    - IOT_DATA_INGESTION
+                    - REALTIME_ANALYTICS
+                    - BATCH_PROCESSING
+                    - CONTAINER_BUILD
+                    - CICD_PIPELINE
+                    - CUSTOM
+                priority:
+                  type: string
+                  enum:
+                    - CRITICAL
+                    - HIGH
+                    - MEDIUM
+                    - LOW
+                  default: MEDIUM
+                target:
+                  type: string
+                  enum:
+                    - EDGE
+                    - CLOUD
+                    - HYBRID
+                  default: EDGE
+                nodeId:
+                  type: string
+                  format: uuid
+                specs:
+                  type: object
+                  properties:
+                    cpuCores:
+                      type: integer
+                      minimum: 1
+                      maximum: 128
+                    memoryGB:
+                      type: integer
+                      minimum: 1
+                      maximum: 1024
+                    memoryMB:
+                      type: integer
+                      minimum: 1
+                      maximum: 262144
+                  additionalProperties: false
+                input:
+                  type: object
+                  additionalProperties: {}
+                metadata:
+                  type: object
+                  additionalProperties: {}
+                maxRetries:
+                  type: integer
+                  minimum: 0
+                  maximum: 10
+                  default: 3
+                runtime:
+                  type: string
+                  enum:
+                    - NATIVE
+                    - DOCKER
+                    - WASM
+                  default: DOCKER
+                image:
+                  type: string
+                  minLength: 1
+                affinity:
+                  type: string
+                traceId:
+                  type: string
+              required:
+                - name
+                - type
+                - image
+              additionalProperties: false
+        required: true
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - PENDING
+                      - SCHEDULED
+                      - RUNNING
+                      - COMPLETED
+                      - FAILED
+                      - CANCELLED
+                  priority:
+                    type: string
+                  nodeId:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                            format: uuid
+                      - type: "null"
+                  specs:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: object
+                            properties:
+                              cpuCores:
+                                type: number
+                              memoryGB:
+                                type: number
+                            required:
+                              - cpuCores
+                              - memoryGB
+                            additionalProperties: false
+                      - type: "null"
+                  submittedAt:
+                    type: string
+                    format: date-time
+                  startedAt:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                            format: date-time
+                      - type: "null"
+                  completedAt:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                            format: date-time
+                      - type: "null"
+                  error:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                  metadata:
+                    type: object
+                    additionalProperties: {}
+                  runtime:
+                    type: string
+                    enum:
+                      - NATIVE
+                      - DOCKER
+                      - WASM
+                  image:
+                    type: string
+                  affinity:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                  traceId:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                required:
+                  - id
+                  - name
+                  - type
+                  - status
+                  - priority
+                  - submittedAt
+                  - runtime
+                  - image
+                additionalProperties: false
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+        "409":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/tasks/stats:
+    get:
+      summary: Get task statistics (Deprecated)
+      tags:
+        - tasks
+      responses:
+        "200":
+          description: Default Response
+  /v2/tasks/{id}:
+    get:
+      summary: Get task by ID
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    format: uuid
+                  name:
+                    type: string
+                  type:
+                    type: string
+                  status:
+                    type: string
+                    enum:
+                      - PENDING
+                      - SCHEDULED
+                      - RUNNING
+                      - COMPLETED
+                      - FAILED
+                      - CANCELLED
+                  priority:
+                    type: string
+                  nodeId:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                            format: uuid
+                      - type: "null"
+                  specs:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: object
+                            properties:
+                              cpuCores:
+                                type: number
+                              memoryGB:
+                                type: number
+                            required:
+                              - cpuCores
+                              - memoryGB
+                            additionalProperties: false
+                      - type: "null"
+                  submittedAt:
+                    type: string
+                    format: date-time
+                  startedAt:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                            format: date-time
+                      - type: "null"
+                  completedAt:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                            format: date-time
+                      - type: "null"
+                  error:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                  metadata:
+                    type: object
+                    additionalProperties: {}
+                  runtime:
+                    type: string
+                    enum:
+                      - NATIVE
+                      - DOCKER
+                      - WASM
+                  image:
+                    type: string
+                  affinity:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                  traceId:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                required:
+                  - id
+                  - name
+                  - type
+                  - status
+                  - priority
+                  - submittedAt
+                  - runtime
+                  - image
+                additionalProperties: false
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/tasks/{id}/cancel:
+    post:
+      summary: Cancel a task
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/tasks/{id}/logs:
+    get:
+      summary: Get task logs
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+          in: query
+          name: level
+          required: false
+        - schema:
+            type: number
+            default: 100
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/tasks/{id}/retry:
+    post:
+      summary: Retry a failed task
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/tasks/{id}/scheduling-decision:
+    get:
+      summary: Get scheduling decision for a task
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/webhooks/:
+    get:
+      summary: List webhooks
+      tags:
+        - webhooks
+      responses:
+        "200":
+          description: Default Response
+    post:
+      summary: Create a webhook
+      tags:
+        - webhooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                secret:
+                  type: string
+                  minLength: 16
+                  maxLength: 100
+                enabled:
+                  type: boolean
+                  default: true
+              required:
+                - name
+                - url
+                - events
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/webhooks/deliveries/{id}/retry:
+    post:
+      summary: Retry a failed webhook delivery
+      tags:
+        - webhooks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /v2/webhooks/stats:
+    get:
+      summary: Get webhook delivery statistics
+      tags:
+        - webhooks
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total:
+                    type: number
+                  active:
+                    type: number
+                  failedLast24h:
+                    type: number
+                  avgLatency:
+                    type: number
+  /v2/webhooks/{id}:
+    patch:
+      summary: Update a webhook
+      tags:
+        - webhooks
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                url:
+                  type: string
+                  format: uri
+                events:
+                  type: array
+                  items:
+                    type: string
+                  minItems: 1
+                secret:
+                  type: string
+                  minLength: 16
+                  maxLength: 100
+                enabled:
+                  type: boolean
+              additionalProperties: false
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      summary: Delete a webhook
+      tags:
+        - webhooks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/webhooks/{id}/deliveries:
+    get:
+      summary: Get webhook delivery history
+      tags:
+        - webhooks
+      parameters:
+        - schema:
+            type: number
+            default: 50
+          in: query
+          name: limit
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/webhooks/{id}/redeliver/{deliveryId}:
+    post:
+      summary: Redeliver a webhook
+      tags:
+        - webhooks
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+        - schema:
+            type: string
+          in: path
+          name: deliveryId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/webhooks/{id}/test:
+    post:
+      summary: Send a test event to the webhook
+      tags:
+        - webhooks
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  deliveryId:
+                    type: string
+  /v2/workflows/:
+    get:
+      summary: List workflows
+      tags:
+        - workflows
+      responses:
+        "200":
+          description: Default Response
+    post:
+      summary: Create a new workflow
+      tags:
+        - workflows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 200
+                version:
+                  type: string
+                  pattern: ^\d+\.\d+\.\d+$
+                nodes:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      name:
+                        type: string
+                      type:
+                        type: string
+                        enum:
+                          - task
+                          - decision
+                          - parallel
+                          - wait
+                          - subworkflow
+                      config:
+                        type: object
+                        additionalProperties: {}
+                      inputs:
+                        type: array
+                        items:
+                          type: string
+                      outputs:
+                        type: array
+                        items:
+                          type: string
+                    required:
+                      - id
+                      - name
+                      - type
+                      - config
+                      - inputs
+                      - outputs
+                    additionalProperties: false
+                  minItems: 1
+                edges:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                      from:
+                        type: string
+                      to:
+                        type: string
+                      condition:
+                        type: string
+                    required:
+                      - id
+                      - from
+                      - to
+                    additionalProperties: false
+                variables:
+                  type: object
+                  additionalProperties: {}
+                timeout:
+                  type: integer
+                  minimum: 1000
+                  maximum: 86400000
+                  default: 60000
+                retryPolicy:
+                  type: object
+                  properties:
+                    maxRetries:
+                      type: integer
+                      minimum: 0
+                      maximum: 10
+                      default: 3
+                    initialDelay:
+                      type: integer
+                      minimum: 100
+                      default: 1000
+                    maxDelay:
+                      type: integer
+                      minimum: 1000
+                      default: 60000
+                    multiplier:
+                      type: number
+                      minimum: 1
+                      default: 2
+                  additionalProperties: false
+              required:
+                - name
+                - version
+                - nodes
+                - edges
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/workflows/executions/{executionId}:
+    get:
+      summary: Get workflow execution status
+      tags:
+        - workflows
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: executionId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/workflows/{id}:
+    get:
+      summary: Get workflow by ID
+      tags:
+        - workflows
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/workflows/{id}/execute:
+    post:
+      summary: Execute a workflow
+      tags:
+        - workflows
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                input:
+                  type: object
+                  additionalProperties: {}
+              additionalProperties: false
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response

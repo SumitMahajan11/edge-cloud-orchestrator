@@ -4,6 +4,7 @@ import path from 'path';
 import { promisify } from 'util';
 
 import { createLogger } from '../lib/logger';
+import { env as appEnv } from '../config/env';
 
 const logger = createLogger('backup-manager');
 const execAsync = promisify(exec);
@@ -30,7 +31,7 @@ export class BackupManager {
 
   constructor(backupDir: string = './backups', databaseUrl?: string) {
     this.backupDir = backupDir;
-    this.databaseUrl = databaseUrl || process.env.DATABASE_URL || '';
+    this.databaseUrl = databaseUrl || appEnv.DATABASE_URL || '';
   }
 
   async createBackup(

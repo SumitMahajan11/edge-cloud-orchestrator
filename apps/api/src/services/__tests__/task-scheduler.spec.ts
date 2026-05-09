@@ -31,6 +31,21 @@ vi.mock('axios', () => ({
   AxiosError: class AxiosError extends Error {},
 }));
 
+// Mock LeaderElection
+const mockLeaderElection = {
+  start: vi.fn().mockResolvedValue(true),
+  stop: vi.fn().mockResolvedValue(undefined),
+  isCurrentlyLeader: vi.fn().mockReturnValue(true),
+};
+
+vi.mock('@edgecloud/shared-kernel', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@edgecloud/shared-kernel')>();
+  return {
+    ...actual,
+    LeaderElection: vi.fn().mockImplementation(() => mockLeaderElection),
+  };
+});
+
 describe('TaskScheduler', () => {
   let scheduler: TaskScheduler;
   let mockPrisma: Partial<PrismaClient>;
@@ -80,54 +95,29 @@ describe('TaskScheduler', () => {
 
   describe('Leader Election', () => {
     it('should attempt to become leader on start', async () => {
-      vi.mocked(mockRedis.set).mockResolvedValue('OK');
-
       await scheduler.start();
 
-      expect(mockRedis.set).toHaveBeenCalledWith(
-        'scheduler:leader:lock',
+      expect(mockLeaderElection.start).toHaveBeenCalledWith(
         expect.stringContaining('scheduler-'),
-        'PX',
-        10000,
-        'NX',
+        expect.any(Number)
       );
     });
 
     it('should handle leader election failure gracefully', async () => {
-      vi.mocked(mockRedis.set).mockResolvedValue(null);
+      mockLeaderElection.start.mockResolvedValueOnce(false);
+      mockLeaderElection.isCurrentlyLeader.mockReturnValue(false);
 
       await scheduler.start();
 
       expect(scheduler.isCurrentlyLeader()).toBe(false);
     });
 
-    it('should renew leader lock periodically', async () => {
-      vi.useFakeTimers();
-      vi.mocked(mockRedis.set).mockResolvedValue('OK');
-      vi.mocked(mockRedis.eval).mockResolvedValue(1);
+    it('should report leader status correctly', async () => {
+      mockLeaderElection.isCurrentlyLeader.mockReturnValue(true);
 
       await scheduler.start();
 
-      // Fast forward past renewal interval
-      await vi.advanceTimersByTimeAsync(6000);
-
-      expect(mockRedis.eval).toHaveBeenCalled();
-      vi.useRealTimers();
-    });
-
-    it('should release leadership on stop', async () => {
-      vi.mocked(mockRedis.set).mockResolvedValue('OK');
-      vi.mocked(mockRedis.eval).mockResolvedValue(1);
-
-      await scheduler.start();
-      await scheduler.stop();
-
-      expect(mockRedis.eval).toHaveBeenCalledWith(
-        expect.stringContaining('del'),
-        1,
-        'scheduler:leader:lock',
-        expect.any(String),
-      );
+      expect(scheduler.isCurrentlyLeader()).toBe(true);
     });
   });
 
@@ -182,14 +172,6 @@ describe('TaskScheduler', () => {
         }),
         'Task scheduler started',
       );
-    });
-
-    it('should report leader status correctly', async () => {
-      vi.mocked(mockRedis.set).mockResolvedValue('OK');
-
-      await scheduler.start();
-
-      expect(scheduler.isCurrentlyLeader()).toBe(true);
     });
   });
 });

@@ -47,11 +47,11 @@
     "@peculiar/x509": "^2.0.0",
     "@prisma/client": "^5.22.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "axios": "^1.7.2",
+    "axios": "^1.16.0",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "eventemitter3": "^5.0.0",
-    "fastify": "^4.27.0",
+    "fastify": "^4.29.1",
     "fastify-plugin": "^4.5.1",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.3",
@@ -64,7 +64,7 @@
     "uuid": "^9.0.1",
     "ws": "^8.17.0",
     "yaml": "^2.8.3",
-    "zod": "^3.23.8",
+    "zod": "^3.25.76",
     "zod-to-json-schema": "^3.23.0"
   },
   "devDependencies": {

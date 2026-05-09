@@ -1,11 +1,11 @@
-import type { Task } from '../types'
-import type { ContainerExecution, TaskContainerMapping } from '../types/docker'
-import { agentPool } from './agent-pool'
-import { circuitBreakerRegistry } from './circuit-breaker'
-import { DEFAULT_TASK_MAPPINGS,dockerClient } from './docker'
-import { webhookManager } from './webhook'
+import type { Task } from '../../types'
+import type { ContainerExecution, TaskContainerMapping } from '../../types/docker'
+import { agentPool } from '../agent-pool'
+import { circuitBreakerRegistry } from '../circuit-breaker'
+import { DEFAULT_TASK_MAPPINGS,dockerClient } from '../docker'
+import { webhookManager } from '../webhook'
 
-class TaskExecutor {
+export class TaskExecutor {
   private executions: Map<string, ContainerExecution> = new Map()
   private taskMappings: TaskContainerMapping[] = DEFAULT_TASK_MAPPINGS
 

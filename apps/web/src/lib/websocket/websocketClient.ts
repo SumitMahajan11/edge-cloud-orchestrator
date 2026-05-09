@@ -290,7 +290,9 @@ class WebSocketClient {
 }
 
 // Singleton instance
-import { config } from './realApi'
+const config = {
+  wsUrl: (process.env.NEXT_PUBLIC_WS_URL as string) || 'ws://localhost:3090/ws'
+}
 
 export const wsClient = new WebSocketClient(config.wsUrl)
 

@@ -21,12 +21,12 @@ export default async function alertRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request) => {
+    async (request, _reply) => {
       const alerting = getAlertingService();
       if (!alerting) {
         return { alerts: [] };
       }
-      return { alerts: alerting.getAlertHistory(request.query.severity) };
+      return { alerts: alerting.getAlertHistory(request.user!.tenantId!, request.query.severity) };
     },
   );
 
@@ -40,12 +40,15 @@ export default async function alertRoutes(fastify: FastifyInstance) {
         summary: 'Clear alert history',
       },
     },
-    async () => {
+    async (request, reply) => {
       const alerting = getAlertingService();
       if (!alerting) {
-        return { success: false, message: 'Alerting not initialized' };
+        return reply.status(500).send({ 
+          code: 'SERVICE_UNAVAILABLE', 
+          message: 'Alerting not initialized' 
+        });
       }
-      alerting.clearHistory();
+      alerting.clearHistory(request.user!.tenantId!);
       return { success: true, message: 'Alert history cleared' };
     },
   );
@@ -75,10 +78,13 @@ export default async function alertRoutes(fastify: FastifyInstance) {
         },
       },
     },
-    async (request) => {
+    async (request, reply) => {
       const alerting = getAlertingService();
       if (!alerting) {
-        return { success: false, message: 'Alerting not initialized' };
+        return reply.status(500).send({ 
+          code: 'SERVICE_UNAVAILABLE', 
+          message: 'Alerting not initialized' 
+        });
       }
 
       await alerting.alert(
@@ -86,9 +92,11 @@ export default async function alertRoutes(fastify: FastifyInstance) {
         request.body.title,
         request.body.message,
         'test',
+        request.user!.tenantId!,
       );
 
       return { success: true, message: 'Test alert sent' };
     },
   );
 }
+

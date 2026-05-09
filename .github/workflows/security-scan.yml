@@ -1,0 +1,102 @@
+name: Security Scan
+
+on:
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sunday
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  trivy:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: [api, agent, web]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Build local image for scan
+        run: docker build -t ${{ matrix.app }}:scan -f apps/${{ matrix.app }}/Dockerfile .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ matrix.app }}:scan'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: returntocorp/semgrep
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Run Semgrep
+        run: semgrep scan --config auto --error
+
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: 'Edge-Cloud Orchestrator'
+          path: '.'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --enableRetired
+      - name: Upload Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports
+
+  kubernetes-audit:
+    name: K8s Manifest Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install kube-score
+        run: |
+          KUBE_SCORE_VERSION=$(curl -s https://api.github.com/repos/zegl/kube-score/releases/latest | jq -r .tag_name)
+          curl -LO https://github.com/zegl/kube-score/releases/download/${KUBE_SCORE_VERSION}/kube-score_${KUBE_SCORE_VERSION:1}_linux_amd64.tar.gz
+          tar xzf kube-score_${KUBE_SCORE_VERSION:1}_linux_amd64.tar.gz
+          sudo mv kube-score /usr/local/bin/
+
+      - name: Install Polaris
+        run: |
+          curl -L https://github.com/FairwindsOps/polaris/releases/latest/download/polaris_linux_amd64.tar.gz | tar xz
+          sudo mv polaris /usr/local/bin/
+
+      - name: Run kube-score
+        run: kube-score score infra/k8s/base/deployments/*.yaml --exit-code 1
+
+      - name: Run Polaris
+        run: polaris audit --directory infra/k8s/ --config .polaris.yaml --fail-on-severity warning

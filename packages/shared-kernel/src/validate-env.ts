@@ -16,6 +16,7 @@ export const baseEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   JWT_SECRET: z.string().min(32, 'JWT_SECRET must be at least 32 characters'),
   LOG_LEVEL: z.enum(['fatal', 'error', 'warn', 'info', 'debug', 'trace']).default('info'),
+  VITEST: z.string().optional(),
 });
 
 export type BaseEnv = z.infer<typeof baseEnvSchema>;

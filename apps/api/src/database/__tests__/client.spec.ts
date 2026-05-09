@@ -7,29 +7,36 @@ vi.mock('@prisma/client', () => ({
     $connect: vi.fn().mockResolvedValue(undefined),
     $disconnect: vi.fn().mockResolvedValue(undefined),
     $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
-    $transaction: vi.fn((cb) => cb()),
+    $transaction: vi.fn((cb: any) => cb()),
     ...options,
   })),
 }));
 
-describe('PrismaClientWithReplicas', () => {
-  const originalEnv = { ...process.env };
+let mockEnv = {
+  DATABASE_URL: 'postgresql://primary:5432/db',
+  DATABASE_READ_URL: 'postgresql://replica:5432/db',
+  NODE_ENV: 'test'
+};
 
+vi.mock('../../config/env', () => ({
+  get env() { return mockEnv; }
+}));
+
+describe('PrismaClientWithReplicas', () => {
   beforeEach(() => {
-    vi.resetModules();
     vi.clearAllMocks();
-    process.env = { ...originalEnv };
+    mockEnv = {
+      DATABASE_URL: 'postgresql://primary:5432/db',
+      DATABASE_READ_URL: 'postgresql://replica:5432/db',
+      NODE_ENV: 'test'
+    };
     // Clear global singleton
     (global as any).prisma = undefined;
   });
 
-  afterEach(() => {
-    process.env = originalEnv;
-  });
-
   it('should create primary client when no read replica configured', async () => {
-    process.env.DATABASE_URL = 'postgresql://primary:5432/db';
-    delete process.env.DATABASE_READ_URL;
+    vi.resetModules();
+    mockEnv.DATABASE_READ_URL = '';
 
     const { prisma } = await import('../client.js');
 
@@ -38,9 +45,7 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should create separate read replica when configured', async () => {
-    process.env.DATABASE_URL = 'postgresql://primary:5432/db';
-    process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
-
+    vi.resetModules();
     const { prisma: _prisma } = await import('../client.js');
 
     // Should create two clients
@@ -59,9 +64,7 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should connect to both primary and replica', async () => {
-    process.env.DATABASE_URL = 'postgresql://primary:5432/db';
-    process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
-
+    vi.resetModules();
     const { prisma } = await import('../client.js');
     await prisma.$connect();
 
@@ -71,9 +74,7 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should disconnect from both clients', async () => {
-    process.env.DATABASE_URL = 'postgresql://primary:5432/db';
-    process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
-
+    vi.resetModules();
     const { prisma } = await import('../client.js');
     await prisma.$disconnect();
 
@@ -82,8 +83,6 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should pass health check when both connections work', async () => {
-    process.env.DATABASE_URL = 'postgresql://primary:5432/db';
-    process.env.DATABASE_READ_URL = 'postgresql://replica:5432/db';
 
     const { prisma } = await import('../client.js');
 
@@ -94,7 +93,6 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should expose $transaction on primary client', async () => {
-    process.env.DATABASE_URL = 'postgresql://primary:5432/db';
 
     const { prisma } = await import('../client.js');
 

@@ -43,6 +43,7 @@ export interface AffinityConstraint {
 export class ResourceReservationManager extends EventEmitter {
   private reservations: Map<string, ResourceReservation> = new Map();
   private nodeReservations: Map<string, Set<string>> = new Map();
+  private reservationTimers: Map<string, NodeJS.Timeout> = new Map();
 
   async createReservation(
     taskId: string,
@@ -71,9 +72,10 @@ export class ResourceReservationManager extends EventEmitter {
     this.emit('reservationCreated', reservation);
 
     // Auto-expire reservation
-    setTimeout(() => {
+    const timer = setTimeout(() => {
       this.releaseReservation(reservation.id);
     }, ttlSeconds * 1000);
+    this.reservationTimers.set(reservation.id, timer);
 
     return reservation;
   }
@@ -92,6 +94,13 @@ export class ResourceReservationManager extends EventEmitter {
     const reservation = this.reservations.get(reservationId);
     if (!reservation) {return;}
 
+    // Clear timer
+    const timer = this.reservationTimers.get(reservationId);
+    if (timer) {
+      clearTimeout(timer);
+      this.reservationTimers.delete(reservationId);
+    }
+
     reservation.status = 'RELEASED';
 
     // Remove from node tracking
@@ -102,6 +111,16 @@ export class ResourceReservationManager extends EventEmitter {
 
     this.emit('reservationReleased', reservation);
     this.reservations.delete(reservationId);
+  }
+
+  /**
+   * Stop the manager and clear all pending reservation timers
+   */
+  stop(): void {
+    for (const timer of this.reservationTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.reservationTimers.clear();
   }
 
   getNodeReservedResources(nodeId: string): { cpu: number; memory: number; gpu: number } {

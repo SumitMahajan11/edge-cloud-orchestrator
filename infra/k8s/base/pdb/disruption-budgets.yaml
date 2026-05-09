@@ -1,6 +1,17 @@
 apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
+  name: api-pdb
+  namespace: edgecloud
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: api
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
   name: scheduler-pdb
   namespace: edgecloud
 spec:
@@ -19,3 +30,25 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: task-service
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: redis-pdb
+  namespace: edgecloud
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      app: redis
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: postgres-pdb
+  namespace: edgecloud
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: postgres

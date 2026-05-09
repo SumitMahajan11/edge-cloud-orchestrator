@@ -4,12 +4,13 @@ import jwt from 'jsonwebtoken';
 import type { Logger } from 'pino';
 import { v4 as uuidv4 } from 'uuid';
 import { WebSocket } from 'ws';
+import { env } from '../config/env';
 
 // JWT_SECRET must be set - validated in index.ts
-const JWT_SECRET = process.env.JWT_SECRET!;
+const getJwtSecret = () => env.JWT_SECRET;
 
 // WebSocket authentication timeout
-const AUTH_TIMEOUT = 10000; // 10 seconds to authenticate
+// const AUTH_TIMEOUT = 10000; // 10 seconds to authenticate
 
 const HEARTBEAT_INTERVAL = 30000; // 30 seconds
 const HEARTBEAT_TIMEOUT = 60000; // 60 seconds - close if no response
@@ -20,10 +21,11 @@ interface Client {
   ws: WebSocket;
   subscriptions: Set<string>;
   isAuthenticated: boolean;
-  userId?: string;
+  userId?: string | undefined;
   connectedAt: Date;
   lastPing: Date;
   isAlive: boolean;
+  tenantId?: string | undefined;
 }
 
 interface Message {
@@ -36,15 +38,15 @@ interface ClusterMessage {
   instanceId: string;
   channel: string;
   payload: unknown;
-  excludeSender?: string;
+  excludeSender?: string | undefined;
 }
 
 export class WebSocketManager {
   private clients: Map<string, Client> = new Map();
   private logger: Logger;
   private heartbeatInterval: ReturnType<typeof setInterval> | null = null;
-  private redis?: Redis;
-  private redisSubscriber?: Redis;
+  private redis: Redis | undefined;
+  private redisSubscriber: Redis | undefined;
   private instanceId: string;
 
   constructor(logger: Logger, redis?: Redis) {
@@ -167,105 +169,110 @@ export class WebSocketManager {
     }, HEARTBEAT_INTERVAL);
   }
 
-  handleConnection(ws: WebSocket, _req: IncomingMessage) {
+  handleConnection(ws: WebSocket, req: IncomingMessage) {
     const clientId = uuidv4();
-    const client: Client = {
-      id: clientId,
-      ws,
-      subscriptions: new Set(),
-      isAuthenticated: false,
-      connectedAt: new Date(),
-      lastPing: new Date(),
-      isAlive: true,
-    };
 
-    this.clients.set(clientId, client);
-    this.logger.info(
-      { clientId, totalClients: this.clients.size },
-      'WebSocket client connected',
-    );
+    // Extract token from Authorization header or ?token= query parameter
+    const authHeader = req.headers.authorization;
+    const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
+    const queryToken = url.searchParams.get('token');
 
-    // Send welcome message with auth requirement
-    this.sendToClient(client, 'connected', {
-      clientId,
-      message:
-        'Please authenticate within 10 seconds using { type: "authenticate", payload: { token: "your-jwt" } }',
-    });
+    let token = queryToken;
+    if (!token && authHeader?.startsWith('Bearer ')) {
+      token = authHeader.substring(7);
+    }
 
-    // Set authentication timeout
-    const authTimeout = setTimeout(() => {
-      if (!client.isAuthenticated) {
-        this.logger.warn(
-          { clientId },
-          'WebSocket client failed to authenticate in time',
-        );
-        try {
-          // Send error message before closing
-          if (ws.readyState === WebSocket.OPEN) {
-            ws.send(
-              JSON.stringify({
-                type: 'error',
-                payload: { message: 'Authentication timeout' },
-                timestamp: new Date().toISOString(),
-              }),
-            );
-            // Use code 1008 (policy violation) for auth failure
-            ws.close(1008);
-          }
-        } catch (error) {
-          // Socket may already be closed
-        }
-        this.clients.delete(clientId);
-      }
-    }, AUTH_TIMEOUT);
+    if (!token) {
+      this.logger.warn({ clientId }, 'WebSocket connection rejected: No token provided');
+      ws.close(4001, 'Unauthorized');
+      return;
+    }
 
-    // Handle pong responses
-    ws.on('pong', () => {
-      client.isAlive = true;
-      client.lastPing = new Date();
-    });
+    try {
+      // Verify JWT using the same secret as the REST auth plugin
+      const decoded = jwt.verify(token, getJwtSecret()) as {
+        id: string;
+        email: string;
+        role: string;
+        tenantId?: string;
+      };
 
-    ws.on('message', (data: Buffer) => {
-      // Mark as alive on any message
-      client.isAlive = true;
-      client.lastPing = new Date();
+      const client: Client = {
+        id: clientId,
+        ws,
+        subscriptions: new Set(),
+        isAuthenticated: true,
+        userId: decoded.id,
+        connectedAt: new Date(),
+        lastPing: new Date(),
+        isAlive: true,
+        tenantId: decoded.tenantId,
+      };
 
-      try {
-        const message = JSON.parse(data.toString());
-        this.handleMessage(client, message, authTimeout);
-      } catch (error) {
-        this.logger.warn(
-          { clientId, error },
-          'Failed to parse WebSocket message',
-        );
-        this.sendToClient(client, 'error', {
-          message: 'Invalid message format',
-        });
-      }
-    });
-
-    ws.on('close', () => {
-      clearTimeout(authTimeout);
-      this.clients.delete(clientId);
+      this.clients.set(clientId, client);
       this.logger.info(
-        { clientId, totalClients: this.clients.size },
-        'WebSocket client disconnected',
+        { clientId, userId: decoded.id, totalClients: this.clients.size },
+        'WebSocket client connected and authenticated',
       );
-    });
 
-    ws.on('error', (error) => {
-      this.logger.error({ clientId, error }, 'WebSocket error');
-      this.clients.delete(clientId);
-    });
+      // Send welcome message
+      this.sendToClient(client, 'connected', {
+        clientId,
+        userId: decoded.id,
+      });
+
+      // Handle pong responses
+      ws.on('pong', () => {
+        client.isAlive = true;
+        client.lastPing = new Date();
+      });
+
+      ws.on('message', (data: Buffer) => {
+        // Mark as alive on any message
+        client.isAlive = true;
+        client.lastPing = new Date();
+
+        try {
+          const message = JSON.parse(data.toString());
+          this.handleMessage(client, message);
+        } catch (error) {
+          this.logger.warn(
+            { clientId, error },
+            'Failed to parse WebSocket message',
+          );
+          this.sendToClient(client, 'error', {
+            message: 'Invalid message format',
+          });
+        }
+      });
+
+      ws.on('close', () => {
+        this.clients.delete(clientId);
+        this.logger.info(
+          { clientId, totalClients: this.clients.size },
+          'WebSocket client disconnected',
+        );
+      });
+
+      ws.on('error', (error) => {
+        this.logger.error({ clientId, error }, 'WebSocket error');
+        this.clients.delete(clientId);
+      });
+    } catch (error) {
+      this.logger.warn(
+        { clientId, error: (error as Error).message },
+        'WebSocket connection rejected: Invalid token',
+      );
+      ws.close(4001, 'Unauthorized');
+    }
   }
 
   private handleMessage(
     client: Client,
     message: { type: string; payload?: unknown },
-    authTimeout: ReturnType<typeof setTimeout>,
   ) {
-    // Require authentication for all messages except 'authenticate'
-    if (message.type !== 'authenticate' && !client.isAuthenticated) {
+    // Require authentication for all messages
+    if (!client.isAuthenticated) {
       this.sendToClient(client, 'error', {
         message: 'Authentication required',
       });
@@ -280,13 +287,6 @@ export class WebSocketManager {
         this.handleUnsubscribe(
           client,
           message.payload as { channels: string[] },
-        );
-        break;
-      case 'authenticate':
-        this.handleAuthenticate(
-          client,
-          message.payload as { token: string },
-          authTimeout,
         );
         break;
       case 'ping':
@@ -334,47 +334,6 @@ export class WebSocketManager {
     this.sendToClient(client, 'unsubscribed', { channels: payload.channels });
   }
 
-  private async handleAuthenticate(
-    client: Client,
-    payload: { token: string },
-    authTimeout: ReturnType<typeof setTimeout>,
-  ) {
-    try {
-      if (!payload.token) {
-        this.sendToClient(client, 'error', { message: 'Token required' });
-        client.ws.close(4001, 'Authentication required');
-        return;
-      }
-
-      const decoded = jwt.verify(payload.token, JWT_SECRET) as {
-        userId: string;
-        role?: string;
-      };
-      client.isAuthenticated = true;
-      client.userId = decoded.userId;
-
-      // Clear auth timeout on successful authentication
-      clearTimeout(authTimeout);
-
-      this.sendToClient(client, 'authenticated', {
-        success: true,
-        userId: decoded.userId,
-        role: decoded.role,
-      });
-
-      this.logger.info(
-        { clientId: client.id, userId: decoded.userId },
-        'WebSocket client authenticated',
-      );
-    } catch (error) {
-      this.logger.warn(
-        { clientId: client.id, error: (error as Error).message },
-        'WebSocket authentication failed',
-      );
-      this.sendToClient(client, 'error', { message: 'Authentication failed' });
-      client.ws.close(4001, 'Invalid token');
-    }
-  }
 
   private sendToClient(client: Client, type: string, payload: unknown) {
     if (client.ws.readyState === WebSocket.OPEN) {
@@ -447,6 +406,14 @@ export class WebSocketManager {
   broadcastToUser(userId: string, type: string, payload: unknown) {
     for (const client of this.clients.values()) {
       if (client.userId === userId && client.ws.readyState === WebSocket.OPEN) {
+        this.sendToClient(client, type, payload);
+      }
+    }
+  }
+
+  broadcastToTenant(tenantId: string, type: string, payload: unknown) {
+    for (const client of this.clients.values()) {
+      if (client.tenantId === tenantId && client.ws.readyState === WebSocket.OPEN) {
         this.sendToClient(client, type, payload);
       }
     }

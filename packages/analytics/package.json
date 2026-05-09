@@ -18,7 +18,6 @@
                 },
     "dependencies":  {
                          "@edgecloud/shared-kernel":  "workspace:*",
-                         "@edgecloud/event-bus":  "workspace:*",
                          "eventemitter3":  "^5.0.0"
                      },
     "devDependencies":  {

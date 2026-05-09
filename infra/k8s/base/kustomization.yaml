@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - namespace.yaml
+  - ../redis
   - deployments/api.yaml
   - deployments/api-gateway.yaml
   - deployments/scheduler-service.yaml
@@ -15,6 +16,9 @@ resources:
   - services/api-gateway.yaml
   - hpa/autoscalers.yaml
   - pdb/disruption-budgets.yaml
+  - ../network-policies/default-deny.yaml
+  - ../network-policies/api-policy.yaml
+  - ../network-policies/agent-policy.yaml
 
 configMapGenerator:
   - name: app-config

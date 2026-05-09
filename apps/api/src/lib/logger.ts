@@ -6,31 +6,42 @@
  */
 
 import pino from 'pino';
+import { trace } from '@opentelemetry/api';
+import { env } from '../config/env';
 
 // Configure log level based on environment
-const logLevel = process.env.LOG_LEVEL || 'info';
-const logFormat = process.env.LOG_FORMAT || 'pretty';
+const logLevel = env.LOG_LEVEL;
+const logFormat = env.LOG_FORMAT;
 
 // Create logger instance
 export const logger = pino({
   level: logLevel,
+  // Inject OpenTelemetry context automatically
+  mixin() {
+    const span = trace.getActiveSpan();
+    if (!span) return {};
+    
+    const { traceId, spanId } = span.spanContext();
+    return { traceId, spanId };
+  },
   // Pretty print in development, JSON in production
-  transport:
-    logFormat === 'pretty' && process.env.NODE_ENV !== 'production'
-      ? {
+  ...(logFormat === 'pretty' && env.NODE_ENV !== 'production'
+    ? {
+        transport: {
           target: 'pino-pretty',
           options: {
             colorize: true,
             translateTime: 'HH:MM:ss Z',
             ignore: 'pid,hostname',
           },
-        }
-      : undefined,
+        },
+      }
+    : {}),
   // Add standard fields for log aggregation
   base: {
     service: 'edge-cloud-orchestrator',
     version: '1.0.0',
-    environment: process.env.NODE_ENV || 'development',
+    environment: env.NODE_ENV,
   },
   // Redact sensitive fields
   redact: {

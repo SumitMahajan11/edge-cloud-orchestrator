@@ -1,4 +1,6 @@
 import 'reflect-metadata';
+import { initTracing } from '@edgecloud/observability';
+initTracing('api', process.env.npm_package_version || '1.0.0');
 import { env } from './config/env';
 import { 
   initTelemetry, 
@@ -95,10 +97,12 @@ let lastRedisHealthy: number = Date.now();
 let webhookRetryJob: WebhookRetryJob;
 let consistencyCheckerJob: ConsistencyCheckerJob;
 
+const isDevelopment = env.NODE_ENV !== 'production';
+
 // Fastify instance
 const app = Fastify({
   logger: false,
-  trustProxy: true,
+  trustProxy: env.TRUST_PROXY || (isDevelopment ? true : false),
   pluginTimeout: API_CONSTANTS.PLUGIN_TIMEOUT_MS,
   bodyLimit: API_CONSTANTS.BODY_LIMIT_BYTES,
 });
@@ -113,6 +117,42 @@ app.decorate('authenticate', function(this: any, request: any, reply: any) {
 app.decorate('requireRole', function(this: any, ...roles: any[]) {
   return authState.requireRole(...roles);
 });
+
+/**
+ * Global 'Default Deny' Authentication Hook
+ * 
+ * This hook runs before any route-level preHandlers.
+ * It enforces authentication for all routes unless they are explicitly
+ * marked as public in their route configuration.
+ */
+  app.addHook('preHandler', async (request, reply) => {
+    // 1. Check if route is explicitly marked as public
+    const isPublic = request.routeOptions.config?.public === true;
+    if (isPublic) return;
+
+    // 2. Public health and documentation routes (bypass by path pattern)
+    const url = request.url;
+    if (
+      url.startsWith('/health') || 
+      url === '/version' || 
+      url.startsWith('/docs') ||
+      url === '/ws'
+    ) {
+      return;
+    }
+
+    // 3. Default Deny: Authenticate if not explicitly public
+    // This ensures that any newly added routes are secure by default.
+    try {
+      await (app as any).authenticate(request, reply);
+    } catch (err: any) {
+      request.log.error({ err, url }, 'Global authentication hook failed');
+      return reply.status(401).send({ 
+        error: 'Authentication required',
+        message: 'This endpoint is protected by Default Deny policy.'
+      });
+    }
+  });
 
 
 app.addHook('onRequest', async (request: any, reply: any) => {
@@ -167,7 +207,6 @@ app.addHook('onError', async (request, _reply, error) => {
 
 
 
-const isDevelopment = env.NODE_ENV !== 'production';
 
 // Register plugins
 async function registerPlugins() {
@@ -406,6 +445,15 @@ async function registerRoutes() {
   await app.register(v1Routes, { prefix: '/v1' });
 
   // API V2 Routes
+  // Debug route for mock DB
+  app.get('/debug/nodes', async () => {
+    if (env.FORCE_MOCK_DB) {
+      const { mockNodes } = await import('./initializers/mock-prisma');
+      return { count: mockNodes.size, nodeIds: Array.from(mockNodes.keys()) };
+    }
+    return { error: 'Mock DB not enabled' };
+  });
+
   await app.register(v2Routes, { prefix: '/v2' });
 
   // OpenAPI Spec Generation (CLI mode)
@@ -641,14 +689,27 @@ export async function init(overrides: any = {}) {
   // Environment validation is handled by config/env.ts on import
 
   const jwtSecretStr = await secretManagerInstance.getSecret('JWT_SECRET') || env.JWT_SECRET || '';
-  if (jwtSecretStr.length < 32 && env.NODE_ENV === 'production') {
-    logger.fatal('JWT_SECRET must be at least 32 characters long in production');
+  if (jwtSecretStr.length < 32) {
+    logger.fatal('JWT_SECRET must be at least 32 characters long for cryptographic security');
     process.exit(1);
-  } else if (jwtSecretStr.length < 32) {
-    logger.warn('JWT_SECRET is shorter than 32 characters. This is insecure for production use.');
   }
 
-  const dbUrl = await secretManager.getSecret('DATABASE_URL');
+  const weakPatterns = ['demo', 'test', 'secret', 'password', '123456'];
+  if (weakPatterns.some(p => jwtSecretStr.toLowerCase().includes(p))) {
+    if (env.NODE_ENV === 'production') {
+      logger.fatal('JWT_SECRET contains a weak pattern and is forbidden in production');
+      process.exit(1);
+    } else {
+      logger.warn('JWT_SECRET contains a weak pattern - acceptable ONLY for local development');
+    }
+  }
+
+  const dbUrl = await secretManagerInstance.getSecret('DATABASE_URL') || env.DATABASE_URL || '';
+  if (env.NODE_ENV === 'production' && !dbUrl.includes('sslmode=') && !dbUrl.includes('ssl=true')) {
+    logger.fatal('DATABASE_URL must use SSL in production (e.g., sslmode=require)');
+    process.exit(1);
+  }
+
   const forceMock = env.FORCE_MOCK_DB;
   const useMockDb = isDevelopment && (!dbUrl || forceMock);
   
@@ -722,7 +783,7 @@ export async function init(overrides: any = {}) {
       zrevrange: async (key: string, start: number, stop: number) => {
         const set = zsets.get(key) || [];
         const result = set.sort((a, b) => b.score - a.score).slice(start, stop === -1 ? undefined : stop + 1).map(i => i.member);
-        logger.debug({ key, start, stop, count: result.length, first: result[0] }, '[Redis Mock] zrevrange');
+        logger.info({ key, start, stop, count: result.length, first: result[0] }, '[Redis Mock] zrevrange');
         return result;
       },
       zrangebyscore: async (key: string, min: number | string, max: number | string) => {
@@ -731,23 +792,37 @@ export async function init(overrides: any = {}) {
         const maxVal = typeof max === 'string' ? Infinity : max;
         return set.filter(i => i.score >= minVal && i.score <= maxVal).map(i => i.member);
       },
+      zpopmin: async (key: string, count: number = 1) => {
+        const set = zsets.get(key) || [];
+        set.sort((a, b) => a.score - b.score);
+        const popped = set.splice(0, count);
+        const result: (string | number)[] = [];
+        popped.forEach(p => {
+          result.push(p.member);
+          result.push(p.score);
+        });
+        logger.debug({ key, count, popped: popped.length }, '[Redis Mock] zpopmin');
+        return result;
+      },
+      zcard: async (key: string) => {
+        return (zsets.get(key) || []).length;
+      },
       zadd: async (key: string, score: number, member: string) => {
-        logger.debug({ key, score, member }, '[Redis Mock] zadd');
+        logger.info({ key, score, member }, '[Redis Mock] zadd');
         let set = zsets.get(key);
         if (!set) { set = []; zsets.set(key, set); }
         const existing = set.find(i => i.member === member);
         if (existing) { existing.score = score; } else { set.push({ member, score }); }
         return 1;
       },
-      zrem: async (key: string, member: string) => {
-        const set = zsets.get(key);
-        if (!set) return 0;
+      zrem: async (key: string, ...members: string[]) => {
+        const set = zsets.get(key) || [];
         const initialLen = set.length;
-        const newSet = set.filter(i => i.member !== member);
-        zsets.set(key, newSet);
-        return initialLen - newSet.length;
+        const memberSet = new Set(members);
+        const filtered = set.filter(i => !memberSet.has(i.member));
+        zsets.set(key, filtered);
+        return initialLen - filtered.length;
       },
-      zcard: async (key: string) => (zsets.get(key) || []).length,
       zrank: async (key: string, member: string) => {
         const set = zsets.get(key) || [];
         const index = set.sort((a, b) => a.score - b.score).findIndex(i => i.member === member);
@@ -814,9 +889,25 @@ export async function init(overrides: any = {}) {
     }) as any;
     const { SLAMonitor } = await import('./services/sla-monitor.js');
     new SLAMonitor(prisma, redis);
+
+    // Mock LeaderElection to always be leader in mock mode
+    const { LeaderElection } = await import('@edgecloud/shared-kernel');
+    LeaderElection.prototype.start = async function(id: string) {
+      console.log(`[MockLeaderElection] start called for ${id}`);
+      (this as any).isLeader = true;
+      this.emit('leadership-acquired');
+      return true;
+    };
+    LeaderElection.prototype.isCurrentlyLeader = function() {
+      // console.log('[MockLeaderElection] isCurrentlyLeader called - returning true');
+      return true;
+    };
   }
 
   wsManager = new WebSocketManager(logger, redis);
+  const { setWebSocketManager } = await import('./utils/circuit-breakers.ts');
+  setWebSocketManager(wsManager);
+  
   heartbeatMonitor = new HeartbeatMonitor(prisma, redis, wsManager, logger);
   idempotencyService = new IdempotencyService(prisma, redis, logger);
   priorityScheduler = new PriorityScheduler(redis, logger);
@@ -851,6 +942,14 @@ export async function init(overrides: any = {}) {
     consistencyCheckerJob.start();
     
     await initializeServices(app, prisma, redis, logger, idempotencyService);
+
+    // Monitor mock DB size
+    if (env.FORCE_MOCK_DB) {
+      setInterval(async () => {
+        const { mockNodes } = await import('./initializers/mock-prisma');
+        logger.info({ count: mockNodes.size }, '[Debug] mockNodes size');
+      }, 5000);
+    }
     
     return app;
   } catch (err) {

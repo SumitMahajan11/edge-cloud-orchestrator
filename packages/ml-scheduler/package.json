@@ -18,8 +18,10 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@edgecloud/observability": "workspace:*",
+    "@aws-sdk/client-s3": "^3.1038.0",
+    "@aws-sdk/lib-storage": "^3.1038.0",
     "@edgecloud/shared-kernel": "workspace:*",
+    "@prisma/client": "^5.14.0",
     "@tensorflow/tfjs-node": "^4.15.0",
     "@types/pg": "^8.20.0",
     "ioredis": "^5.4.1",

@@ -15,7 +15,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         summary: 'Get cost summary',
       },
     },
-    async (_request, _reply) => {
+    async (request, _reply) => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const startOfLastMonth = new Date(
@@ -25,18 +25,23 @@ export default async function costRoutes(fastify: FastifyInstance) {
       );
 
       const [currentMonth, lastMonth, byResourceType] = await Promise.all([
-        fastify.prisma.costRecord.aggregate({
-          where: { recordedAt: { gte: startOfMonth } },
-          _sum: { cost: true },
-        }),
-        fastify.prisma.costRecord.aggregate({
-          where: {
-            recordedAt: { gte: startOfLastMonth, lt: startOfMonth },
+        (fastify.prisma as any).costRecord.aggregate({
+          where: { 
+            recordedAt: { gte: startOfMonth },
+            tenantId: request.user!.tenantId!
           },
           _sum: { cost: true },
         }),
-        fastify.prisma.costRecord.groupBy({
+        (fastify.prisma as any).costRecord.aggregate({
+          where: {
+            recordedAt: { gte: startOfLastMonth, lt: startOfMonth },
+            tenantId: request.user!.tenantId!
+          },
+          _sum: { cost: true },
+        }),
+        (fastify.prisma as any).costRecord.groupBy({
           by: ['resourceType'],
+          where: { tenantId: request.user!.tenantId! },
           _sum: { cost: true },
         }),
       ]);
@@ -51,7 +56,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         lastMonth: lastTotal,
         changePercent: change.toFixed(2),
         byResourceType: byResourceType.reduce(
-          (acc, r) => ({
+          (acc: any, r: any) => ({
             ...acc,
             [r.resourceType]: r._sum.cost || 0,
           }),
@@ -81,8 +86,9 @@ export default async function costRoutes(fastify: FastifyInstance) {
         granularity: _granularity,
       } = request.query;
 
-      const records = await fastify.prisma.costRecord.findMany({
+      const records = await (fastify.prisma as any).costRecord.findMany({
         where: {
+          tenantId: request.user!.tenantId!,
           ...(nodeId && { nodeId }),
           ...(resourceType && { resourceType }),
           ...(from && { recordedAt: { gte: new Date(from) } }),
@@ -106,26 +112,27 @@ export default async function costRoutes(fastify: FastifyInstance) {
         summary: 'Get cost breakdown by node',
       },
     },
-    async (_request, _reply) => {
-      const byNode = await fastify.prisma.costRecord.groupBy({
+    async (request, _reply) => {
+      const byNode = await (fastify.prisma as any).costRecord.groupBy({
         by: ['nodeId'],
+        where: { tenantId: request.user!.tenantId! },
         _sum: { cost: true },
         _count: true,
       });
 
       // Get node names
-      const nodeIds = byNode.map((n) => n.nodeId).filter(Boolean) as string[];
+      const nodeIds = byNode.map((n: any) => n.nodeId).filter(Boolean) as string[];
       const nodes = await fastify.prisma.edgeNode.findMany({
-        where: { id: { in: nodeIds } },
+        where: { id: { in: nodeIds }, tenantId: request.user!.tenantId! },
         select: { id: true, name: true, region: true },
       });
 
       const nodeMap = nodes.reduce(
-        (acc, n) => ({ ...acc, [n.id]: n }),
+        (acc: any, n: any) => ({ ...acc, [n.id]: n }),
         {} as Record<string, (typeof nodes)[0]>,
       );
 
-      return byNode.map((n) => ({
+      return byNode.map((n: any) => ({
         nodeId: n.nodeId,
         node: n.nodeId ? nodeMap[n.nodeId] : null,
         totalCost: n._sum.cost || 0,
@@ -144,7 +151,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         summary: 'Get cost projections',
       },
     },
-    async (_request, _reply) => {
+    async (request, _reply) => {
       const now = new Date();
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
       const dayOfMonth = now.getDate();
@@ -154,8 +161,11 @@ export default async function costRoutes(fastify: FastifyInstance) {
         0,
       ).getDate();
 
-      const monthToDate = await fastify.prisma.costRecord.aggregate({
-        where: { recordedAt: { gte: startOfMonth } },
+      const monthToDate = await (fastify.prisma as any).costRecord.aggregate({
+        where: { 
+          recordedAt: { gte: startOfMonth },
+          tenantId: request.user!.tenantId!
+        },
         _sum: { cost: true },
       });
 
@@ -172,3 +182,4 @@ export default async function costRoutes(fastify: FastifyInstance) {
     },
   );
 }
+

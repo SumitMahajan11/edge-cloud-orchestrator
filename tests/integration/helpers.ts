@@ -25,26 +25,35 @@ export interface TestContext {
 export async function setupTestApp(): Promise<TestContext> {
   // Use test database URL
   process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/edge_cloud_test'
-  process.env.JWT_SECRET = 'test-jwt-secret-key'
+  process.env.JWT_SECRET = 'test-jwt-secret-key-with-at-least-32-characters'
+  process.env.ENCRYPTION_KEY = 'test-encryption-key-with-at-least-32-characters'
   process.env.NODE_ENV = 'test'
+  process.env.FORCE_MOCK_DB = 'true'
+  process.env.FORCE_MOCK_REDIS = 'true'
   
-  const { buildApp } = await import('../../backend/src/app')
+  let buildApp;
+  try {
+    const apiModule = await import('../../apps/api/src/index.ts');
+    buildApp = apiModule.init;
+  } catch (err) {
+    console.error('Failed to import API module:', err);
+    throw err;
+  }
   
-  testApp = await buildApp({
-    logger: false,
-  })
-  
-  testPrisma = new PrismaClient({
-    datasourceUrl: process.env.DATABASE_URL,
-  })
-  
-  // Run migrations
-  await testPrisma.$executeRaw`CREATE SCHEMA IF NOT EXISTS public`
+  try {
+    console.log('[setupTestApp] Building app...');
+    testApp = await buildApp();
+    testPrisma = (testApp as any).prisma;
+  } catch (err) {
+    console.error('Failed to initialize test app:', err);
+    throw err;
+  }
   
   // Create test admin user
   const bcrypt = await import('bcryptjs')
   const passwordHash = await bcrypt.hash('testpassword123', 12)
   
+  console.log('[setupTestApp] Upserting admin user...');
   const user = await testPrisma.user.upsert({
     where: { email: 'test-admin@edgecloud.io' },
     update: {},
@@ -58,21 +67,25 @@ export async function setupTestApp(): Promise<TestContext> {
   })
   
   // Login to get tokens
+  console.log('[setupTestApp] Logging in...');
   const loginRes = await testApp.inject({
     method: 'POST',
-    url: '/api/auth/login',
+    url: '/v1/auth/login',
     payload: {
       email: 'test-admin@edgecloud.io',
       password: 'testpassword123',
     },
   })
   
+  console.log('[setupTestApp] Parsing login response...');
+  console.log('[setupTestApp] Payload:', loginRes.payload);
   const tokens = JSON.parse(loginRes.payload)
+  console.log('[setupTestApp] Tokens:', JSON.stringify(tokens));
   
   return {
     app: testApp!,
     prisma: testPrisma!,
-    accessToken: tokens.accessToken,
+    accessToken: tokens.token,
     refreshToken: tokens.refreshToken,
     userId: user.id,
   }
@@ -81,9 +94,14 @@ export async function setupTestApp(): Promise<TestContext> {
 /**
  * Teardown test application
  */
-export async function teardownTestApp(ctx: TestContext): Promise<void> {
+export async function teardownTestApp(ctx?: TestContext): Promise<void> {
+  if (!ctx) {
+    console.warn('teardownTestApp called without context');
+    return;
+  }
   // Clean up test data
   if (ctx.prisma) {
+    await ctx.prisma.taskExecution.deleteMany({})
     await ctx.prisma.taskLog.deleteMany({})
     await ctx.prisma.task.deleteMany({})
     await ctx.prisma.edgeNode.deleteMany({})
@@ -128,7 +146,7 @@ export async function createTestTask(
 ): Promise<any> {
   const response = await ctx.app.inject({
     method: 'POST',
-    url: '/api/tasks',
+    url: '/v1/tasks',
     headers: { Authorization: `Bearer ${ctx.accessToken}` },
     payload: {
       name: 'Test Task',
@@ -154,7 +172,7 @@ export async function createTestNode(
 ): Promise<any> {
   const response = await ctx.app.inject({
     method: 'POST',
-    url: '/api/nodes',
+    url: '/v1/nodes',
     headers: { Authorization: `Bearer ${ctx.accessToken}` },
     payload: {
       name: `test-node-${Date.now()}`,

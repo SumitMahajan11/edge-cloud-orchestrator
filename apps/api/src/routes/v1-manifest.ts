@@ -33,3 +33,4 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
 
 export default v1Routes;
 export { v1Routes };
+

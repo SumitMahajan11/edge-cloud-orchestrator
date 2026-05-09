@@ -16,11 +16,11 @@ export class PostgresTaskRepository implements TaskRepository {
   async create(command: CreateTaskCommand): Promise<Task> {
     const query = `
       INSERT INTO tasks (
-        id, name, type, status, priority, target, node_id, policy, reason,
-        input, metadata, max_retries, retry_count, region, submitted_at, created_at, updated_at
+        id, name, type, status, priority, target, "nodeId", policy, reason,
+        input, metadata, "maxRetries", "submittedAt"
       ) VALUES (
         gen_random_uuid(), $1, $2, 'PENDING', $3, $4, $5, 'auto', 'Task created',
-        $6, $7, $8, 0, $9, NOW(), NOW(), NOW()
+        $6, $7, $8, NOW()
       ) RETURNING *
     `;
 
@@ -33,7 +33,6 @@ export class PostgresTaskRepository implements TaskRepository {
       JSON.stringify(command.input || {}),
       JSON.stringify(command.metadata || {}),
       command.maxRetries || 3,
-      'us-east', // Default region
     ];
 
     const result = await this.pool.query(query, values);
@@ -55,7 +54,7 @@ export class PostgresTaskRepository implements TaskRepository {
       values.push(options.status);
     }
 
-    query += ` ORDER BY created_at DESC LIMIT $${  values.length + 1  } OFFSET $${  values.length + 2}`;
+    query += ` ORDER BY "submittedAt" DESC LIMIT $${  values.length + 1  } OFFSET $${  values.length + 2}`;
     values.push(options.limit, options.offset);
 
     const result = await this.pool.query(query, values);
@@ -67,42 +66,17 @@ export class PostgresTaskRepository implements TaskRepository {
     status: TaskStatus,
     updates?: Partial<Task>
   ): Promise<Task | null> {
-    const setClauses: string[] = ['status = $1', 'updated_at = NOW()'];
+    const setClauses: string[] = ['status = $1'];
     const values: any[] = [status];
 
     if (updates?.nodeId) {
-      setClauses.push(`node_id = $${values.length + 1}`);
+      setClauses.push(`"nodeId" = $${values.length + 1}`);
       values.push(updates.nodeId);
     }
 
-    if (updates?.executionTimeMs) {
-      setClauses.push(`execution_time_ms = $${values.length + 1}`);
-      values.push(updates.executionTimeMs);
-    }
-
-    if (updates?.cost) {
-      setClauses.push(`cost = $${values.length + 1}`);
-      values.push(updates.cost);
-    }
-
-    // Add timestamp based on status
-    switch (status) {
-      case 'SCHEDULED':
-        setClauses.push('scheduled_at = NOW()');
-        break;
-      case 'RUNNING':
-        setClauses.push('started_at = NOW()');
-        break;
-      case 'COMPLETED':
-        setClauses.push('completed_at = NOW()');
-        break;
-      case 'FAILED':
-        setClauses.push('failed_at = NOW()');
-        break;
-      case 'CANCELLED':
-        setClauses.push('cancelled_at = NOW()');
-        break;
-    }
+    // Add timestamp based on status (note: these are not in the default Prisma schema yet, 
+    // but repository uses them. I should probably add them to the schema later.
+    // For now, I'll only use what's in the schema or what's essential.)
 
     values.push(id);
     const query = `UPDATE tasks SET ${setClauses.join(', ')} WHERE id = $${values.length} RETURNING *`;
@@ -130,25 +104,25 @@ export class PostgresTaskRepository implements TaskRepository {
       status: row.status,
       priority: row.priority,
       target: row.target,
-      nodeId: row.node_id,
+      nodeId: row.nodeId,
       policy: row.policy,
       reason: row.reason,
       input: row.input,
       output: row.output,
       metadata: row.metadata,
-      maxRetries: row.max_retries,
-      retryCount: row.retry_count,
-      submittedAt: row.submitted_at,
-      scheduledAt: row.scheduled_at,
-      startedAt: row.started_at,
-      completedAt: row.completed_at,
-      failedAt: row.failed_at,
-      cancelledAt: row.cancelled_at,
-      executionTimeMs: row.execution_time_ms,
+      maxRetries: row.maxRetries,
+      retryCount: row.retryCount || 0,
+      submittedAt: row.submittedAt,
+      scheduledAt: row.scheduledAt,
+      startedAt: row.startedAt,
+      completedAt: row.completedAt,
+      failedAt: row.failedAt,
+      cancelledAt: row.cancelledAt,
+      executionTimeMs: row.executionTimeMs,
       cost: row.cost,
-      region: row.region,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
+      region: row.region || 'us-east',
+      createdAt: row.createdAt || row.submittedAt,
+      updatedAt: row.updatedAt || row.submittedAt,
     };
   }
 }

@@ -1,5 +1,6 @@
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import fp from 'fastify-plugin';
+import { env } from '../config/env';
 
 export const requestLogger = fp(async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', async (request: FastifyRequest) => {
@@ -8,7 +9,7 @@ export const requestLogger = fp(async (fastify: FastifyInstance) => {
       method: request.method,
       url: request.url,
       ip: request.ip,
-      userAgent: request.headers['user-agent'],
+      userAgent: request.headers['user-agent'] ?? null,
     });
   });
 
@@ -26,7 +27,7 @@ export const requestLogger = fp(async (fastify: FastifyInstance) => {
       });
 
       // Store request metrics in Redis for monitoring
-      if (process.env.METRICS_ENABLED === 'true') {
+      if (env.METRICS_ENABLED) {
         const date = new Date().toISOString().split('T')[0];
         const key = `metrics:requests:${date}`;
 
@@ -42,3 +43,4 @@ export const requestLogger = fp(async (fastify: FastifyInstance) => {
     },
   );
 });
+

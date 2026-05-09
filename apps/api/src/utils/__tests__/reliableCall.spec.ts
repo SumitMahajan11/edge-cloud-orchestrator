@@ -49,6 +49,14 @@ describe('reliableCall', () => {
   });
 
   describe('retry behavior', () => {
+    beforeEach(() => {
+      vi.useFakeTimers();
+    });
+
+    afterEach(() => {
+      vi.useRealTimers();
+    });
+
     it('should retry after transient failure', async () => {
       let attempts = 0;
       const fn = vi.fn().mockImplementation(async () => {
@@ -58,7 +66,12 @@ describe('reliableCall', () => {
         return 'success';
       });
 
-      const result = await reliableCall(fn, { retries: 3 });
+      const promise = reliableCall(fn, { retries: 3 });
+      
+      // Fast forward through retries
+      await vi.runAllTimersAsync();
+      
+      const result = await promise;
 
       expect(result).toBe('success');
       expect(fn).toHaveBeenCalledTimes(3);
@@ -67,24 +80,27 @@ describe('reliableCall', () => {
     it('should throw ReliableCallError after max retries', async () => {
       const fn = vi.fn().mockRejectedValue(new Error('ECONNRESET'));
 
-      try {
-        await reliableCall(fn, { retries: 1 });
-        throw new Error('Should have thrown');
-      } catch (e) {
-        expect(fn).toHaveBeenCalledTimes(2);
-      }
+      const promise = reliableCall(fn, { retries: 1 });
+      
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow(ReliableCallError);
+      expect(fn).toHaveBeenCalledTimes(2);
     });
 
     it('should include attempt count in error', async () => {
       const fn = vi.fn().mockRejectedValue(new Error('ECONNRESET'));
 
+      const promise = reliableCall(fn, { retries: 3 });
+      
+      await vi.runAllTimersAsync();
+
+      await expect(promise).rejects.toThrow(ReliableCallError);
+      
       try {
-        await reliableCall(fn, { retries: 3 });
-        throw new Error('Should have thrown');
-      } catch (error: unknown) {
-        if (error instanceof ReliableCallError) {
-          expect(error.attemptCount).toBe(4); // Initial + 3 retries
-        }
+        await promise;
+      } catch (error: any) {
+        expect(error.attemptCount).toBe(4);
       }
     });
   });

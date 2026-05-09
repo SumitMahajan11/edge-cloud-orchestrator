@@ -1,0 +1,134 @@
+  /**
+   * Handle step failure and start compensation
+   */
+  private async handleStepFailure(
+    sagaId: string,
+    definition: SagaDefinition<any>,
+    failedStepIndex: number,
+    context: any,
+    error: Error
+  ): Promise<void> {
+    console.log(`[Orchestrator] Handling failure in step ${failedStepIndex} for saga ${sagaId}: ${error.message}`);
+    
+    // Update failed step record if it exists
+    try {
+      await this.prisma.sagaStep.updateMany({
+        where: { sagaId, stepOrder: failedStepIndex },
+        data: {
+          status: 'FAILED' as StepStatus,
+          error: error.message,
+        },
+      });
+    } catch (err) {
+      console.warn(`[Orchestrator] Failed to update failed step record: ${err}`);
+    }
+
+    // Update saga status
+    await this.prisma.sagaInstance.update({
+      where: { id: sagaId },
+      data: {
+        status: 'COMPENSATING' as SagaStatus,
+        error: error.message,
+      },
+    });
+
+    // Fetch latest state with steps for compensation
+    const saga = await this.prisma.sagaInstance.findUnique({
+      where: { id: sagaId },
+      include: { steps: { orderBy: { stepOrder: 'asc' } } },
+    });
+
+    if (!saga) {
+      this.emit('error', { sagaId, error: new Error('Saga not found during compensation') });
+      return;
+    }
+
+    this.emit('step_failed', { sagaId, stepIndex: failedStepIndex, error });
+    
+    const reason = error.message.toLowerCase().includes('timeout') ? 'timeout' : 'failure';
+    sagaCompensationsCounter.inc({ reason });
+
+    const lastCompletedStep = failedStepIndex;
+
+    const compensateBody = async (span?: any) => {
+      try {
+        console.log(`[Orchestrator] Starting compensation loop for saga ${sagaId} from step ${lastCompletedStep}`);
+        for (let i = lastCompletedStep; i >= 0; i--) {
+          const stepDef = definition.steps[i];
+          const stepRecord = saga.steps.find(s => s.stepOrder === i);
+
+          if (!stepRecord || (stepRecord.status !== 'COMPLETED' && stepRecord.status !== 'FAILED' && stepRecord.status !== 'IN_PROGRESS')) {
+            continue;
+          }
+
+          const compensateStep = async (stepSpan?: any) => {
+            try {
+              console.log(`[Orchestrator] Compensating step ${i}: ${stepDef.name}`);
+              await stepDef.compensate(context, i);
+
+              await this.prisma.sagaStep.update({
+                where: { id: stepRecord.id },
+                data: { status: 'COMPENSATED' as StepStatus },
+              });
+
+              this.emit('step_compensated', { sagaId, stepName: stepDef.name, stepIndex: i });
+            } catch (compError: any) {
+              if (stepSpan && typeof stepSpan.recordException === 'function') {
+                stepSpan.recordException(compError);
+                stepSpan.setStatus({ code: 2, message: compError.message });
+              }
+              console.error(`[Orchestrator] Compensation failed for step ${stepDef.name}:`, compError);
+              this.emit('compensation_failed', { sagaId, stepIndex: i, error: compError });
+            }
+          };
+
+          if (typeof tracer.startActiveSpan === 'function') {
+            await tracer.startActiveSpan(`saga_compensate:${stepDef.name}`, {
+              attributes: {
+                'saga.id': sagaId,
+                'step.name': stepDef.name,
+                'step.index': i,
+              }
+            }, compensateStep);
+          } else {
+            await compensateStep();
+          }
+        }
+
+        // Finalize saga status
+        await this.prisma.sagaInstance.update({
+          where: { id: sagaId },
+          data: {
+            status: 'FAILED' as SagaStatus,
+            completedAt: new Date(),
+          },
+        });
+
+        this.emit('saga_failed', { sagaId, error });
+      } catch (err: any) {
+        if (span && typeof span.recordException === 'function') {
+          span.recordException(err);
+        }
+        console.error(`[Orchestrator] Critical error in compensation loop for saga ${sagaId}:`, err);
+        this.emit('error', { sagaId, error: err });
+      } finally {
+        if (span && typeof span.end === 'function') {
+          span.end();
+        }
+        this.activeSagas.delete(sagaId);
+        activeSagasGauge.dec();
+        await this.releaseLock(sagaId);
+      }
+    };
+
+    if (typeof tracer.startActiveSpan === 'function') {
+      await tracer.startActiveSpan(`saga_compensation:${saga.sagaType}`, {
+        attributes: {
+          'saga.id': sagaId,
+          'saga.type': saga.sagaType,
+        }
+      }, compensateBody);
+    } else {
+      await compensateBody();
+    }
+  }

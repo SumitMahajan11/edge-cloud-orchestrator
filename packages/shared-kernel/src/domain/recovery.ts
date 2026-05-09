@@ -1,4 +1,4 @@
-import { Alert, HealingAction } from '../types/domain';
+import { Alert, HealingAction } from '../types/domain.js';
 
 export interface RecoveryConfig {
   cooldownMs: number;

@@ -1,48 +1,7 @@
-# Dependencies
-node_modules
-npm-debug.log
-yarn-error.log
-
-# Build output
-dist
-build
-*.tsbuildinfo
-
-# Environment
-.env
-.env.*
-!.env.example
-
-# Secrets
-*.key
-*.pem
-*.pfx
-
-# Tests
-coverage
-.nyc_output
+﻿node_modules/
+.git/
+dist/
+coverage/
 *.test.ts
-*.spec.ts
-tests/
-__tests__/
-
-# IDE
-.vscode
-.idea
-*.swp
-*.swo
-
-# Git
-.git
-.gitignore
-
-# Documentation
-*.md
-docs/
-
-# Misc
-.DS_Store
-*.log
-logs/
-tmp/
-temp/
+.env*
+test_output*

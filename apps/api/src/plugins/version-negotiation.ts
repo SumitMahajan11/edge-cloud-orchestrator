@@ -11,11 +11,14 @@ interface VersionNegotiationOptions {
   defaultVersion: string;
 }
 
-const versionNegotiationPlugin: FastifyPluginAsync<VersionNegotiationOptions> = async (
+const versionNegotiationPluginInternal: FastifyPluginAsync<VersionNegotiationOptions> = async (
   fastify,
   options
 ) => {
+
+  fastify.log.info('versionNegotiationPlugin executing...');
   const { supportedVersions, defaultVersion } = options;
+
 
   fastify.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {
     const headerVersion = request.headers['x-api-version'];
@@ -23,9 +26,10 @@ const versionNegotiationPlugin: FastifyPluginAsync<VersionNegotiationOptions> = 
     // Determine requested version from URL prefix if not in header
     // e.g., /v1/tasks -> v1
     const urlParts = request.url.split('/');
-    const urlVersion = urlParts.find(p => p.startsWith('v') && supportedVersions.includes(p));
+    const urlVersion = urlParts.find(p => /^v\d+$/.test(p));
 
     const requestedVersion = (headerVersion as string) || urlVersion || defaultVersion;
+    request.log.debug({ url: request.url, header: headerVersion, urlVersion, default: defaultVersion, requested: requestedVersion }, 'Version negotiation details');
 
     // Validate if the requested version is supported
     if (!supportedVersions.includes(requestedVersion)) {
@@ -50,7 +54,24 @@ const versionNegotiationPlugin: FastifyPluginAsync<VersionNegotiationOptions> = 
 
     // Decorate request with identified version
     request.apiVersion = requestedVersion;
+    request.log.debug({ apiVersion: request.apiVersion }, 'Set request.apiVersion');
   });
+
+
+  // Add deprecation headers for v1
+  fastify.addHook('onSend', async (request, reply, payload) => {
+    if (request.apiVersion === 'v1') {
+      request.log.info({ url: request.url }, 'Adding deprecation headers to v1 request');
+      reply.header('Deprecation', 'true');
+      
+      // Set sunset date to 6 months from now
+      const sunsetDate = new Date();
+      sunsetDate.setMonth(sunsetDate.getMonth() + 6);
+      reply.header('Sunset', sunsetDate.toUTCString());
+    }
+    return payload;
+  });
+
 
   // Decorate Fastify instance with versioning utils
   fastify.decorateRequest('apiVersion', '');
@@ -62,6 +83,7 @@ declare module 'fastify' {
   }
 }
 
-export default fp(versionNegotiationPlugin, {
+export const versionNegotiationPlugin = fp(versionNegotiationPluginInternal, {
   name: 'version-negotiation',
 });
+

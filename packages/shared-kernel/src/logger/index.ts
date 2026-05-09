@@ -1,8 +1,8 @@
 import pino from 'pino';
 import type { Logger, LoggerOptions } from 'pino';
 import { trace, context } from '@opentelemetry/api';
-import { getRequestId } from './context';
-import { VERSION } from '../index';
+import { getRequestId } from './context.js';
+import { VERSION } from '../constants.js';
 
 export type { Logger };
 
@@ -51,16 +51,35 @@ export function createLogger(serviceName: string): Logger {
         return { level: label.toUpperCase() };
       },
     },
-    transport: isDev
-      ? {
-          target: 'pino-pretty',
-          options: {
-            colorize: true,
-            ignore: 'service,version,environment',
-            messageFormat: '[{service}] {msg}',
-          },
-        }
-      : undefined, // Defaut JSON stdout for production
+    redact: {
+      paths: [
+        'password',
+        'passwordHash',
+        'token',
+        'refreshToken',
+        'accessToken',
+        'secret',
+        'key',
+        'apiKey',
+        'hashedKey',
+        'certificatePem',
+        'privateKeyPem',
+        'authorization',
+        'cookie',
+        'set-cookie',
+      ],
+      censor: '[REDACTED]',
+    },
+    ...(isDev && {
+      transport: {
+        target: 'pino-pretty',
+        options: {
+          colorize: true,
+          ignore: 'service,version,environment',
+          messageFormat: '[{service}] {msg}',
+        },
+      }
+    }),
   };
 
   return pino(options);

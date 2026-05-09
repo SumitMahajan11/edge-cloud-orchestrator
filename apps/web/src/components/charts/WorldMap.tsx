@@ -1,26 +1,60 @@
 import { useMemo } from 'react'
-import type { EdgeNode } from '../../types'
+import {
+  ComposableMap,
+  Geographies,
+  Geography,
+  Marker,
+  Line,
+} from 'react-simple-maps'
+import { motion } from 'framer-motion'
+import { EdgeNode } from '../../types'
+import { cn } from '../../lib/utils'
+import { useCarbonMetrics } from '../../hooks/useCarbonMetrics'
 
 interface WorldMapProps {
   nodes: EdgeNode[]
   className?: string
+  carbonMode?: boolean
 }
 
-// Simplified world map with major regions
+const geoUrl = 'https://unpkg.com/world-atlas@2.0.2/countries-110m.json'
+
 const REGIONS = [
-  { id: 'us-east', name: 'US East', x: 280, y: 180, city: 'New York' },
-  { id: 'us-west', name: 'US West', x: 150, y: 190, city: 'San Francisco' },
-  { id: 'eu-west', name: 'EU West', x: 480, y: 150, city: 'London' },
-  { id: 'eu-central', name: 'EU Central', x: 510, y: 160, city: 'Frankfurt' },
-  { id: 'apac-south', name: 'APAC South', x: 700, y: 280, city: 'Singapore' },
-  { id: 'apac-north', name: 'APAC North', x: 780, y: 170, city: 'Tokyo' },
-  { id: 'apac-oceania', name: 'Oceania', x: 800, y: 380, city: 'Sydney' },
-  { id: 'latam', name: 'LATAM', x: 320, y: 320, city: 'Sao Paulo' },
-  { id: 'apac-india', name: 'India', x: 620, y: 240, city: 'Mumbai' },
-  { id: 'me-south', name: 'ME South', x: 560, y: 210, city: 'Dubai' },
+  { id: 'us-east', name: 'US East', coordinates: [-74.006, 40.7128], city: 'New York' },
+  { id: 'us-west', name: 'US West', coordinates: [-122.4194, 37.7749], city: 'San Francisco' },
+  { id: 'eu-west', name: 'EU West', coordinates: [-0.1278, 51.5074], city: 'London' },
+  { id: 'eu-central', name: 'EU Central', coordinates: [8.6821, 50.1109], city: 'Frankfurt' },
+  { id: 'apac-south', name: 'APAC South', coordinates: [103.8198, 1.3521], city: 'Singapore' },
+  { id: 'apac-north', name: 'APAC North', coordinates: [139.6917, 35.6895], city: 'Tokyo' },
+  { id: 'apac-oceania', name: 'Oceania', coordinates: [151.2093, -33.8688], city: 'Sydney' },
+  { id: 'latam', name: 'LATAM', coordinates: [-46.6333, -23.5505], city: 'Sao Paulo' },
+  { id: 'apac-india', name: 'India', coordinates: [72.8777, 19.076], city: 'Mumbai' },
+  { id: 'me-south', name: 'ME South', coordinates: [55.2708, 25.2048], city: 'Dubai' },
 ]
 
-export function WorldMap({ nodes, className }: WorldMapProps) {
+const REGION_TO_ZONE: Record<string, string> = {
+  'us-east': 'US-EAST',
+  'us-west': 'US-WEST',
+  'eu-west': 'EU-UK',
+  'eu-central': 'EU-DE',
+  'apac-south': 'AP-SG',
+  'apac-north': 'AP-JP',
+  'apac-oceania': 'AP-AU',
+  'latam': 'SA-BR',
+  'apac-india': 'AP-IN',
+  'me-south': 'ME-AE',
+}
+
+const CONNECTIONS = [
+  ['us-east', 'eu-west'],
+  ['us-west', 'apac-north'],
+  ['eu-central', 'me-south'],
+  ['apac-south', 'apac-oceania'],
+  ['us-east', 'latam'],
+  ['eu-west', 'apac-india'],
+] as const
+
+export function WorldMap({ nodes, className, carbonMode }: WorldMapProps) {
   const regionStatus = useMemo(() => {
     const status: Record<string, { count: number; status: EdgeNode['status'] }> = {}
     
@@ -31,7 +65,6 @@ export function WorldMap({ nodes, className }: WorldMapProps) {
       } else {
         const onlineCount = regionNodes.filter(n => n.status === 'online').length
         const hasDegraded = regionNodes.some(n => n.status === 'degraded')
-        // const hasOffline = regionNodes.some(n => n.status === 'offline')
         
         if (onlineCount === regionNodes.length) {
           status[region.id] = { count: regionNodes.length, status: 'online' }
@@ -45,131 +78,159 @@ export function WorldMap({ nodes, className }: WorldMapProps) {
     
     return status
   }, [nodes])
+
+  const { regions } = useCarbonMetrics()
+
+  const liveIntensities = useMemo(() => {
+    const map: Record<string, number> = {}
+    regions.forEach((r: any) => {
+      map[r.zone] = r.carbonIntensityGco2
+    })
+    return map
+  }, [regions])
+
+  const getIntensityForRegion = (regionId: string) => {
+    const zone = REGION_TO_ZONE[regionId]
+    if (!zone) return 0
+    return liveIntensities[zone] || 0
+  }
   
-  const getStatusColor = (status: EdgeNode['status']) => {
+  const getStatusColor = (regionId: string, status: EdgeNode['status']) => {
+    if (carbonMode) {
+      const intensity = getIntensityForRegion(regionId)
+      if (intensity === 0) return '#3f3f46'
+      if (intensity < 200) return '#10b981'
+      if (intensity < 400) return '#f59e0b'
+      return '#ef4444'
+    }
     switch (status) {
-      case 'online': return 'hsl(145, 70%, 45%)'
-      case 'degraded': return 'hsl(38, 92%, 50%)'
-      case 'offline': return 'hsl(0, 72%, 55%)'
-      default: return 'hsl(220, 10%, 40%)'
+      case 'online': return '#00d4aa'
+      case 'degraded': return '#f59e0b'
+      case 'offline': return '#ef4444'
+      default: return '#3f3f46'
     }
   }
   
   return (
-    <div className={className}>
-      <svg viewBox="0 0 900 450" className="w-full h-full">
-        {/* Simplified world map background */}
-        <defs>
-          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-            <path d="M 40 0 L 0 0 0 40" fill="none" stroke="hsl(var(--border))" strokeWidth="0.5" opacity="0.3"/>
-          </pattern>
-        </defs>
-        
-        {/* Background */}
-        <rect width="900" height="450" fill="hsl(var(--card))" rx="12" />
-        <rect width="900" height="450" fill="url(#grid)" rx="12" />
-        
-        {/* Continents (simplified shapes) */}
-        <g fill="hsl(var(--muted))" opacity="0.3">
-          {/* North America */}
-          <path d="M 50 80 Q 150 50 250 100 L 280 180 L 200 250 L 100 200 Z" />
-          {/* South America */}
-          <path d="M 280 280 L 350 280 L 380 380 L 300 420 L 250 350 Z" />
-          {/* Europe */}
-          <path d="M 450 100 L 550 100 L 580 180 L 480 190 Z" />
-          {/* Africa */}
-          <path d="M 480 200 L 580 200 L 600 350 L 500 380 Z" />
-          {/* Asia */}
-          <path d="M 580 80 L 850 80 L 880 250 L 700 300 L 600 200 Z" />
-          {/* Australia */}
-          <path d="M 750 350 L 850 350 L 860 420 L 760 420 Z" />
+    <div className={cn("relative group bg-[#050508] rounded-xl overflow-hidden border border-border/50 h-full", className)}>
+      <ComposableMap
+        projectionConfig={{
+          rotate: [-10, 0, 0],
+          scale: 147
+        }}
+        className="w-full h-full"
+      >
+        <Geographies geography={geoUrl}>
+          {({ geographies }) =>
+            geographies.map((geo) => (
+              <Geography
+                key={geo.rsmKey}
+                geography={geo}
+                fill="currentColor"
+                className={cn(
+                  "text-muted-foreground/5 transition-colors duration-1000 outline-none",
+                  carbonMode && "text-emerald-500/10"
+                )}
+                stroke="#ffffff05"
+                strokeWidth={0.5}
+              />
+            ))
+          }
+        </Geographies>
+
+        {/* Data Connections */}
+        <g opacity="0.3">
+          {CONNECTIONS.map(([startId, endId]) => {
+            const start = REGIONS.find(r => r.id === startId)!
+            const end = REGIONS.find(r => r.id === endId)!
+            const isActive = (startId && endId) ? ((regionStatus[startId]?.status || 'offline') === 'online' && (regionStatus[endId]?.status || 'offline') === 'online') : false
+            
+            return (
+              <Line
+                key={`${startId}-${endId}`}
+                from={start.coordinates as [number, number]}
+                to={end.coordinates as [number, number]}
+                stroke={isActive ? "#00d4aa" : "#3f3f46"}
+                strokeWidth={1}
+                strokeDasharray="4 4"
+              />
+            )
+          })}
         </g>
-        
-        {/* Region markers */}
+
+        {/* Markers */}
         {REGIONS.map((region) => {
           const status = regionStatus[region.id]
-          const color = getStatusColor(status?.status || 'offline')
+          const color = getStatusColor(region.id, status?.status || 'offline')
+          const intensity = getIntensityForRegion(region.id)
           
           return (
-            <g key={region.id}>
-              {/* Pulse effect for online nodes */}
-              {status?.status === 'online' && status.count > 0 && (
-                <circle
-                  cx={region.x}
-                  cy={region.y}
-                  r="12"
-                  fill={color}
-                  opacity="0.3"
-                >
-                  <animate
-                    attributeName="r"
-                    values="12;20;12"
-                    dur="2s"
-                    repeatCount="indefinite"
-                  />
-                  <animate
-                    attributeName="opacity"
-                    values="0.3;0;0.3"
-                    dur="2s"
-                    repeatCount="indefinite"
-                  />
-                </circle>
-              )}
-              
-              {/* Main dot */}
-              <circle
-                cx={region.x}
-                cy={region.y}
-                r={status?.count ? 8 : 4}
-                fill={color}
-                stroke="hsl(var(--card))"
-                strokeWidth="2"
-              />
-              
-              {/* Label */}
-              <text
-                x={region.x}
-                y={region.y + 20}
-                textAnchor="middle"
-                fill="hsl(var(--foreground))"
-                fontSize="10"
-                fontFamily="JetBrains Mono, monospace"
+            <Marker key={region.id} coordinates={region.coordinates as [number, number]}>
+              <g 
+                className="cursor-pointer group/node"
               >
-                {region.city}
-              </text>
-              
-              {/* Node count */}
-              {status && status.count > 0 && (
-                <text
-                  x={region.x}
-                  y={region.y - 12}
-                  textAnchor="middle"
+                <title>{carbonMode ? `${region.name}: ${intensity} gCO2/kWh` : `${region.name}: ${status?.count || 0} nodes active`}</title>
+                <motion.circle
+                  r="10"
                   fill={color}
-                  fontSize="9"
-                  fontWeight="bold"
-                  fontFamily="JetBrains Mono, monospace"
+                  animate={{ 
+                    opacity: status?.status === 'online' ? [0.1, 0.4, 0.1] : 0,
+                    scale: status?.status === 'online' ? [1, 1.4, 1] : 1
+                  }}
+                  transition={{ duration: 3, repeat: Infinity }}
+                />
+                
+                <circle
+                  r={status?.count ? 4 : 2}
+                  fill={color}
+                  stroke="#050508"
+                  strokeWidth="1.5"
+                />
+                
+                <text
+                  textAnchor="middle"
+                  y={12}
+                  className="text-[6px] font-mono font-bold tracking-tighter fill-muted-foreground group-hover/node:fill-primary transition-colors pointer-events-none uppercase"
                 >
-                  {status.count}
+                  {region.city}
                 </text>
-              )}
-            </g>
+                
+                {status && status.count > 0 && !carbonMode && (
+                  <text
+                    textAnchor="middle"
+                    y={-6}
+                    fill={color}
+                    className="text-[6px] font-mono font-black pointer-events-none"
+                  >
+                    {status.count}
+                  </text>
+                )}
+                
+                {carbonMode && (
+                  <text
+                    textAnchor="middle"
+                    y={-6}
+                    fill={color}
+                    className="text-[5px] font-mono font-black pointer-events-none"
+                  >
+                    {intensity}g
+                  </text>
+                )}
+              </g>
+            </Marker>
           )
         })}
-      </svg>
+      </ComposableMap>
       
-      {/* Legend */}
-      <div className="flex justify-center gap-4 mt-4 text-xs">
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-success" />
-          <span className="text-muted-foreground">Online</span>
+      {/* HUD Info */}
+      <div className="absolute bottom-3 left-3 font-mono text-[8px] text-muted-foreground/40 flex flex-col gap-0.5 pointer-events-none">
+        <div className="flex gap-2">
+          <span className="text-primary/50 font-bold">MODE:</span>
+          <span>{carbonMode ? 'CARBON_OPTIMIZED' : 'STANDARD_OPS'}</span>
         </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-warning" />
-          <span className="text-muted-foreground">Degraded</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="w-2.5 h-2.5 rounded-full bg-destructive" />
-          <span className="text-muted-foreground">Offline</span>
+        <div className="flex gap-2">
+          <span className="text-primary/50 font-bold">STAT:</span>
+          <span className="animate-pulse text-primary/80">LIVE_TELEMETRY</span>
         </div>
       </div>
     </div>

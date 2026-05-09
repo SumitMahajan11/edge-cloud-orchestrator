@@ -35,9 +35,7 @@ export class InMemoryCheckpointStore implements CheckpointStore {
     }
     
     // Return latest checkpoint
-    return taskCheckpoints.length > 0 
-      ? taskCheckpoints[taskCheckpoints.length - 1] 
-      : null;
+    return taskCheckpoints[taskCheckpoints.length - 1] ?? null;
   }
 
   async list(taskId: string): Promise<Checkpoint[]> {
@@ -188,7 +186,7 @@ export class AutomaticCheckpointing extends EventEmitter {
   }
 
   stopAll(): void {
-    for (const [taskId, interval] of this.intervals) {
+    for (const [, interval] of this.intervals) {
       clearInterval(interval);
     }
     this.intervals.clear();

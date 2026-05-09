@@ -220,7 +220,7 @@ class KafkaQueueAdapter extends QueueAdapter {
   async connect(): Promise<void> {
     try {
       // Dynamic import for Node.js environment
-      // @ts-expect-error - Optional dependency
+      // @ts-ignore
       const { Kafka } = await import('kafkajs')
       
       const kafka = new Kafka({

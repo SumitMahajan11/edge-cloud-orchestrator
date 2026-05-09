@@ -3,20 +3,28 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import type { PrismaClient } from '@prisma/client';
+import Redis from 'ioredis';
 import type { UserPayload } from '../types/fastify';
 import { env } from '../config/env';
 
 export class AuthService {
   private prisma: PrismaClient;
+  private redis?: Redis;
   private readonly jwtSecret: string;
   private readonly jwtExpiresIn: string;
   private readonly refreshExpiresIn: string;
 
-  constructor(prisma: PrismaClient) {
+  private readonly jwtIssuer: string;
+  private readonly jwtAudience: string;
+
+  constructor(prisma: PrismaClient, redis?: Redis) {
     this.prisma = prisma;
+    this.redis = redis;
     this.jwtSecret = env.JWT_SECRET;
     this.jwtExpiresIn = env.JWT_EXPIRES_IN;
     this.refreshExpiresIn = env.REFRESH_TOKEN_EXPIRES_IN;
+    this.jwtIssuer = env.JWT_ISSUER;
+    this.jwtAudience = env.JWT_AUDIENCE;
   }
 
   /**
@@ -38,18 +46,27 @@ export class AuthService {
    */
   async generateTokens(
     user: Omit<UserPayload, 'permissions'>,
+    ipAddress: string,
+    userAgent: string
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
     const permissions = this.getPermissionsForRole(user.role);
+    const jti = uuidv4();
+    
     const accessToken = jwt.sign(
       { 
         id: user.id, 
         email: user.email, 
         role: user.role, 
         tenantId: user.tenantId,
-        permissions 
+        permissions,
+        jti
       },
       this.jwtSecret,
-      { expiresIn: this.jwtExpiresIn as any },
+      { 
+        expiresIn: this.jwtExpiresIn as any,
+        issuer: this.jwtIssuer,
+        audience: this.jwtAudience
+      },
     );
 
     const refreshToken = uuidv4();
@@ -57,11 +74,13 @@ export class AuthService {
     const expiresAt = this.calculateExpiry(this.refreshExpiresIn);
 
     // Create a new session for this refresh token
-    await this.prisma.session.create({
+    await this.prisma.userSession.create({
       data: {
         userId: user.id,
-        token: accessToken, // We store the current access token reference if needed for logout
-        refreshToken: hashedRefreshToken,
+        refreshTokenHash: hashedRefreshToken,
+        accessTokenJti: jti,
+        ipAddress,
+        userAgent,
         expiresAt,
       },
     });
@@ -75,22 +94,56 @@ export class AuthService {
 
   /**
    * Rotates a refresh token: invalidates the old one and issues a new pair.
+   * Includes REUSE DETECTION: if a revoked token is used, all sessions for the user are invalidated.
    */
   async rotateRefreshToken(
     oldRefreshToken: string,
+    ipAddress: string,
+    userAgent: string
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
     const hashedOldToken = this.hashToken(oldRefreshToken);
-    const session = await this.prisma.session.findUnique({
-      where: { refreshToken: hashedOldToken },
+    const session = await this.prisma.userSession.findUnique({
+      where: { refreshTokenHash: hashedOldToken },
       include: { user: true },
     });
 
-    if (!session || session.expiresAt < new Date()) {
-      // If session is missing or expired, delete any remaining for safety or just throw
-      if (session) {
-        await this.prisma.session.delete({ where: { id: session.id } });
-      }
-      throw new Error('Invalid or expired refresh token');
+    if (!session) {
+      throw new Error('Invalid refresh token');
+    }
+
+    // REUSE DETECTION: If token is already revoked, it indicates potential theft
+    if (session.revoked) {
+      // Security measure: Invalidate all sessions for this user
+      await this.prisma.userSession.updateMany({
+        where: { userId: session.userId },
+        data: { revoked: true },
+      });
+
+      // Log SECURITY_ALERT audit event
+      await this.prisma.auditLog.create({
+        data: {
+          userId: session.userId,
+          tenantId: session.user.tenantId,
+          action: 'SECURITY_ALERT',
+          entityType: 'auth',
+          details: {
+            reason: 'refresh_token_reuse_detected',
+            sessionId: session.id,
+            ipAddress,
+            userAgent,
+            alertType: 'TOKEN_THEFT_ATTEMPT'
+          } as any,
+          ipAddress,
+          userAgent,
+        },
+      });
+
+      throw new Error('Refresh token reuse detected. All sessions invalidated for security.');
+    }
+
+    if (session.expiresAt < new Date()) {
+      await this.prisma.userSession.delete({ where: { id: session.id } });
+      throw new Error('Refresh token expired');
     }
 
     // Generate new tokens
@@ -102,10 +155,23 @@ export class AuthService {
       permissions: this.getPermissionsForRole(session.user.role),
     };
 
-    const newTokens = await this.generateTokens(userPayload);
+    const newTokens = await this.generateTokens(userPayload, ipAddress, userAgent);
 
-    // Revoke OLD session - we use token rotation (delete old, create new)
-    await this.prisma.session.delete({ where: { id: session.id } });
+    // Invalidate OLD session immediately (Rotation)
+    await this.prisma.userSession.update({
+      where: { id: session.id },
+      data: { revoked: true, lastUsedAt: new Date() },
+    });
+
+    // Revoke old access token in Redis
+    if (this.redis) {
+      await this.redis.set(
+        `revoked_token:${session.accessTokenJti}`,
+        'revoked',
+        'EX',
+        3600 // 1 hour TTL is enough for 15min access tokens
+      );
+    }
 
     return newTokens;
   }
@@ -115,8 +181,99 @@ export class AuthService {
    */
   async revokeSession(refreshToken: string): Promise<void> {
     const hashedToken = this.hashToken(refreshToken);
-    await this.prisma.session.deleteMany({
-      where: { refreshToken: hashedToken },
+    const session = await this.prisma.userSession.findUnique({
+      where: { refreshTokenHash: hashedToken },
+    });
+
+    if (session) {
+      await this.prisma.userSession.update({
+        where: { id: session.id },
+        data: { revoked: true },
+      });
+
+      if (this.redis) {
+        await this.redis.set(
+          `revoked_token:${session.accessTokenJti}`,
+          'revoked',
+          'EX',
+          3600
+        );
+      }
+    }
+  }
+
+  /**
+   * Revokes all sessions for a user.
+   */
+  async revokeAllUserSessions(userId: string): Promise<void> {
+    const activeSessions = await this.prisma.userSession.findMany({
+      where: { userId, revoked: false },
+      select: { accessTokenJti: true },
+    });
+
+    await this.prisma.userSession.updateMany({
+      where: { userId },
+      data: { revoked: true },
+    });
+
+    if (this.redis && activeSessions.length > 0) {
+      const pipeline = this.redis.pipeline();
+      for (const session of activeSessions) {
+        pipeline.set(
+          `revoked_token:${session.accessTokenJti}`,
+          'revoked',
+          'EX',
+          3600
+        );
+      }
+      await pipeline.exec();
+    }
+  }
+
+  /**
+   * Revokes a specific session by ID.
+   */
+  async revokeSessionById(sessionId: string, userId: string): Promise<void> {
+    const session = await this.prisma.userSession.findFirst({
+      where: { id: sessionId, userId },
+    });
+
+    if (session) {
+      await this.prisma.userSession.update({
+        where: { id: sessionId },
+        data: { revoked: true },
+      });
+
+      if (this.redis) {
+        await this.redis.set(
+          `revoked_token:${session.accessTokenJti}`,
+          'revoked',
+          'EX',
+          3600
+        );
+      }
+    }
+  }
+
+  /**
+   * Lists active sessions for a user.
+   */
+  async listUserSessions(userId: string) {
+    return this.prisma.userSession.findMany({
+      where: { 
+        userId,
+        revoked: false,
+        expiresAt: { gte: new Date() }
+      },
+      select: {
+        id: true,
+        ipAddress: true,
+        userAgent: true,
+        createdAt: true,
+        lastUsedAt: true,
+        expiresAt: true,
+      },
+      orderBy: { lastUsedAt: 'desc' },
     });
   }
 

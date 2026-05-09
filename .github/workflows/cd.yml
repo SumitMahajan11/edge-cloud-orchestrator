@@ -3,167 +3,126 @@ name: CD
 on:
   push:
     branches: [ main ]
-  workflow_dispatch: # Allow manual trigger
+  workflow_dispatch:
 
 jobs:
+  ci-check:
+    name: Run CI steps first
+    uses: ./.github/workflows/ci.yml
+
   build-push:
-    name: Build and Push
+    name: Build and Push Docker Images
+    needs: ci-check
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        service: [api, api-gateway, scheduler-service, task-service, node-service, websocket-gateway]
+        app: [api, agent, web]
     permissions:
       contents: read
       packages: write
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
+
       - name: Login to GHCR
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}/${{ matrix.app }}
+          tags: |
+            type=sha,format=long
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+
       - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: .
-          file: ./apps/${{ matrix.service }}/Dockerfile
+          file: ./apps/${{ matrix.app }}/Dockerfile
           push: true
-          tags: |
-            ghcr.io/SumitMahajan01/edge-cloud-orchestrator/${{ matrix.service }}:${{ github.sha }}
-            ghcr.io/SumitMahajan01/edge-cloud-orchestrator/${{ matrix.service }}:latest
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Pull for Verification
+        run: docker pull ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ github.sha }}
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ github.sha }}
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL'
+
+      - name: Validate Image Size
+        run: |
+          IMAGE_TAG=ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ github.sha }}
+          SIZE_BYTES=$(docker image inspect $IMAGE_TAG --format='{{.Size}}')
+          SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
+          echo "Image size for ${{ matrix.app }}: ${SIZE_MB}MB"
+          
+          if [[ "${{ matrix.app }}" == "api" && $SIZE_MB -gt 200 ]]; then
+            echo "::error::API image size (${SIZE_MB}MB) exceeds 200MB limit!" && exit 1
+          fi
+          if [[ "${{ matrix.app }}" == "agent" && $SIZE_MB -gt 20 ]]; then
+            echo "::error::Agent image size (${SIZE_MB}MB) exceeds 20MB limit!" && exit 1
+          fi
+          if [[ "${{ matrix.app }}" == "web" && $SIZE_MB -gt 150 ]]; then
+            echo "::error::Web image size (${SIZE_MB}MB) exceeds 150MB limit!" && exit 1
+          fi
 
   deploy-staging:
     name: Deploy to Staging
     needs: build-push
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - name: Update staging manifests
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Update Kubernetes manifests (Kustomize)
         run: |
           cd infra/k8s/overlays/staging
-          kustomize edit set image api=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/api:${{ github.sha }}
-          kustomize edit set image api-gateway=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/api-gateway:${{ github.sha }}
-          kustomize edit set image scheduler-service=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/scheduler-service:${{ github.sha }}
-          kustomize edit set image task-service=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/task-service:${{ github.sha }}
-          kustomize edit set image node-service=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/node-service:${{ github.sha }}
-          kustomize edit set image websocket-gateway=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/websocket-gateway:${{ github.sha }}
-      - name: Bot Commit
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(deploy): update staging images to ${{ github.sha }} [skip ci]"
-          file_pattern: 'infra/k8s/overlays/staging/kustomization.yaml'
+          kustomize edit set image api=ghcr.io/${{ github.repository }}/api:${{ github.sha }}
+          kustomize edit set image agent=ghcr.io/${{ github.repository }}/agent:${{ github.sha }}
+          kustomize edit set image web=ghcr.io/${{ github.repository }}/web:${{ github.sha }}
 
-  smoke-test-staging:
-    name: Staging Smoke Tests
-    needs: deploy-staging
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      - name: Wait for rollout (ArgoCD Auto-Sync)
-        run: sleep 60 # Simple wait, or use ArgoCD CLI to wait for app health
-      - name: Run Smoke Tests
-        run: pnpm run test:smoke
+      - name: Deploy to staging via ArgoCD sync
+        run: |
+          echo "Syncing staging app via ArgoCD..."
+          # Mocking sync for now, in real scenario use argocd CLI
+          curl -sSL -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/edgecloud-staging/sync \
+            -H "Authorization: Bearer ${{ secrets.ARGOCD_AUTH_TOKEN }}"
+
+      - name: Run smoke tests against staging
+        run: |
+          # Wait for rollout
+          sleep 60
+          pnpm run test:smoke
         env:
           SMOKE_BASE_URL: ${{ secrets.STAGING_API_URL }}
           SMOKE_API_KEY: ${{ secrets.STAGING_API_KEY }}
 
-  deploy-production:
-    name: Deploy to Production
-    needs: [smoke-test-staging, database-migration]
-    runs-on: ubuntu-latest
-    environment: production
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-      - name: Update production manifests
+      - name: Tag deployment in Grafana
         run: |
-          cd infra/k8s/overlays/production
-          kustomize edit set image api=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/api:${{ github.sha }}
-          kustomize edit set image api-gateway=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/api-gateway:${{ github.sha }}
-          kustomize edit set image scheduler-service=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/scheduler-service:${{ github.sha }}
-          kustomize edit set image task-service=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/task-service:${{ github.sha }}
-          kustomize edit set image node-service=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/node-service:${{ github.sha }}
-          kustomize edit set image websocket-gateway=ghcr.io/SumitMahajan01/edge-cloud-orchestrator/websocket-gateway:${{ github.sha }}
-      - name: Bot Commit
-        uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          commit_message: "chore(deploy): update production images to ${{ github.sha }} [skip ci]"
-          file_pattern: 'infra/k8s/overlays/production/kustomization.yaml'
-      - name: Sync Production (Manual sync in Argo)
-        run: |
-          # Use ArgoCD CLI to trigger sync for the manual production app
-          # Requires ARGOCD_AUTH_TOKEN and ARGOCD_SERVER secrets
-          echo "Syncing production app via ArgoCD API..."
-          curl -sSL -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/edgecloud-production/sync \
-            -H "Authorization: Bearer ${{ secrets.ARGOCD_AUTH_TOKEN }}"
-
-
-  database-migration:
-    name: Database Migration (Production)
-    needs: smoke-test-staging
-    runs-on: ubuntu-latest
-    environment: production
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v3
-        with:
-          version: 9
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: 'pnpm'
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Pre-migration Backup
-        run: chmod +x ./scripts/db-backup.sh && ./scripts/db-backup.sh ${{ github.sha }}
-        env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-          BACKUP_S3_BUCKET: ${{ secrets.BACKUP_S3_BUCKET }}
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
-
-      - name: Pre-migration Health Check
-        run: chmod +x ./scripts/db-migrate-health.sh && ./scripts/db-migrate-health.sh --pre
-        env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-
-      - name: Apply Migrations
-        run: |
-          cd apps/api
-          pnpm exec prisma migrate deploy
-        env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-
-      - name: Post-migration Health Check
-        if: success()
-        run: ./scripts/db-migrate-health.sh --post
-        env:
-          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
-
-      - name: Alert on Failure
-        if: failure()
-        run: |
-          echo "CRITICAL: Database migration failed for commit ${{ github.sha }}!"
-          # Add Slack/Teams alerting logic here if desired
-          # Example: curl -X POST -H 'Content-type: application/json' --data '{"text":"Database migration failed!"}' ${{ secrets.SLACK_WEBHOOK }}
-          exit 1
-
+          curl -X POST "${{ secrets.GRAFANA_URL }}/api/annotations" \
+            -H "Authorization: Bearer ${{ secrets.GRAFANA_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "text": "Deployment to staging: ${{ github.sha }}",
+              "tags": ["deploy", "staging", "${{ github.repository }}"]
+            }'

@@ -106,7 +106,6 @@ const DEFAULT_CONFIG: MarketplaceConfig = {
  * Edge Function Marketplace
  */
 export class EdgeFunctionMarketplace {
-  // @ts-expect-error - Config used for future features
   private config: MarketplaceConfig
   private functions: Map<string, EdgeFunction> = new Map()
   private deployments: Map<string, FunctionDeployment> = new Map()

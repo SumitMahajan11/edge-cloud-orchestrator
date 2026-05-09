@@ -1,22 +1,30 @@
-/**
- * Circuit breaker configurations for external dependencies
- * Applied to: DB calls, Redis calls, External APIs
- */
-
 import {
   CircuitBreaker,
   CircuitBreakerConfig,
+  CircuitBreakerRegistry,
 } from '@edgecloud/circuit-breaker';
 
 import { createLogger } from '../lib/logger';
+import { WebSocketManager } from '../services/websocket-manager';
 
 const logger = createLogger('circuit-breaker');
+
+// Global registry for all circuit breakers
+export const globalCircuitBreakerRegistry = new CircuitBreakerRegistry();
+let wsManager: WebSocketManager | undefined;
+
+/**
+ * Configure the registry to broadcast state changes via WebSocket
+ */
+export function setWebSocketManager(manager: WebSocketManager) {
+  wsManager = manager;
+}
 
 // Circuit breaker configurations for different service types
 export const circuitBreakerConfigs = {
   // Database circuit breaker - conservative due to criticality
   database: {
-    name: 'database',
+    name: 'PostgreSQL',
     failureThreshold: 5,
     resetTimeout: 30000, // 30 seconds
     halfOpenMaxCalls: 3,
@@ -25,7 +33,7 @@ export const circuitBreakerConfigs = {
 
   // Redis circuit breaker - more aggressive recovery
   redis: {
-    name: 'redis',
+    name: 'Redis',
     failureThreshold: 3,
     resetTimeout: 10000, // 10 seconds
     halfOpenMaxCalls: 2,
@@ -34,11 +42,20 @@ export const circuitBreakerConfigs = {
 
   // External API circuit breaker - conservative
   externalApi: {
-    name: 'external-api',
+    name: 'External-API',
     failureThreshold: 5,
     resetTimeout: 60000, // 60 seconds
     halfOpenMaxCalls: 3,
     successThreshold: 2,
+  } as CircuitBreakerConfig,
+
+  // Vault/PKI circuit breaker
+  vaultPki: {
+    name: 'VaultPKI',
+    failureThreshold: 3,
+    resetTimeout: 45000,
+    halfOpenMaxCalls: 2,
+    successThreshold: 1,
   } as CircuitBreakerConfig,
 
   // Node agent circuit breaker
@@ -51,25 +68,24 @@ export const circuitBreakerConfigs = {
   } as CircuitBreakerConfig,
 };
 
-// Singleton circuit breaker instances
-const circuitBreakers = new Map<string, CircuitBreaker>();
-
 /**
  * Get or create a circuit breaker for a service
  */
 export function getCircuitBreaker(
   config: CircuitBreakerConfig,
 ): CircuitBreaker {
-  if (!circuitBreakers.has(config.name)) {
-    const cb = new CircuitBreaker(config);
+  const cb = globalCircuitBreakerRegistry.getOrCreate(config.name, config);
 
-    // Add logging for state changes
+  // Add logging and WebSocket broadcasts for state changes if not already set
+  if (cb.listenerCount('open') === 0) {
     cb.on('open', () => {
       logger.warn({ breaker: config.name }, 'Circuit breaker opened');
+      wsManager?.broadcast('circuit_breaker.opened', { name: config.name, timestamp: new Date().toISOString() });
     });
 
     cb.on('close', () => {
       logger.info({ breaker: config.name }, 'Circuit breaker closed (healthy)');
+      wsManager?.broadcast('circuit_breaker.closed', { name: config.name, timestamp: new Date().toISOString() });
     });
 
     cb.on('halfOpen', () => {
@@ -77,12 +93,11 @@ export function getCircuitBreaker(
         { breaker: config.name },
         'Circuit breaker half-open (testing)',
       );
+      wsManager?.broadcast('circuit_breaker.half_open', { name: config.name, timestamp: new Date().toISOString() });
     });
-
-    circuitBreakers.set(config.name, cb);
   }
 
-  return circuitBreakers.get(config.name)!;
+  return cb;
 }
 
 /**
@@ -101,20 +116,19 @@ export async function withCircuitBreaker<T>(
  * Get metrics for all circuit breakers
  */
 export function getAllCircuitBreakerMetrics() {
-  const metrics: Record<string, ReturnType<CircuitBreaker['getMetrics']>> = {};
+  return globalCircuitBreakerRegistry.getAllMetrics();
+}
 
-  for (const [name, cb] of circuitBreakers.entries()) {
-    metrics[name] = cb.getMetrics();
-  }
-
-  return metrics;
+/**
+ * Get all circuit breaker states for the UI
+ */
+export function getAllCircuitBreakerStates() {
+  return globalCircuitBreakerRegistry.getAllStates();
 }
 
 /**
  * Force close all circuit breakers (useful for testing or manual recovery)
  */
 export function forceCloseAllCircuitBreakers(): void {
-  for (const cb of circuitBreakers.values()) {
-    cb.forceClose();
-  }
+  globalCircuitBreakerRegistry.resetAll();
 }
