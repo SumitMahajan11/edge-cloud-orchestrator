@@ -43,7 +43,6 @@ Open `http://localhost:5173` — the dashboard connects to the API at `http://lo
 | `saga`               | Distributed saga orchestration with compensation           | `SagaOrchestrator`, `SagaStep`          |
 | `performance`        | Redis caching, connection pooling, backpressure            | `CacheManager`, `ConnectionPool`        |
 | `analytics`          | Windowed stream processing over Kafka                      | `StreamProcessor`, `TelemetrySink`      |
-| `chaos`              | Chaos engineering: latency, crash, partition injection     | `ChaosEngine`, `NetworkChaos`           |
 | `integration`        | DI container wiring all packages together                  | `ServiceContainer`, `bootstrap`         |
 | `scheduler`          | Raft-aware advanced scheduling with reservations           | `AdvancedScheduler`, `FairShareQueue`   |
 | `websocket-client`   | Resilient browser WS client with SSE fallback              | `WebSocketClient`, `ConnectionState`    |
