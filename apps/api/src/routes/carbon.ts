@@ -1,142 +1,145 @@
-import { FastifyInstance } from 'fastify';
-import { z } from 'zod';
+import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
 
-import { carbonQuerySchema } from '../schemas';
-import { zodToFastifySchema } from '../utils/zod-schema';
-
+/**
+ * Carbon & Eco-Scheduling Routes (v2)
+ */
 export default async function carbonRoutes(fastify: FastifyInstance) {
-  // Get carbon summary
+  const { taskScheduler } = fastify as any;
+
+  // GET /api/v2/carbon/intensity
   fastify.get(
-    '/summary',
+    '/intensity',
     {
       preHandler: [fastify.authenticate],
       schema: {
         tags: ['carbon'],
-        summary: 'Get carbon footprint summary',
+        summary: 'Get regional carbon intensity',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              regions: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    zone: { type: 'string' },
+                    carbonIntensityGco2: { type: 'number' },
+                    lastUpdatedAt: { type: 'string' },
+                    source: { type: 'string' }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     },
-    async (_request, _reply) => {
-      const now = new Date();
-      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
-
-      const [total, thisMonth, avgRenewable] = await Promise.all([
-        fastify.prisma.carbonMetric.aggregate({
-          _sum: { carbonKg: true, energyKwh: true },
-        }),
-        fastify.prisma.carbonMetric.aggregate({
-          where: { recordedAt: { gte: startOfMonth } },
-          _sum: { carbonKg: true, energyKwh: true },
-        }),
-        fastify.prisma.carbonMetric.aggregate({
-          _avg: { renewablePercent: true },
-        }),
-      ]);
-
-      return {
-        total: {
-          carbonKg: total._sum.carbonKg || 0,
-          energyKwh: total._sum.energyKwh || 0,
-        },
-        thisMonth: {
-          carbonKg: thisMonth._sum.carbonKg || 0,
-          energyKwh: thisMonth._sum.energyKwh || 0,
-        },
-        avgRenewablePercent: avgRenewable._avg.renewablePercent || 0,
-      };
-    },
+    async (_request: FastifyRequest, _reply: FastifyReply) => {
+      if (!taskScheduler) return { regions: [] };
+      return taskScheduler.getCarbonIntensityData();
+    }
   );
 
-  // Get carbon metrics
-  fastify.get<{ Querystring: z.infer<typeof carbonQuerySchema> }>(
-    '/metrics',
-    {
-      preHandler: [fastify.authenticate],
-      schema: {
-        querystring: zodToFastifySchema(carbonQuerySchema),
-        tags: ['carbon'],
-        summary: 'Get carbon metrics',
-      },
-    },
-    async (request, _reply) => {
-      const { region, from, to } = request.query;
-
-      const metrics = await fastify.prisma.carbonMetric.findMany({
-        where: {
-          ...(region && { region }),
-          ...(from && { recordedAt: { gte: new Date(from) } }),
-          ...(to && { recordedAt: { lte: new Date(to) } }),
-        },
-        orderBy: { recordedAt: 'desc' },
-        take: 1000,
-      });
-
-      return metrics;
-    },
-  );
-
-  // Get carbon by region
+  // GET /api/v2/carbon/savings
   fastify.get(
-    '/by-region',
+    '/savings',
     {
       preHandler: [fastify.authenticate],
       schema: {
         tags: ['carbon'],
-        summary: 'Get carbon breakdown by region',
-      },
-    },
-    async (_request, _reply) => {
-      const byRegion = await fastify.prisma.carbonMetric.groupBy({
-        by: ['region'],
-        _sum: { carbonKg: true, energyKwh: true },
-        _avg: { renewablePercent: true },
-      });
-
-      return byRegion.map((r) => ({
-        region: r.region,
-        carbonKg: r._sum.carbonKg || 0,
-        energyKwh: r._sum.energyKwh || 0,
-        avgRenewablePercent: r._avg.renewablePercent || 0,
-      }));
-    },
-  );
-
-  // Record carbon metric (called by edge agents or scheduled job)
-  fastify.post<{
-    Body: {
-      nodeId?: string;
-      region: string;
-      energyKwh: number;
-      carbonKg: number;
-      renewablePercent?: number;
-    };
-  }>(
-    '/record',
-    {
-      preHandler: [fastify.authenticate],
-      schema: {
-        body: {
+        summary: 'Get carbon savings metrics',
+        querystring: {
           type: 'object',
           properties: {
-            nodeId: { type: 'string' },
-            region: { type: 'string' },
-            energyKwh: { type: 'number' },
-            carbonKg: { type: 'number' },
-            renewablePercent: { type: 'number' },
-          },
-          required: ['region', 'energyKwh', 'carbonKg'],
+            days: { type: 'number', default: 7 }
+          }
         },
-        tags: ['carbon'],
-        summary: 'Record carbon metric',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              totalSavedGco2Today: { type: 'number' },
+              totalSavedGco2Week: { type: 'number' },
+              equivalentTreesPlanted: { type: 'number' },
+              savingsHistory: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    date: { type: 'string' },
+                    savedGco2: { type: 'number' }
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     },
-    async (request, reply) => {
-      const { nodeId, region, energyKwh, carbonKg, renewablePercent } =
-        request.body;
-      const metric = await fastify.prisma.carbonMetric.create({
-        data: { nodeId, region, energyKwh, carbonKg, renewablePercent } as any,
-      });
+    async (request: FastifyRequest, _reply: FastifyReply) => {
+      const { days } = (request.query as any) || { days: 7 };
+      if (!taskScheduler) return { totalSavedGco2Today: 0, totalSavedGco2Week: 0, equivalentTreesPlanted: 0, savingsHistory: [] };
+      return taskScheduler.getCarbonSavingsData(days);
+    }
+  );
 
-      return reply.status(201).send(metric);
+  // GET /api/v2/carbon/policy
+  fastify.get(
+    '/policy',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['carbon'],
+        summary: 'Get active carbon optimization policy',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              carbonWeight: { type: 'number' },
+              isActive: { type: 'boolean' },
+              activePolicy: { type: 'string' }
+            }
+          }
+        }
+      },
     },
+    async (_request: FastifyRequest, _reply: FastifyReply) => {
+      if (!taskScheduler) return { carbonWeight: 0.2, isActive: false, activePolicy: 'None' };
+      return taskScheduler.getCarbonPolicyData();
+    }
+  );
+
+  // PATCH /api/v2/carbon/policy
+  fastify.patch(
+    '/policy',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['carbon'],
+        summary: 'Update carbon optimization weight',
+        body: {
+          type: 'object',
+          required: ['carbonWeight'],
+          properties: {
+            carbonWeight: { type: 'number', minimum: 0, maximum: 1 }
+          }
+        },
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              carbonWeight: { type: 'number' }
+            }
+          }
+        }
+      },
+    },
+    async (request: FastifyRequest, _reply: FastifyReply) => {
+      const { carbonWeight } = request.body as any;
+      if (!taskScheduler) return { success: false, carbonWeight: 0 };
+      return taskScheduler.updateCarbonPolicy(carbonWeight);
+    }
   );
 }
