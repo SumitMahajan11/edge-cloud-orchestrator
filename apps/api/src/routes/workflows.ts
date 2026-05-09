@@ -19,8 +19,9 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
         summary: 'List workflows',
       },
     },
-    async (_request, _reply) => {
-      const workflows = await fastify.prisma.workflow.findMany({
+    async (request, _reply) => {
+      const workflows = await (fastify.prisma as any).workflow.findMany({
+        where: { tenantId: request.user!.tenantId! },
         include: {
           _count: { select: { executions: true } },
         },
@@ -43,8 +44,8 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const workflow = await fastify.prisma.workflow.findUnique({
-        where: { id: request.params.id },
+      const workflow = await (fastify.prisma as any).workflow.findFirst({
+        where: { id: request.params.id, tenantId: request.user!.tenantId! },
         include: {
           executions: {
             orderBy: { startedAt: 'desc' },
@@ -76,7 +77,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       const { name, version, nodes, edges, variables, timeout, retryPolicy } =
         request.body;
 
-      const workflow = await fastify.prisma.workflow.create({
+      const workflow = await (fastify.prisma as any).workflow.create({
         data: {
           name,
           version,
@@ -87,6 +88,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
             timeout,
             retryPolicy,
           } as any,
+          tenantId: request.user!.tenantId!,
         },
       });
 
@@ -113,26 +115,20 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
       const { input } = request.body;
 
-      const workflow = await fastify.prisma.workflow.findUnique({
-        where: { id },
+      const workflow = await (fastify.prisma as any).workflow.findFirst({
+        where: { id, tenantId: request.user!.tenantId! },
       });
 
-      if (!workflow || !workflow.isActive) {
-        return reply
-          .status(404)
-          .send({ error: 'Workflow not found or inactive' });
+      if (!workflow) {
+        return reply.status(404).send({ error: 'Workflow not found' });
       }
 
-      const execution = await fastify.prisma.workflowExecution.create({
-        data: {
-          workflowId: id,
-          input: (input || {}) as any,
-        },
+      const executionId = await (fastify as any).workflowEngine.executeWorkflow(id, request.user!.tenantId!);
+
+      return reply.status(202).send({
+        executionId,
+        message: 'Workflow execution started',
       });
-
-      // TODO: Start workflow execution engine
-
-      return reply.status(202).send(execution);
     },
   );
 
@@ -154,9 +150,15 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const execution = await fastify.prisma.workflowExecution.findUnique({
-        where: { id: request.params.executionId },
-        include: { workflow: true },
+      const execution = await (fastify.prisma as any).workflowExecution.findUnique({
+        where: { id: request.params.executionId, tenantId: request.user!.tenantId! },
+        include: { 
+          workflow: true,
+          taskRuns: {
+            include: { task: true },
+            orderBy: { startedAt: 'asc' }
+          }
+        },
       });
 
       if (!execution) {
@@ -167,3 +169,4 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
     },
   );
 }
+
