@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-sentinel
+  namespace: default
+spec:
+  serviceName: redis-nodes
+  replicas: 3
+  selector:
+    matchLabels:
+      app: redis
+      role: sentinel
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: sentinel
+    spec:
+      containers:
+      - name: sentinel
+        image: bitnami/redis-sentinel:7.2
+        env:
+        - name: ALLOW_EMPTY_PASSWORD
+          value: "yes"
+        - name: REDIS_MASTER_HOST
+          value: redis-master
+        - name: REDIS_MASTER_NAME
+          value: mymaster
+        - name: QUORUM
+          value: "2"
+        ports:
+        - containerPort: 26379
+          name: sentinel
+        resources:
+          requests:
+            cpu: 50m
+            memory: 64Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+        readinessProbe:
+          exec:
+            command:
+            - redis-cli
+            - -p
+            - "26379"
+            - ping
+          initialDelaySeconds: 10
+          periodSeconds: 10
+        volumeMounts:
+        - name: config
+          mountPath: /opt/bitnami/redis-sentinel/conf/sentinel.conf
+          subPath: sentinel.conf
+      volumes:
+      - name: config
+        configMap:
+          name: redis-config
