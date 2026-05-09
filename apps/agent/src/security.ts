@@ -86,10 +86,27 @@ export function verifySignature(payload: any, signature: string, secret: string)
   }
 }
 
+import { TaskInputSchema, TaskMetadataSchema } from '@edgecloud/shared-kernel';
+
 export function validateTaskPayload(payload: TaskPayload, config: AgentConfig): { valid: boolean; error?: string } {
   // Size check
   if (JSON.stringify(payload).length > 1024 * 1024) {
     return { valid: false, error: 'Payload exceeds 1MB limit' };
+  }
+
+  // Schema checks
+  if (payload.input) {
+    const res = TaskInputSchema.safeParse(payload.input);
+    if (!res.success) {
+      return { valid: false, error: 'Invalid input payload: ' + res.error.issues[0].message };
+    }
+  }
+
+  if (payload.metadata) {
+    const res = TaskMetadataSchema.safeParse(payload.metadata);
+    if (!res.success) {
+      return { valid: false, error: 'Invalid metadata payload: ' + res.error.issues[0].message };
+    }
   }
 
   // Image allowlist

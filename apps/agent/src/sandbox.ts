@@ -49,12 +49,16 @@ export class DockerSandbox {
       // CPU Quota is in microseconds. period is 100,000 by default. 0.5 CPU = 50,000
       const cpuQuota = (payload.resources?.cpu || 0.5) * 100000;
 
+      // Restrict network mode to prevent host networking escape
+      const allowedNetworks = ['none', 'bridge'];
+      const networkMode = allowedNetworks.includes(payload.network || '') ? payload.network : 'none';
+
       const hostConfig: Docker.HostConfig = {
         Memory: memoryLimit,
         CpuQuota: cpuQuota,
         ReadonlyRootfs: true,
         SecurityOpt: ['no-new-privileges'],
-        NetworkMode: payload.network || 'none',
+        NetworkMode: networkMode,
         CapDrop: ['ALL'],
         AutoRemove: true,
       };

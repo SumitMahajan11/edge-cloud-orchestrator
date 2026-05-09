@@ -1,3 +1,4 @@
+import { env } from './config/env';
 import { 
   initTelemetry,
   createLogger,
@@ -45,30 +46,24 @@ const nodeStats: NodeStats = {
 };
 
 async function initConfig() {
-  const { SecretManagerFactory, validateRequiredSecrets } = await import('@edgecloud/shared-kernel');
-  secretManager = SecretManagerFactory.create();
-  
-  const required = ['NODE_ID', 'ORCHESTRATOR_URL', 'REQUEST_SIGNATURE_SECRET'];
-  await validateRequiredSecrets(secretManager, required, 'edge-agent');
-  
   config = {
-    PORT: parseInt(await secretManager.getSecret('PORT') || '4001', 10),
-    NODE_ID: (await secretManager.getSecret('NODE_ID'))!,
-    NODE_NAME: await secretManager.getSecret('NODE_NAME') || 'Edge Node',
-    NODE_LOCATION: await secretManager.getSecret('NODE_LOCATION') || 'Local',
-    ORCHESTRATOR_URL: (await secretManager.getSecret('ORCHESTRATOR_URL'))!,
-    API_KEY: await secretManager.getSecret('API_KEY'),
-    REQUIRE_API_KEY: (await secretManager.getSecret('REQUIRE_API_KEY')) === 'true',
-    ENABLE_MTLS: (await secretManager.getSecret('ENABLE_MTLS')) === 'true',
-    TLS_CERT_PATH: await secretManager.getSecret('TLS_CERT_PATH') || './certs/server.crt',
-    TLS_KEY_PATH: await secretManager.getSecret('TLS_KEY_PATH') || './certs/server.key',
-    TLS_CA_PATH: await secretManager.getSecret('TLS_CA_PATH') || './certs/ca.crt',
-    RATE_LIMIT_WINDOW_MS: parseInt(await secretManager.getSecret('RATE_LIMIT_WINDOW_MS') || '60000', 10),
-    RATE_LIMIT_MAX: parseInt(await secretManager.getSecret('RATE_LIMIT_MAX') || '100', 10),
-    REQUEST_SIGNATURE_SECRET: (await secretManager.getSecret('REQUEST_SIGNATURE_SECRET'))!,
-    CORS_ORIGINS: (await secretManager.getSecret('CORS_ORIGINS') || 'http://localhost:5173,http://localhost:3000').split(','),
-    IMAGE_ALLOWLIST_REGEX: await secretManager.getSecret('IMAGE_ALLOWLIST_REGEX') || '^[^:]+(?::(?!latest)[a-zA-Z0-9._-]+)?$',
-    DOCKER_HOST: await secretManager.getSecret('DOCKER_HOST'),
+    PORT: env.PORT,
+    NODE_ID: env.NODE_ID,
+    NODE_NAME: env.NODE_NAME,
+    NODE_LOCATION: env.NODE_LOCATION,
+    ORCHESTRATOR_URL: env.ORCHESTRATOR_URL,
+    API_KEY: env.API_KEY,
+    REQUIRE_API_KEY: env.REQUIRE_API_KEY,
+    ENABLE_MTLS: env.ENABLE_MTLS,
+    TLS_CERT_PATH: env.TLS_CERT_PATH,
+    TLS_KEY_PATH: env.TLS_KEY_PATH,
+    TLS_CA_PATH: env.TLS_CA_PATH,
+    RATE_LIMIT_WINDOW_MS: env.RATE_LIMIT_WINDOW_MS,
+    RATE_LIMIT_MAX: env.RATE_LIMIT_MAX,
+    REQUEST_SIGNATURE_SECRET: env.REQUEST_SIGNATURE_SECRET,
+    CORS_ORIGINS: env.CORS_ORIGINS.split(','),
+    IMAGE_ALLOWLIST_REGEX: env.IMAGE_ALLOWLIST_REGEX,
+    DOCKER_HOST: env.DOCKER_HOST,
   };
 
   sandbox = new DockerSandbox(config);
