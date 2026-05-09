@@ -1,56 +1,39 @@
-export interface AgentConfig {
-  PORT: number;
-  NODE_ID: string;
-  NODE_NAME: string;
-  NODE_LOCATION: string;
-  ORCHESTRATOR_URL: string;
-  API_KEY?: string;
-  REQUIRE_API_KEY: boolean;
-  ENABLE_MTLS: boolean;
-  TLS_CERT_PATH: string;
-  TLS_KEY_PATH: string;
-  TLS_CA_PATH: string;
-  RATE_LIMIT_WINDOW_MS: number;
-  RATE_LIMIT_MAX: number;
-  REQUEST_SIGNATURE_SECRET: string;
-  CORS_ORIGINS: string[];
-  DOCKER_HOST?: string;
-  DOCKER_TLS_CA?: string;
-  DOCKER_TLS_CERT?: string;
-  DOCKER_TLS_KEY?: string;
-  IMAGE_ALLOWLIST_REGEX: string;
+import { z } from 'zod';
+import { TaskV1ResponseSchema, CreateTaskV1Schema } from '../api-contracts/v1/task';
+
+// Note: This file is a bridge between the TS schema and Rust types for documentation.
+// The actual Rust implementation will use the types defined below.
+
+export const TaskRuntimeSchema = z.enum(['Docker', 'Wasm']);
+
+export const WasmTaskSpecSchema = z.object({
+  imageUrl: z.string().url(),
+  memoryLimitMb: z.number().int().min(1).max(256).default(64),
+  timeoutSeconds: z.number().int().min(1).max(300).default(30),
+  fuelLimit: z.number().int().default(10000000000),
+});
+
+// Rust equivalents (using pseudo-rust for clarity in this turn)
+/*
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub enum TaskRuntime {
+    Docker,
+    Wasm,
 }
 
-export interface TaskPayload {
-  taskId: string;
-  image: string;
-  command?: string | string[];
-  env?: Record<string, string>;
-  resources?: {
-    cpu?: number;
-    memory?: string; // e.g. "512m"
-  };
-  network?: 'none' | 'bridge' | 'host';
-  maxDurationSeconds?: number; // Task timeout in seconds (default: 3600)
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct TaskSpec {
+    pub id: String,
+    pub runtime: TaskRuntime,
+    pub image: String, // URL for WASM or image name for Docker
+    pub input: serde_json::Value,
+    pub resources: Resources,
+    pub timeout_seconds: u32,
 }
 
-export interface ExecutionResult {
-  taskId: string;
-  status: 'completed' | 'failed' | 'timeout' | 'killed';
-  exitCode?: number;
-  stdout?: string;
-  stderr?: string;
-  executionTime: number;
-  error?: string;
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct Resources {
+    pub memory_mb: u32,
+    pub cpu_cores: f32,
 }
-
-export interface NodeStats {
-  cpuUsage: number;
-  memoryUsage: number;
-  totalMemory: number;
-  tasksRunning: number;
-  tasksCompleted: number;
-  tasksFailed: number;
-  uptime: number;
-  startTime: number;
-}
+*/
