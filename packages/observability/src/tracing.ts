@@ -1,36 +1,28 @@
-// Stub tracing - no-op implementation
-// TODO: Restore full OpenTelemetry tracing when dependencies are stable
+import { NodeSDK } from '@opentelemetry/sdk-node';
+import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
+import { Resource } from '@opentelemetry/resources';
+import { ATTR_SERVICE_NAME, ATTR_SERVICE_VERSION } from '@opentelemetry/semantic-conventions';
 
-export interface TracingConfig {
-  serviceName: string;
-  jaegerEndpoint?: string;
-}
-
-export class TracingManager {
-  constructor(_config: TracingConfig) {}
-  
-  startSpan(_name: string, _options?: any) {
-    return {
-      end: () => {},
-      setAttribute: (_key: string, _value: any) => {},
-      recordException: (_error: Error) => {},
-    };
+export function initTracing(serviceName: string, serviceVersion: string) {
+  if (process.env.OTEL_ENABLED !== 'true') {
+    return; // Opt-in — don't force tracing in all environments
   }
   
-  shutdown() {
-    return Promise.resolve();
-  }
-}
-
-let tracingManager: TracingManager | null = null;
-
-export function initializeTracing(_config: TracingConfig): TracingManager {
-  if (!tracingManager) {
-    tracingManager = new TracingManager(_config);
-  }
-  return tracingManager;
-}
-
-export function getTracingManager(): TracingManager | null {
-  return tracingManager;
+  const sdk = new NodeSDK({
+    resource: new Resource({
+      [ATTR_SERVICE_NAME]: serviceName,
+      [ATTR_SERVICE_VERSION]: serviceVersion,
+    }),
+    traceExporter: new OTLPTraceExporter({
+      url: process.env.OTEL_EXPORTER_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces',
+    }),
+    instrumentations: [getNodeAutoInstrumentations({
+      '@opentelemetry/instrumentation-fs': { enabled: false }, // too noisy
+    })],
+  });
+  
+  sdk.start();
+  
+  process.on('SIGTERM', () => sdk.shutdown());
 }
