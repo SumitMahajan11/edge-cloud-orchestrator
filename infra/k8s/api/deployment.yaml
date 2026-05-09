@@ -11,6 +11,9 @@ metadata:
 data:
   NODE_ENV: 'production'
   LOG_LEVEL: 'info'
+  REDIS_SENTINELS: 'redis-sentinel:26379'
+  REDIS_SENTINEL_NAME: 'mymaster'
+
 ---
 apiVersion: v1
 kind: Secret
@@ -19,55 +22,86 @@ metadata:
   namespace: edge-cloud-orchestrator
 type: Opaque
 stringData:
-  DATABASE_URL: 'postgresql://postgres:postgres@postgres:5432/edge_cloud?schema=public'
-  REDIS_URL: 'redis://redis:6379'
-  RABBITMQ_URL: 'amqp://admin:admin@rabbitmq:5672'
-  JWT_SECRET: 'change-this-in-production'
+  DATABASE_URL: 'EXTERNAL_SECRET_REPLACED'
+  REDIS_PASSWORD: 'EXTERNAL_SECRET_REPLACED'
+  RABBITMQ_URL: 'EXTERNAL_SECRET_REPLACED'
+  JWT_SECRET: 'EXTERNAL_SECRET_REPLACED'
+
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: backend
-  namespace: edge-cloud-orchestrator
+  name: api
+  namespace: edgecloud
 spec:
-  replicas: 3
+  replicas: 2
   selector:
     matchLabels:
-      app: backend
+      app.kubernetes.io/name: api
   template:
     metadata:
       labels:
-        app: backend
+        app.kubernetes.io/name: api
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
-        - name: backend
-          image: edge-cloud-orchestrator/backend:latest
+        - name: api
+          image: ghcr.io/SumitMahajan01/edge-cloud-orchestrator/api:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 3090
+              name: http
           envFrom:
             - configMapRef:
-                name: edge-cloud-config
+                name: app-config
             - secretRef:
-                name: edge-cloud-secrets
-          resources:
-            requests:
-              memory: '256Mi'
-              cpu: '250m'
-            limits:
-              memory: '512Mi'
-              cpu: '500m'
-          livenessProbe:
+                name: edgecloud-secrets
+          startupProbe:
             httpGet:
-              path: /health
-              port: 3000
-            initialDelaySeconds: 10
-            periodSeconds: 10
+              path: /health/startup
+              port: http
+            failureThreshold: 30
+            periodSeconds: 2
           readinessProbe:
             httpGet:
-              path: /health
-              port: 3000
+              path: /health/ready
+              port: http
             initialDelaySeconds: 5
             periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
+          resources:
+            requests:
+              cpu: "200m"
+              memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /app/logs
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
 ---
 apiVersion: v1
 kind: Service
@@ -76,10 +110,10 @@ metadata:
   namespace: edge-cloud-orchestrator
 spec:
   selector:
-    app: backend
+    app.kubernetes.io/name: api
   ports:
-    - port: 3000
-      targetPort: 3000
+    - port: 3090
+      targetPort: 3090
   type: ClusterIP
 ---
 apiVersion: apps/v1
@@ -125,102 +159,6 @@ spec:
     - port: 4001
       targetPort: 4001
 ---
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: postgres
-  namespace: edge-cloud-orchestrator
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: postgres
-  template:
-    metadata:
-      labels:
-        app: postgres
-    spec:
-      containers:
-        - name: postgres
-          image: postgres:16-alpine
-          ports:
-            - containerPort: 5432
-          env:
-            - name: POSTGRES_USER
-              value: 'postgres'
-            - name: POSTGRES_PASSWORD
-              value: 'postgres'
-            - name: POSTGRES_DB
-              value: 'edge_cloud'
-          volumeMounts:
-            - name: postgres-data
-              mountPath: /var/lib/postgresql/data
-      volumes:
-        - name: postgres-data
-          persistentVolumeClaim:
-            claimName: postgres-pvc
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: postgres-pvc
-  namespace: edge-cloud-orchestrator
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10Gi
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: postgres
-  namespace: edge-cloud-orchestrator
-spec:
-  selector:
-    app: postgres
-  ports:
-    - port: 5432
-      targetPort: 5432
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: redis
-  namespace: edge-cloud-orchestrator
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: redis
-  template:
-    metadata:
-      labels:
-        app: redis
-    spec:
-      containers:
-        - name: redis
-          image: redis:7-alpine
-          ports:
-            - containerPort: 6379
-          args:
-            - redis-server
-            - --appendonly
-            - 'yes'
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: redis
-  namespace: edge-cloud-orchestrator
-spec:
-  selector:
-    app: redis
-  ports:
-    - port: 6379
-      targetPort: 6379
----
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -237,32 +175,7 @@ spec:
             pathType: Prefix
             backend:
               service:
-                name: backend
+                name: api
                 port:
-                  number: 3000
+                  number: 3090
 ---
-apiVersion: autoscaling/v2
-kind: HorizontalPodAutoscaler
-metadata:
-  name: backend-hpa
-  namespace: edge-cloud-orchestrator
-spec:
-  scaleTargetRef:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: backend
-  minReplicas: 3
-  maxReplicas: 10
-  metrics:
-    - type: Resource
-      resource:
-        name: cpu
-        target:
-          type: Utilization
-          averageUtilization: 70
-    - type: Resource
-      resource:
-        name: memory
-        target:
-          type: Utilization
-          averageUtilization: 80

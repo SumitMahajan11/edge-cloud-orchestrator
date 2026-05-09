@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: postgres-config
+  namespace: edge-cloud-orchestrator
+data:
+  postgresql.conf: |
+    wal_level = replica
+    max_wal_senders = 3
+    wal_keep_size = 64MB
+    synchronous_commit = on
+  pg_hba.conf: |
+    local all all trust
+    host all all all md5
+    host replication replicator 10.0.0.0/8 md5
