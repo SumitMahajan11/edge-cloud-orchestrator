@@ -36,6 +36,7 @@ export class VaultClient extends EventEmitter {
   private client: AxiosInstance;
   private token: string | null = null;
   private tokenRenewalTimer: NodeJS.Timeout | null = null;
+  private leaseRenewalTimers: Map<string, NodeJS.Timeout> = new Map();
   private config: VaultConfig;
 
   constructor(config: VaultConfig) {
@@ -156,13 +157,22 @@ export class VaultClient extends EventEmitter {
   private scheduleLeaseRenewal(leaseId: string, leaseDuration: number): void {
     const renewalTime = (leaseDuration * 1000 * 2) / 3; // Renew at 2/3 TTL
 
-    setTimeout(async () => {
+    if (this.leaseRenewalTimers.has(leaseId)) {
+      clearTimeout(this.leaseRenewalTimers.get(leaseId));
+    }
+
+    const timer = setTimeout(async () => {
       try {
         await this.renewLease(leaseId);
+        // After successful renewal, reschedule if duration is still valid
+        // In a real implementation, we might get a new duration here
       } catch (error) {
         this.emit('leaseRenewalFailed', { leaseId, error });
+        this.leaseRenewalTimers.delete(leaseId);
       }
     }, renewalTime);
+
+    this.leaseRenewalTimers.set(leaseId, timer);
   }
 
   async renewLease(leaseId: string): Promise<void> {
@@ -176,6 +186,11 @@ export class VaultClient extends EventEmitter {
     await this.client.put('/v1/sys/leases/revoke', {
       lease_id: leaseId,
     });
+    const timer = this.leaseRenewalTimers.get(leaseId);
+    if (timer) {
+      clearTimeout(timer);
+      this.leaseRenewalTimers.delete(leaseId);
+    }
   }
 
   // PKI Secrets Engine
@@ -209,7 +224,7 @@ export class VaultClient extends EventEmitter {
   }
 
   async revokeCertificate(serialNumber: string): Promise<void> {
-    await this.client.post('/v1/pki_int/revoke', {
+    const response = await this.client.post('/v1/pki_int/revoke', {
       serial_number: serialNumber,
     });
   }
@@ -232,5 +247,9 @@ export class VaultClient extends EventEmitter {
     if (this.tokenRenewalTimer) {
       clearTimeout(this.tokenRenewalTimer);
     }
+    for (const timer of this.leaseRenewalTimers.values()) {
+      clearTimeout(timer);
+    }
+    this.leaseRenewalTimers.clear();
   }
 }

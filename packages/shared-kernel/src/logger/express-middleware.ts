@@ -1,9 +1,9 @@
 import type { Request, Response, NextFunction } from 'express';
 import { v4 as uuidv4 } from 'uuid';
-import { runWithContext } from './context';
+import { runWithContext } from './context.js';
 import type { Logger } from 'pino';
-import { tracer } from '../telemetry';
-import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
+import { tracer } from '../telemetry/index.js';
+import { SpanStatusCode } from '@opentelemetry/api';
 
 /**
  * Standardized logging middleware for Express (used by edge-agent).

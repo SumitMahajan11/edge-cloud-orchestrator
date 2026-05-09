@@ -1,0 +1,38 @@
+# S3 Bucket Configuration for ML Models
+bucket_name: edge-cloud-ml-models
+region: us-east-1
+
+versioning:
+  status: Enabled
+
+lifecycle_rules:
+  - id: retain-last-10-versions
+    status: Enabled
+    noncurrent_version_expiration:
+      noncurrent_days: 30
+      newer_noncurrent_versions: 10
+
+replication_configuration:
+  role: arn:aws:iam::123456789012:role/s3-replication-role
+  rules:
+    - id: cross-region-dr
+      status: Enabled
+      priority: 1
+      destination:
+        bucket: arn:aws:s3:::edge-cloud-ml-models-dr
+        region: us-west-2
+      delete_marker_replication:
+        status: Disabled
+
+# SECURITY HARDENING
+public_access_block:
+  block_public_acls: true
+  block_public_policy: true
+  ignore_public_acls: true
+  restrict_public_buckets: true
+
+encryption:
+  status: Enabled
+  algorithm: AES256
+  bucket_key_enabled: true
+

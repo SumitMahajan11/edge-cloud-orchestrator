@@ -1,0 +1,95 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+jobs:
+  ci-check:
+    name: Full CI Pipeline
+    uses: ./.github/workflows/ci.yml
+
+  create-release:
+    name: Create GitHub Release
+    needs: ci-check
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate CHANGELOG
+        id: changelog
+        uses: orhun/git-cliff-action@v3
+        with:
+          config: cliff.toml
+          args: --latest
+        env:
+          OUTPUT: CHANGELOG.md
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: CHANGELOG.md
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  publish-npm:
+    name: Publish Packages to npm
+    needs: create-release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        run: pnpm run build
+
+      - name: Publish packages
+        run: pnpm -r --filter "./packages/**" publish --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  deploy-production:
+    name: Deploy to Production
+    needs: publish-npm
+    runs-on: ubuntu-latest
+    environment:
+      name: production
+      url: https://api.edgecloud.io
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Update production manifests
+        run: |
+          cd infra/k8s/overlays/production
+          kustomize edit set image api=ghcr.io/${{ github.repository }}/api:${{ github.ref_name }}
+          kustomize edit set image agent=ghcr.io/${{ github.repository }}/agent:${{ github.ref_name }}
+          kustomize edit set image web=ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
+
+      - name: Deploy to production via ArgoCD (Manual sync gate)
+        run: |
+          echo "Syncing production app via ArgoCD..."
+          curl -sSL -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/edgecloud-production/sync \
+            -H "Authorization: Bearer ${{ secrets.ARGOCD_AUTH_TOKEN }}"

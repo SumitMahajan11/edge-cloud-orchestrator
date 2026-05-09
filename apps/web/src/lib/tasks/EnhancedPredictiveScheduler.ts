@@ -30,7 +30,7 @@ export interface NodePerformanceRecord {
   lastUpdated: Date
 }
 
-export interface PredictionModel {
+export interface EnhancedPredictionModel {
   taskType: string
   avgExecutionTime: number
   stdDeviation: number
@@ -47,7 +47,7 @@ export interface FeatureWeights {
   historicalPerformance: number
 }
 
-export interface SchedulerConfig {
+export interface EnhancedSchedulerConfig {
   maxHistorySize: number
   modelUpdateInterval: number
   minSamplesForPrediction: number
@@ -56,7 +56,7 @@ export interface SchedulerConfig {
   databaseUrl?: string
 }
 
-export interface PredictionResult {
+export interface EnhancedPredictionResult {
   node: EdgeNode
   score: number
   predictedLatency: number
@@ -67,7 +67,7 @@ export interface PredictionResult {
 type SchedulerEvent = 'model.updated' | 'prediction.made' | 'history.recorded'
 type SchedulerCallback = (event: SchedulerEvent, data: unknown) => void
 
-const DEFAULT_CONFIG: SchedulerConfig = {
+const DEFAULT_CONFIG: EnhancedSchedulerConfig = {
   maxHistorySize: 10000,
   modelUpdateInterval: 60000, // 1 minute
   minSamplesForPrediction: 5,
@@ -85,15 +85,15 @@ const DEFAULT_CONFIG: SchedulerConfig = {
  * Enhanced Predictive Scheduler
  */
 export class EnhancedPredictiveScheduler {
-  private config: SchedulerConfig
+  private config: EnhancedSchedulerConfig
   private history: TaskHistoryRecord[] = []
-  private models: Map<string, PredictionModel> = new Map()
+  private models: Map<string, EnhancedPredictionModel> = new Map()
   private nodePerformance: Map<string, NodePerformanceRecord> = new Map()
   private lastModelUpdate = 0
   private callbacks: Map<SchedulerEvent, Set<SchedulerCallback>> = new Map()
   private dbClient: unknown = null
 
-  constructor(config: Partial<SchedulerConfig> = {}) {
+  constructor(config: Partial<EnhancedSchedulerConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config }
     
     if (this.config.persistenceEnabled && this.config.databaseUrl) {
@@ -106,7 +106,7 @@ export class EnhancedPredictiveScheduler {
    */
   private async initializeDatabase(): Promise<void> {
     try {
-      // @ts-expect-error - Optional dependency
+      // @ts-ignore
       const { Pool } = await import('pg')
       
       this.dbClient = new Pool({
@@ -349,11 +349,11 @@ export class EnhancedPredictiveScheduler {
   /**
    * Predict best node for task
    */
-  predictBestNode(task: Task, nodes: EdgeNode[]): PredictionResult | null {
+  predictBestNode(task: Task, nodes: EdgeNode[]): EnhancedPredictionResult | null {
     if (nodes.length === 0) {return null}
 
     const model = this.models.get(task.type)
-    const predictions: PredictionResult[] = []
+    const predictions: EnhancedPredictionResult[] = []
 
     for (const node of nodes) {
       const prediction = this.calculateNodeScore(task, node, model)
@@ -372,7 +372,7 @@ export class EnhancedPredictiveScheduler {
   /**
    * Calculate node score
    */
-  private calculateNodeScore(task: Task, node: EdgeNode, model?: PredictionModel): PredictionResult {
+  private calculateNodeScore(task: Task, node: EdgeNode, model?: EnhancedPredictionModel): EnhancedPredictionResult {
     const weights = model?.featureWeights || this.config.featureWeights
     const factors: Record<string, number> = {}
 
@@ -532,7 +532,7 @@ export class EnhancedPredictiveScheduler {
   /**
    * Export data for analysis
    */
-  exportData(): { history: TaskHistoryRecord[]; models: PredictionModel[] } {
+  exportData(): { history: TaskHistoryRecord[]; models: EnhancedPredictionModel[] } {
     return {
       history: this.history,
       models: Array.from(this.models.values()),
@@ -651,7 +651,7 @@ export class FeatureStore {
 }
 
 // Factory functions
-export function createEnhancedPredictiveScheduler(config: Partial<SchedulerConfig> = {}): EnhancedPredictiveScheduler {
+export function createEnhancedPredictiveScheduler(config: Partial<EnhancedSchedulerConfig> = {}): EnhancedPredictiveScheduler {
   return new EnhancedPredictiveScheduler(config)
 }
 

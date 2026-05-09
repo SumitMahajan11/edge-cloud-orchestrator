@@ -1,39 +1,57 @@
 version: '3.8'
 
 services:
-  # CockroachDB Cluster
-  cockroachdb-1:
-    image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-1,cockroachdb-2,cockroachdb-3 --listen-addr=cockroachdb-1:26257 --http-addr=cockroachdb-1:8080
+  # PostgreSQL Primary
+  postgres-primary:
+    image: bitnami/postgresql:16
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=edge_cloud
+      - POSTGRESQL_REPLICATION_MODE=master
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+      - POSTGRESQL_SYNCHRONOUS_COMMIT_MODE=on
+      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
     volumes:
-      - cockroachdb-data-1:/cockroach/cockroach-data
+      - postgres-primary-data:/bitnami/postgresql
     networks:
       - edgecloud
     ports:
-      - "26257:26257"
-      - "8080:8080"
+      - "5432:5432"
 
-  cockroachdb-2:
-    image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-1,cockroachdb-2,cockroachdb-3 --listen-addr=cockroachdb-2:26257 --http-addr=cockroachdb-2:8080
-    volumes:
-      - cockroachdb-data-2:/cockroach/cockroach-data
-    networks:
-      - edgecloud
-
-  cockroachdb-3:
-    image: cockroachdb/cockroach:v23.1.11
-    command: start --insecure --join=cockroachdb-1,cockroachdb-2,cockroachdb-3 --listen-addr=cockroachdb-3:26257 --http-addr=cockroachdb-3:8080
-    volumes:
-      - cockroachdb-data-3:/cockroach/cockroach-data
-    networks:
-      - edgecloud
-
-  cockroachdb-init:
-    image: cockroachdb/cockroach:v23.1.11
-    command: init --insecure --host=cockroachdb-1:26257
+  # PostgreSQL Replica
+  postgres-replica:
+    image: bitnami/postgresql:16
     depends_on:
-      - cockroachdb-1
+      - postgres-primary
+    environment:
+      - POSTGRESQL_USERNAME=postgres
+      - POSTGRESQL_PASSWORD=postgres
+      - POSTGRESQL_DATABASE=edge_cloud
+      - POSTGRESQL_REPLICATION_MODE=slave
+      - POSTGRESQL_MASTER_HOST=postgres-primary
+      - POSTGRESQL_MASTER_PORT_NUMBER=5432
+      - POSTGRESQL_REPLICATION_USER=repl_user
+      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
+    volumes:
+      - postgres-replica-data:/bitnami/postgresql
+    networks:
+      - edgecloud
+
+  # PgBouncer Connection Pooler
+  pgbouncer:
+    image: bitnami/pgbouncer:latest
+    environment:
+      - PGBOUNCER_DATABASE_HOST=postgres-primary
+      - PGBOUNCER_DATABASE_PORT=5432
+      - PGBOUNCER_DATABASE_USER=postgres
+      - PGBOUNCER_DATABASE_PASSWORD=postgres
+      - PGBOUNCER_DATABASE_NAME=edge_cloud
+      - PGBOUNCER_PORT=5432
+      - PGBOUNCER_POOL_MODE=transaction
+    depends_on:
+      - postgres-primary
     networks:
       - edgecloud
 
@@ -101,13 +119,11 @@ services:
       dockerfile: apps/task-service/Dockerfile
     environment:
       PORT: 3001
-      DATABASE_HOST: cockroachdb-1
-      DATABASE_PORT: 26257
-      DATABASE_NAME: edgecloud
-      DATABASE_USER: root
+      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      OTEL_ENABLED: "true"
     depends_on:
-      - cockroachdb-init
+      - pgbouncer
       - kafka-1
     networks:
       - edgecloud
@@ -122,13 +138,11 @@ services:
       dockerfile: apps/node-service/Dockerfile
     environment:
       PORT: 3002
-      DATABASE_HOST: cockroachdb-1
-      DATABASE_PORT: 26257
-      DATABASE_NAME: edgecloud
-      DATABASE_USER: root
+      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      OTEL_ENABLED: "true"
     depends_on:
-      - cockroachdb-init
+      - pgbouncer
       - kafka-1
     networks:
       - edgecloud
@@ -149,6 +163,7 @@ services:
       TASK_SERVICE_URL: http://task-service:3001
       NODE_SERVICE_URL: http://node-service:3002
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      OTEL_ENABLED: "true"
     depends_on:
       - task-service
       - node-service
@@ -170,6 +185,7 @@ services:
       TASK_SERVICE_URL: http://task-service:3001
       NODE_SERVICE_URL: http://node-service:3002
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      OTEL_ENABLED: "true"
     depends_on:
       - task-service
       - node-service
@@ -188,6 +204,7 @@ services:
       TASK_SERVICE_URL: http://task-service:3001
       NODE_SERVICE_URL: http://node-service:3002
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
+      OTEL_ENABLED: "true"
     depends_on:
       - task-service
       - node-service
@@ -203,6 +220,7 @@ services:
       PORT: 3004
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
       REGION: us-east
+      OTEL_ENABLED: "true"
     depends_on:
       - kafka-1
     networks:
@@ -217,19 +235,17 @@ services:
       dockerfile: Dockerfile
     environment:
       PORT: 3000
-      DATABASE_HOST: cockroachdb-1
-      DATABASE_PORT: 26257
-      DATABASE_NAME: edgecloud
-      DATABASE_USER: root
+      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
       REDIS_URL: redis://redis:6379
       JWT_SECRET: dev-jwt-secret-change-in-production
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: dev-token
+      OTEL_ENABLED: "true"
     depends_on:
-      - cockroachdb-init
+      - pgbouncer
       - kafka-1
-      - redis
+      - redis-master
     networks:
       - edgecloud
     ports:
@@ -264,18 +280,50 @@ services:
     networks:
       - edgecloud
 
-  # Redis for caching/sessions
-  redis:
-    image: redis:7-alpine
+  # Redis Master-Replica-Sentinel HA Setup
+  redis-master:
+    image: bitnami/redis:7.2
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_REPLICATION_MODE=master
     networks:
       - edgecloud
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/data
+      - redis-data:/bitnami/redis/data
+
+  redis-replica:
+    image: bitnami/redis:7.2
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_REPLICATION_MODE=slave
+      - REDIS_MASTER_HOST=redis-master
+    depends_on:
+      - redis-master
+    networks:
+      - edgecloud
+
+  redis-sentinel:
+    image: bitnami/redis-sentinel:7.2
+    environment:
+      - QUORUM=1
+      - REDIS_MASTER_HOST=redis-master
+      - REDIS_MASTER_NAME=mymaster
+      - ALLOW_EMPTY_PASSWORD=yes
+    depends_on:
+      - redis-master
+      - redis-replica
+    networks:
+      - edgecloud
+    ports:
+      - "26379:26379"
 
   # ==========================================
   # Observability Stack
+  # View traces at:
+  # - Grafana/Tempo UI: http://localhost:3002/explore
+  # - Jaeger UI: http://localhost:16686
   # ==========================================
   
   # Prometheus for metrics collection
@@ -369,7 +417,7 @@ services:
   
   # Backup service for automated backups
   backup-service:
-    image: cockroachdb/cockroach:v23.1.11
+    image: bitnami/postgresql:16
     volumes:
       - ../../infra/backup:/backup-scripts:ro
       - backup-data:/backups
@@ -381,20 +429,19 @@ services:
     networks:
       - edgecloud
     depends_on:
-      - cockroachdb-1
+      - postgres-primary
     environment:
       - BACKUP_SCHEDULE=0 2 * * *
 
 volumes:
-  cockroachdb-data-1:
-  cockroachdb-data-2:
-  cockroachdb-data-3:
-  postgres-data:
+  postgres-primary-data:
+  postgres-replica-data:
   redis-data:
   prometheus-data:
   grafana-data:
   vault-data:
   backup-data:
+  postgres-data:
 
 networks:
   edgecloud:

@@ -1,9 +1,11 @@
+import { env } from './config/env';
 import { 
   initTelemetry,
   createLogger,
   fastifyLoggingPlugin,
   GracefulShutdown,
-  HealthCheck
+  HealthCheck,
+  RedisFactory
 } from '@edgecloud/shared-kernel';
 initTelemetry('task-service');
 
@@ -24,7 +26,6 @@ import {
   TaskListQuerySchema,
   VERSION,
   SecretManagerFactory,
-  validateRequiredSecrets,
 } from '@edgecloud/shared-kernel';
 import cors from '@fastify/cors';
 import rateLimit from '@fastify/rate-limit';
@@ -47,6 +48,8 @@ let repository: PostgresTaskRepository;
 let taskService: TaskService;
 let jwtSecret: string;
 let serviceToken: string;
+let redisClient: any;
+let redisUrl: string;
 
 // Circuit breaker registry
 const circuitBreakerRegistry = new CircuitBreakerRegistry();
@@ -66,9 +69,7 @@ const redisStreamCircuitBreaker = circuitBreakerRegistry.getOrCreate('redis-stre
 
 // Register plugins
 async function registerPlugins() {
-  const secretManager = SecretManagerFactory.create();
-  const corsOriginsRaw = await secretManager.getSecret('CORS_ORIGINS');
-  const corsOrigins = corsOriginsRaw ? corsOriginsRaw.split(',') : true;
+  const corsOrigins = env.CORS_ORIGINS === '*' ? true : env.CORS_ORIGINS.split(',');
 
   // CORS
   await app.register(cors, {
@@ -77,19 +78,18 @@ async function registerPlugins() {
   });
 
   // Rate limiting
-  const redisUrl = await secretManager.getSecret('REDIS_URL');
   await app.register(rateLimit, {
     max: 100,
     timeWindow: '1 minute',
     cache: 10000,
     allowList: ['127.0.0.1'],
-    redis: redisUrl ? { url: redisUrl } : undefined,
+    redis: redisClient,
   });
 
   // Authentication middleware
   const authMiddleware = createAuthMiddleware({
-    jwtSecret: jwtSecret,
-    serviceToken: serviceToken,
+    jwtSecret: env.JWT_SECRET,
+    serviceToken: env.SERVICE_TOKEN,
     skipPaths: ['/health', '/metrics', '/ready'],
   });
 
@@ -241,40 +241,36 @@ app.post('/internal/tasks/:id/fail', async (request: FastifyRequest, reply: Fast
 
 // Start server
 async function start() {
-  const secretManager = SecretManagerFactory.create();
-
-  // Validate critical secrets
-  await validateRequiredSecrets(
-    secretManager,
-    ['DATABASE_HOST', 'DATABASE_PASSWORD', 'JWT_SECRET', 'REDIS_URL'],
-    'task-service'
-  );
-
-  // Load config
-  jwtSecret = await secretManager.getSecret('JWT_SECRET') || ''; // Already validated
-  serviceToken = await secretManager.getSecret('SERVICE_TOKEN') || 'dev-service-token';
-
-  const dbHost = await secretManager.getSecret('DATABASE_HOST');
-  const dbPort = parseInt(await secretManager.getSecret('DATABASE_PORT') || '26257');
-  const dbName = await secretManager.getSecret('DATABASE_NAME') || 'edgecloud';
-  const dbUser = await secretManager.getSecret('DATABASE_USER') || 'root';
-  const dbPass = await secretManager.getSecret('DATABASE_PASSWORD') || '';
-  const dbSsl = await secretManager.getSecret('DATABASE_SSL') === 'true';
+  // Config is already validated via import { env } from './config/env'
+  
+  jwtSecret = env.JWT_SECRET;
+  serviceToken = env.SERVICE_TOKEN;
 
   pool = new Pool({
-    host: dbHost,
-    port: dbPort,
-    database: dbName,
-    user: dbUser,
-    password: dbPass,
-    ssl: dbSsl ? { rejectUnauthorized: false } : false,
+    host: env.DATABASE_HOST,
+    port: env.DATABASE_PORT,
+    database: env.DATABASE_NAME,
+    user: env.DATABASE_USER,
+    password: env.DATABASE_PASSWORD,
+    ssl: env.DATABASE_SSL ? { rejectUnauthorized: false } : false,
   });
 
-  const redisUrl = await secretManager.getSecret('REDIS_URL') || 'redis://localhost:6379';
+  redisUrl = env.REDIS_URL;
+  
+  if (env.REDIS_URL || env.REDIS_SENTINELS) {
+    // Note: RedisFactory still needs SecretManager if it's designed that way, 
+    // but we can pass a mock or the env-based one if needed.
+    // For now, let's keep it simple or pass the factory what it needs.
+    const secretManager = SecretManagerFactory.create();
+    redisClient = await RedisFactory.createClient(secretManager);
+  }
 
+  const kafkaBrokers = env.KAFKA_BROKERS.split(',');
+  
   eventBus = new EventBus({
     clientId: 'task-service',
-    brokers: [redisUrl],
+    brokers: kafkaBrokers,
+    redis: redisClient,
   });
 
   repository = new PostgresTaskRepository(pool);
@@ -295,7 +291,7 @@ async function start() {
     // Register metrics
     registerMetrics();
     
-    const port = parseInt(await secretManager.getSecret('PORT') || '3001', 10);
+    const port = env.PORT;
     await app.listen({ port, host: '0.0.0.0' });
     
     // Initialize shutdown manager
@@ -319,5 +315,12 @@ async function start() {
   }
 }
 
-// Start the application
-start();
+// Start the application if not being imported for tests
+if (env.NODE_ENV !== 'test' && !env.VITEST) {
+  start().catch(err => {
+    logger.error(err, 'Task Service fatal error on start');
+    process.exit(1);
+  });
+}
+
+export { app, pool, eventBus, taskService, start };

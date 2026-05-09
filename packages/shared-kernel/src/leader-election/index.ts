@@ -34,14 +34,14 @@ export class LeaderElection extends EventEmitter {
     super();
     this.logger = logger;
     this.config = config;
-    this.redlock = new Redlock([redis], {
+    this.redlock = new Redlock([redis as any], {
       driftFactor: 0.01,
       retryCount: 0,
       retryDelay: 200,
       retryJitter: 200,
     });
 
-    this.redlock.on('error', (error: any) => {
+    this.redlock.on('clientError', (error: any) => {
       this.logger.error({ error }, 'Redlock error');
     });
 
@@ -120,7 +120,7 @@ export class LeaderElection extends EventEmitter {
         return;
       }
       try {
-        this.lock = await this.lock.extend(this.config.ttl);
+        this.lock = await (this.lock as any).extend(this.config.ttl);
         this.logger.debug({ lockKey: this.config.lockKey }, 'Leadership lease renewed');
       } catch (e) {
         this.logger.warn({ error: e, lockKey: this.config.lockKey }, 'Failed to renew leadership lease');
@@ -169,7 +169,7 @@ export class LeaderElection extends EventEmitter {
     this.stopRenewalTimer();
     if (this.lock && this.config.unlockOnStop) {
       try {
-        await this.lock.release();
+        await (this.lock as any).release();
       } catch (e) {
         this.logger.error({ error: e }, 'Failed to release lock on stop');
       }

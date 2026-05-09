@@ -13,11 +13,12 @@ export interface Alert {
   message: string;
   source: string;
   timestamp: Date;
-  metadata?: Record<string, unknown>;
+  tenantId: string;
+  metadata?: Record<string, unknown> | undefined;
 }
 
 export interface AlertingConfig {
-  webhookUrl?: string;
+  webhookUrl?: string | undefined;
   logAlerts: boolean;
   throttleMs: number;
 }
@@ -45,6 +46,7 @@ export class AlertingService {
     title: string,
     message: string,
     source: string,
+    tenantId: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
     const alertKey = `${source}:${title}`;
@@ -63,6 +65,7 @@ export class AlertingService {
       title,
       message,
       source,
+      tenantId,
       timestamp: new Date(),
       metadata,
     };
@@ -99,13 +102,13 @@ export class AlertingService {
 
     switch (alert.severity) {
       case 'critical':
-        this.logger.fatal(logData, `🚨 CRITICAL ALERT: ${alert.title}`);
+        this.logger.fatal(logData, `🚨 [${alert.tenantId}] CRITICAL ALERT: ${alert.title}`);
         break;
       case 'warning':
-        this.logger.warn(logData, `⚠️ WARNING: ${alert.title}`);
+        this.logger.warn(logData, `⚠️ [${alert.tenantId}] WARNING: ${alert.title}`);
         break;
       case 'info':
-        this.logger.info(logData, `ℹ️ INFO: ${alert.title}`);
+        this.logger.info(logData, `ℹ️ [${alert.tenantId}] INFO: ${alert.title}`);
         break;
     }
   }
@@ -142,18 +145,19 @@ export class AlertingService {
   /**
    * Get alert history
    */
-  getAlertHistory(severity?: Alert['severity']): Alert[] {
+  getAlertHistory(tenantId: string, severity?: Alert['severity']): Alert[] {
+    let alerts = this.alertHistory.filter(a => a.tenantId === tenantId);
     if (severity) {
-      return this.alertHistory.filter((a) => a.severity === severity);
+      alerts = alerts.filter((a) => a.severity === severity);
     }
-    return [...this.alertHistory];
+    return [...alerts];
   }
 
   /**
    * Clear alert history
    */
-  clearHistory(): void {
-    this.alertHistory = [];
+  clearHistory(tenantId: string): void {
+    this.alertHistory = this.alertHistory.filter(a => a.tenantId !== tenantId);
   }
 
   // Convenience methods
@@ -161,27 +165,30 @@ export class AlertingService {
     title: string,
     message: string,
     source: string,
+    tenantId: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
-    await this.alert('critical', title, message, source, metadata);
+    await this.alert('critical', title, message, source, tenantId, metadata);
   }
 
   async warning(
     title: string,
     message: string,
     source: string,
+    tenantId: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
-    await this.alert('warning', title, message, source, metadata);
+    await this.alert('warning', title, message, source, tenantId, metadata);
   }
 
   async info(
     title: string,
     message: string,
     source: string,
+    tenantId: string,
     metadata?: Record<string, unknown>,
   ): Promise<void> {
-    await this.alert('info', title, message, source, metadata);
+    await this.alert('info', title, message, source, tenantId, metadata);
   }
 }
 

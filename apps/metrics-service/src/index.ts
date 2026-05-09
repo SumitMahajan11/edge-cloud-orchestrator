@@ -1,24 +1,31 @@
+import { env } from './config/env';
 import { 
-  initTelemetry, 
-  createLogger, 
+  initTelemetry,
+  createLogger,
   fastifyLoggingPlugin,
   GracefulShutdown,
-  HealthCheck
+  HealthCheck,
+  SecretManagerFactory,
+  RedisFactory
 } from '@edgecloud/shared-kernel';
+
 initTelemetry('metrics-service');
 
 const logger = createLogger('metrics-service');
 
 import Fastify from 'fastify';
 import { Registry, collectDefaultMetrics, Gauge, Histogram, Counter } from 'prom-client';
-import Redis from 'ioredis';
 
 const app = Fastify({ logger: false });
 
-// Redis for stream monitoring
-const redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379', {
-  lazyConnect: true,
-});
+let redis: any;
+const SERVICES = {
+  api: env.API_URL,
+  task: env.TASK_SERVICE_URL,
+  node: env.NODE_SERVICE_URL,
+  scheduler: env.SCHEDULER_SERVICE_URL,
+  websocket: env.WEBSOCKET_GATEWAY_URL,
+};
 
 // Prometheus Registry
 const registry = new Registry();
@@ -64,14 +71,7 @@ const eventConsumerLagGauge = new Gauge({
   registers: [registry],
 });
 
-// Service Configuration
-const SERVICES = {
-  api: process.env.API_URL || 'http://api:3000',
-  task: process.env.TASK_SERVICE_URL || 'http://task-service:3001',
-  node: process.env.NODE_SERVICE_URL || 'http://node-service:3002',
-  scheduler: process.env.SCHEDULER_SERVICE_URL || 'http://scheduler-service:3003',
-  websocket: process.env.WEBSOCKET_GATEWAY_URL || 'http://websocket-gateway:3004',
-};
+
 
 const STREAMS = [
   { name: 'tasks.events', groups: ['schedulers'] },
@@ -181,14 +181,15 @@ app.get('/health/ready', async () => HealthCheck.getReadiness({
 }));
 app.get('/health/startup', async () => HealthCheck.getStartup());
 
-const start = async () => {
-  try {
-    await redis.connect();
-    
-    // Register unified logging
-    await app.register(fastifyLoggingPlugin, { logger, serviceName: 'metrics-service' });
+async function start() {
+  const secretManager = SecretManagerFactory.create();
+  redis = await RedisFactory.createClient(secretManager);
 
-    const port = parseInt(process.env.PORT || '3005');
+  // Register unified logging
+  await app.register(fastifyLoggingPlugin, { logger, serviceName: 'metrics-service' });
+
+  const port = env.PORT;
+  try {
     await app.listen({ port, host: '0.0.0.0' });
 
     // Initialize shutdown manager
@@ -201,12 +202,11 @@ const start = async () => {
     });
 
     HealthCheck.setReady(true);
-    
-    logger.info(`Metrics Service (Aggregator) listening on port ${port}`);
+    logger.info(`Metrics Service running on port ${port}`);
   } catch (err) {
     logger.error(err);
     process.exit(1);
   }
-};
+}
 
 start();

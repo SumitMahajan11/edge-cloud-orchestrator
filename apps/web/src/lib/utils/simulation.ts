@@ -9,8 +9,9 @@ import type {
   Task,
   TaskPriority,
   TaskType,
-} from '../types'
-import { predictiveScheduler } from './predictive-scheduler'
+  RuntimeType,
+} from '../../types'
+import { predictiveScheduler } from '../predictive-scheduler'
 import { clamp,generateId, getRandomFloat, getRandomInt } from './utils'
 
 const LOCATIONS = [
@@ -170,6 +171,7 @@ export function scheduleTask(
       cost: 0,
       latencyMs: 0,
       reason: 'No online nodes available - task failed',
+      runtime: 'native',
       retryCount: 0,
       maxRetries: 3,
     }
@@ -185,13 +187,13 @@ export function scheduleTask(
   
   // Try predictive scheduling first if we have history
   const predictedNode = predictiveScheduler.predictBestNode(
-    { id: taskId, name, type, priority, submittedAt: new Date(), status: 'pending', target: 'edge', duration: 0, cost: 0, latencyMs: 0, reason: '', retryCount: 0, maxRetries: 3 },
+    { id: taskId, name, type, priority, submittedAt: new Date(), status: 'pending', target: 'edge', duration: 0, cost: 0, latencyMs: 0, reason: '', retryCount: 0, maxRetries: 3, runtime: 'native' },
     onlineNodes
   )
   
   if (predictedNode) {
     const prediction = predictiveScheduler.predictExecutionTime(
-      { id: taskId, name, type, priority, submittedAt: new Date(), status: 'pending', target: 'edge', duration: 0, cost: 0, latencyMs: 0, reason: '', retryCount: 0, maxRetries: 3 },
+      { id: taskId, name, type, priority, submittedAt: new Date(), status: 'pending', target: 'edge', duration: 0, cost: 0, latencyMs: 0, reason: '', retryCount: 0, maxRetries: 3, runtime: 'native' },
       predictedNode
     )
     
@@ -297,6 +299,7 @@ export function scheduleTask(
     cost,
     latencyMs: selectedNode?.latency || getRandomFloat(50, 150),
     reason,
+    runtime: 'native',
     retryCount: 0,
     maxRetries: 3,
   }

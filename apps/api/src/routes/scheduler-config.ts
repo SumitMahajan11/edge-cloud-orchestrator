@@ -30,6 +30,10 @@ export async function schedulerConfigRoutes(
   fastify: FastifyInstance,
   options: SchedulerConfigRoutesOptions,
 ) {
+  // Add authentication and role protection to all routes in this module
+  fastify.addHook('preHandler', fastify.authenticate);
+  fastify.addHook('preHandler', fastify.requireRole('ADMIN'));
+
   // Get current scheduler weights
   fastify.get('/weights', async (_, reply) => {
     const weights = options.getWeights();
@@ -66,7 +70,7 @@ export async function schedulerConfigRoutes(
     async (request, reply) => {
       const body = WeightsSchema.parse(request.body);
 
-      options.setWeights(body);
+      options.setWeights(body as any);
 
       const updatedWeights = options.getWeights();
 
@@ -285,3 +289,4 @@ function normalizeWeights(weights: ScoreWeights): ScoreWeights {
     health: weights.health / sum,
   };
 }
+

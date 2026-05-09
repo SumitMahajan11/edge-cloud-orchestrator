@@ -49,25 +49,30 @@ spec:
                 secretKeyRef:
                   name: agent-secrets
                   key: api-key
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+            limits:
+              cpu: "500m"
+              memory: "256Mi"
+          securityContext:
+            runAsNonRoot: false # Agent needs higher privilege for Docker socket
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+              add: ["SYS_PTRACE"]
           volumeMounts:
             - name: docker-socket
               mountPath: /var/run/docker.sock
             - name: certs
               mountPath: /etc/edgecloud/certs
               readOnly: true
-          resources:
-            limits:
-              cpu: "500m"
-              memory: "512Mi"
-            requests:
-              cpu: "100m"
-              memory: "128Mi"
-          securityContext:
-            readOnlyRootFilesystem: false # Need to write logs if not using stdout
-            allowPrivilegeEscalation: false
-            capabilities:
-              drop:
-                - ALL
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /var/log/edgecloud
       volumes:
         - name: docker-socket
           hostPath:
@@ -76,3 +81,7 @@ spec:
         - name: certs
           secret:
             secretName: edge-agent-certs
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}

@@ -32,9 +32,28 @@ export const CreateTaskV1Schema = z.object({
   priority: z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']).default('MEDIUM'),
   target: z.enum(['EDGE', 'CLOUD', 'HYBRID']).default('EDGE'),
   nodeId: z.string().uuid().optional(),
+  specs: z.object({
+    cpuCores: z.number().int().min(1).max(128).optional(),
+    memoryGB: z.number().int().min(1).max(1024).optional(),
+    memoryMB: z.number().int().min(1).max(256 * 1024).optional(),
+  }).optional(),
   input: z.record(z.unknown()).optional(),
   metadata: z.record(z.unknown()).optional(),
   maxRetries: z.number().int().min(0).max(10).default(3),
+  runtime: z.enum(['NATIVE', 'DOCKER', 'WASM']).default('DOCKER'),
+  image: z.string().min(1),
+  affinity: z.string().optional(),
+  traceId: z.string().optional(),
+}).superRefine((data, ctx) => {
+  if (data.runtime === 'WASM') {
+    if (!data.image.startsWith('http')) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: 'WASM runtime requires a valid URL for the image',
+        path: ['image'],
+      });
+    }
+  }
 });
 
 export const UpdateTaskV1Schema = z.object({
@@ -58,11 +77,19 @@ export const TaskV1ResponseSchema = z.object({
   ]),
   priority: z.string(),
   nodeId: z.string().uuid().optional().nullable(),
+  specs: z.object({
+    cpuCores: z.number(),
+    memoryGB: z.number(),
+  }).optional().nullable(),
   submittedAt: z.string().datetime(),
   startedAt: z.string().datetime().optional().nullable(),
   completedAt: z.string().datetime().optional().nullable(),
   error: z.string().optional().nullable(),
   metadata: z.record(z.unknown()).optional(),
+  runtime: z.enum(['NATIVE', 'DOCKER', 'WASM']),
+  image: z.string(),
+  affinity: z.string().optional().nullable(),
+  traceId: z.string().optional().nullable(),
 });
 
 export const TaskQueryV1Schema = z.object({

@@ -1,9 +1,9 @@
 import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
 import { v4 as uuidv4 } from 'uuid';
-import { runWithContext } from './context';
+import { runWithContext } from './context.js';
 import type { Logger } from 'pino';
-import { tracer } from '../telemetry';
+import { tracer } from '../telemetry/index.js';
 
 export interface LoggingPluginOptions {
   logger: Logger;
@@ -66,7 +66,7 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
     });
   });
 
-  fastify.addHook('preHandler', async (request, reply) => {
+  fastify.addHook('preHandler', async (request) => {
     // Create OTel span for the request
     const span = tracer.startSpan(`http:${request.method}:${request.routerPath || request.url}`);
     span.setAttributes({

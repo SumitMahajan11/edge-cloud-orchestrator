@@ -1,40 +1,45 @@
 import { FastifyPluginAsync } from 'fastify';
-import * as fs from 'fs';
-import * as path from 'path';
-import { parse } from 'yaml';
+import fp from 'fastify-plugin';
 
-// Load OpenAPI specification from YAML file
-function loadOpenAPISpec(): Record<string, unknown> | null {
-  try {
-    // Assuming the plugin is in backend/src/plugins/, go up to backend/ then to openapi.yml
-    const openapiPath = path.join(__dirname, '../../../openapi.yml');
-    const openapiContent = fs.readFileSync(openapiPath, 'utf8');
-    const spec = parse(openapiContent) as Record<string, unknown>;
-
-    // Ensure we have the required OpenAPI structure
-    if (!spec.openapi || !spec.info || !spec.paths) {
-      throw new Error('Invalid OpenAPI specification: missing required fields');
-    }
-
-    return spec;
-  } catch (error) {
-    console.warn('Failed to load OpenAPI specification, skipping Swagger UI:', error);
-    return null;
-  }
-}
-
-export const swaggerPlugin: FastifyPluginAsync = async (fastify) => {
-  const spec = loadOpenAPISpec();
-  if (!spec) {
-    return; // Skip swagger registration if spec not found
-  }
-
-  // Register Swagger with the loaded OpenAPI spec
+const swaggerPluginInternal: FastifyPluginAsync = async (fastify) => {
+  // Register Swagger with dynamic generation
   const swagger = await import('@fastify/swagger');
   await fastify.register(swagger.default, {
-    mode: 'static',
-    specification: {
-      document: spec as any, // Type assertion needed for OpenAPI spec
+    openapi: {
+      info: {
+        title: 'Edge-Cloud Orchestrator API',
+        description: 'Production API documentation for the Edge-Cloud Orchestrator Control Plane',
+        version: '1.0.0',
+      },
+      servers: [
+        {
+          url: 'http://localhost:3090',
+          description: 'Development server',
+        },
+      ],
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'JWT',
+          },
+        },
+        schemas: {
+          ErrorSchema: {
+            type: 'object',
+            required: ['code', 'message', 'requestId', 'timestamp'],
+            properties: {
+              code: { type: 'string', description: 'Machine-readable error code' },
+              message: { type: 'string', description: 'Human-readable error description' },
+              requestId: { type: 'string', description: 'Unique request ID' },
+              timestamp: { type: 'string', format: 'date-time', description: 'ISO 8601 timestamp' },
+              details: { type: 'object', description: 'Optional error details' } as any,
+              stack: { type: 'string', description: 'Error stack trace (non-production only)' },
+            },
+          },
+        },
+      },
     },
   });
 
@@ -51,7 +56,11 @@ export const swaggerPlugin: FastifyPluginAsync = async (fastify) => {
     transformStaticCSP: (header: string) => header,
   });
 
-  console.log('Swagger plugin registered successfully');
-  console.log('Swagger UI available at: /docs');
-  console.log('OpenAPI JSON available at: /docs/json');
+  fastify.log.info('Swagger plugin registered (Dynamic Mode)');
+  fastify.log.info('Swagger UI available at: /docs');
 };
+
+export const swaggerPlugin = fp(swaggerPluginInternal, {
+  name: 'swagger-plugin',
+});
+

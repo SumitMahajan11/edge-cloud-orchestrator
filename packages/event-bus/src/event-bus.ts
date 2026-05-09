@@ -1,5 +1,6 @@
 import { DomainEvent, generateCorrelationId,generateEventId, injectTraceHeaders, extractTraceContext } from '@edgecloud/shared-kernel';
 import { Consumer, Kafka, Message,Producer } from 'kafkajs';
+import { Redis } from 'ioredis';
 
 import { DeadLetterQueue, DLQConfig } from './dead-letter-queue';
 
@@ -10,6 +11,7 @@ export interface EventBusConfig {
     maxRetries: number;
     retries: number;
   };
+  redis?: Redis;
 }
 
 export interface PublishOptions {
@@ -41,8 +43,8 @@ export class EventBus {
   }
 
   async initializeDLQ(prisma: any, topics: string[], config?: Partial<DLQConfig>): Promise<void> {
-    const redisUrl = this.config.brokers[0] || 'redis://localhost:6379'; // Use first broker as Redis URL for now
-    this.dlq = new DeadLetterQueue(redisUrl, prisma, config);
+    const redisOrUrl = this.config.redis || this.config.brokers[0] || 'redis://localhost:6379';
+    this.dlq = new DeadLetterQueue(redisOrUrl, prisma, config);
   }
 
   async retryFailedEvent(eventId: string): Promise<boolean> {

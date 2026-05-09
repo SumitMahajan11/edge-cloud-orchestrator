@@ -166,10 +166,7 @@
     "@typescript-eslint/no-misused-promises": "error",
     
     // No throwing non-Error objects
-    "no-throw-literal": "error",
-    
-    // Prefer Error subclass for custom errors
-    "@typescript-eslint/prefer-error-message": "error"
+    "no-throw-literal": "error"
   },
   
   "overrides": [

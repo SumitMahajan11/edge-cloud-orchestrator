@@ -18,8 +18,10 @@
   },
   "dependencies": {
     "@edgecloud/shared-kernel": "workspace:*",
+    "@opentelemetry/api": "^1.9.0",
     "eventemitter3": "^5.0.0",
-    "ioredis": "^5.3.2"
+    "ioredis": "^5.3.2",
+    "prom-client": "^15.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

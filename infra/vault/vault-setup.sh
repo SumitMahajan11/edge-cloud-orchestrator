@@ -22,38 +22,22 @@ vault secrets enable database
 
 # Enable PKI secrets engine for certificate management
 vault secrets enable pki
-vault secrets enable -path=pki_int pki
+vault secrets tune -max-lease-ttl=87600h pki
 
 # Configure PKI root CA
 vault write pki/root/generate/internal \
-  common_name="EdgeCloud Root CA" \
-  ttl=87600h \
-  key_bits=4096
+  common_name="EdgeCloud-CA" \
+  ttl=87600h
 
 vault write pki/config/urls \
   issuing_certificates="$VAULT_ADDR/v1/pki/ca" \
   crl_distribution_points="$VAULT_ADDR/v1/pki/crl"
 
-# Configure intermediate PKI
-vault write pki_int/intermediate/generate/internal \
-  common_name="EdgeCloud Intermediate CA" \
-  ttl=43800h \
-  key_bits=4096
-
-# Create roles for different certificate types
-vault write pki_int/roles/edgecloud-services \
-  allowed_domains="edgecloud.io,edgecloud.local" \
+# Create Vault PKI role for agent certificates
+vault write pki/roles/edge-agent \
+  allowed_domains="edge.local" \
   allow_subdomains=true \
-  max_ttl=720h \
-  key_bits=2048 \
-  key_type=rsa
-
-vault write pki_int/roles/edge-agents \
-  allowed_domains="agent.edgecloud.io" \
-  allow_subdomains=true \
-  max_ttl=2160h \
-  key_bits=2048 \
-  key_type=rsa
+  max_ttl=8760h
 
 # Configure database secrets engine for CockroachDB
 vault write database/config/edgecloud-crdb \
@@ -124,10 +108,6 @@ path "secret/data/kafka/scheduler" {
 path "database/creds/app-readwrite" {
   capabilities = ["read"]
 }
-
-path "pki_int/issue/edgecloud-services" {
-  capabilities = ["create", "update"]
-}
 EOF
 
 cat > /tmp/edge-agent-policy.hcl << 'EOF'
@@ -135,7 +115,7 @@ path "secret/data/api/internal" {
   capabilities = ["read"]
 }
 
-path "pki_int/issue/edge-agents" {
+path "pki/issue/edge-agent" {
   capabilities = ["create", "update"]
 }
 EOF

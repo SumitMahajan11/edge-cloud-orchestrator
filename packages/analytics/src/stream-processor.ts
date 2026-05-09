@@ -1,4 +1,4 @@
-import { EventBus, TOPICS } from '@edgecloud/event-bus';
+import { IEventBus, TOPICS } from '@edgecloud/shared-kernel';
 import { EventEmitter } from 'eventemitter3';
 
 // Phase 12: Data Pipeline - Stream Processing & Analytics
@@ -33,12 +33,12 @@ export interface AggregationRule {
 }
 
 export class StreamProcessor extends EventEmitter {
-  private eventBus: EventBus;
+  private eventBus: IEventBus;
   private rules: Map<string, AggregationRule> = new Map();
   private windows: Map<string, StreamWindow> = new Map();
   private processingInterval: NodeJS.Timeout | null = null;
 
-  constructor(eventBus: EventBus) {
+  constructor(eventBus: IEventBus) {
     super();
     this.eventBus = eventBus;
   }
@@ -190,11 +190,12 @@ export interface DashboardMetrics {
 }
 
 export class RealTimeAnalytics extends EventEmitter {
-  private eventBus: EventBus;
+  private eventBus: IEventBus;
   private metrics: DashboardMetrics[] = [];
   private maxHistorySize: number = 1000;
+  private calculationInterval?: NodeJS.Timeout;
 
-  constructor(eventBus: EventBus) {
+  constructor(eventBus: IEventBus) {
     super();
     this.eventBus = eventBus;
   }
@@ -206,9 +207,19 @@ export class RealTimeAnalytics extends EventEmitter {
     });
 
     // Start real-time calculation
-    setInterval(() => {
+    this.calculationInterval = setInterval(() => {
       this.calculateRealTimeMetrics();
     }, 5000);
+  }
+
+  /**
+   * Stop the analytics service
+   */
+  stop(): void {
+    if (this.calculationInterval) {
+      clearInterval(this.calculationInterval);
+      this.calculationInterval = undefined;
+    }
   }
 
   private async processAggregatedMetrics(event: any): Promise<void> {

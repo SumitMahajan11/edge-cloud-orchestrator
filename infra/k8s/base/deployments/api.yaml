@@ -17,11 +17,15 @@ spec:
         app.kubernetes.io/name: api
         app.kubernetes.io/component: control-plane
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
         - name: api
           image: ghcr.io/SumitMahajan01/edge-cloud-orchestrator/api:latest
           ports:
-            - containerPort: 3000
+            - containerPort: 3090
               name: http
           env:
             - name: NODE_ENV
@@ -30,44 +34,107 @@ spec:
                   name: app-config
                   key: NODE_ENV
             - name: DATABASE_URL
+              value: "postgresql://postgres:postgres@localhost:5432/edge_cloud?schema=public"
+            - name: REDIS_SENTINELS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: REDIS_SENTINELS
+            - name: REDIS_SENTINEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: REDIS_SENTINEL_NAME
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: edgecloud-secrets
-                  key: DATABASE_URL
-            - name: REDIS_URL
-              valueFrom:
-                secretKeyRef:
-                  name: edgecloud-secrets
-                  key: REDIS_URL
-          livenessProbe:
-            httpGet:
-              path: /health/live
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 15
-          readinessProbe:
-            httpGet:
-              path: /health/ready
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 10
-            failureThreshold: 3
+                  key: REDIS_PASSWORD
           startupProbe:
             httpGet:
               path: /health/startup
               port: http
             failureThreshold: 30
-            periodSeconds: 10
+            periodSeconds: 2
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 3
           resources:
             requests:
-              cpu: "100m"
+              cpu: "200m"
               memory: "256Mi"
             limits:
-              cpu: "500m"
+              cpu: "1000m"
               memory: "512Mi"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+            - name: logs
+              mountPath: /app/logs
+        - name: pgbouncer
+          image: bitnami/pgbouncer:latest
+          ports:
+            - containerPort: 5432
+              name: pgbouncer
+          env:
+            - name: PGBOUNCER_DATABASE_HOST
+              value: "postgres-primary.edge-cloud-orchestrator.svc.cluster.local"
+            - name: PGBOUNCER_DATABASE_PORT
+              value: "5432"
+            - name: PGBOUNCER_DATABASE_USER
+              value: "postgres"
+            - name: PGBOUNCER_DATABASE_PASSWORD
+              value: "postgres"
+            - name: PGBOUNCER_DATABASE_NAME
+              value: "edge_cloud"
+            - name: PGBOUNCER_PORT
+              value: "5432"
+            - name: PGBOUNCER_POOL_MODE
+              value: "transaction"
+            - name: PGBOUNCER_MAX_CLIENT_CONN
+              value: "100"
+            - name: PGBOUNCER_DEFAULT_POOL_SIZE
+              value: "10"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "200m"
+              memory: "128Mi"
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        - name: logs
+          emptyDir: {}
       terminationGracePeriodSeconds: 30
       imagePullSecrets:
         - name: ghcr-credentials

@@ -2,15 +2,22 @@
   "compilerOptions": {
     "target": "ESNext",
     "module": "CommonJS",
-    "moduleResolution": "node",
+    "moduleResolution": "node10",
     "outDir": "./dist",
     "rootDir": "./src",
     "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "strictFunctionTypes": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
-    "baseUrl": ".",
+    "allowUnreachableCode": false,
     "paths": {
       "@/*": ["src/*"]
     }

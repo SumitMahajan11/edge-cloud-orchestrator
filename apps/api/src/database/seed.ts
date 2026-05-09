@@ -1,185 +1,184 @@
-import { PrismaClient, Role } from '@prisma/client';
+import { PrismaClient, Role, TaskStatus, NodeStatus, ExecutionTarget, Runtime, TaskType } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import fs from 'fs';
+import path from 'path';
 
 import { seedLogger as logger } from '../lib/logger';
+import { env } from '../config/env';
 
 const prisma = new PrismaClient();
 
 async function main() {
-  logger.info('Seeding database...');
+  logger.info('Seeding database with idempotent logic...');
 
   // Environment-based credentials with secure defaults
-  const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
-  const OPERATOR_PASSWORD = process.env.SEED_OPERATOR_PASSWORD;
-  const VIEWER_PASSWORD = process.env.SEED_VIEWER_PASSWORD;
+  const ADMIN_PASSWORD = env.SEED_ADMIN_PASSWORD || 'Admin123!';
+  const DEFAULT_PASSWORD = 'Password123!';
 
-  if (!ADMIN_PASSWORD || !OPERATOR_PASSWORD || !VIEWER_PASSWORD) {
-    logger.warn(
-      'Seed passwords not fully provided in environment. Some users will have random passwords.',
-    );
-  }
+  const passwordHash = await bcrypt.hash(DEFAULT_PASSWORD, 12);
+  const adminPasswordHash = await bcrypt.hash(ADMIN_PASSWORD, 12);
 
-  // Create admin user
-  const adminPasswordHash = await bcrypt.hash(
-    ADMIN_PASSWORD || Math.random().toString(36),
-    12,
-  );
-  const admin = await prisma.user.upsert({
-    where: { email: process.env.SEED_ADMIN_EMAIL || 'admin@edge-cloud.io' },
-    update: {},
-    create: {
-      email: process.env.SEED_ADMIN_EMAIL || 'admin@edge-cloud.io',
-      passwordHash: adminPasswordHash,
-      name: 'System Administrator',
-      role: Role.ADMIN,
-      emailVerified: true,
-    },
-  });
-  logger.info({ email: admin.email }, 'Created admin user');
+  // 1. Create Tenants
+  const tenants = [
+    { name: 'Demo Organization', slug: 'demo-org' },
+    { name: 'Test Organization', slug: 'test-org' },
+  ];
 
-  // Create operator user
-  const operatorPasswordHash = await bcrypt.hash(
-    OPERATOR_PASSWORD || Math.random().toString(36),
-    12,
-  );
-  const operator = await prisma.user.upsert({
-    where: {
-      email: process.env.SEED_OPERATOR_EMAIL || 'operator@edge-cloud.io',
-    },
-    update: {},
-    create: {
-      email: process.env.SEED_OPERATOR_EMAIL || 'operator@edge-cloud.io',
-      passwordHash: operatorPasswordHash,
-      name: 'System Operator',
-      role: Role.OPERATOR,
-      emailVerified: true,
-    },
-  });
-  logger.info({ email: operator.email }, 'Created operator user');
-
-  // Create viewer user
-  const viewerPasswordHash = await bcrypt.hash(
-    VIEWER_PASSWORD || Math.random().toString(36),
-    12,
-  );
-  const viewer = await prisma.user.upsert({
-    where: { email: process.env.SEED_VIEWER_EMAIL || 'viewer@edge-cloud.io' },
-    update: {},
-    create: {
-      email: process.env.SEED_VIEWER_EMAIL || 'viewer@edge-cloud.io',
-      passwordHash: viewerPasswordHash,
-      name: 'System Viewer',
-      role: Role.VIEWER,
-      emailVerified: true,
-    },
-  });
-  logger.info({ email: viewer.email }, 'Created viewer user');
-
-  // Create sample edge nodes
-  const regions = ['us-east', 'us-west', 'eu-west', 'apac-south'];
-  const nodePromises = regions.map((region, i) =>
-    prisma.edgeNode.upsert({
-      where: { name: `edge-${region}-${String(i + 1).padStart(2, '0')}` },
+  const createdTenants = [];
+  for (const t of tenants) {
+    const tenant = await prisma.tenant.upsert({
+      where: { slug: t.slug },
       update: {},
       create: {
-        name: `edge-${region}-${String(i + 1).padStart(2, '0')}`,
-        location: `${region}-datacenter`,
-        region,
-        status: 'ONLINE',
-        ipAddress: `10.0.${i}.1`,
-        port: 4001 + i,
-        url: `http://10.0.${i}.1:${4001 + i}`,
-        cpuCores: 8,
-        memoryGB: 32,
-        storageGB: 500,
-        cpuUsage: 20 + Math.random() * 30,
-        memoryUsage: 30 + Math.random() * 20,
-        storageUsage: 40 + Math.random() * 20,
-        latency: 10 + Math.random() * 50,
-        costPerHour: 0.03 + Math.random() * 0.02,
-        maxTasks: 10,
-        bandwidthInMbps: 1000,
-        bandwidthOutMbps: 500,
+        name: t.name,
+        slug: t.slug,
+        config: {},
       },
-    }),
-  );
-  const nodes = await Promise.all(nodePromises);
-  logger.info({ count: nodes.length }, 'Created edge nodes');
-
-  // Create sample scheduling policies
-  const policies = [
-    { name: 'latency-aware', type: 'latency', config: { maxLatency: 100 } },
-    { name: 'cost-aware', type: 'cost', config: { maxCostPerHour: 0.05 } },
-    { name: 'load-balanced', type: 'load', config: { maxCpuThreshold: 80 } },
-    { name: 'round-robin', type: 'round-robin', config: {} },
-  ];
-
-  for (const policy of policies) {
-    await prisma.schedulingPolicy.upsert({
-      where: { name: policy.name },
-      update: {},
-      create: policy,
     });
+    createdTenants.push(tenant);
+    logger.info({ slug: t.slug }, 'Tenant verified');
   }
-  logger.info({ count: policies.length }, 'Created scheduling policies');
 
-  // Create sample alert rules
-  const alertRules = [
-    {
-      name: 'High CPU',
-      metric: 'cpu',
-      operator: '>',
-      threshold: 90,
-      duration: 5,
-    },
-    {
-      name: 'High Memory',
-      metric: 'memory',
-      operator: '>',
-      threshold: 90,
-      duration: 5,
-    },
-    {
-      name: 'High Latency',
-      metric: 'latency',
-      operator: '>',
-      threshold: 100,
-      duration: 3,
-    },
-    {
-      name: 'Node Offline',
-      metric: 'uptime',
-      operator: '<',
-      threshold: 1,
-      duration: 1,
-    },
-  ];
-
-  for (const rule of alertRules) {
-    const existing = await prisma.alertRule.findFirst({
-      where: { name: rule.name },
+  // 2. Create Users
+  for (const tenant of createdTenants) {
+    // Admin for each tenant
+    const adminEmail = `admin@${tenant.slug}.com`;
+    await prisma.user.upsert({
+      where: { email: adminEmail },
+      update: {},
+      create: {
+        email: adminEmail,
+        passwordHash: adminPasswordHash,
+        name: `${tenant.name} Admin`,
+        role: Role.ADMIN,
+        emailVerified: true,
+        tenantUsers: {
+          create: {
+            tenantId: tenant.id,
+            role: 'ADMIN',
+          },
+        },
+      },
     });
-    if (!existing) {
-      await prisma.alertRule.create({ data: rule });
+
+    // 2 Regular users per tenant
+    for (let i = 1; i <= 2; i++) {
+      const userEmail = `user${i}@${tenant.slug}.com`;
+      await prisma.user.upsert({
+        where: { email: userEmail },
+        update: {},
+        create: {
+          email: userEmail,
+          passwordHash: passwordHash,
+          name: `User ${i} (${tenant.name})`,
+          role: Role.OPERATOR,
+          emailVerified: true,
+          tenantUsers: {
+            create: {
+              tenantId: tenant.id,
+              role: 'OPERATOR',
+            },
+          },
+        },
+      });
     }
   }
-  logger.info({ count: alertRules.length }, 'Created alert rules');
+  logger.info('Users verified for all tenants');
 
-  // Create sample webhook
+  // 3. Create Edge Nodes (10 nodes)
+  const regions = ['us-east', 'us-west', 'eu-central', 'asia-east'];
+  for (let i = 1; i <= 10; i++) {
+    const region = regions[i % regions.length];
+    const nodeName = `edge-node-${String(i).padStart(3, '0')}`;
+    await prisma.edgeNode.upsert({
+      where: { name: nodeName },
+      update: { status: NodeStatus.ONLINE },
+      create: {
+        name: nodeName,
+        location: `Datacenter ${region!.toUpperCase()}-${i}`,
+        region: region!,
+        status: NodeStatus.ONLINE,
+        ipAddress: `192.168.1.${100 + i}`,
+        port: 4000 + i,
+        url: `http://192.168.1.${100 + i}:${4000 + i}`,
+        cpuCores: i % 2 === 0 ? 8 : 4,
+        memoryGB: i % 2 === 0 ? 32 : 16,
+        storageGB: 500,
+        tenantId: createdTenants[0]!.id, // Assign most to demo-org
+        costPerHour: 0.05,
+        maxTasks: 20,
+      },
+    });
+  }
+  logger.info('10 Edge nodes verified');
+
+  // 4. Create Sample Tasks (5 tasks)
+  const taskSpecs = [
+    { name: 'Image Classification Worker', status: TaskStatus.RUNNING, type: TaskType.IMAGE_CLASSIFICATION },
+    { name: 'Data Aggregator Nightly', status: TaskStatus.PENDING, type: TaskType.DATA_AGGREGATION },
+    { name: 'Anomaly Detection Stream', status: TaskStatus.COMPLETED, type: TaskType.ANOMALY_DETECTION },
+    { name: 'Batch Log Processor', status: TaskStatus.FAILED, type: TaskType.LOG_ANALYSIS },
+    { name: 'Custom Edge Script', status: TaskStatus.PENDING, type: TaskType.CUSTOM },
+  ];
+
+  for (const spec of taskSpecs) {
+    const existing = await prisma.task.findFirst({
+      where: { name: spec.name, tenantId: createdTenants[0]!.id }
+    });
+
+    if (!existing) {
+      await prisma.task.create({
+        data: {
+          name: spec.name,
+          status: spec.status,
+          type: spec.type,
+          priority: 'MEDIUM',
+          target: ExecutionTarget.EDGE,
+          policy: 'latency-aware',
+          reason: 'Initial seed',
+          runtime: Runtime.DOCKER,
+          image: 'edgecloud/worker:latest',
+          tenantId: createdTenants[0]!.id,
+        },
+      });
+    }
+  }
+  logger.info('5 Sample tasks verified');
+
+  // 5. Sample Webhook
   await prisma.webhook.upsert({
-    where: { id: 'default-webhook' },
+    where: { id: 'dev-webhook' },
     update: {},
     create: {
-      id: 'default-webhook',
-      name: 'Default Notification Webhook',
-      url: 'https://example.com/webhook',
-      events: ['task.completed', 'task.failed', 'node.offline'],
-      enabled: false,
+      id: 'dev-webhook',
+      name: 'Local Mock Receiver',
+      url: 'http://localhost:9000/webhook',
+      events: ['task.completed', 'task.failed'],
+      enabled: true,
+      tenantId: createdTenants[0]!.id,
     },
   });
-  logger.info('Created default webhook');
+  logger.info('Sample webhook verified');
 
-  logger.info('Seeding complete');
+  // 6. Pre-trained ML model placeholder
+  const modelDir = path.join(process.cwd(), 'models', 'scheduler');
+  const modelPath = path.join(modelDir, 'model.json');
+  if (!fs.existsSync(modelDir)) {
+    fs.mkdirSync(modelDir, { recursive: true });
+  }
+  if (!fs.existsSync(modelPath)) {
+    const dummyModel = {
+      format: 'layers-model',
+      generatedBy: 'seed-script',
+      convertedBy: null,
+      modelTopology: { training_config: {}, model_config: { class_name: 'Sequential', config: { layers: [] } } },
+      weightsManifest: []
+    };
+    fs.writeFileSync(modelPath, JSON.stringify(dummyModel, null, 2));
+    logger.info({ path: modelPath }, 'Created dummy ML model for scheduler');
+  }
+
+  logger.info('Seeding complete successfully');
 }
 
 main()

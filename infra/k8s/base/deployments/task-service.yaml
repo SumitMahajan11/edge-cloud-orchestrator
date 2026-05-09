@@ -22,6 +22,10 @@ spec:
         app.kubernetes.io/name: task-service
         app.kubernetes.io/component: task-manager
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       terminationGracePeriodSeconds: 30
       affinity:
         podAntiAffinity:
@@ -51,36 +55,47 @@ spec:
                 secretKeyRef:
                   name: edgecloud-secrets
                   key: DATABASE_URL
-            - name: REDIS_URL
+            - name: REDIS_SENTINELS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: REDIS_SENTINELS
+            - name: REDIS_SENTINEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: REDIS_SENTINEL_NAME
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: edgecloud-secrets
-                  key: REDIS_URL
+                  key: REDIS_PASSWORD
           startupProbe:
             httpGet:
               path: /health/startup
               port: http
             failureThreshold: 30
-            periodSeconds: 10
-          livenessProbe:
-            httpGet:
-              path: /health/live
-              port: http
-            initialDelaySeconds: 5
-            periodSeconds: 15
+            periodSeconds: 2
           readinessProbe:
             httpGet:
               path: /health/ready
               port: http
             initialDelaySeconds: 5
-            periodSeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
             failureThreshold: 3
           resources:
             requests:
-              cpu:    "100m"
+              cpu:    "200m"
               memory: "256Mi"
             limits:
-              cpu:    "500m"
+              cpu:    "1000m"
               memory: "512Mi"
           securityContext:
             readOnlyRootFilesystem: true
@@ -92,8 +107,12 @@ spec:
           volumeMounts:
             - name: tmp
               mountPath: /tmp
+            - name: logs
+              mountPath: /app/logs
       volumes:
         - name: tmp
+          emptyDir: {}
+        - name: logs
           emptyDir: {}
       imagePullSecrets:
         - name: ghcr-credentials

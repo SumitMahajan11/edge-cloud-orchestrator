@@ -77,12 +77,14 @@ export class DeadLetterQueue extends EventEmitter {
   private redisClient: Redis;
 
   constructor(
-    redisUrl: string,
+    redisOrUrl: string | Redis,
     prisma: PrismaClientLike,
     config: Partial<DLQConfig> = {}
   ) {
     super();
     this.prisma = prisma;
+    const redisUrl = typeof redisOrUrl === 'string' ? redisOrUrl : 'redis://managed-client';
+    
     this.config = { 
       ...DEFAULT_DLQ_CONFIG, 
       ...config, 
@@ -94,7 +96,12 @@ export class DeadLetterQueue extends EventEmitter {
     };
     
     // Initialize Redis client
-    this.redisClient = new Redis(redisUrl);
+    if (typeof redisOrUrl === 'string') {
+      this.redisClient = new Redis(redisOrUrl);
+    } else {
+      this.redisClient = redisOrUrl;
+    }
+
     this.redisClient.on('error', (err: Error) => {
       console.error('Redis DLQ connection error:', err);
     });

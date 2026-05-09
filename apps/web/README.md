@@ -1,41 +1,36 @@
-# @edgecloud/web
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## What this service does
+## Getting Started
 
-React 18 dashboard for the Edge-Cloud Compute Orchestrator. Provides real-time visibility into edge nodes, running tasks, scheduling decisions, system metrics, audit logs, and policy management. Connects to the backend API via REST and WebSocket.
+First, run the development server:
 
-## Port
-
-| Variable | Default | Description              |
-|----------|---------|--------------------------|
-| PORT     | 5173    | Vite dev server          |
-| —        | static  | Production: served by api-gateway |
-
-## Environment Variables (Vite)
-
-| Variable              | Required | Description                              |
-|-----------------------|----------|------------------------------------------|
-| VITE_API_URL          | no       | Backend API base URL (default: /api)     |
-| VITE_WS_URL           | no       | WebSocket URL (default: /ws)             |
-
-## Development
-
-```sh
-pnpm dev          # vite dev server with HMR
-pnpm build        # tsc && vite build → dist/
-pnpm test         # vitest run
-pnpm preview      # preview production build
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-## Source structure
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-See [src/README.md](src/README.md) for the detailed source directory reference.
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Docker
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-The web app is built as a static bundle and served by `apps/api-gateway` (Nginx). There is no separate container for the web app in production.
+## Learn More
 
-```sh
-pnpm build
-# dist/ is then copied into the api-gateway container image
-```
+To learn more about Next.js, take a look at the following resources:
+
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

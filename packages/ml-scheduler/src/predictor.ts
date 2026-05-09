@@ -111,30 +111,48 @@ export class SchedulingPredictor {
   }
 
   async loadModel(modelDir: string, version: string): Promise<void> {
+    const meta_path = path.join(modelDir, `model_${version}.json`);
+    let meta: any = { version: version, algorithm: 'TF' };
+    
+    if (fs.existsSync(meta_path)) {
+      meta = JSON.parse(fs.readFileSync(meta_path, 'utf-8'));
+    }
+    
+    // Version Validation Gate - MUST happen even in mock mode
+    const minVersion = process.env.MIN_MODEL_VERSION;
+    if (minVersion && !this.isVersionSatisfied(meta.version, minVersion)) {
+      throw new Error(`Model version ${meta.version} is below minimum required version ${minVersion}. Load aborted.`);
+    }
+
     if (this.useMock) {
       this.isTrained = true;
-      this.currentVersion = version;
+      this.currentVersion = meta.version;
+      logger.info(`Mock model version ${meta.version} active`);
       return;
     }
 
-    const meta_path = path.join(modelDir, `model_${version}.json`);
-    const meta = JSON.parse(fs.readFileSync(meta_path, 'utf-8'));
-    
     if (meta.algorithm === 'XGBoost') {
-      // For XGBoost, we'd need a way to run inference in Node.
-      // For now, let's assume we use a specialized library or keep TF as fallback
-      // Since this is a specialized task, I'll implement a mock for XGBoost inference if library missing
-      logger.info(`XGBoost model version ${version} detected. Loading artifact from ${meta.artifact_path}`);
-      this.currentVersion = version;
+      logger.info(`XGBoost model version ${meta.version} detected. Loading artifact from ${meta.artifact_path}`);
+      this.currentVersion = meta.version;
       this.isTrained = true;
-      // In a real implementation we would load the XGBoost model here.
     } else {
       const modelPath = `file://${path.join(modelDir, version, 'model.json')}`;
       this.model = await tf.loadLayersModel(modelPath);
       this.isTrained = true;
-      this.currentVersion = version;
-      logger.info(`Model version ${version} loaded and active`);
+      this.currentVersion = meta.version;
+      logger.info(`Model version ${meta.version} loaded and active`);
     }
+  }
+
+  private isVersionSatisfied(current: string, min: string): boolean {
+    const stripV = (s: string) => s.startsWith('v') ? s.substring(1) : s;
+    const c = stripV(current).split('.').map(Number);
+    const m = stripV(min).split('.').map(Number);
+    for (let i = 0; i < 3; i++) {
+      if ((c[i] || 0) > (m[i] || 0)) return true;
+      if ((c[i] || 0) < (m[i] || 0)) return false;
+    }
+    return true; // Exactly equal
   }
 
   private encodeFeatures(d: TrainingExample): number[] {
@@ -177,7 +195,7 @@ export class SchedulingPredictor {
     ];
   }
 
-  private heuristicPrediction(task: Task, node: EdgeNode): number {
+  private heuristicPrediction(_task: Task, node: EdgeNode): number {
     let score = 1.0;
     score *= 1 - (node.cpuUsage / 100) * 0.4;
     score *= 1 - (node.memoryUsage / 100) * 0.3;
@@ -221,9 +239,9 @@ export class SchedulingPredictor {
       
       // Calculate a local delta
       const delta = 0.1;
-      let perturbedValue = originalValue + delta;
+      let perturbedValue = originalValue! + delta;
       if (perturbedValue > 1.0) {
-        perturbedValue = originalValue - delta;
+        perturbedValue = originalValue! - delta;
       }
       
       perturbedFeatures[i] = perturbedValue;
@@ -237,10 +255,10 @@ export class SchedulingPredictor {
       prediction.dispose();
 
       const diff = newScore - baselineScore;
-      const normalizedDiff = diff / (perturbedValue - originalValue); // Gradient approximation
+      // const normalizedDiff = diff / (perturbedValue - originalValue); // Gradient approximation
 
       importance.push({
-        name: featureNames[i],
+        name: featureNames[i]!,
         contribution: Math.abs(diff),
         direction: diff > 0 ? 'positive' : ('negative' as const)
       });
@@ -250,7 +268,7 @@ export class SchedulingPredictor {
     return importance.sort((a, b) => b.contribution - a.contribution);
   }
 
-  private getHeuristicImportance(task: Task, node: EdgeNode): { name: string; contribution: number; direction: 'positive' | 'negative' }[] {
+  private getHeuristicImportance(_task: Task, node: EdgeNode): { name: string; contribution: number; direction: 'positive' | 'negative' }[] {
     // Heuristic fallback for importance
     const importance = [
       { name: 'cpu_usage_pct', contribution: node.cpuUsage / 100, direction: 'negative' as const },

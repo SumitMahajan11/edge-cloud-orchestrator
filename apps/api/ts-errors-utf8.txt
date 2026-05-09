@@ -1,0 +1,572 @@
+﻿src/__tests__/contract.test.ts(41,46): error TS2345: Argument of type '"/v1/nodes"' is not assignable to parameter of type 'PathsWithMethod<paths, "get">'.
+src/__tests__/contract.test.ts(51,18): error TS2339: Property 'data' does not exist on type '{ "application/json": { id?: string; email?: string; name?: string; role?: string; createdAt?: string; lastLoginAt?: string | null; }; } | { "application/json": { data?: { id: string; name: string; location: string; ... 6 more ...; lastHeartbeat: string; }[]; pagination?: { ...; }; }; } | ... 6 more ... | { ...; }'.
+  Property 'data' does not exist on type '{ "application/json": { id?: string; email?: string; name?: string; role?: string; createdAt?: string; lastLoginAt?: string | null; }; }'.
+src/__tests__/db-resilience.test.ts(30,37): error TS6133: 'request' is declared but its value is never read.
+src/__tests__/error-handler.test.ts(2,10): error TS6133: 'ZodError' is declared but its value is never read.
+src/database/client.ts(25,11): error TS2375: Type '{ url: string | undefined; }' is not assignable to type 'Datasource' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'url' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/database/seed.ts(84,7): error TS2322: Type '{ name: string; location: string; region: string; status: "ONLINE"; ipAddress: string; port: number; url: string; cpuCores: number; memoryGB: number; storageGB: number; cpuUsage: number; memoryUsage: number; ... 5 more ...; bandwidthOutMbps: number; }' is not assignable to type '(Without<EdgeNodeCreateInput, EdgeNodeUncheckedCreateInput> & EdgeNodeUncheckedCreateInput) | (Without<...> & EdgeNodeCreateInput)'.
+  Type '{ name: string; location: string; region: string; status: "ONLINE"; ipAddress: string; port: number; url: string; cpuCores: number; memoryGB: number; storageGB: number; cpuUsage: number; memoryUsage: number; ... 5 more ...; bandwidthOutMbps: number; }' is not assignable to type 'Without<EdgeNodeUncheckedCreateInput, EdgeNodeCreateInput> & EdgeNodeCreateInput'.
+    Property 'tenant' is missing in type '{ name: string; location: string; region: string; status: "ONLINE"; ipAddress: string; port: number; url: string; cpuCores: number; memoryGB: number; storageGB: number; cpuUsage: number; memoryUsage: number; ... 5 more ...; bandwidthOutMbps: number; }' but required in type 'EdgeNodeCreateInput'.
+src/database/seed.ts(121,7): error TS2322: Type '{ name: string; type: string; config: { maxLatency: number; maxCostPerHour?: never; maxCpuThreshold?: never; }; } | { name: string; type: string; config: { maxCostPerHour: number; maxLatency?: never; maxCpuThreshold?: never; }; } | { ...; } | { ...; }' is not assignable to type '(Without<SchedulingPolicyCreateInput, SchedulingPolicyUncheckedCreateInput> & SchedulingPolicyUncheckedCreateInput) | (Without<...> & SchedulingPolicyCreateInput)'.
+  Type '{ name: string; type: string; config: { maxLatency: number; maxCostPerHour?: never; maxCpuThreshold?: never; }; }' is not assignable to type '(Without<SchedulingPolicyCreateInput, SchedulingPolicyUncheckedCreateInput> & SchedulingPolicyUncheckedCreateInput) | (Without<...> & SchedulingPolicyCreateInput)'.
+    Type '{ name: string; type: string; config: { maxLatency: number; maxCostPerHour?: never; maxCpuThreshold?: never; }; }' is not assignable to type 'Without<SchedulingPolicyUncheckedCreateInput, SchedulingPolicyCreateInput> & SchedulingPolicyCreateInput'.
+      Property 'tenant' is missing in type '{ name: string; type: string; config: { maxLatency: number; maxCostPerHour?: never; maxCpuThreshold?: never; }; }' but required in type 'SchedulingPolicyCreateInput'.
+src/database/seed.ts(163,39): error TS2322: Type '{ name: string; metric: string; operator: string; threshold: number; duration: number; }' is not assignable to type '(Without<AlertRuleCreateInput, AlertRuleUncheckedCreateInput> & AlertRuleUncheckedCreateInput) | (Without<...> & AlertRuleCreateInput)'.
+  Type '{ name: string; metric: string; operator: string; threshold: number; duration: number; }' is not assignable to type 'Without<AlertRuleUncheckedCreateInput, AlertRuleCreateInput> & AlertRuleCreateInput'.
+    Property 'tenant' is missing in type '{ name: string; metric: string; operator: string; threshold: number; duration: number; }' but required in type 'AlertRuleCreateInput'.
+src/database/seed.ts(172,5): error TS2322: Type '{ id: string; name: string; url: string; events: string[]; enabled: false; }' is not assignable to type '(Without<WebhookCreateInput, WebhookUncheckedCreateInput> & WebhookUncheckedCreateInput) | (Without<...> & WebhookCreateInput)'.
+  Type '{ id: string; name: string; url: string; events: string[]; enabled: false; }' is not assignable to type 'Without<WebhookUncheckedCreateInput, WebhookCreateInput> & WebhookCreateInput'.
+    Property 'tenant' is missing in type '{ id: string; name: string; url: string; events: string[]; enabled: false; }' but required in type 'WebhookCreateInput'.
+src/index.ts(10,3): error TS2305: Module '"@edgecloud/shared-kernel"' has no exported member 'API_CONSTANTS'.
+src/index.ts(60,1): error TS6133: 'authPlugin' is declared but its value is never read.
+src/index.ts(63,1): error TS6133: 'prismaPlugin' is declared but its value is never read.
+src/index.ts(64,1): error TS6133: 'redisPlugin' is declared but its value is never read.
+src/index.ts(65,1): error TS6133: 'swaggerPlugin' is declared but its value is never read.
+src/index.ts(68,1): error TS6133: 'versionNegotiationPlugin' is declared but its value is never read.
+src/index.ts(115,33): error TS2554: Expected 0 arguments, but got 2.
+src/index.ts(119,32): error TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
+src/index.ts(164,40): error TS6133: 'reply' is declared but its value is never read.
+src/index.ts(336,54): error TS2307: Cannot find module './middleware/auth.middleware' or its corresponding type declarations.
+src/index.ts(623,49): error TS6133: 'data' is declared but its value is never read.
+src/initializers/mock-prisma.ts(261,13): error TS2375: Type '{ id: string; userId: string; token: string; refreshToken: string | undefined; expiresAt: Date; createdAt: Date; }' is not assignable to type 'MockSession' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'refreshToken' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/initializers/mock-prisma.ts(340,25): error TS6133: 'task' is declared but its value is never read.
+src/initializers/mock-prisma.ts(475,58): error TS2339: Property 'tenantId' does not exist on type 'MockNode'.
+src/initializers/mock-prisma.ts(490,25): error TS6133: 'node' is declared but its value is never read.
+src/initializers/services.ts(48,49): error TS2379: Argument of type '{ logAlerts: true; webhookUrl: string | undefined; throttleMs: number; }' is not assignable to parameter of type 'Partial<AlertingConfig>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'webhookUrl' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/jobs/__tests__/webhook-retry.spec.ts(1,1): error TS6133: 'PrismaClient' is declared but its value is never read.
+src/lib/logger.ts(15,28): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(optionsOrStream?: DestinationStream | LoggerOptions<never, boolean> | undefined): Logger<never, boolean>', gave the following error.
+    Argument of type '{ level: string; transport: { target: string; options: { colorize: boolean; translateTime: string; ignore: string; }; } | undefined; base: { service: string; version: string; environment: string; }; redact: { ...; }; }' is not assignable to parameter of type 'DestinationStream | LoggerOptions<never, boolean> | undefined'.
+      Type '{ level: string; transport: { target: string; options: { colorize: boolean; translateTime: string; ignore: string; }; } | undefined; base: { service: string; version: string; environment: string; }; redact: { ...; }; }' is not assignable to type 'LoggerOptions<never, boolean>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'transport' are incompatible.
+          Type '{ target: string; options: { colorize: boolean; translateTime: string; ignore: string; }; } | undefined' is not assignable to type 'TransportSingleOptions<Record<string, any>> | TransportMultiOptions<Record<string, any>> | TransportPipelineOptions<Record<string, any>>'.
+            Type 'undefined' is not assignable to type 'TransportSingleOptions<Record<string, any>> | TransportMultiOptions<Record<string, any>> | TransportPipelineOptions<Record<string, any>>'.
+  Overload 2 of 2, '(options: LoggerOptions<never, boolean>, stream?: DestinationStream | undefined): Logger<never, boolean>', gave the following error.
+    Argument of type '{ level: string; transport: { target: string; options: { colorize: boolean; translateTime: string; ignore: string; }; } | undefined; base: { service: string; version: string; environment: string; }; redact: { ...; }; }' is not assignable to parameter of type 'LoggerOptions<never, boolean>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'transport' are incompatible.
+        Type '{ target: string; options: { colorize: boolean; translateTime: string; ignore: string; }; } | undefined' is not assignable to type 'TransportSingleOptions<Record<string, any>> | TransportMultiOptions<Record<string, any>> | TransportPipelineOptions<Record<string, any>>'.
+          Type 'undefined' is not assignable to type 'TransportSingleOptions<Record<string, any>> | TransportMultiOptions<Record<string, any>> | TransportPipelineOptions<Record<string, any>>'.
+src/middleware/auth.middleware.ts(27,5): error TS2375: Type '{ id: string; email: string; role: UserRole; tenantId: string | undefined; permissions: string[]; }' is not assignable to type 'AuthUser' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/middleware/request-id-middleware.ts(168,9): error TS2375: Type '{ requestId: string; traceId: string; spanId: string; parentId: string | undefined; userId: string | undefined; tenantId: string | undefined; source: string; startTime: number; metadata: { ...; }; }' is not assignable to type 'RequestContext' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'parentId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/middleware/request-id-middleware.ts(198,3): error TS2375: Type '{ 'x-request-id': string; 'x-trace-id': string; 'x-span-id': string; 'x-parent-id': string | undefined; 'x-user-id': string | undefined; 'x-tenant-id': string | undefined; 'x-source': string; }' is not assignable to type 'TracingHeaders' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property ''x-parent-id'' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/middleware/request-id-middleware.ts(216,3): error TS2375: Type '{ requestId: string | undefined; traceId: string | undefined; spanId: string | undefined; parentId: string | undefined; userId: string | undefined; tenantId: string | undefined; source: string | undefined; }' is not assignable to type 'Partial<RequestContext>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'requestId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/plugins/auth.ts(31,3): error TS2322: Type '(request: FastifyRequest<RouteGenericInterface, RawServerDefault, IncomingMessage, FastifySchema, FastifyTypeProviderDefault, unknown, FastifyBaseLogger, ResolveFastifyRequestType<...>>, reply: FastifyReply<...>) => Promise<...>' is not assignable to type '() => Promise<never>'.
+  Target signature provides too few arguments. Expected 2 or more, but got 0.
+src/plugins/auth.ts(32,3): error TS2322: Type '(...roles: UserRole[]) => (request: FastifyRequest<RouteGenericInterface, RawServerDefault, IncomingMessage, ... 4 more ..., ResolveFastifyRequestType<...>>, reply: FastifyReply<...>) => Promise<undefined>' is not assignable to type '() => () => Promise<never>'.
+  Type '(request: FastifyRequest, reply: FastifyReply) => Promise<undefined>' is not assignable to type '() => Promise<never>'.
+    Target signature provides too few arguments. Expected 2 or more, but got 0.
+src/plugins/error-handler.ts(1,1): error TS6133: 'Prisma' is declared but its value is never read.
+src/plugins/error-handler.ts(56,39): error TS2339: Property 'meta' does not exist on type 'FastifyError | (Error & { statusCode?: number; code?: string; })'.
+  Property 'meta' does not exist on type 'FastifyError'.
+src/plugins/prisma.ts(3,27): error TS6133: 'isPrismaConnectionError' is declared but its value is never read.
+src/plugins/prisma.ts(3,52): error TS6133: 'isPrismaTimeoutError' is declared but its value is never read.
+src/queries/task-execution-queries.ts(31,5): error TS2322: Type '{ taskId: string; nodeId: string; status: "SCHEDULED"; scheduledAt: Date; attemptNumber: number; }' is not assignable to type '(Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput) | (Without<...> & TaskExecutionCreateInput)'.
+  Type '{ taskId: string; nodeId: string; status: "SCHEDULED"; scheduledAt: Date; attemptNumber: number; }' is not assignable to type 'Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput'.
+    Property 'tenantId' is missing in type '{ taskId: string; nodeId: string; status: "SCHEDULED"; scheduledAt: Date; attemptNumber: number; }' but required in type 'TaskExecutionUncheckedCreateInput'.
+src/queries/task-execution-queries.ts(86,5): error TS2375: Type '{ status: "COMPLETED" | "FAILED"; completedAt: Date; durationMs: number; exitCode: number; output: any; error: string | undefined; cpuUsageAvg: number; cpuUsagePeak: number; memoryUsageMax: number; networkIngressBytes: number; networkEgressBytes: number; costUSD: number; }' is not assignable to type '(Without<TaskExecutionUpdateInput, TaskExecutionUncheckedUpdateInput> & TaskExecutionUncheckedUpdateInput) | (Without<...> & TaskExecutionUpdateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ status: "COMPLETED" | "FAILED"; completedAt: Date; durationMs: number; exitCode: number; output: any; error: string | undefined; cpuUsageAvg: number; cpuUsagePeak: number; memoryUsageMax: number; networkIngressBytes: number; networkEgressBytes: number; costUSD: number; }' is not assignable to type 'Without<TaskExecutionUncheckedUpdateInput, TaskExecutionUpdateInput> & TaskExecutionUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ status: "COMPLETED" | "FAILED"; completedAt: Date; durationMs: number; exitCode: number; output: any; error: string | undefined; cpuUsageAvg: number; cpuUsagePeak: number; memoryUsageMax: number; networkIngressBytes: number; networkEgressBytes: number; costUSD: number; }' is not assignable to type 'TaskExecutionUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'error' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | NullableStringFieldUpdateOperationsInput | null'.
+          Type 'undefined' is not assignable to type 'string | NullableStringFieldUpdateOperationsInput | null'.
+src/routes/__tests__/tenant-integration.spec.ts(12,9): error TS6133: 'tenantB' is declared but its value is never read.
+src/routes/__tests__/tenant-integration.spec.ts(40,31): error TS2835: Relative import paths need explicit file extensions in ECMAScript imports when '--moduleResolution' is 'node16' or 'nodenext'. Did you mean '../../plugins/auth.js'?
+src/routes/__tests__/tenant-integration.spec.ts(42,26): error TS7006: Parameter 'error' implicitly has an 'any' type.
+src/routes/__tests__/tenant-integration.spec.ts(42,33): error TS6133: 'request' is declared but its value is never read.
+src/routes/__tests__/tenant-integration.spec.ts(42,33): error TS7006: Parameter 'request' implicitly has an 'any' type.
+src/routes/__tests__/tenant-integration.spec.ts(42,42): error TS7006: Parameter 'reply' implicitly has an 'any' type.
+src/routes/admin.ts(30,9): error TS2375: Type '{ action?: string; userId?: string; tenantId: string | undefined; }' is not assignable to type 'AuditLogWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"AuditLog">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"AuditLog">'.
+src/routes/admin.ts(31,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/admin.ts(121,9): error TS2375: Type '{ userId: string; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { newRole: UserRoleStr; }; ipAddress: string; userAgent: string | undefined; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/routes/admin.ts(123,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/admin.ts(235,15): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<EdgeNodeRelationFilter, EdgeNodeWhereInput> & EdgeNodeWhereInput) | (Without<EdgeNodeWhereInput, EdgeNodeRelationFilter> & EdgeNodeRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<EdgeNodeRelationFilter, EdgeNodeWhereInput> & EdgeNodeWhereInput) | (Without<EdgeNodeWhereInput, EdgeNodeRelationFilter> & EdgeNodeRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<EdgeNodeWhereInput, EdgeNodeRelationFilter> & EdgeNodeRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<EdgeNodeWhereInput, EdgeNodeRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/admin.ts(235,33): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/admin.ts(246,15): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/admin.ts(246,33): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/admin.ts(255,13): error TS2375: Type '{ createdAt: { lt: Date; }; tenantId: string | undefined; }' is not assignable to type 'WebhookDeliveryWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"WebhookDelivery">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"WebhookDelivery">'.
+src/routes/admin.ts(257,25): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/alerts.ts(29,49): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/alerts.ts(29,49): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routes/alerts.ts(51,29): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/alerts.ts(51,29): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routes/alerts.ts(84,16): error TS2304: Cannot find name 'reply'.
+src/routes/alerts.ts(95,9): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/alerts.ts(95,9): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routes/cost.ts(29,11): error TS2375: Type '{ recordedAt: { gte: Date; }; tenantId: string | undefined; }' is not assignable to type 'CostRecordWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+src/routes/cost.ts(31,23): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(36,11): error TS2375: Type '{ recordedAt: { gte: Date; lt: Date; }; tenantId: string | undefined; }' is not assignable to type 'CostRecordWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+src/routes/cost.ts(38,23): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(44,11): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type 'CostRecordWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+src/routes/cost.ts(44,30): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(49,28): error TS18048: 'currentMonth._sum' is possibly 'undefined'.
+src/routes/cost.ts(50,25): error TS18048: 'lastMonth._sum' is possibly 'undefined'.
+src/routes/cost.ts(61,31): error TS18048: 'r._sum' is possibly 'undefined'.
+src/routes/cost.ts(90,9): error TS2375: Type '{ recordedAt?: { gte: Date; } | { lte: Date; }; resourceType?: string; nodeId?: string; tenantId: string | undefined; }' is not assignable to type 'CostRecordWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+src/routes/cost.ts(91,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(118,9): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type 'CostRecordWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+src/routes/cost.ts(118,28): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(126,9): error TS2375: Type '{ id: { in: string[]; }; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"EdgeNode">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"EdgeNode">'.
+src/routes/cost.ts(126,49): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(138,20): error TS18048: 'n._sum' is possibly 'undefined'.
+src/routes/cost.ts(165,9): error TS2375: Type '{ recordedAt: { gte: Date; }; tenantId: string | undefined; }' is not assignable to type 'CostRecordWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"CostRecord">'.
+src/routes/cost.ts(167,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/cost.ts(172,23): error TS18048: 'monthToDate._sum' is possibly 'undefined'.
+src/routes/federated-learning.ts(21,9): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type 'FLModelWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+src/routes/federated-learning.ts(21,28): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(46,9): error TS2375: Type '{ name: string; version: string; architecture: string; parameters: number; weightsUrl: string | undefined; weightsSize: number | undefined; tenantId: string | undefined; }' is not assignable to type '(Without<FLModelCreateInput, FLModelUncheckedCreateInput> & FLModelUncheckedCreateInput) | (Without<...> & FLModelCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ name: string; version: string; architecture: string; parameters: number; weightsUrl: string | undefined; weightsSize: number | undefined; tenantId: string | undefined; }' is not assignable to type 'Without<FLModelUncheckedCreateInput, FLModelCreateInput> & FLModelCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ name: string; version: string; architecture: string; parameters: number; weightsUrl: string | undefined; weightsSize: number | undefined; tenantId: string | undefined; }' is not assignable to type 'Without<FLModelUncheckedCreateInput, FLModelCreateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/federated-learning.ts(46,93): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(66,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'FLModelWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+src/routes/federated-learning.ts(66,51): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(104,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'FLModelWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+src/routes/federated-learning.ts(104,41): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(115,11): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'FLModelWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+src/routes/federated-learning.ts(115,43): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(143,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'FLModelWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+src/routes/federated-learning.ts(143,51): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(178,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'FLModelWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: FLModelWhereInput | FLModelWhereInput[]; OR?: FLModelWhereInput[]; NOT?: FLModelWhereInput | FLModelWhereInput[]; ... 11 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"FLModel">'.
+src/routes/federated-learning.ts(178,41): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(186,9): error TS2375: Type '{ status: "ONLINE"; isMaintenanceMode: false; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"EdgeNode">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"EdgeNode">'.
+src/routes/federated-learning.ts(186,72): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(199,9): error TS2322: Type '{ modelId: string; totalRounds: number; config: any; status: string; }' is not assignable to type '(Without<FLSessionCreateInput, FLSessionUncheckedCreateInput> & FLSessionUncheckedCreateInput) | (Without<...> & FLSessionCreateInput)'.
+  Type '{ modelId: string; totalRounds: number; config: any; status: string; }' is not assignable to type 'Without<FLSessionCreateInput, FLSessionUncheckedCreateInput> & FLSessionUncheckedCreateInput'.
+    Property 'tenantId' is missing in type '{ modelId: string; totalRounds: number; config: any; status: string; }' but required in type 'FLSessionUncheckedCreateInput'.
+src/routes/federated-learning.ts(224,41): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<FLModelRelationFilter, FLModelWhereInput> & FLModelWhereInput) | (Without<FLModelWhereInput, FLModelRelationFilter> & FLModelRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<FLModelWhereInput, FLModelRelationFilter> & FLModelRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<FLModelWhereInput, FLModelRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/federated-learning.ts(224,60): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/federated-learning.ts(249,41): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<FLModelRelationFilter, FLModelWhereInput> & FLModelWhereInput) | (Without<FLModelWhereInput, FLModelRelationFilter> & FLModelRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<FLModelWhereInput, FLModelRelationFilter> & FLModelRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<FLModelWhereInput, FLModelRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/federated-learning.ts(249,60): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/metrics.ts(83,33): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/metrics.ts(83,33): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routes/metrics.ts(95,33): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/metrics.ts(95,33): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+src/routes/metrics.ts(127,9): error TS2375: Type '{ status: any; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"EdgeNode">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"EdgeNode">'.
+src/routes/metrics.ts(127,53): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(74,19): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(125,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; name: string; } & { id?: string; name?: string; AND?: EdgeNodeWhereInput | EdgeNodeWhereInput[]; OR?: EdgeNodeWhereInput[]; ... 29 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'name' is missing in type '{ id: string; tenantId: string | undefined; }' but required in type '{ id: string; name: string; }'.
+src/routes/nodes.ts(125,51): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(191,9): error TS2375: Type '{ tenantId: string | undefined; bandwidthOutMbps?: number; bandwidthInMbps?: number; costPerHour?: number; maxTasks?: number; name: string; location: string; region: string; ipAddress: string; ... 5 more ...; status: "OFFLINE"; }' is not assignable to type '(Without<EdgeNodeCreateInput, EdgeNodeUncheckedCreateInput> & EdgeNodeUncheckedCreateInput) | (Without<...> & EdgeNodeCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ tenantId: string | undefined; bandwidthOutMbps?: number; bandwidthInMbps?: number; costPerHour?: number; maxTasks?: number; name: string; location: string; region: string; ipAddress: string; ... 5 more ...; status: "OFFLINE"; }' is not assignable to type 'Without<EdgeNodeUncheckedCreateInput, EdgeNodeCreateInput> & EdgeNodeCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; bandwidthOutMbps?: number; bandwidthInMbps?: number; costPerHour?: number; maxTasks?: number; name: string; location: string; region: string; ipAddress: string; ... 5 more ...; status: "OFFLINE"; }' is not assignable to type 'Without<EdgeNodeUncheckedCreateInput, EdgeNodeCreateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/nodes.ts(212,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(218,9): error TS2375: Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { name: string; region: string; }; ipAddress: string; userAgent: string | undefined; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { name: string; region: string; }; ipAddress: string; userAgent: string | undefined; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput> & AuditLogCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { name: string; region: string; }; ipAddress: string; userAgent: string | undefined; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/nodes.ts(220,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(257,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; name: string; } & { id?: string; name?: string; AND?: EdgeNodeWhereInput | EdgeNodeWhereInput[]; OR?: EdgeNodeWhereInput[]; ... 29 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'name' is missing in type '{ id: string; tenantId: string | undefined; }' but required in type '{ id: string; name: string; }'.
+src/routes/nodes.ts(257,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(258,9): error TS2375: Type '{ name?: string | undefined; location?: string | undefined; region?: string | undefined; cpuCores?: number | undefined; memoryGB?: number | undefined; storageGB?: number | undefined; costPerHour?: number | undefined; maxTasks?: number | undefined; isMaintenanceMode?: boolean | undefined; }' is not assignable to type '(Without<EdgeNodeUpdateInput, EdgeNodeUncheckedUpdateInput> & EdgeNodeUncheckedUpdateInput) | (Without<...> & EdgeNodeUpdateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ name?: string | undefined; location?: string | undefined; region?: string | undefined; cpuCores?: number | undefined; memoryGB?: number | undefined; storageGB?: number | undefined; costPerHour?: number | undefined; maxTasks?: number | undefined; isMaintenanceMode?: boolean | undefined; }' is not assignable to type 'Without<EdgeNodeUncheckedUpdateInput, EdgeNodeUpdateInput> & EdgeNodeUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ name?: string | undefined; location?: string | undefined; region?: string | undefined; cpuCores?: number | undefined; memoryGB?: number | undefined; storageGB?: number | undefined; costPerHour?: number | undefined; maxTasks?: number | undefined; isMaintenanceMode?: boolean | undefined; }' is not assignable to type 'EdgeNodeUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'name' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFieldUpdateOperationsInput'.
+          Type 'undefined' is not assignable to type 'string | StringFieldUpdateOperationsInput'.
+src/routes/nodes.ts(263,9): error TS2375: Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { changes: { name?: string | undefined; location?: string | undefined; region?: string | undefined; ... 5 more ...; isMaintenanceMode?: boolean | undefined; }; }; ipAddress: string; userAgent: string | undefin...' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { changes: { name?: string | undefined; location?: string | undefined; region?: string | undefined; ... 5 more ...; isMaintenanceMode?: boolean | undefined; }; }; ipAddress: string; userAgent: string | undefin...' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput> & AuditLogCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { changes: { name?: string | undefined; location?: string | undefined; region?: string | undefined; ... 5 more ...; isMaintenanceMode?: boolean | undefined; }; }; ipAddress: string; userAgent: string | undefin...' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/nodes.ts(265,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(295,9): error TS2375: Type '{ nodeId: string; status: "RUNNING"; tenantId: string | undefined; }' is not assignable to type 'TaskWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/nodes.ts(295,59): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(306,46): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; name: string; } & { id?: string; name?: string; AND?: EdgeNodeWhereInput | EdgeNodeWhereInput[]; OR?: EdgeNodeWhereInput[]; ... 29 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'name' is missing in type '{ id: string; tenantId: string | undefined; }' but required in type '{ id: string; name: string; }'.
+src/routes/nodes.ts(306,69): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(310,9): error TS2375: Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: {}; ipAddress: string; userAgent: string | undefined; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: {}; ipAddress: string; userAgent: string | undefined; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput> & AuditLogCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: {}; ipAddress: string; userAgent: string | undefined; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/nodes.ts(312,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(434,11): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<EdgeNodeRelationFilter, EdgeNodeWhereInput> & EdgeNodeWhereInput) | (Without<EdgeNodeWhereInput, EdgeNodeRelationFilter> & EdgeNodeRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<EdgeNodeRelationFilter, EdgeNodeWhereInput> & EdgeNodeWhereInput) | (Without<EdgeNodeWhereInput, EdgeNodeRelationFilter> & EdgeNodeRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<EdgeNodeWhereInput, EdgeNodeRelationFilter> & EdgeNodeRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<EdgeNodeWhereInput, EdgeNodeRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/nodes.ts(434,29): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(472,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; name: string; } & { id?: string; name?: string; AND?: EdgeNodeWhereInput | EdgeNodeWhereInput[]; OR?: EdgeNodeWhereInput[]; ... 29 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'name' is missing in type '{ id: string; tenantId: string | undefined; }' but required in type '{ id: string; name: string; }'.
+src/routes/nodes.ts(472,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(481,9): error TS2375: Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: {}; ipAddress: string; userAgent: string | undefined; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: {}; ipAddress: string; userAgent: string | undefined; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput> & AuditLogCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ userId: any; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: {}; ipAddress: string; userAgent: string | undefined; }' is not assignable to type 'Without<AuditLogUncheckedCreateInput, AuditLogCreateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/routes/nodes.ts(483,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/nodes.ts(526,29): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/scheduler-config.ts(69,26): error TS2379: Argument of type '{ latency?: number | undefined; cpu?: number | undefined; memory?: number | undefined; cost?: number | undefined; network?: number | undefined; ml?: number | undefined; health?: number | undefined; }' is not assignable to parameter of type 'Partial<ScoreWeights>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'latency' are incompatible.
+    Type 'number | undefined' is not assignable to type 'number'.
+      Type 'undefined' is not assignable to type 'number'.
+src/routes/tasks-lifecycle.ts(129,11): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; name: string; } & { id?: string; name?: string; AND?: EdgeNodeWhereInput | EdgeNodeWhereInput[]; OR?: EdgeNodeWhereInput[]; ... 29 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'name' is missing in type '{ id: string; tenantId: string | undefined; }' but required in type '{ id: string; name: string; }'.
+src/routes/tasks-lifecycle.ts(129,47): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(147,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(154,13): error TS2322: Type '{ status: "PENDING"; attemptNumber: number; tenantId: string | undefined; }' is not assignable to type '(Without<TaskExecutionCreateWithoutTaskInput, TaskExecutionUncheckedCreateWithoutTaskInput> & TaskExecutionUncheckedCreateWithoutTaskInput) | (Without<...> & TaskExecutionCreateWithoutTaskInput) | TaskExecutionCreateWithoutTaskInput[] | TaskExecutionUncheckedCreateWithoutTaskInput[] | undefined'.
+  Type '{ status: "PENDING"; attemptNumber: number; tenantId: string | undefined; }' is not assignable to type '(Without<TaskExecutionCreateWithoutTaskInput, TaskExecutionUncheckedCreateWithoutTaskInput> & TaskExecutionUncheckedCreateWithoutTaskInput) | (Without<...> & TaskExecutionCreateWithoutTaskInput) | TaskExecutionCreateWithoutTaskInput[] | TaskExecutionUncheckedCreateWithoutTaskInput[]'.
+    Type '{ status: "PENDING"; attemptNumber: number; tenantId: string | undefined; }' is not assignable to type 'Without<TaskExecutionCreateWithoutTaskInput, TaskExecutionUncheckedCreateWithoutTaskInput> & TaskExecutionUncheckedCreateWithoutTaskInput'.
+      Type '{ status: "PENDING"; attemptNumber: number; tenantId: string | undefined; }' is not assignable to type 'TaskExecutionUncheckedCreateWithoutTaskInput'.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'string'.
+            Type 'undefined' is not assignable to type 'string'.
+src/routes/tasks-lifecycle.ts(157,25): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(172,9): error TS2375: Type '{ userId: string; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { name: string; type: $Enums.TaskType; priority: $Enums.Priority; }; ipAddress: string; userAgent: string | null; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/routes/tasks-lifecycle.ts(174,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(264,19): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(376,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(376,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(397,37): error TS2339: Property 'executions' does not exist on type '{ id: string; tenantId: string; metadata: JsonValue; status: TaskStatus; target: ExecutionTarget; name: string; type: TaskType; nodeId: string | null; ... 9 more ...; input: JsonValue; }'.
+src/routes/tasks-lifecycle.ts(465,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(465,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(503,16): error TS2339: Property 'executions' does not exist on type '{ id: string; tenantId: string; metadata: JsonValue; status: TaskStatus; target: ExecutionTarget; name: string; type: TaskType; nodeId: string | null; ... 9 more ...; input: JsonValue; }'.
+src/routes/tasks-lifecycle.ts(506,31): error TS2339: Property 'executions' does not exist on type '{ id: string; tenantId: string; metadata: JsonValue; status: TaskStatus; target: ExecutionTarget; name: string; type: TaskType; nodeId: string | null; ... 9 more ...; input: JsonValue; }'.
+src/routes/tasks-lifecycle.ts(552,9): error TS2375: Type '{ userId: string; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { reason: string | undefined; previousStatus: $Enums.TaskStatus; force: boolean; }; ipAddress: string; userAgent: string | null; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/routes/tasks-lifecycle.ts(554,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(649,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(649,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(677,30): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/tasks-lifecycle.ts(677,48): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(689,46): error TS2339: Property 'executions' does not exist on type '{ id: string; tenantId: string; metadata: JsonValue; status: TaskStatus; target: ExecutionTarget; name: string; type: TaskType; nodeId: string | null; ... 9 more ...; input: JsonValue; }'.
+src/routes/tasks-lifecycle.ts(694,11): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(694,34): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(703,11): error TS2322: Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: any; }' is not assignable to type '(Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput) | (Without<...> & TaskExecutionCreateInput)'.
+  Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: any; }' is not assignable to type 'Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput'.
+    Property 'tenantId' is missing in type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: any; }' but required in type 'TaskExecutionUncheckedCreateInput'.
+src/routes/tasks-lifecycle.ts(725,9): error TS2375: Type '{ userId: string; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: any; ipAddress: string; userAgent: string | null; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/routes/tasks-lifecycle.ts(727,21): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(1063,11): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type 'TaskWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(1063,30): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(1068,11): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type 'TaskWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(1068,30): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(1073,11): error TS2375: Type '{ tenantId: string | undefined; }' is not assignable to type 'TaskWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(1073,30): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(1079,13): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/tasks-lifecycle.ts(1079,31): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(1084,11): error TS2375: Type '{ tenantId: string | undefined; submittedAt: { gte: Date; }; }' is not assignable to type 'TaskWhereInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+      Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks-lifecycle.ts(1085,23): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks-lifecycle.ts(1101,24): error TS18048: 'avgDuration._avg' is possibly 'undefined'.
+src/routes/tasks.ts(85,19): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(144,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks.ts(144,51): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(199,80): error TS2532: Object is possibly 'undefined'.
+src/routes/tasks.ts(205,83): error TS2532: Object is possibly 'undefined'.
+src/routes/tasks.ts(226,11): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'EdgeNodeWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; name: string; } & { id?: string; name?: string; AND?: EdgeNodeWhereInput | EdgeNodeWhereInput[]; OR?: EdgeNodeWhereInput[]; ... 29 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'name' is missing in type '{ id: string; tenantId: string | undefined; }' but required in type '{ id: string; name: string; }'.
+src/routes/tasks.ts(226,47): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(237,9): error TS2375: Type '{ name: string; type: any; priority: any; target: any; nodeId: string | undefined; policy: string; reason: string; input: any; metadata: any; maxRetries: number; runtime: any; affinity: string | undefined; traceId: string | undefined; tenantId: string; executions: { ...; }; }' is not assignable to type '(Without<TaskCreateInput, TaskUncheckedCreateInput> & TaskUncheckedCreateInput) | (Without<...> & TaskCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ name: string; type: any; priority: any; target: any; nodeId: string | undefined; policy: string; reason: string; input: any; metadata: any; maxRetries: number; runtime: any; affinity: string | undefined; traceId: string | undefined; tenantId: string; executions: { ...; }; }' is not assignable to type 'Without<TaskCreateInput, TaskUncheckedCreateInput> & TaskUncheckedCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ name: string; type: any; priority: any; target: any; nodeId: string | undefined; policy: string; reason: string; input: any; metadata: any; maxRetries: number; runtime: any; affinity: string | undefined; traceId: string | undefined; tenantId: string; executions: { ...; }; }' is not assignable to type 'TaskUncheckedCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'nodeId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | null'.
+          Type 'undefined' is not assignable to type 'string | null'.
+src/routes/tasks.ts(276,9): error TS2375: Type '{ userId: string; tenantId: string | undefined; action: string; entityType: string; entityId: string; details: { name: string; type: $Enums.TaskType; }; ipAddress: string; userAgent: string | undefined; }' is not assignable to type '(Without<AuditLogCreateInput, AuditLogUncheckedCreateInput> & AuditLogUncheckedCreateInput) | (Without<...> & AuditLogCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'tenantId' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/routes/tasks.ts(309,59): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks.ts(309,82): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(326,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks.ts(326,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(353,59): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks.ts(353,82): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(367,30): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/tasks.ts(367,48): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(374,30): error TS2322: Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter) | undefined'.
+  Type '{ tenantId: string | undefined; }' is not assignable to type '(Without<TaskRelationFilter, TaskWhereInput> & TaskWhereInput) | (Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter> & TaskRelationFilter' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Type '{ tenantId: string | undefined; }' is not assignable to type 'Without<TaskWhereInput, TaskRelationFilter>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+        Types of property 'tenantId' are incompatible.
+          Type 'string | undefined' is not assignable to type 'never'.
+            Type 'undefined' is not assignable to type 'never'.
+src/routes/tasks.ts(374,48): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(381,11): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks.ts(381,34): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/tasks.ts(388,11): error TS2375: Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: string | undefined; }' is not assignable to type '(Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput) | (Without<...> & TaskExecutionCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: string | undefined; }' is not assignable to type 'Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Property 'tenantId' is missing in type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: string | undefined; }' but required in type 'TaskExecutionUncheckedCreateInput'.
+src/routes/tasks.ts(398,9): error TS2375: Type '{ id: string; tenantId: string | undefined; }' is not assignable to type 'TaskWhereUniqueInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id: string; } & { id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ id: string; tenantId: string | undefined; }' is not assignable to type '{ id?: string; AND?: TaskWhereInput | TaskWhereInput[]; OR?: TaskWhereInput[]; NOT?: TaskWhereInput | TaskWhereInput[]; ... 20 more ...; tenant?: (Without<...> & TenantWhereInput) | (Without<...> & TenantRelationFilter); }' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'tenantId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFilter<"Task">'.
+          Type 'undefined' is not assignable to type 'string | StringFilter<"Task">'.
+src/routes/tasks.ts(398,32): error TS18048: 'request.user' is possibly 'undefined'.
+src/routes/webhooks.ts(50,9): error TS2322: Type '{ name: string; url: string; events: string[]; secret: string; enabled: boolean; }' is not assignable to type '(Without<WebhookCreateInput, WebhookUncheckedCreateInput> & WebhookUncheckedCreateInput) | (Without<...> & WebhookCreateInput)'.
+  Type '{ name: string; url: string; events: string[]; secret: string; enabled: boolean; }' is not assignable to type 'Without<WebhookUncheckedCreateInput, WebhookCreateInput> & WebhookCreateInput'.
+    Property 'tenant' is missing in type '{ name: string; url: string; events: string[]; secret: string; enabled: boolean; }' but required in type 'WebhookCreateInput'.
+src/routes/webhooks.ts(84,9): error TS2375: Type '{ secret?: string | undefined; name?: string | undefined; enabled?: boolean | undefined; url?: string | undefined; events?: string[] | undefined; }' is not assignable to type '(Without<WebhookUpdateInput, WebhookUncheckedUpdateInput> & WebhookUncheckedUpdateInput) | (Without<...> & WebhookUpdateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ secret?: string | undefined; name?: string | undefined; enabled?: boolean | undefined; url?: string | undefined; events?: string[] | undefined; }' is not assignable to type 'Without<WebhookUncheckedUpdateInput, WebhookUpdateInput> & WebhookUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ secret?: string | undefined; name?: string | undefined; enabled?: boolean | undefined; url?: string | undefined; events?: string[] | undefined; }' is not assignable to type 'WebhookUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'name' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | StringFieldUpdateOperationsInput'.
+          Type 'undefined' is not assignable to type 'string | StringFieldUpdateOperationsInput'.
+src/routes/workflows.ts(80,9): error TS2322: Type '{ name: string; version: string; definition: any; }' is not assignable to type '(Without<WorkflowCreateInput, WorkflowUncheckedCreateInput> & WorkflowUncheckedCreateInput) | (Without<...> & WorkflowCreateInput)'.
+  Type '{ name: string; version: string; definition: any; }' is not assignable to type 'Without<WorkflowUncheckedCreateInput, WorkflowCreateInput> & WorkflowCreateInput'.
+    Property 'tenant' is missing in type '{ name: string; version: string; definition: any; }' but required in type 'WorkflowCreateInput'.
+src/routes/workflows.ts(127,9): error TS2322: Type '{ workflowId: string; input: any; }' is not assignable to type '(Without<WorkflowExecutionCreateInput, WorkflowExecutionUncheckedCreateInput> & WorkflowExecutionUncheckedCreateInput) | (Without<...> & WorkflowExecutionCreateInput)'.
+  Type '{ workflowId: string; input: any; }' is not assignable to type 'Without<WorkflowExecutionCreateInput, WorkflowExecutionUncheckedCreateInput> & WorkflowExecutionUncheckedCreateInput'.
+    Property 'tenantId' is missing in type '{ workflowId: string; input: any; }' but required in type 'WorkflowExecutionUncheckedCreateInput'.
+src/sagas/task-lifecycle-saga.ts(65,7): error TS6133: 'NODE_TIMEOUT' is declared but its value is never read.
+src/sagas/task-lifecycle-saga.ts(77,3): error TS6133: 'kafkaProducer' is declared but its value is never read.
+src/sagas/task-lifecycle-saga.ts(228,13): error TS6133: 'execution' is declared but its value is never read.
+src/sagas/task-lifecycle-saga.ts(229,9): error TS2322: Type '{ taskId: string; nodeId: string; nodeUrl: string; status: "PENDING"; scheduledAt: Date; }' is not assignable to type '(Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput) | (Without<...> & TaskExecutionCreateInput)'.
+  Type '{ taskId: string; nodeId: string; nodeUrl: string; status: "PENDING"; scheduledAt: Date; }' is not assignable to type 'Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput'.
+    Property 'tenantId' is missing in type '{ taskId: string; nodeId: string; nodeUrl: string; status: "PENDING"; scheduledAt: Date; }' but required in type 'TaskExecutionUncheckedCreateInput'.
+src/sagas/task-lifecycle-saga.ts(270,9): error TS2375: Type '{ nodeId: string | undefined; status: "SCHEDULED"; reason: string; }' is not assignable to type '(Without<TaskUpdateInput, TaskUncheckedUpdateInput> & TaskUncheckedUpdateInput) | (Without<...> & TaskUpdateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ nodeId: string | undefined; status: "SCHEDULED"; reason: string; }' is not assignable to type 'Without<TaskUncheckedUpdateInput, TaskUpdateInput> & TaskUpdateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ nodeId: string | undefined; status: "SCHEDULED"; reason: string; }' is not assignable to type 'Without<TaskUncheckedUpdateInput, TaskUpdateInput>' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'nodeId' are incompatible.
+        Type 'string | undefined' is not assignable to type 'never'.
+          Type 'undefined' is not assignable to type 'never'.
+src/sagas/task-lifecycle-saga.ts(479,9): error TS2375: Type '{ status: "COMPLETED"; completedAt: Date; durationMs: number | undefined; output: any; }' is not assignable to type '(Without<TaskExecutionUpdateManyMutationInput, TaskExecutionUncheckedUpdateManyInput> & TaskExecutionUncheckedUpdateManyInput) | (Without<...> & TaskExecutionUpdateManyMutationInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ status: "COMPLETED"; completedAt: Date; durationMs: number | undefined; output: any; }' is not assignable to type 'Without<TaskExecutionUncheckedUpdateManyInput, TaskExecutionUpdateManyMutationInput> & TaskExecutionUpdateManyMutationInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ status: "COMPLETED"; completedAt: Date; durationMs: number | undefined; output: any; }' is not assignable to type 'TaskExecutionUpdateManyMutationInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'durationMs' are incompatible.
+        Type 'number | undefined' is not assignable to type 'number | NullableIntFieldUpdateOperationsInput | null'.
+          Type 'undefined' is not assignable to type 'number | NullableIntFieldUpdateOperationsInput | null'.
+src/services/__tests__/mtls.spec.ts(9,3): error TS2322: Type '(role: string, nodeId: string, ttl: string) => { certificate: string; serial_number: string; }' is not assignable to type '(role: string, commonName: string, ttl?: string | undefined) => Promise<{ certificate: string; private_key?: string; serial_number: string; }>'.
+  Type '{ certificate: string; serial_number: string; }' is missing the following properties from type 'Promise<{ certificate: string; private_key?: string; serial_number: string; }>': then, catch, finally, [Symbol.toStringTag]
+src/services/__tests__/mtls.spec.ts(9,22): error TS6133: 'role' is declared but its value is never read.
+src/services/__tests__/mtls.spec.ts(9,52): error TS6133: 'ttl' is declared but its value is never read.
+src/services/__tests__/task-scheduler.audit.spec.ts(2,1): error TS6133: 'Redis' is declared but its value is never read.
+src/services/__tests__/tenant-isolation.spec.ts(1,1): error TS6133: 'PrismaClient' is declared but its value is never read.
+src/services/alerting-service.ts(62,11): error TS2375: Type '{ id: string; severity: "critical" | "warning" | "info"; title: string; message: string; source: string; tenantId: string; timestamp: Date; metadata: Record<string, unknown> | undefined; }' is not assignable to type 'Alert' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'metadata' are incompatible.
+    Type 'Record<string, unknown> | undefined' is not assignable to type 'Record<string, unknown>'.
+      Type 'undefined' is not assignable to type 'Record<string, unknown>'.
+src/services/compliance-manager.ts(158,19): error TS2379: Argument of type '{ status: "warning" | "pass" | "fail" | "not_applicable"; lastChecked: Date; details: string | undefined; id: string; name: string; description: string; category: "SOC2" | "GDPR" | "HIPAA" | "PCI-DSS" | "ISO27001"; }' is not assignable to parameter of type 'ComplianceCheck' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'details' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/services/compliance-manager.ts(177,19): error TS2379: Argument of type '{ status: "warning" | "pass" | "fail" | "not_applicable"; lastChecked: Date; details: string | undefined; id: string; name: string; description: string; category: "SOC2" | "GDPR" | "HIPAA" | "PCI-DSS" | "ISO27001"; }' is not assignable to parameter of type 'ComplianceCheck' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Types of property 'details' are incompatible.
+    Type 'string | undefined' is not assignable to type 'string'.
+      Type 'undefined' is not assignable to type 'string'.
+src/services/health-monitor.ts(354,9): error TS7027: Unreachable code detected.
+src/services/heartbeat-monitor.ts(205,11): error TS2375: Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: string | undefined; tenantId: string; }' is not assignable to type '(Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput) | (Without<...> & TaskExecutionCreateInput)' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+  Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: string | undefined; tenantId: string; }' is not assignable to type 'Without<TaskExecutionCreateInput, TaskExecutionUncheckedCreateInput> & TaskExecutionUncheckedCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+    Type '{ taskId: string; status: "PENDING"; attemptNumber: number; retryOf: string | undefined; tenantId: string; }' is not assignable to type 'TaskExecutionUncheckedCreateInput' with 'exactOptionalPropertyTypes: true'. Consider adding 'undefined' to the types of the target's properties.
+      Types of property 'retryOf' are incompatible.
+        Type 'string | undefined' is not assignable to type 'string | null'.
+          Type 'undefined' is not assignable to type 'string | null'.

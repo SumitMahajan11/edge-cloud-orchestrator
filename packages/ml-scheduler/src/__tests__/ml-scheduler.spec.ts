@@ -42,7 +42,10 @@ describe('MLScheduler Fallback Logic', () => {
   });
 
   it('should fall back when prediction takes > 50ms', async () => {
-    const nodes = [createMockNode({ id: 'node-1', tasksRunning: 10 }), createMockNode({ id: 'node-2', tasksRunning: 1 })];
+    const nodes = [
+      createMockNode({ id: 'node-1', cpuUsage: 80, tasksRunning: 10 }),
+      createMockNode({ id: 'node-2', cpuUsage: 20, tasksRunning: 1 })
+    ];
     const task = createMockTask();
 
     // Mock rankNodes to never resolve or at least take a long time
@@ -65,7 +68,10 @@ describe('MLScheduler Fallback Logic', () => {
   });
 
   it('should fall back to Load Balanced when prediction throws', async () => {
-    const nodes = [createMockNode({ id: 'node-1', tasksRunning: 10 }), createMockNode({ id: 'node-2', tasksRunning: 1 })];
+    const nodes = [
+      createMockNode({ id: 'node-1', cpuUsage: 80, tasksRunning: 10 }),
+      createMockNode({ id: 'node-2', cpuUsage: 20, tasksRunning: 1 })
+    ];
     const task = createMockTask();
 
     vi.spyOn((scheduler as any).scorer, 'rankNodes').mockRejectedValue(new Error('GPU Out of Memory'));

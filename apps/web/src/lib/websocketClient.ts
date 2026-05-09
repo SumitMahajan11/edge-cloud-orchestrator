@@ -15,8 +15,6 @@ class WebSocketClient {
   private ws: WebSocket | null = null
   private url: string
   private reconnectAttempts = 0
-  private maxReconnectAttempts = 5
-  private reconnectDelay = 1000
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null
   private pingTimer: ReturnType<typeof setInterval> | null = null
   private messageQueue: WebSocketMessage[] = []
@@ -196,18 +194,18 @@ class WebSocketClient {
   }
 
   private scheduleReconnect() {
-    if (this.reconnectAttempts >= this.maxReconnectAttempts) {
-      console.error('[WebSocket] Max reconnect attempts reached')
-      return
-    }
-
     this.reconnectAttempts++
-    const delay = this.reconnectDelay * Math.pow(2, this.reconnectAttempts - 1)
+    
+    // Exponential backoff: 1s, 2s, 4s, 8s, 16s, 30s (max)
+    const delay = Math.min(30000, 1000 * Math.pow(2, this.reconnectAttempts - 1))
     
     console.log(`[WebSocket] Reconnecting in ${delay}ms (attempt ${this.reconnectAttempts})`)
     
     this.reconnectTimer = setTimeout(() => {
-      this.connect().catch(console.error)
+      this.connect().catch(err => {
+        console.error('[WebSocket] Reconnect failed:', err)
+        // scheduleReconnect will be called again by onclose if this fails
+      })
     }, delay)
   }
 
@@ -289,8 +287,10 @@ class WebSocketClient {
   }
 }
 
-// Singleton instance
-import { config } from './realApi'
+// Configuration
+const config = {
+  wsUrl: (process.env.NEXT_PUBLIC_WS_URL as string) || 'ws://localhost:3090/ws'
+}
 
 export const wsClient = new WebSocketClient(config.wsUrl)
 

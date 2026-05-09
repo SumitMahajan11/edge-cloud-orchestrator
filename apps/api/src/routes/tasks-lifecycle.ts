@@ -126,7 +126,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Validate node if specified
       if (data.nodeId) {
         const node = await fastify.prisma.edgeNode.findUnique({
-          where: { id: data.nodeId },
+          where: { id: data.nodeId, tenantId: request.user!.tenantId! },
         });
         if (!node || node.status !== 'ONLINE' || node.isMaintenanceMode) {
           return reply.status(400).send({
@@ -143,7 +143,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           type: data.type as any,
           priority: data.priority as any,
           target: data.target as any,
-          nodeId: data.nodeId,
+          nodeId: data.nodeId ?? null,
+          tenantId: request.user!.tenantId!,
           policy: data.nodeId ? 'manual' : 'auto',
           reason: 'User submitted',
           input: (data.input ?? {}) as any,
@@ -153,6 +154,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             create: {
               status: 'PENDING',
               attemptNumber: 1,
+              tenantId: request.user!.tenantId!,
             },
           },
         },
@@ -169,6 +171,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       await fastify.prisma.auditLog.create({
         data: {
           userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
@@ -258,6 +261,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       } = request.query;
 
       const where: any = {
+        tenantId: request.user!.tenantId!,
         ...(status && { status }),
         ...(type && { type }),
         ...(nodeId && { nodeId }),
@@ -369,7 +373,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
 
       const task = await fastify.prisma.task.findUnique({
-        where: { id },
+        where: { id, tenantId: request.user!.tenantId! },
         include: {
           node: {
             select: { id: true, name: true, region: true, status: true },
@@ -458,7 +462,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const { reason, force } = request.body ?? {};
 
       const task = await fastify.prisma.task.findUnique({
-        where: { id },
+        where: { id, tenantId: request.user!.tenantId! },
         include: {
           executions: {
             where: { status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] } },
@@ -547,10 +551,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       await fastify.prisma.auditLog.create({
         data: {
           userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
           action: 'task.cancelled',
           entityType: 'task',
           entityId: id,
-          details: { reason, previousStatus, force },
+          details: { reason, previousStatus, force } as any,
           ipAddress: request.ip,
           userAgent: request.headers['user-agent'] ?? null,
         },
@@ -641,7 +646,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const overrides = request.body ?? {};
 
       const originalTask = await fastify.prisma.task.findUnique({
-        where: { id },
+        where: { id, tenantId: request.user!.tenantId! },
         include: {
           executions: {
             orderBy: { attemptNumber: 'desc' },
@@ -669,7 +674,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       // Check retry count across all attempts
       const allExecutions = await fastify.prisma.taskExecution.count({
-        where: { taskId: id },
+        where: { taskId: id, task: { tenantId: request.user!.tenantId! } },
       });
 
       if (allExecutions >= originalTask.maxRetries) {
@@ -683,48 +688,48 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       const previousExecution = originalTask.executions[0];
 
-      // Create new task (clone)
-      const newTask = await fastify.prisma.task.create({
-        data: {
-          name: `${originalTask.name} (retry #${allExecutions})`,
-          type: originalTask.type,
-          priority: overrides.priority ?? originalTask.priority,
-          target: originalTask.target,
-          nodeId: overrides.nodeId ?? null,
-          policy: overrides.nodeId ? 'manual' : 'auto',
-          reason: `Retry of task ${id}`,
-          input: (overrides.input ?? originalTask.input) as any,
-          metadata: {
-            ...(originalTask.metadata as Record<string, unknown>),
-            retryOf: id,
-            retryAttempt: allExecutions + 1,
-            originalSubmittedAt: originalTask.submittedAt,
-          } as any,
-          maxRetries: originalTask.maxRetries,
-          executions: {
-            create: {
-              status: 'PENDING',
-              attemptNumber: allExecutions + 1,
-            },
+      // Reset existing task and create new execution record
+      await fastify.prisma.$transaction([
+        fastify.prisma.task.update({
+          where: { id, tenantId: request.user!.tenantId! },
+          data: {
+            status: 'PENDING',
+            nodeId: overrides.nodeId ?? null,
+            priority: overrides.priority ?? originalTask.priority,
+            input: (overrides.input ?? originalTask.input) as any,
           },
-        },
+        }),
+        fastify.prisma.taskExecution.create({
+          data: {
+            taskId: id,
+            status: 'PENDING',
+            attemptNumber: allExecutions + 1,
+            tenantId: request.user!.tenantId!,
+            retryOf: previousExecution?.id ?? null,
+          },
+        }),
+      ]);
+
+      const updatedTask = await fastify.prisma.task.findUnique({
+        where: { id },
         include: {
           node: { select: { id: true, name: true, region: true } },
+          executions: { orderBy: { attemptNumber: 'desc' }, take: 1 },
         },
       });
 
       // Enqueue for scheduling
-      await fastify.taskScheduler.enqueue(newTask as any);
+      await fastify.taskScheduler.enqueue(updatedTask as any);
 
       // Audit log
       await fastify.prisma.auditLog.create({
         data: {
           userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
           action: 'task.retried',
           entityType: 'task',
-          entityId: newTask.id,
+          entityId: id,
           details: {
-            originalTaskId: id,
             attemptNumber: allExecutions + 1,
             overrides,
           } as any,
@@ -734,10 +739,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcast('task:created', newTask);
+      fastify.wsManager.broadcast('task:created', updatedTask);
 
       return reply.status(201).send({
-        ...newTask,
+        ...updatedTask,
         retryOf: id,
         attemptNumber: allExecutions + 1,
         previousExecution: {
@@ -747,7 +752,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           error: previousExecution?.error,
           durationMs: previousExecution?.durationMs,
         },
-        _links: buildTaskLinks(newTask.id),
+        _links: buildTaskLinks(id),
       });
     },
   );
@@ -1011,9 +1016,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           priority: task.priority,
           target: task.target,
           node: task.node,
-          input: task.input,
-          metadata: task.metadata,
-          maxRetries: task.maxRetries,
+          input: (task as any).input,
+          metadata: (task as any).metadata,
+          maxRetries: (task as any).maxRetries,
           submittedAt: task.submittedAt,
         },
         executions: includeExecutions ? executions : [],
@@ -1046,7 +1051,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         summary: 'Get task statistics',
       },
     },
-    async () => {
+    async (request) => {
       const [
         byStatus,
         byPriority,
@@ -1056,22 +1061,29 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       ] = await Promise.all([
         fastify.prisma.task.groupBy({
           by: ['status'],
+          where: { tenantId: request.user!.tenantId! },
           _count: true,
         }),
         fastify.prisma.task.groupBy({
           by: ['priority'],
+          where: { tenantId: request.user!.tenantId! },
           _count: true,
         }),
         fastify.prisma.task.groupBy({
           by: ['type'],
+          where: { tenantId: request.user!.tenantId! },
           _count: true,
         }),
-        fastify.prisma.taskExecution.aggregate({
-          where: { status: 'COMPLETED' },
+        (fastify.prisma as any).taskExecution.aggregate({
+          where: { 
+            status: 'COMPLETED',
+            task: { tenantId: request.user!.tenantId! }
+          },
           _avg: { durationMs: true },
         }),
         fastify.prisma.task.count({
           where: {
+            tenantId: request.user!.tenantId!,
             submittedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
           },
         }),
@@ -1079,18 +1091,18 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       return {
         byStatus: byStatus.reduce(
-          (acc, s) => ({ ...acc, [s.status]: s._count }),
+          (acc: any, s: any) => ({ ...acc, [s.status]: s._count }),
           {},
         ),
         byPriority: byPriority.reduce(
-          (acc, p) => ({ ...acc, [p.priority]: p._count }),
+          (acc: any, p: any) => ({ ...acc, [p.priority]: p._count }),
           {},
         ),
-        byType: byType.reduce((acc, t) => ({ ...acc, [t.type]: t._count }), {}),
+        byType: byType.reduce((acc: any, t: any) => ({ ...acc, [t.type]: t._count }), {}),
         avgDurationMs: avgDuration._avg.durationMs ?? 0,
         recentTasks24h: recentTasks,
-        queueDepth: byStatus.find((s) => s.status === 'PENDING')?._count ?? 0,
-        runningCount: byStatus.find((s) => s.status === 'RUNNING')?._count ?? 0,
+        queueDepth: byStatus.find((s: any) => s.status === 'PENDING')?._count ?? 0,
+        runningCount: byStatus.find((s: any) => s.status === 'RUNNING')?._count ?? 0,
       };
     },
   );
@@ -1109,3 +1121,5 @@ function buildTaskLinks(taskId: string) {
     retry: { href: `/api/v1/tasks/${taskId}/retry`, method: 'POST' },
   };
 }
+
+

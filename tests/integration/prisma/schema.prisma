@@ -1,0 +1,107 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./test.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  passwordHash  String
+  name          String
+  role          String    @default("VIEWER")
+  isActive      Boolean   @default(true)
+  emailVerified Boolean   @default(false)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  @@map("users")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  config    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks     Task[]
+  nodes     EdgeNode[] @relation("TenantNodes")
+
+  @@map("tenants")
+}
+
+model EdgeNode {
+  id        String     @id @default(uuid())
+  name      String     @unique
+  location  String
+  region    String
+  status    String     @default("ONLINE")
+  ipAddress String
+  port      Int
+  url       String
+
+  cpuCores  Int
+  memoryGB  Int
+  storageGB Int
+
+  cpuUsage     Float @default(0)
+  memoryUsage  Float @default(0)
+  storageUsage Float @default(0)
+  latency      Float @default(0)
+
+  tasksRunning Int @default(0)
+  maxTasks     Int @default(10)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks     Task[]
+  
+  tenantId  String
+  tenant    Tenant @relation("TenantNodes", fields: [tenantId], references: [id])
+
+  @@map("edge_nodes")
+}
+
+model Task {
+  id       String          @id @default(uuid())
+  name     String
+  type     String
+  status   String          @default("PENDING")
+  priority String          @default("MEDIUM")
+  target   String
+
+  nodeId   String?
+  policy   String
+  reason   String
+  runtime  String @default("DOCKER")
+  
+  submittedAt DateTime @default(now())
+
+  node       EdgeNode?       @relation(fields: [nodeId], references: [id])
+
+  logs       TaskLog[]
+  
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tasks")
+}
+
+model TaskLog {
+  id        String   @id @default(uuid())
+  taskId    String
+  level     String
+  message   String
+  timestamp DateTime @default(now())
+  
+  task      Task     @relation(fields: [taskId], references: [id])
+  
+  @@map("task_logs")
+}

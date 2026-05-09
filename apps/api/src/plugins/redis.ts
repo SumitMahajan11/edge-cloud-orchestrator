@@ -1,5 +1,6 @@
 import fp from 'fastify-plugin';
 import Redis from 'ioredis';
+import { env } from '../config/env';
 
 declare module 'fastify' {
   interface FastifyInstance {
@@ -24,7 +25,7 @@ export const redisPlugin = fp(async (fastify, options: { redis: Redis }) => {
   const isHealthy = await validateRedisConnection(options.redis);
 
   if (!isHealthy) {
-    if (process.env.NODE_ENV === 'production') {
+    if (env.NODE_ENV === 'production') {
       throw new Error('Redis connection validation failed');
     }
     fastify.log.warn(

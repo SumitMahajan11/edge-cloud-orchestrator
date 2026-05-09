@@ -13,7 +13,33 @@ type TaskStatusStr =
   | 'FAILED'
   | 'CANCELLED';
 
-export default async function taskRoutes(fastify: FastifyInstance) {
+/**
+  * Transform flat Prisma task model to versioned API response schema
+  */
+ function transformTask(task: any) {
+   if (!task) return null;
+ 
+   const metadata = typeof task.metadata === 'string' 
+     ? JSON.parse(task.metadata) 
+     : (task.metadata || {});
+ 
+   return {
+     ...task,
+     status: (task.status || 'PENDING').toUpperCase(),
+     priority: (task.priority || 'MEDIUM').toUpperCase(),
+     submittedAt: task.submittedAt?.toISOString() || new Date().toISOString(),
+     startedAt: task.startedAt?.toISOString() || null,
+     completedAt: task.completedAt?.toISOString() || null,
+     image: task.image || '',
+     specs: metadata.specs || null,
+     runtime: task.runtime,
+     affinity: task.affinity,
+     traceId: task.traceId,
+     metadata: metadata
+   };
+ }
+ 
+ export default async function taskRoutes(fastify: FastifyInstance) {
   // List tasks
   fastify.get<{ Querystring: v1Contracts.TaskQueryV1 }>(
     '/',
@@ -23,6 +49,23 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         querystring: zodToFastifySchema(v1Contracts.TaskQueryV1Schema),
         tags: ['tasks'],
         summary: 'List tasks',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              data: { type: 'array', items: zodToFastifySchema(v1Contracts.TaskV1ResponseSchema) },
+              pagination: {
+                type: 'object',
+                properties: {
+                  page: { type: 'number' },
+                  limit: { type: 'number' },
+                  total: { type: 'number' },
+                  totalPages: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
       },
     },
     async (request: FastifyRequest<{ Querystring: v1Contracts.TaskQueryV1 }>, _reply) => {
@@ -40,6 +83,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       } = request.query;
 
       const where: any = {
+        tenantId: request.user!.tenantId!,
         ...(status && { status: status as TaskStatusStr }),
         ...(type && { type }),
         ...(nodeId && { nodeId }),
@@ -70,7 +114,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       ]);
 
       return {
-        data: tasks,
+        data: tasks.map(transformTask),
         pagination: {
           page,
           limit,
@@ -90,11 +134,15 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
         summary: 'Get task by ID',
+        response: {
+          200: zodToFastifySchema(v1Contracts.TaskV1ResponseSchema),
+          404: { $ref: 'ErrorSchema#' },
+        },
       },
     },
     async (request, reply) => {
-      const task = await fastify.prisma.task.findUnique({
-        where: { id: request.params.id },
+      const task = await fastify.prisma.task.findFirst({
+        where: { id: request.params.id, tenantId: request.user!.tenantId! },
         include: {
           node: true,
           logs: {
@@ -108,7 +156,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         return reply.status(404).send({ error: 'Task not found' });
       }
 
-      return task;
+      return transformTask(task);
     },
   );
 
@@ -124,12 +172,18 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const decision = await (fastify.prisma as any).schedulingDecision.findUnique({
-        where: { taskId: request.params.id },
+      const decision = await (fastify.prisma as any).schedulingDecision.findFirst({
+        where: { 
+          taskId: request.params.id,
+          task: { tenantId: request.user!.tenantId! }
+        },
       });
 
       if (!decision) {
-        return reply.status(404).send({ error: 'Scheduling decision not found' });
+        return reply.status(404).send({ 
+          code: 'DECISION_NOT_FOUND', 
+          message: 'Scheduling decision not found' 
+        });
       }
 
       return decision;
@@ -141,10 +195,30 @@ export default async function taskRoutes(fastify: FastifyInstance) {
     '/',
     {
       preHandler: [fastify.authenticate],
+      preValidation: async (request: any, reply: any) => {
+        const { TaskInputSchema, TaskMetadataSchema } = await import('@edgecloud/shared-kernel');
+        if (request.body?.input) {
+          const res = TaskInputSchema.safeParse(request.body.input);
+          if (!res.success) {
+            return reply.status(400).send({ error: 'Invalid input payload: ' + res.error.issues[0]?.message });
+          }
+        }
+        if (request.body?.metadata) {
+          const res = TaskMetadataSchema.safeParse(request.body.metadata);
+          if (!res.success) {
+            return reply.status(400).send({ error: 'Invalid metadata payload: ' + res.error.issues[0]?.message });
+          }
+        }
+      },
       schema: {
         body: zodToFastifySchema(v1Contracts.CreateTaskV1Schema),
         tags: ['tasks'],
-        summary: 'Submit a new task',
+        summary: 'Create and schedule a new task',
+        response: {
+          201: zodToFastifySchema(v1Contracts.TaskV1ResponseSchema),
+          400: { $ref: 'ErrorSchema#' },
+          409: { $ref: 'ErrorSchema#' },
+        },
       },
     },
     async (request: FastifyRequest<{ Body: v1Contracts.CreateTaskV1 }>, reply) => {
@@ -152,8 +226,8 @@ export default async function taskRoutes(fastify: FastifyInstance) {
 
       // If nodeId specified, verify node is available
       if (data.nodeId) {
-        const node = await fastify.prisma.edgeNode.findUnique({
-          where: { id: data.nodeId },
+        const node = await fastify.prisma.edgeNode.findFirst({
+          where: { id: data.nodeId, tenantId: request.user!.tenantId! },
         });
 
         if (!node || node.status !== 'ONLINE' || node.isMaintenanceMode) {
@@ -161,23 +235,41 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         }
       }
 
+      const tenantId = request.user!.tenantId!;
+
       const task = await fastify.prisma.task.create({
         data: {
           name: data.name,
           type: data.type as any,
           priority: data.priority as any,
           target: data.target as any,
-          nodeId: data.nodeId,
+          nodeId: data.nodeId ?? null,
           policy: 'manual',
           reason: 'Manually submitted',
           input: (data.input || {}) as any,
-          metadata: (data.metadata || {}) as any,
+          metadata: {
+            ...(data.metadata || {}),
+            specs: data.specs,
+          } as any,
           maxRetries: data.maxRetries,
+          runtime: data.runtime as any,
+          image: data.image,
+          affinity: data.affinity ?? null,
+          traceId: data.traceId ?? null,
+          tenantId,
+          executions: {
+            create: {
+              status: 'PENDING',
+              attemptNumber: 1,
+              tenantId,
+            },
+          },
         },
         include: {
           node: {
             select: { id: true, name: true, region: true },
           },
+          executions: { orderBy: { attemptNumber: 'desc' }, take: 1 },
         },
       });
 
@@ -188,19 +280,20 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       await fastify.prisma.auditLog.create({
         data: {
           userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
-          details: { name: task.name, type: task.type },
+          details: { name: task.name, type: task.type } as any,
           ipAddress: request.ip,
-          userAgent: request.headers['user-agent'],
+          userAgent: request.headers['user-agent'] ?? null,
         },
       });
 
       // Broadcast via WebSocket
       fastify.wsManager.broadcast('task:created', task);
 
-      return reply.status(201).send(task);
+      return reply.status(201).send(transformTask(task));
     },
   );
 
@@ -218,18 +311,24 @@ export default async function taskRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
 
-      const task = await fastify.prisma.task.findUnique({ where: { id } });
+      const task = await fastify.prisma.task.findUnique({ where: { id, tenantId: request.user!.tenantId! } });
 
       if (!task) {
-        return reply.status(404).send({ error: 'Task not found' });
+        return reply.status(404).send({ 
+          code: 'TASK_NOT_FOUND', 
+          message: 'Task not found' 
+        });
       }
 
       if (!['PENDING', 'SCHEDULED', 'RUNNING'].includes(task.status)) {
-        return reply.status(400).send({ error: 'Task cannot be cancelled' });
+        return reply.status(400).send({ 
+          code: 'INVALID_TASK_STATE', 
+          message: 'Task cannot be cancelled in its current state' 
+        });
       }
 
       const updated = await fastify.prisma.task.update({
-        where: { id },
+        where: { id, tenantId: request.user!.tenantId! },
         data: {
           status: 'CANCELLED' as TaskStatusStr,
         },
@@ -256,7 +355,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
 
-      const task = await fastify.prisma.task.findUnique({ where: { id } });
+      const task = await fastify.prisma.task.findUnique({ where: { id, tenantId: request.user!.tenantId! } });
 
       if (!task) {
         return reply.status(404).send({ error: 'Task not found' });
@@ -270,30 +369,49 @@ export default async function taskRoutes(fastify: FastifyInstance) {
 
       // Check existing execution count instead of retryCount field
       const executionCount = await fastify.prisma.taskExecution.count({
-        where: { taskId: id },
+        where: { taskId: id, task: { tenantId: request.user!.tenantId! } },
       });
       if (executionCount >= task.maxRetries) {
         return reply.status(400).send({ error: 'Max retries exceeded' });
       }
 
-      const newTask = await fastify.prisma.task.create({
-        data: {
-          name: task.name,
-          type: task.type,
-          priority: task.priority,
-          target: task.target,
-          policy: task.policy,
-          reason: `Retry of task ${task.id}`,
-          input: task.input as any,
-          metadata: { ...(task.metadata as object), retryOf: task.id } as any,
-          maxRetries: task.maxRetries,
+      const previousExecution = await fastify.prisma.taskExecution.findFirst({
+        where: { taskId: id, task: { tenantId: request.user!.tenantId! } },
+        orderBy: { attemptNumber: 'desc' },
+      });
+
+      // Reset existing task and create new execution record
+      await fastify.prisma.$transaction([
+        fastify.prisma.task.update({
+          where: { id, tenantId: request.user!.tenantId! },
+          data: {
+            status: 'PENDING',
+            nodeId: null,
+          },
+        }),
+        fastify.prisma.taskExecution.create({
+          data: {
+            taskId: id,
+            status: 'PENDING',
+            attemptNumber: executionCount + 1,
+            tenantId: request.user!.tenantId!,
+            retryOf: previousExecution?.id ?? null,
+          },
+        }),
+      ]);
+
+      const updatedTask = await fastify.prisma.task.findUnique({
+        where: { id, tenantId: request.user!.tenantId! },
+        include: {
+          node: { select: { id: true, name: true, region: true } },
+          executions: { orderBy: { attemptNumber: 'desc' }, take: 1 },
         },
       });
 
-      await fastify.taskScheduler.enqueue(newTask as any);
-      fastify.wsManager.broadcast('task:created', newTask);
+      await fastify.taskScheduler.enqueue(updatedTask as any);
+      fastify.wsManager.broadcast('task:created', updatedTask);
 
-      return reply.status(201).send(newTask);
+      return reply.status(201).send(updatedTask);
     },
   );
 
@@ -325,6 +443,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       const logs = await fastify.prisma.taskLog.findMany({
         where: {
           taskId: id,
+          task: { tenantId: request.user!.tenantId! },
           ...(level && { level: level as any }),
         },
         orderBy: { timestamp: 'desc' },
@@ -351,18 +470,22 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         sunsetDate: '2026-10-14', 
         link: 'https://docs.edgecloud.com/api/v2/stats' 
       },
-      async (_request, _reply) => {
+      async (request, _reply) => {
+        const tenantId = request.user!.tenantId!;
         const stats = await fastify.prisma.task.groupBy({
+        where: { tenantId },
         by: ['status'],
         _count: true,
       });
 
       const byPriority = await fastify.prisma.task.groupBy({
+        where: { tenantId },
         by: ['priority'],
         _count: true,
       });
 
       const byType = await fastify.prisma.task.groupBy({
+        where: { tenantId },
         by: ['type'],
         _count: true,
       });
@@ -381,3 +504,5 @@ export default async function taskRoutes(fastify: FastifyInstance) {
     })
   );
 }
+
+

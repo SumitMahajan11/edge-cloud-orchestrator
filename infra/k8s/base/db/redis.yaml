@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+  namespace: edge-cloud-orchestrator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+        - name: redis
+          image: redis:7-alpine
+          ports:
+            - containerPort: 6379
+          args:
+            - redis-server
+            - --appendonly
+            - "yes"
+            - --appendfsync
+            - "everysec"
+            - --auto-aof-rewrite-percentage
+            - "100"
+            - --auto-aof-rewrite-min-size
+            - "64mb"
+          volumeMounts:
+            - name: redis-data
+              mountPath: /data
+      volumes:
+        - name: redis-data
+          persistentVolumeClaim:
+            claimName: redis-pvc
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: redis-pvc
+  namespace: edge-cloud-orchestrator
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+  namespace: edge-cloud-orchestrator
+spec:
+  selector:
+    app: redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: redis-backup-s3
+  namespace: edge-cloud-orchestrator
+spec:
+  schedule: "0 3 * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: aws-cli
+              image: amazon/aws-cli:latest
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  DATE=$(date +%Y-%m-%d)
+                  aws s3 cp /data/appendonly.aof s3://edge-cloud-backups/redis/$DATE-appendonly.aof
+                  # Retention: 7 days
+                  # (Managed via S3 Lifecycle policy, but can be done here if needed)
+              volumeMounts:
+                - name: redis-data
+                  mountPath: /data
+                  readOnly: true
+          restartPolicy: OnFailure
+          volumes:
+            - name: redis-data
+              persistentVolumeClaim:
+                claimName: redis-pvc

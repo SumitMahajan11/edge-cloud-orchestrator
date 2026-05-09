@@ -1,4 +1,4 @@
-import { NodeStatus } from '../types/domain';
+import { NodeStatus } from '../types/domain.js';
 
 export interface EdgeNode {
   id: string;
@@ -25,6 +25,7 @@ export interface EdgeNode {
   healthScore: number;
   consecutiveFailures: number;
   lastHeartbeat: Date;
+  carbonIntensity: number; // grams of CO2 per kWh
   capabilities?: string[];
   labels?: Record<string, string>;
   createdAt: Date;

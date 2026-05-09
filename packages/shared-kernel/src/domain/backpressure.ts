@@ -1,4 +1,4 @@
-import { BackpressureDecision, Priority, SystemLoad } from '../types/domain';
+import { BackpressureDecision, Priority, SystemLoad } from '../types/domain.js';
 
 export interface BackpressureConfig {
   maxQueueDepth: number;

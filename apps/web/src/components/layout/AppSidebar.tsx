@@ -1,4 +1,5 @@
-import { NavLink, useLocation } from 'react-router-dom'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 import { cn } from '../../lib/utils'
 import {
   LayoutDashboard,
@@ -10,17 +11,34 @@ import {
   Menu,
   X,
   Webhook,
+  Sparkles,
+  Bell,
+  Users,
+  GitBranch,
 } from 'lucide-react'
 import { useState } from 'react'
+import { useTenant } from '../../contexts/TenantContext'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "../ui/tooltip"
 
 const navItems = [
   { path: '/', label: 'Dashboard', icon: LayoutDashboard },
   { path: '/nodes', label: 'Edge Nodes', icon: Server },
   { path: '/scheduler', label: 'Task Scheduler', icon: Calendar },
   { path: '/monitoring', label: 'Monitoring', icon: Activity },
+  { path: '/ml-intelligence', label: 'ML Intelligence', icon: Sparkles },
+  { path: '/alerts', label: 'Alerts', icon: Bell },
   { path: '/logs', label: 'Logs', icon: ScrollText },
   { path: '/policies', label: 'Policies', icon: Settings },
+  { path: '/workflows', label: 'Workflows', icon: GitBranch },
   { path: '/webhooks', label: 'Webhooks', icon: Webhook },
+]
+
+const adminNavItems = [
+  { path: '/tenants', label: 'Tenants', icon: Users },
 ]
 
 interface AppSidebarProps {
@@ -29,9 +47,47 @@ interface AppSidebarProps {
 }
 
 export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
-  const location = useLocation()
+  const pathname = usePathname()
+  const tenant = useTenant()
   const [isMobileOpen, setIsMobileOpen] = useState(false)
   
+  const NavItem = ({ item, collapsed }: { item: typeof navItems[0], collapsed: boolean }) => {
+    const Icon = item.icon
+    const isActive = pathname === item.path
+    
+    const content = (
+      <Link
+        href={item.path}
+        onClick={() => setIsMobileOpen(false)}
+        className={cn(
+          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+          isActive
+            ? 'bg-primary/10 text-primary'
+            : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
+          collapsed && 'lg:justify-center lg:px-2'
+        )}
+      >
+        <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
+        {!collapsed && <span>{item.label}</span>}
+      </Link>
+    )
+
+    if (collapsed) {
+      return (
+        <Tooltip delayDuration={0}>
+          <TooltipTrigger asChild>
+            {content}
+          </TooltipTrigger>
+          <TooltipContent side="right" className="bg-card border-border text-foreground">
+            {item.label}
+          </TooltipContent>
+        </Tooltip>
+      )
+    }
+
+    return content
+  }
+
   return (
     <>
       {/* Mobile overlay */}
@@ -70,7 +126,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
                 <Server className="h-4 w-4 text-primary-foreground" />
               </div>
               {isOpen && (
-                <span className="font-semibold text-foreground">EdgeCloud</span>
+                <span className="font-semibold text-foreground tracking-tight">EdgeCloud</span>
               )}
             </div>
             <button
@@ -84,42 +140,39 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4 px-3">
             <ul className="space-y-1">
-              {navItems.map((item) => {
-                const Icon = item.icon
-                const isActive = location.pathname === item.path
-                
-                return (
-                  <li key={item.path}>
-                    <NavLink
-                      to={item.path}
-                      onClick={() => setIsMobileOpen(false)}
-                      className={cn(
-                        'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
-                        isActive
-                          ? 'bg-primary/10 text-primary'
-                          : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-                        !isOpen && 'lg:justify-center lg:px-2'
-                      )}
-                    >
-                      <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
-                      {isOpen && <span>{item.label}</span>}
-                    </NavLink>
-                  </li>
-                )
-              })}
+              {navItems.map((item) => (
+                <li key={item.path}>
+                  <NavItem item={item} collapsed={!isOpen} />
+                </li>
+              ))}
             </ul>
+
+            {tenant.isSuperAdmin && (
+              <div className="mt-6">
+                <div className={cn('px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground', !isOpen && 'text-center px-0')}>
+                  {isOpen ? 'Administration' : 'Admin'}
+                </div>
+                <ul className="space-y-1">
+                  {adminNavItems.map((item) => (
+                    <li key={item.path}>
+                      <NavItem item={item} collapsed={!isOpen} />
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </nav>
           
           {/* Footer */}
           <div className="border-t border-border p-4">
             <div className={cn('flex items-center gap-3', !isOpen && 'lg:justify-center')}>
-              <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center">
-                <span className="text-xs font-medium text-foreground">EC</span>
+              <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border">
+                <span className="text-[10px] font-bold text-primary">AD</span>
               </div>
               {isOpen && (
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-foreground">Admin User</span>
-                  <span className="text-xs text-muted-foreground">Authenticated</span>
+                <div className="flex flex-col overflow-hidden">
+                  <span className="text-sm font-medium text-foreground truncate">Admin User</span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Authenticated</span>
                 </div>
               )}
             </div>

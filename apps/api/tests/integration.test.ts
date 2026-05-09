@@ -15,7 +15,7 @@ import axios, { AxiosInstance } from 'axios';
 const API_URL = process.env.API_URL || 'http://localhost:3000';
 const EDGE_AGENT_URL = process.env.EDGE_AGENT_URL || 'http://localhost:4001';
 
-describe('Integration Tests', () => {
+describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
   let apiClient: AxiosInstance;
   let authToken: string;
   let refreshToken: string;
@@ -85,9 +85,10 @@ describe('Integration Tests', () => {
           email: 'admin@example.com',
           password: 'wrongpassword',
         });
-        fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.response.status).toBe(401);
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as any;
+        expect(err.response.status).toBe(401);
       }
     });
 
@@ -381,18 +382,20 @@ describe('Integration Tests', () => {
     it('should return 404 for non-existent node', async () => {
       try {
         await apiClient.get('/api/nodes/non-existent-id');
-        fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.response.status).toBe(404);
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as any;
+        expect(err.response.status).toBe(404);
       }
     });
 
     it('should return 401 for missing auth', async () => {
       try {
         await axios.get(`${API_URL}/api/admin/users`);
-        fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.response.status).toBe(401);
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as any;
+        expect(err.response.status).toBe(401);
       }
     });
 
@@ -407,9 +410,10 @@ describe('Integration Tests', () => {
           // Missing required fields
           name: 'test',
         });
-        fail('Should have thrown an error');
-      } catch (error: any) {
-        expect(error.response.status).toBe(400);
+        throw new Error('Should have thrown an error');
+      } catch (error: unknown) {
+        const err = error as any;
+        expect(err.response.status).toBe(400);
       }
     });
   });

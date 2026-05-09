@@ -14,7 +14,7 @@ export interface CircuitBreakerMetrics {
   state: CircuitState;
   failures: number;
   successes: number;
-  lastFailureTime?: Date;
+  lastFailureTime: Date | undefined;
   consecutiveSuccesses: number;
   totalCalls: number;
   rejectedCalls: number;
@@ -27,9 +27,10 @@ export class CircuitBreaker extends EventEmitter {
   private consecutiveSuccesses = 0;
   private totalCalls = 0;
   private rejectedCalls = 0;
-  private lastFailureTime?: Date;
+  private lastFailureTime: Date | undefined;
+  private nextRetryAt: Date | undefined;
   private halfOpenCalls = 0;
-  private resetTimer?: NodeJS.Timeout;
+  private resetTimer: NodeJS.Timeout | undefined;
   private config: CircuitBreakerConfig;
 
   constructor(config: Partial<CircuitBreakerConfig> = {}) {
@@ -128,6 +129,7 @@ export class CircuitBreaker extends EventEmitter {
     if (this.state === 'OPEN') {return;}
 
     this.state = 'OPEN';
+    this.nextRetryAt = new Date(Date.now() + this.config.resetTimeout);
     this.emit('open', { name: this.config.name });
 
     // Schedule transition to half-open
@@ -140,6 +142,7 @@ export class CircuitBreaker extends EventEmitter {
     if (this.state !== 'OPEN') {return;}
 
     this.state = 'HALF_OPEN';
+    this.nextRetryAt = undefined;
     this.halfOpenCalls = 0;
     this.consecutiveSuccesses = 0;
     this.emit('halfOpen', { name: this.config.name });
@@ -150,6 +153,7 @@ export class CircuitBreaker extends EventEmitter {
 
     this.state = 'CLOSED';
     this.failures = 0;
+    this.nextRetryAt = undefined;
     this.halfOpenCalls = 0;
     this.consecutiveSuccesses = 0;
     
@@ -165,12 +169,13 @@ export class CircuitBreaker extends EventEmitter {
     return this.state;
   }
 
-  getMetrics(): CircuitBreakerMetrics {
+  getMetrics(): CircuitBreakerMetrics & { nextRetryAt?: Date } {
     return {
       state: this.state,
       failures: this.failures,
       successes: this.successes,
       lastFailureTime: this.lastFailureTime,
+      nextRetryAt: this.nextRetryAt,
       consecutiveSuccesses: this.consecutiveSuccesses,
       totalCalls: this.totalCalls,
       rejectedCalls: this.rejectedCalls,
@@ -234,6 +239,25 @@ export class CircuitBreakerRegistry {
     for (const breaker of this.breakers.values()) {
       breaker.forceClose();
     }
+  }
+
+  /**
+   * Get all states for the UI
+   */
+  getAllStates() {
+    return Array.from(this.breakers.entries()).map(([name, breaker]) => {
+      const metrics = breaker.getMetrics();
+      const total = metrics.totalCalls || 1;
+      return {
+        name,
+        state: metrics.state,
+        failureRate: (metrics.failures / total) * 100,
+        lastStateChange: metrics.lastFailureTime?.toISOString() || new Date().toISOString(),
+        successCount: metrics.successes,
+        failureCount: metrics.failures,
+        nextRetryAt: metrics.nextRetryAt?.toISOString(),
+      };
+    });
   }
 
   /**

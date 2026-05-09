@@ -9,7 +9,8 @@ import type { PrismaClient } from '@prisma/client';
 import type { FastifyInstance } from 'fastify';
 import type Redis from 'ioredis';
 import type { Logger } from 'pino';
-import { SecretManager } from '@edgecloud/shared-kernel';
+
+import { env } from '../config/env';
 
 // Service instances
 let autoHealer: any = null;
@@ -18,6 +19,9 @@ let slaMonitor: any = null;
 let costOptimizer: any = null;
 let sagaOrchestrator: any = null;
 let k8sOperator: any = null;
+let modelStorage: any = null;
+let workflowEngine: any = null;
+
 
 /**
  * Initialize all advanced services
@@ -27,7 +31,7 @@ export async function initializeServices(
   prisma: PrismaClient,
   redis: Redis,
   logger: Logger,
-  secretManager: SecretManager,
+  idempotencyService?: any,
 ) {
   logger.info('Initializing advanced services...');
 
@@ -36,11 +40,8 @@ export async function initializeServices(
     const { initializeAlerting } =
       await import('../services/alerting-service.js');
 
-    const alertWebhookUrl = await secretManager.getSecret('ALERT_WEBHOOK_URL');
-    const alertThrottleMs = parseInt(
-      (await secretManager.getSecret('ALERT_THROTTLE_MS')) || '60000',
-      10,
-    );
+    const alertWebhookUrl = env.ALERT_WEBHOOK_URL;
+    const alertThrottleMs = env.ALERT_THROTTLE_MS;
 
     const alerting = initializeAlerting(logger, {
       logAlerts: true,
@@ -57,7 +58,7 @@ export async function initializeServices(
   try {
     const { AutoHealer } = await import('../services/auto-healer.js');
     autoHealer = new AutoHealer(prisma, redis, logger);
-    autoHealer.start();
+    await autoHealer.start();
     app.decorate('autoHealer', autoHealer);
     logger.info('✅ Auto-Healer initialized');
   } catch (error: any) {
@@ -101,13 +102,15 @@ export async function initializeServices(
     const { createTaskLifecycleSaga } =
       await import('../sagas/task-lifecycle-saga.js');
 
-    sagaOrchestrator = new SagaOrchestrator(prisma);
+    sagaOrchestrator = new SagaOrchestrator(prisma, {}, redis);
 
     // Register task lifecycle saga
     const scheduler = (app as any).taskScheduler;
     const taskSaga = createTaskLifecycleSaga(
       prisma, 
       logger, 
+      idempotencyService,
+      redis,
       scheduler ? (taskId, durationMs, status) => scheduler.recordTaskOutcome(taskId, durationMs, status) : undefined
     );
     sagaOrchestrator.registerSaga(taskSaga);
@@ -122,7 +125,7 @@ export async function initializeServices(
   }
 
   // 6. Kubernetes Operator - K8s integration (only if KUBECONFIG exists)
-  const kubeconfig = await secretManager.getSecret('KUBECONFIG');
+  const kubeconfig = env.KUBECONFIG;
   if (kubeconfig) {
     try {
       const { EdgeCloudOperator } =
@@ -136,6 +139,50 @@ export async function initializeServices(
         '⚠️ Kubernetes Operator not initialized',
       );
     }
+  }
+
+  // 7. Model Storage Service - S3/GCS weights storage
+  try {
+    const { ModelStorageService } = await import('@edgecloud/ml-scheduler');
+    modelStorage = new ModelStorageService();
+    app.decorate('modelStorage', modelStorage);
+    logger.info('✅ Model Storage Service initialized');
+  } catch (error: any) {
+    logger.warn({ err: error.message }, '⚠️ Model Storage Service not initialized');
+  }
+
+  // 8. Cold Start Handler - Hybrid scheduling for new nodes
+  try {
+    const { ColdStartHandler } = await import('../services/cold-start-handler.js');
+    const coldStartHandler = new ColdStartHandler(redis, prisma, logger);
+    app.decorate('coldStartHandler', coldStartHandler);
+    
+    const scheduler = (app as any).taskScheduler;
+    if (scheduler && typeof scheduler.setColdStartHandler === 'function') {
+      scheduler.setColdStartHandler(coldStartHandler);
+      logger.info('✅ Cold Start Handler integrated with TaskScheduler');
+    }
+    
+    logger.info('✅ Cold Start Handler initialized');
+  } catch (error: any) {
+    logger.warn({ err: error.message }, '⚠️ Cold Start Handler not initialized');
+  }
+
+  // 9. Workflow Engine - DAG-based task orchestration
+  try {
+    const { WorkflowEngine } = await import('../services/workflow-engine.js');
+    const scheduler = (app as any).taskScheduler;
+    const wsManager = (app as any).wsManager;
+
+    if (scheduler && wsManager) {
+      workflowEngine = new WorkflowEngine(prisma, logger, scheduler, wsManager);
+      app.decorate('workflowEngine', workflowEngine);
+      logger.info('✅ Workflow Engine initialized');
+    } else {
+      logger.warn('⚠️ Workflow Engine requires TaskScheduler and WebSocketManager');
+    }
+  } catch (error: any) {
+    logger.warn({ err: error.message }, '⚠️ Workflow Engine not initialized');
   }
 
   logger.info('Service initialization complete');
@@ -152,6 +199,7 @@ export function getServiceStatus() {
     costOptimizer: costOptimizer !== null,
     sagaOrchestrator: sagaOrchestrator !== null,
     kubernetesOperator: k8sOperator !== null,
+    modelStorage: modelStorage !== null,
   };
 }
 
@@ -163,7 +211,7 @@ export async function shutdownServices(logger: Logger) {
 
   if (autoHealer) {
     try {
-      autoHealer.stop();
+      await autoHealer.stop();
     } catch (e) {}
   }
   if (healthMonitor) {

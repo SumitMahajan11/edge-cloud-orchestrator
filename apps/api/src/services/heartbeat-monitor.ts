@@ -1,10 +1,11 @@
-import { NodeStatus, PrismaClient } from '@prisma/client';
+import { NodeStatus, PrismaClient, Task } from '@prisma/client';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
 import { tracer } from '@edgecloud/shared-kernel';
 import { SpanStatusCode } from '@opentelemetry/api';
 
 import type { WebSocketManager } from './websocket-manager';
+import type { TaskScheduler } from './task-scheduler';
 
 const HEARTBEAT_TIMEOUT = 30000; // 30 seconds
 const CHECK_INTERVAL = 10000; // 10 seconds
@@ -14,6 +15,7 @@ export class HeartbeatMonitor {
   private wsManager: WebSocketManager;
   private logger: Logger;
   private interval: NodeJS.Timeout | null = null;
+  private taskScheduler: TaskScheduler | null = null;
 
   constructor(
     prisma: PrismaClient,
@@ -28,6 +30,10 @@ export class HeartbeatMonitor {
 
   start() {
     this.interval = setInterval(() => this.checkNodes(), CHECK_INTERVAL);
+  }
+
+  setTaskScheduler(taskScheduler: TaskScheduler) {
+    this.taskScheduler = taskScheduler;
   }
 
   stop() {
@@ -80,6 +86,7 @@ export class HeartbeatMonitor {
               entityType: 'node',
               severity: 'high',
               message: `Node ${node.name} went offline due to heartbeat timeout`,
+              tenantId: node.tenantId,
             },
           });
         }
@@ -136,10 +143,11 @@ export class HeartbeatMonitor {
           });
         }
         span.setStatus({ code: SpanStatusCode.OK });
-      } catch (error: any) {
-        span.recordException(error);
+      } catch (error: unknown) {
+        const err = error as Error;
+        span.recordException(err);
         span.setStatus({ code: SpanStatusCode.ERROR });
-        this.logger.error({ error }, 'Error in heartbeat monitor');
+        this.logger.error({ error: err }, 'Error in heartbeat monitor');
       } finally {
         span.end();
       }
@@ -162,31 +170,58 @@ export class HeartbeatMonitor {
       );
 
       // Mark task as failed
-      await this.prisma.task.update({
-        where: { id: task.id },
-        data: {
-          status: 'FAILED',
-        },
+      const previousExecution = await this.prisma.taskExecution.findFirst({
+        where: { taskId: task.id },
+        orderBy: { attemptNumber: 'desc' },
       });
 
-      // Create retry task if under max retries
+      await this.prisma.$transaction([
+        this.prisma.task.update({
+          where: { id: task.id },
+          data: {
+            status: 'FAILED',
+          },
+        }),
+        ...(previousExecution
+          ? [
+              this.prisma.taskExecution.update({
+                where: { id: previousExecution.id },
+                data: {
+                  status: 'FAILED',
+                  error: 'Node offline',
+                  completedAt: new Date(),
+                },
+              }),
+            ]
+          : []),
+      ]);
+
+      // Create retry execution if under max retries
       const executionCount = await this.prisma.taskExecution.count({
         where: { taskId: task.id },
       });
       if (executionCount < task.maxRetries) {
-        await this.prisma.task.create({
+        await this.prisma.taskExecution.create({
           data: {
-            name: task.name,
-            type: task.type,
-            priority: task.priority,
-            target: task.target,
-            policy: task.policy,
-            reason: `Retry after node failure`,
-            input: task.input,
-            metadata: { ...(task.metadata as object), retryOf: task.id },
-            maxRetries: task.maxRetries,
-          } as any,
+            taskId: task.id,
+            status: 'PENDING',
+            attemptNumber: executionCount + 1,
+            retryOf: previousExecution?.id ?? null,
+            tenantId: task.tenantId,
+          },
         });
+
+        const updatedTask = await this.prisma.task.update({
+          where: { id: task.id },
+          data: {
+            status: 'PENDING',
+            nodeId: null,
+          },
+        });
+
+        if (this.taskScheduler) {
+          await this.taskScheduler.enqueue(updatedTask as Task);
+        }
       }
 
       this.wsManager.broadcast('task:failed', {

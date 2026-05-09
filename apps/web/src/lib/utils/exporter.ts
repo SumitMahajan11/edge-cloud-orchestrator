@@ -7,7 +7,7 @@ import type { EdgeNode, Task } from '../../types'
 import { logger } from '../logger'
 
 // Types
-export interface MetricValue {
+export interface ExporterMetricValue {
   name: string
   help: string
   type: 'counter' | 'gauge' | 'histogram' | 'summary'
@@ -21,7 +21,7 @@ export interface HistogramBucket {
   count: number
 }
 
-export interface HistogramValue extends MetricValue {
+export interface HistogramValue extends ExporterMetricValue {
   type: 'histogram'
   buckets: HistogramBucket[]
   sum: number
@@ -469,7 +469,7 @@ export class AlertManager {
     const results: Array<{ rule: AlertRule; firing: boolean; value: number }> = []
 
     for (const rule of this.rules) {
-      const value = this.getMetricValue(rule.metric)
+      const value = this.getExporterMetricValue(rule.metric)
       const state = this.alertStates.get(rule.name)!
       const conditionMet = this.evaluateCondition(value, rule.operator, rule.threshold)
 
@@ -503,7 +503,7 @@ export class AlertManager {
     return results
   }
 
-  private getMetricValue(metric: string): number {
+  private getExporterMetricValue(metric: string): number {
     // Search in gauges first
     for (const [key, gauge] of this.registry['gauges']) {
       if (key.startsWith(metric)) {

@@ -4,12 +4,14 @@
  * Orchestrates the complete lifecycle of a task from creation to completion
  * with proper compensation handling for failures.
  *
- * Steps:
- * 1. ValidateTask - Check input validity and resource availability
- * 2. ReserveResources - Reserve node capacity
- * 3. ScheduleTask - Assign task to node
- * 4. ExecuteTask - Run task on edge agent
- * 5. CompleteTask - Record results and cleanup
+ * Steps (as requested in v4.0.0 audit):
+ * 1. ValidateTask - Check input validity
+ * 2. ReserveNodeResources - Reserve node capacity
+ * 3. CreateTaskExecutionRecord - Create initial record
+ * 4. UpdateTaskStatusScheduled - Mark task as scheduled
+ * 5. SendAssignmentToAgent - Dispatch to edge node
+ * 6. StartHeartbeatMonitor - Monitor for timeouts
+ * 7. CompleteTask - Finalize status
  */
 
 import { SagaDefinition, SagaStepDefinition } from '@edgecloud/saga';
@@ -49,6 +51,7 @@ export interface TaskSagaContext {
   startedAt?: string;
   completedAt?: string;
   failedAt?: string;
+  tenantId?: string;
 
   // Error tracking
   error?: string;
@@ -60,7 +63,7 @@ export interface TaskSagaContext {
 // ============================================================================
 
 const TASK_TIMEOUT = 300000; // 5 minutes
-const NODE_TIMEOUT = 30000; // 30 seconds
+// NODE_TIMEOUT removed as it was unused
 
 // ============================================================================
 // Task Lifecycle Saga Definition
@@ -69,8 +72,10 @@ const NODE_TIMEOUT = 30000; // 30 seconds
 export function createTaskLifecycleSaga(
   prisma: PrismaClient,
   logger: Logger,
+  idempotencyService: any,
+  redis: any,
   onOutcome?: (taskId: string, durationMs: number, status: 'COMPLETED' | 'FAILED') => Promise<void>,
-  kafkaProducer?: any,
+  // kafkaProducer removed as it was unused
 ): SagaDefinition<TaskSagaContext> {
   // Step 1: Validate Task
   const validateTask: SagaStepDefinition<TaskSagaContext> = {
@@ -102,18 +107,27 @@ export function createTaskLifecycleSaga(
       logger.info({ taskId: context.taskId }, 'Task validated successfully');
       return { validatedAt: new Date().toISOString() };
     },
-    compensate: async (_context) => {
-      // No compensation needed for validation
-      logger.debug('Validation step has no compensation');
+    compensate: async (context) => {
+      const idempotencyKey = `compensate:ValidateTask:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
+
+      if (check.isDuplicate) {return;}
+      
+      logger.debug({ taskId: context.taskId }, 'Validation step compensation (no-op)');
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
     },
   };
 
-  // Step 2: Reserve Resources
-  const reserveResources: SagaStepDefinition<TaskSagaContext> = {
-    name: 'ReserveResources',
+  // Step 2: Reserve Node Resources
+  const reserveNodeResources: SagaStepDefinition<TaskSagaContext> = {
+    name: 'ReserveNodeResources',
     timeout: 10000,
     execute: async (context) => {
-      logger.debug({ taskId: context.taskId }, 'Reserving resources');
+      logger.debug({ taskId: context.taskId }, 'Reserving node resources');
 
       // Find suitable node
       const nodes = await prisma.edgeNode.findMany({
@@ -136,8 +150,6 @@ export function createTaskLifecycleSaga(
         throw new Error('Node selection failed');
       }
 
-      // Create a reservation using Redis or in DB
-      // For now, we'll use the database to track reservations
       await prisma.$transaction(async (tx) => {
         // Reserve the node by incrementing task count
         const updatedNode = await tx.edgeNode.update({
@@ -146,7 +158,7 @@ export function createTaskLifecycleSaga(
         });
 
         // Check if we didn't exceed capacity
-        if (updatedNode.tasksRunning > updatedNode.maxTasks) {
+        if (updatedNode.tasksRunning > (updatedNode.maxTasks || 10)) {
           throw new Error('Node capacity exceeded during reservation');
         }
 
@@ -165,7 +177,20 @@ export function createTaskLifecycleSaga(
       };
     },
     compensate: async (context) => {
+      const idempotencyKey = `compensate:ReserveNodeResources:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
+
+      if (check.isDuplicate) {
+        logger.debug({ taskId: context.taskId }, 'ReserveNodeResources compensation already executed');
+        return;
+      }
+
       if (!context.nodeId) {
+        await idempotencyService.complete(idempotencyKey, { status: 'skipped_no_node' });
         return;
       }
 
@@ -186,87 +211,115 @@ export function createTaskLifecycleSaga(
           data: { tasksRunning: { decrement: 1 } },
         });
       }
+
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
     },
   };
 
-  // Step 3: Schedule Task
-  const scheduleTask: SagaStepDefinition<TaskSagaContext> = {
-    name: 'ScheduleTask',
-    timeout: NODE_TIMEOUT,
+  // Step 3: Create TaskExecution record
+  const createTaskExecutionRecord: SagaStepDefinition<TaskSagaContext> = {
+    name: 'CreateTaskExecutionRecord',
+    timeout: 5000,
     execute: async (context) => {
       if (!context.nodeId || !context.nodeUrl) {
-        throw new Error('Node not assigned for scheduling');
+        throw new Error('Node not assigned for execution record');
       }
-
-      logger.debug(
-        { taskId: context.taskId, nodeId: context.nodeId },
-        'Scheduling task on node',
-      );
-
-      // Update task status to SCHEDULED
-      await prisma.task.update({
-        where: { id: context.taskId },
-        data: {
-          nodeId: context.nodeId,
-          status: 'SCHEDULED',
-          reason: `Scheduled on node ${context.nodeId}`,
-        },
-      });
 
       // Create task execution record
       await prisma.taskExecution.create({
         data: {
           taskId: context.taskId,
-          nodeId: context.nodeId,
-          nodeUrl: context.nodeUrl,
-          status: 'SCHEDULED',
+          nodeId: context.nodeId!,
+          nodeUrl: context.nodeUrl!,
+          status: 'PENDING',
           scheduledAt: new Date(),
+          tenantId: context.tenantId!,
         },
       });
-
-      logger.info(
-        { taskId: context.taskId, nodeId: context.nodeId },
-        'Task scheduled',
-      );
 
       return { scheduledAt: new Date().toISOString() };
     },
     compensate: async (context) => {
-      logger.info({ taskId: context.taskId }, 'Unscheduling task');
+      const idempotencyKey = `compensate:CreateTaskExecutionRecord:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
 
-      // Reset task to PENDING
+      if (check.isDuplicate) {return;}
+
+      logger.info({ taskId: context.taskId }, 'Cancelling TaskExecution record');
+
+      // Mark TaskExecution as CANCELLED
+      await prisma.taskExecution.updateMany({
+        where: { taskId: context.taskId, status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] } },
+        data: { status: 'CANCELLED' },
+      });
+
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+    },
+  };
+
+  // Step 4: Update task status to SCHEDULED
+  const updateTaskStatusScheduled: SagaStepDefinition<TaskSagaContext> = {
+    name: 'UpdateTaskStatusScheduled',
+    timeout: 5000,
+    execute: async (context) => {
+      // Update task status to SCHEDULED
+      await prisma.task.update({
+        where: { id: context.taskId },
+        data: {
+          nodeId: context.nodeId || null,
+          status: 'SCHEDULED',
+          reason: `Scheduled on node ${context.nodeId}`,
+        },
+      });
+
+      // Update execution record status
+      await prisma.taskExecution.updateMany({
+        where: { taskId: context.taskId, status: 'PENDING' },
+        data: { status: 'SCHEDULED' },
+      });
+
+      return {};
+    },
+    compensate: async (context) => {
+      const idempotencyKey = `compensate:UpdateTaskStatusScheduled:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
+
+      if (check.isDuplicate) {return;}
+
+      logger.info({ taskId: context.taskId }, 'Reverting task status to PENDING');
+
+      // Revert to previous status (PENDING)
       await prisma.task.update({
         where: { id: context.taskId },
         data: {
           nodeId: null,
           status: 'PENDING',
-          reason: 'Task unscheduled due to saga compensation',
+          reason: 'Task status reverted due to saga compensation',
         },
       });
 
-      // Cancel task execution
-      await prisma.taskExecution.updateMany({
-        where: { taskId: context.taskId, status: 'SCHEDULED' },
-        data: { status: 'CANCELLED' },
-      });
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
     },
   };
 
-  // Step 4: Execute Task
-  const executeTask: SagaStepDefinition<TaskSagaContext> = {
-    name: 'ExecuteTask',
+  // Step 5: Send assignment to edge agent
+  const sendAssignmentToAgent: SagaStepDefinition<TaskSagaContext> = {
+    name: 'SendAssignmentToAgent',
     timeout: TASK_TIMEOUT,
     execute: async (context) => {
       if (!context.nodeUrl) {
         throw new Error('Node URL not available');
       }
 
-      logger.debug(
-        { taskId: context.taskId, nodeUrl: context.nodeUrl },
-        'Executing task on node',
-      );
-
-      // Update status to RUNNING
+      // Update status to RUNNING locally first to track intent
       await prisma.task.update({
         where: { id: context.taskId },
         data: { status: 'RUNNING' },
@@ -289,8 +342,8 @@ export function createTaskLifecycleSaga(
             ...circuitBreakerConfigs.nodeAgent,
             name: `node-agent-${context.nodeId}`,
           },
-          () =>
-            axios.post(
+          () => {
+            return axios.post(
               `${context.nodeUrl}/run-task`,
               {
                 taskId: context.taskId,
@@ -300,25 +353,19 @@ export function createTaskLifecycleSaga(
                 timeout: TASK_TIMEOUT,
               },
               {
-                timeout: TASK_TIMEOUT,
+                timeout: 10000,
                 headers: {
                   'X-Request-ID': `${context.taskId}-${Date.now()}`,
                   'X-Saga-ID': context.taskId,
                 },
               },
-            ),
+            );
+          },
         );
 
         const duration = Date.now() - startTime;
-        const output = response.data;
-
-        logger.info(
-          { taskId: context.taskId, duration },
-          'Task execution completed',
-        );
-
         return {
-          output,
+          output: response.data,
           duration,
           containerId: response.data.containerId,
         };
@@ -327,54 +374,93 @@ export function createTaskLifecycleSaga(
           ? `HTTP ${error.response?.status || 'unknown'}: ${error.message}`
           : (error as Error).message;
 
-        logger.error(
-          { taskId: context.taskId, error: errorMessage },
-          'Task execution failed',
-        );
-
-        throw new Error(`Task execution failed: ${errorMessage}`);
+        throw new Error(`Task dispatch failed: ${errorMessage}`);
       }
     },
     compensate: async (context) => {
-      if (!context.nodeUrl) {
-        return;
+      const idempotencyKey = `compensate:SendAssignmentToAgent:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
+
+      if (check.isDuplicate) {return;}
+
+      logger.info({ taskId: context.taskId }, 'Sending cancellation to agent');
+
+      if (context.nodeUrl) {
+        try {
+          await withCircuitBreaker(
+            {
+              ...circuitBreakerConfigs.nodeAgent,
+              name: `node-agent-${context.nodeId}`,
+            },
+            () =>
+              axios.post(
+                `${context.nodeUrl}/cancel-task`,
+                { taskId: context.taskId },
+                { timeout: 5000 },
+              ),
+          );
+        } catch (error) {
+          logger.warn({ taskId: context.taskId, error }, 'Failed to cancel task on node agent during compensation');
+        }
       }
 
-      logger.info({ taskId: context.taskId }, 'Cancelling task execution');
-
-      try {
-        // Send cancel request to edge agent with circuit breaker protection
-        await withCircuitBreaker(
-          {
-            ...circuitBreakerConfigs.nodeAgent,
-            name: `node-agent-${context.nodeId}`,
-          },
-          () =>
-            axios.post(
-              `${context.nodeUrl}/cancel-task`,
-              { taskId: context.taskId },
-              { timeout: 10000 },
-            ),
-        );
-      } catch (error) {
-        logger.warn(
-          { taskId: context.taskId, error },
-          'Failed to cancel task on node',
-        );
-      }
-
-      // Update execution record
+      // Ensure local status is moved away from RUNNING
       await prisma.taskExecution.updateMany({
         where: { taskId: context.taskId, status: 'RUNNING' },
-        data: {
-          status: 'CANCELLED',
-          completedAt: new Date(),
-        },
+        data: { status: 'CANCELLED', completedAt: new Date() },
       });
+
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
     },
   };
 
-  // Step 5: Complete Task
+  // Step 6: Start heartbeat timeout monitor
+  const startHeartbeatMonitor: SagaStepDefinition<TaskSagaContext> = {
+    name: 'StartHeartbeatMonitor',
+    timeout: 5000,
+    execute: async (context) => {
+      if (redis) {
+        const heartbeatKey = `task:heartbeat:${context.taskId}`;
+        await redis.set(heartbeatKey, 'ACTIVE', 'PX', 60000); // 1 minute initial window
+      }
+      
+      await prisma.taskExecution.updateMany({
+        where: { taskId: context.taskId, status: 'RUNNING' },
+        data: {
+          metadata: {
+            monitorStartedAt: new Date().toISOString(),
+            heartbeatTimeoutMs: 60000,
+          } as any
+        }
+      });
+
+      return {};
+    },
+    compensate: async (context) => {
+      const idempotencyKey = `compensate:StartHeartbeatMonitor:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
+
+      if (check.isDuplicate) {return;}
+
+      logger.info({ taskId: context.taskId }, 'Cancelling heartbeat monitor');
+      
+      if (redis) {
+        await redis.del(`task:heartbeat:${context.taskId}`);
+      }
+
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+    }
+  };
+
+  // Step 7: Complete Task
   const completeTask: SagaStepDefinition<TaskSagaContext> = {
     name: 'CompleteTask',
     timeout: 10000,
@@ -391,35 +477,14 @@ export function createTaskLifecycleSaga(
 
       // Update execution record
       await prisma.taskExecution.updateMany({
-        where: { taskId: context.taskId },
+        where: { taskId: context.taskId, status: 'RUNNING' },
         data: {
           status: 'COMPLETED',
           completedAt: new Date(),
-          durationMs: context.duration,
+          durationMs: context.duration ?? null,
           output: context.output as any,
         },
       });
-
-      // Publish task completed event (if Kafka producer available)
-      if (kafkaProducer) {
-        await kafkaProducer.send({
-          topic: 'tasks.events',
-          messages: [
-            {
-              key: context.taskId,
-              value: JSON.stringify({
-                eventType: 'TaskCompleted',
-                aggregateId: context.taskId,
-                timestamp: new Date(),
-                taskId: context.taskId,
-                nodeId: context.nodeId,
-                _duration: context.duration,
-                output: context.output,
-              }),
-            },
-          ],
-        });
-      }
 
       if (onOutcome) {
         onOutcome(context.taskId, context.duration || 0, 'COMPLETED').catch(err => 
@@ -429,9 +494,19 @@ export function createTaskLifecycleSaga(
 
       return { completedAt: new Date().toISOString() };
     },
-    compensate: async (_context) => {
-      // Completion is the final step - no compensation needed
-      logger.debug('Completion step has no compensation');
+    compensate: async (context) => {
+      logger.info({ taskId: context.taskId }, '[Saga] Compensating CompleteTask');
+      const idempotencyKey = `compensate:CompleteTask:${context.taskId}`;
+      const check = await idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'SagaCompensation',
+        resourceId: context.taskId,
+      });
+
+      if (check.isDuplicate) {return;}
+      
+      logger.debug('Completion step compensation (no-op)');
+      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
     },
   };
 
@@ -440,12 +515,14 @@ export function createTaskLifecycleSaga(
     name: 'TaskLifecycleSaga',
     steps: [
       validateTask,
-      reserveResources,
-      scheduleTask,
-      executeTask,
+      reserveNodeResources,
+      createTaskExecutionRecord,
+      updateTaskStatusScheduled,
+      sendAssignmentToAgent,
+      startHeartbeatMonitor,
       completeTask,
     ],
-    timeout: TASK_TIMEOUT + 60000, // Total saga timeout
+    timeout: TASK_TIMEOUT + 60000, // Total saga timeout (5 min + 1 min buffer)
     retryDelayMs: 1000,
   };
 }

@@ -17,6 +17,10 @@ spec:
         app.kubernetes.io/name: metrics-service
         app.kubernetes.io/component: observability
     spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        fsGroup: 1001
       containers:
         - name: metrics-service
           image: ghcr.io/SumitMahajan01/edge-cloud-orchestrator/metrics-service:latest
@@ -29,13 +33,23 @@ spec:
                 configMapKeyRef:
                   name: app-config
                   key: NODE_ENV
-            - name: REDIS_URL
+            - name: REDIS_SENTINELS
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: REDIS_SENTINELS
+            - name: REDIS_SENTINEL_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: app-config
+                  key: REDIS_SENTINEL_NAME
+            - name: REDIS_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: edgecloud-secrets
-                  key: REDIS_URL
+                  key: REDIS_PASSWORD
             - name: API_URL
-              value: "http://api:3000"
+              value: "http://api:3090"
             - name: TASK_SERVICE_URL
               value: "http://task-service:3001"
             - name: NODE_SERVICE_URL
@@ -44,29 +58,46 @@ spec:
               value: "http://scheduler-service:3003"
             - name: WEBSOCKET_GATEWAY_URL
               value: "http://websocket-gateway:3004"
-          livenessProbe:
+          startupProbe:
             httpGet:
-              path: /health/live
+              path: /health/startup
               port: http
-            initialDelaySeconds: 5
-            periodSeconds: 15
+            failureThreshold: 30
+            periodSeconds: 2
           readinessProbe:
             httpGet:
               path: /health/ready
               port: http
             initialDelaySeconds: 5
-            periodSeconds: 10
+            periodSeconds: 5
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 30
             failureThreshold: 3
           resources:
             requests:
-              cpu: "50m"
-              memory: "128Mi"
-            limits:
-              cpu: "250m"
+              cpu: "200m"
               memory: "256Mi"
+            limits:
+              cpu: "1000m"
+              memory: "512Mi"
           securityContext:
             runAsNonRoot: true
             runAsUser: 1001
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir: {}
       terminationGracePeriodSeconds: 30
       imagePullSecrets:
         - name: ghcr-credentials

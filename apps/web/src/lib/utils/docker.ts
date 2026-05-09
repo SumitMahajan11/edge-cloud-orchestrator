@@ -1,8 +1,8 @@
-import type { DockerContainer, DockerImage, TaskContainerMapping } from '../types/docker'
+import type { DockerContainer, DockerImage, TaskContainerMapping } from '../../types/docker'
 
 const DOCKER_API_BASE = 'http://localhost:2375/v1.41'
 
-class DockerClient {
+export class DockerClient {
   private async fetch(path: string, options?: RequestInit): Promise<Response> {
     const url = `${DOCKER_API_BASE}${path}`
     const response = await fetch(url, {

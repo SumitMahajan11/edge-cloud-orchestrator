@@ -2,6 +2,8 @@ import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { AuthController } from '../controllers/auth.controller';
 import { loginSchema, registerSchema, refreshTokenSchema } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
+import { z } from 'zod';
+import { idParamSchema } from '../schemas';
 
 const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // 1. Initialize Controller with decorated services
@@ -14,13 +16,16 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.post(
     '/register',
     {
+      config: { public: true },
       schema: {
         body: zodToFastifySchema(registerSchema),
         tags: ['auth'],
         summary: 'Register a new user',
+        response: {
+          400: { $ref: 'ErrorSchema#' },
+          409: { $ref: 'ErrorSchema#' },
+        },
       },
-      // Note: we removed the basic rateLimit configuration here
-      // as the controller handles it more robustly or we use the plugin global config
     },
     controller.register.bind(controller),
   );
@@ -29,10 +34,15 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.post(
     '/login',
     {
+      config: { public: true },
       schema: {
         body: zodToFastifySchema(loginSchema),
         tags: ['auth'],
         summary: 'Login and get tokens',
+        response: {
+          401: { $ref: 'ErrorSchema#' },
+          429: { $ref: 'ErrorSchema#' },
+        },
       },
     },
     controller.login.bind(controller),
@@ -42,6 +52,7 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.post(
     '/refresh',
     {
+      config: { public: true },
       schema: {
         body: zodToFastifySchema(refreshTokenSchema),
         tags: ['auth'],
@@ -55,7 +66,25 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.post(
     '/logout',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [async (req, reply) => { 
+        if (typeof (fastify as any).authenticate !== 'function') {
+          throw new Error('fastify.authenticate is not a function. Auth plugin might not be registered correctly.');
+        }
+        return (fastify as any).authenticate(req, reply); 
+      }],
+      schema: {
+
+        tags: ['auth'],
+        summary: 'Logout and invalidate session',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+            },
+          },
+        },
+      },
     },
     controller.logout.bind(controller),
   );
@@ -64,23 +93,59 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   fastify.get(
     '/me',
     {
+      preHandler: [async (req, reply) => { 
+        if (typeof (fastify as any).authenticate !== 'function') {
+          throw new Error('fastify.authenticate is not a function. Auth plugin might not be registered correctly.');
+        }
+        return (fastify as any).authenticate(req, reply); 
+      }],
+
+      schema: {
+        tags: ['auth'],
+        summary: 'Get current user profile',
+      },
+    },
+    controller.me.bind(controller),
+  );
+
+  // 7. Session management
+  fastify.get(
+    '/sessions',
+    {
       preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['auth'],
+        summary: 'List active user sessions',
+      },
     },
-    async (request) => {
-      const user = await fastify.prisma.user.findUnique({
-        where: { id: request.user!.id },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          createdAt: true,
-          lastLoginAt: true,
-        },
-      });
-      return user;
+    controller.listSessions.bind(controller),
+  );
+
+  fastify.delete(
+    '/sessions/:id',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        params: zodToFastifySchema(idParamSchema),
+        tags: ['auth'],
+        summary: 'Revoke a specific session',
+      },
     },
+    controller.revokeSession.bind(controller),
+  );
+
+  fastify.delete(
+    '/sessions',
+    {
+      preHandler: [fastify.authenticate],
+      schema: {
+        tags: ['auth'],
+        summary: 'Revoke all user sessions (logout everywhere)',
+      },
+    },
+    controller.revokeAllSessions.bind(controller),
   );
 };
 
 export default authRoutes;
+

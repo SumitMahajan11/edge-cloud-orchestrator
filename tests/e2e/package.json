@@ -1,0 +1,15 @@
+{
+  "name": "@edgecloud/e2e-tests",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "fastify": "^4.27.0",
+    "axios": "^1.7.2",
+    "@prisma/client": "^5.14.0",
+    "ioredis-mock": "^8.13.1",
+    "bcryptjs": "^2.4.3"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6"
+  }
+}

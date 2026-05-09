@@ -224,7 +224,7 @@ export class RetryExhaustedError extends Error {
 
 // Decorator for automatic retry
 export function withRetry(config?: Partial<RetryConfig>) {
-  return function (target: any, propertyKey: string, descriptor: PropertyDescriptor) {
+  return function (_target: any, _propertyKey: string, descriptor: PropertyDescriptor) {
     const originalMethod = descriptor.value;
     const retryPolicy = new RetryPolicy(config);
 

@@ -30,7 +30,7 @@ export default defineWorkspace([
     test: {
       ...sharedConfig.test,
       name: 'ml-scheduler',
-      include: ['**/*.spec.ts'],
+      include: ['**/*.spec.ts', '**/*.test.ts'],
     }
   },
   {
@@ -41,5 +41,33 @@ export default defineWorkspace([
       name: 'api',
       include: ['**/*.spec.ts', '**/*.test.ts'],
     }
+  },
+  {
+    ...sharedConfig,
+    root: './tests/e2e',
+    test: {
+      ...sharedConfig.test,
+      name: 'e2e',
+      include: ['**/*.test.ts'],
+    }
+  },
+  {
+    ...sharedConfig,
+    root: './tests/integration',
+    test: {
+      ...sharedConfig.test,
+      name: 'integration',
+      include: ['**/*.test.ts'],
+    }
+  },
+  {
+    ...sharedConfig,
+    root: './tests/contract',
+    test: {
+      ...sharedConfig.test,
+      name: 'contract',
+      include: ['**/*.test.ts'],
+    }
   }
-])
+
+]);

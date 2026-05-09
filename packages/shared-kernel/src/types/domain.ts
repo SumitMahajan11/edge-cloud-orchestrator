@@ -3,7 +3,7 @@
  */
 
 export type TaskStatus = 'PENDING' | 'SCHEDULED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'FAILED_PERMANENT' | 'CANCELLED';
-export type NodeStatus = 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE' | 'STALE';
+export type NodeStatus = 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE' | 'STALE' | 'DRAINING';
 export type Priority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
 
 export interface DomainTask {
@@ -29,6 +29,7 @@ export interface DomainNode {
   bandwidthInMbps?: number;
   region?: string;
   availabilityZone?: string;
+  carbonIntensity?: number;
 }
 
 export interface ScoreWeights {
@@ -39,6 +40,7 @@ export interface ScoreWeights {
   network: number;
   ml: number;
   health: number;
+  carbon: number;
 }
 
 /**
@@ -53,6 +55,7 @@ export const DEFAULT_SCORE_WEIGHTS: ScoreWeights = {
   network: 0.0,
   ml: 0.0,
   health: 0.0,
+  carbon: 0.0,
 } as const;
 
 export interface HealingAction {

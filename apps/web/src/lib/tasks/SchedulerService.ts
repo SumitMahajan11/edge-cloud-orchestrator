@@ -120,6 +120,7 @@ export class SchedulerService {
       cost: 0,
       latencyMs: 0,
       reason: 'Queued for scheduling',
+      runtime: 'native',
       retryCount: 0,
       maxRetries: this.config.maxRetries,
       metadata,

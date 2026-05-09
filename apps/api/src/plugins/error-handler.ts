@@ -1,4 +1,3 @@
-import { Prisma } from '@prisma/client';
 import {
   FastifyError,
   FastifyInstance,
@@ -7,91 +6,124 @@ import {
 } from 'fastify';
 import fp from 'fastify-plugin';
 import { ZodError } from 'zod';
+import { ApiError } from '@edgecloud/shared-kernel';
+import { apiErrorsTotal } from '../services/metrics-service';
+import { env } from '../config/env';
 
-interface AppError extends Error {
-  statusCode?: number;
-  code?: string;
-}
-
+/**
+ * Global Error Handler Plugin
+ * Standardizes all API errors into the ApiError schema and records metrics.
+ */
 export const errorHandler = fp(async (fastify: FastifyInstance) => {
   fastify.setErrorHandler(
     (
-      error: FastifyError | AppError,
+      error: FastifyError | Error & { statusCode?: number; code?: string },
       request: FastifyRequest,
       reply: FastifyReply,
     ) => {
-      // Log error
-      request.log.error({
-        error: {
-          message: error.message,
-          stack: error.stack,
-          statusCode: error.statusCode,
-        },
-        request: {
-          method: request.method,
-          url: request.url,
-          headers: request.headers,
-        },
-      });
+      let statusCode = error.statusCode || 500;
+      let code = 'INTERNAL_ERROR';
+      let message = error.message || 'An unexpected error occurred';
+      let details: unknown = undefined;
 
-      // Zod validation errors
-      if (error instanceof ZodError) {
-        return reply.status(400).send({
-          error: 'Validation Error',
-          details: error.errors.map((e) => ({
-            path: e.path.join('.'),
-            message: e.message,
-            code: e.code,
-          })),
-        });
+      // --- Mapping Logic ---
+
+      // 1. Zod Validation Errors
+      if (error instanceof ZodError || error.name === 'ZodError') {
+        statusCode = 400;
+        code = 'VALIDATION_ERROR';
+        message = 'Validation failed';
+        details = (error as any).errors.map((e: any) => ({
+          path: e.path.join('.'),
+          message: e.message,
+          code: e.code,
+        }));
       }
 
-      // Prisma errors
-      if (error instanceof Prisma.PrismaClientKnownRequestError) {
-        switch (error.code) {
-          case 'P2002':
-            return reply.status(409).send({
-              error: 'Conflict',
-              message: 'A record with this value already exists',
-              field: error.meta?.target,
-            });
-          case 'P2025':
-            return reply.status(404).send({
-              error: 'Not Found',
-              message: 'Record not found',
-            });
+      // 2. Prisma Database Errors
+      else if (error.name === 'PrismaClientKnownRequestError') {
+        const prismaError = error as any;
+        switch (prismaError.code) {
+          case 'P2025': // Not found
+            statusCode = 404;
+            code = 'RESOURCE_NOT_FOUND';
+            message = 'The requested resource was not found';
+            break;
+          case 'P2002': // Unique constraint violation
+            statusCode = 409;
+            code = 'RESOURCE_CONFLICT';
+            message = 'A resource with this identifier already exists';
+            details = { target: (error as any).meta?.target };
+            break;
           default:
-            return reply.status(500).send({
-              error: 'Database Error',
-              code: error.code,
-            });
+            statusCode = 500;
+            code = 'DATABASE_ERROR';
+            message = 'A database error occurred';
         }
       }
 
-      // JWT errors
-      if (error.message?.includes('jwt') || error.message?.includes('token')) {
-        return reply.status(401).send({
-          error: 'Authentication Error',
-          message: 'Invalid or expired token',
-        });
+      // 3. Authentication & Authorization Errors
+      else if (error.message?.includes('jwt') || error.message?.includes('token')) {
+        statusCode = 401;
+        if (error.message.includes('expired')) {
+          code = 'TOKEN_EXPIRED';
+          message = 'Your session has expired. Please log in again.';
+        } else {
+          code = 'TOKEN_INVALID';
+          message = 'Invalid authentication token provided.';
+        }
+      } 
+      else if (statusCode === 403 || error.message?.includes('permission')) {
+        statusCode = 403;
+        code = 'FORBIDDEN';
+        message = 'You do not have permission to perform this action.';
       }
 
-      // Rate limit errors
-      if (error.statusCode === 429) {
-        return reply.status(429).send({
-          error: 'Too Many Requests',
-          message: 'Rate limit exceeded. Please try again later.',
-        });
+      // 4. Rate Limiting
+      else if (statusCode === 429) {
+        code = 'RATE_LIMIT_EXCEEDED';
+        message = 'Too many requests. Please try again later.';
       }
 
-      // Default error
-      const statusCode = error.statusCode || 500;
-      return reply.status(statusCode).send({
-        error: error.name || 'Internal Server Error',
-        message:
-          statusCode === 500 ? 'An unexpected error occurred' : error.message,
-        ...(process.env.NODE_ENV === 'development' && { stack: error.stack }),
+      // 5. Explicit Fastify/Custom Errors
+      else if (error.code === 'FST_ERR_VALIDATION') {
+        statusCode = 400;
+        code = 'VALIDATION_ERROR';
+      }
+
+      // Final sanitization for production
+      if (statusCode === 500 && env.NODE_ENV === 'production') {
+        message = 'An internal server error occurred';
+      }
+
+      const errorResponse: ApiError = {
+        code,
+        message,
+        requestId: (request.headers['x-request-id'] as string) || request.id as string,
+        timestamp: new Date().toISOString(),
+        details,
+        ...(env.NODE_ENV !== 'production' && { stack: error.stack }),
+      };
+
+      // Record Metrics
+      const route = request.routeOptions?.url || request.url;
+      apiErrorsTotal.labels(code, route, request.method).inc();
+
+      // Log Error
+      request.log.error({
+        msg: 'API Error',
+        requestId: request.id,
+        code,
+        statusCode,
+        error: {
+          message: error.message,
+          stack: error.stack,
+        },
       });
+
+      return reply.status(statusCode).send(errorResponse);
     },
   );
 });
+
+export default errorHandler;

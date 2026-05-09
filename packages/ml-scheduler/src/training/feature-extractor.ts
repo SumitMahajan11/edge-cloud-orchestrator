@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { PrismaClient } from '@prisma/client';
 import { createLogger } from '@edgecloud/shared-kernel';
 
 const logger = createLogger('ml-feature-extractor');
@@ -27,7 +27,7 @@ export interface TrainingRow {
 }
 
 export class FeatureExtractor {
-  constructor(private pool: Pool) {}
+  constructor(private prisma: PrismaClient) {}
 
   async extractTrainingData(lookbackDays: number = 7): Promise<TrainingRow[]> {
     logger.info(`Extracting training data for the last ${lookbackDays} days...`);
@@ -46,22 +46,23 @@ export class FeatureExtractor {
         te.status as outcome_status,
         te.execution_time_ms,
         te.created_at as executed_at,
-        n.cpu_usage,
-        n.memory_usage,
-        n.tasks_running,
-        n.cost_per_hour,
+        n."cpuUsage" as cpu_usage,
+        n."memoryUsage" as memory_usage,
+        n."tasksRunning" as tasks_running,
+        n."costPerHour" as cost_per_hour,
         n.latency as node_latency
       FROM scheduling_decisions sd
       JOIN task_executions te ON sd.task_id = te.task_id AND sd.node_id = te.node_id
       JOIN tasks t ON sd.task_id = t.id
-      JOIN nodes n ON sd.node_id = n.id
+      JOIN edge_nodes n ON sd.node_id = n.id
       WHERE sd.created_at > NOW() - INTERVAL '${lookbackDays} days'
       AND te.status IN ('COMPLETED', 'FAILED')
     `;
 
     try {
-      const result = await this.pool.query(query);
-      return result.rows.map(row => this.mapToTrainingRow(row));
+      // We use $queryRaw for this complex join with JSON path extractions
+      const result = await this.prisma.$queryRawUnsafe<any[]>(query);
+      return result.map((row: any) => this.mapToTrainingRow(row));
     } catch (error) {
       logger.error({ error }, 'Failed to extract training data');
       throw error;

@@ -1,4 +1,4 @@
-import type { Task, TaskPriority } from '../types'
+import type { Task, TaskPriority } from '../../types'
 
 interface QueuedTask {
   id: string

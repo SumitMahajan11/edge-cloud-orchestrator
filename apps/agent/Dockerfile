@@ -1,51 +1,31 @@
-# --- Stage 1: Build ---
-FROM node:18-alpine AS builder
+# Stage 1: Builder
+FROM rust:1.78-alpine AS builder
+RUN apk add --no-cache musl-dev musl-utils openssl-dev openssl-libs-static pkgconfig git
 
 WORKDIR /app
 
-# Copy package files from root for workspace support if needed
-# But for a simple standalone Dockerfile in the app dir, we can try this:
-COPY package*.json ./
-# Install ALL dependencies (including dev for tsc)
-RUN npm install
+# Copy Cargo files for dependency caching
+COPY Cargo.toml Cargo.lock ./
+# Create a dummy main.rs to build dependencies
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo build --release --target x86_64-unknown-linux-musl
+RUN rm -rf src/
 
-# Copy source
-COPY tsconfig.json ./
+# Copy real source and build
 COPY src ./src
+RUN touch src/main.rs
+RUN cargo build --release --target x86_64-unknown-linux-musl
 
-# Build
-RUN npm run build
+# Stage 2: Runner
+FROM scratch AS runner
+WORKDIR /
 
-# --- Stage 2: Production ---
-FROM node:18-alpine
+# Copy static binary from builder
+COPY --from=builder /app/target/x86_64-unknown-linux-musl/release/edge-agent /agent
 
-# Create non-root user
-RUN addgroup -g 1001 -S edgecloud && \
-    adduser -S edgecloud -u 1001 -G edgecloud
+# Optional: Copy CA certs if agent makes HTTPS requests
+# COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 
-WORKDIR /app
+USER 1001
 
-# Copy package files
-COPY package*.json ./
-
-# Install only production dependencies
-RUN npm ci --only=production
-
-# Copy built assets from builder
-COPY --from=builder /app/dist ./dist
-
-# Set ownership
-RUN chown -R edgecloud:edgecloud /app
-
-# Switch to non-root user
-USER edgecloud
-
-# Expose port
-EXPOSE 4001
-
-# Health check (updated for dist path if needed, but health is on app)
-HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:' + (process.env.PORT || 4001) + '/health', (r) => r.statusCode === 200 ? process.exit(0) : process.exit(1))"
-
-# Start server
-CMD ["node", "dist/index.js"]
+ENTRYPOINT ["/agent"]

@@ -298,7 +298,7 @@ export class LeaderElection {
    */
   private async connectRedis(url: string): Promise<unknown> {
     try {
-      // @ts-expect-error - Optional dependency
+      // @ts-ignore - Optional dependency
       const { createClient } = await import('redis')
       
       const client = createClient({ url })

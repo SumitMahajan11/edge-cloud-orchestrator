@@ -1,7 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react'
-import type { User } from '../types'
-import { authApi, authStorage } from '../lib/api-simple'
-import { Login } from '../pages/Login'
+import type { User } from '@/types'
+import { authApi, authStorage } from '@/lib/api-client'
 
 interface AuthContextType {
   user: User | null
@@ -48,12 +47,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const token = authStorage.getToken()
 
     if (storedUser && token) {
-      // User is already logged in, just use the stored data
       setUser(storedUser as unknown as User)
-      setIsLoading(false)
-    } else {
-      setIsLoading(false)
     }
+    setIsLoading(false)
   }, [])
 
   const login = useCallback(async (email: string, password: string): Promise<boolean> => {
@@ -61,12 +57,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setError(null)
     try {
       const response = await authApi.login(email, password)
-      if (response.error) {
-        setError(response.error)
-        return false
-      }
-      if (response.data) {
-        const apiUser = response.data.user as unknown as { id: string; email: string; name: string; role: string; createdAt: string; lastLoginAt?: string }
+      if (response) {
+        const apiUser = response.user as unknown as { id: string; email: string; name: string; role: string; createdAt: string; lastLoginAt?: string }
         const mappedUser: User = {
           id: apiUser.id, email: apiUser.email, name: apiUser.name,
           role: mapUserRole(apiUser.role),
@@ -89,11 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setIsLoading(true)
     setError(null)
     try {
-      const response = await authApi.register(email, password, name)
-      if (response.error) {
-        setError(response.error)
-        return false
-      }
+      await authApi.register(email, password, name)
       return login(email, password)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed')
@@ -128,31 +116,4 @@ export function useAuth() {
   const context = useContext(AuthContext)
   if (!context) throw new Error('useAuth must be used within AuthProvider')
   return context
-}
-
-export function ProtectedRoute({ children, permission }: { children: ReactNode; permission?: string }) {
-  const { isAuthenticated, isLoading, hasPermission } = useAuth()
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin h-8 w-8 border-2 border-primary border-t-transparent rounded-full" />
-      </div>
-    )
-  }
-
-  if (!isAuthenticated) return <Login />
-
-  if (permission && !hasPermission(permission)) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <h2 className="text-xl font-bold text-foreground mb-2">Access Denied</h2>
-          <p className="text-muted-foreground">You don't have permission to view this page.</p>
-        </div>
-      </div>
-    )
-  }
-
-  return <>{children}</>
 }

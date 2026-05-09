@@ -1,3 +1,4 @@
+import 'reflect-metadata'
 import { vi } from 'vitest'
 
 // Mock Opentelemetry and Trace APIs to avoid binary/resolution issues in monorepo tests
@@ -50,4 +51,7 @@ vi.mock('@edgecloud/observability', () => ({
 }))
 
 process.env.NODE_ENV = 'test'
-process.env.LOG_LEVEL = 'silent'
+process.env.LOG_LEVEL = 'fatal'
+process.env.JWT_SECRET = 'test-secret-at-least-32-chars-long-!!!'
+process.env.ENCRYPTION_KEY = 'test-encryption-key-at-least-32-chars-long'
+process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'

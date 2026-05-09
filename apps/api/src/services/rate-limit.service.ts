@@ -1,5 +1,6 @@
 import type { Redis } from 'ioredis';
 import { logger } from '../lib/logger';
+import { env } from '../config/env';
 
 export interface RateLimitResult {
   allowed: boolean;
@@ -16,10 +17,9 @@ export class RateLimitService {
 
   constructor(redis: Redis) {
     this.redis = redis;
-    this.maxAttempts = parseInt(process.env.MAX_LOGIN_ATTEMPTS || '5', 10);
+    this.maxAttempts = env.MAX_LOGIN_ATTEMPTS;
     this.windowMs = 15 * 60 * 1000; // 15 minutes
-    this.lockoutMs =
-      parseInt(process.env.LOCKOUT_DURATION_MINUTES || '15', 10) * 60 * 1000;
+    this.lockoutMs = env.LOCKOUT_DURATION_MINUTES * 60 * 1000;
   }
 
   /**

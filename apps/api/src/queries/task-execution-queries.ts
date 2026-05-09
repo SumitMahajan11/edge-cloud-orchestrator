@@ -34,6 +34,7 @@ async function createExecution(taskId: string, nodeId: string): Promise<void> {
       status: 'SCHEDULED',
       scheduledAt: new Date(),
       attemptNumber: await getAttemptNumber(taskId),
+      tenantId: 'system', // Default for background queries
     },
   });
 }
@@ -89,7 +90,7 @@ async function markExecutionCompleted(
       durationMs: result.durationMs,
       exitCode: result.exitCode,
       output: result.output as any,
-      error: result.error,
+      error: result.error ?? null,
       cpuUsageAvg: result.resourceUsage.cpuAvg,
       cpuUsagePeak: result.resourceUsage.cpuPeak,
       memoryUsageMax: result.resourceUsage.memoryMax,

@@ -554,6 +554,7 @@ export function createLogAggregator(): LogAggregator {
 
 // Default instances
 export const structuredLogger = new StructuredLogger()
+export const logger = structuredLogger
 export const tracingContext = new TracingContext()
 export const logAggregator = new LogAggregator()
 

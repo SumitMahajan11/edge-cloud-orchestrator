@@ -12,23 +12,20 @@ pnpm install && pnpm --filter web dev
 
 Open `http://localhost:5173` — the dashboard connects to the API at `http://localhost:3090`.
 
-## Architecture
-
-See [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full system diagram, Control Plane / Data Plane split, and sequence diagrams.
 
 ## Services
 
-| Service              | Port | Responsibility                                        | Docs                                           |
-|----------------------|------|-------------------------------------------------------|------------------------------------------------|
-| `api`                | 3090 | Unified REST backend, auth, RBAC, Prisma/PostgreSQL   | [README](apps/api/README.md)                   |
-| `web`                | 5173 | React 18 dashboard (dev), static bundle (prod)        | [README](apps/web/README.md)                   |
-| `agent`              | 4001+| Edge node agent — heartbeat, task execution, mTLS     | [README](apps/agent/README.md)                 |
-| `websocket-gateway`  | 3002 | Real-time WebSocket broadcast for dashboard           | [README](apps/websocket-gateway/README.md)     |
-| `scheduler-service`  | 3003 | Raft-based distributed task scheduler                 | [README](apps/scheduler-service/README.md)     |
-| `node-service`       | 3004 | Edge node registry and health monitoring              | [README](apps/node-service/README.md)          |
-| `task-service`       | 3005 | Task lifecycle management and dispatch                | [README](apps/task-service/README.md)          |
-| `metrics-service`    | 3006 | Prometheus metrics aggregation and export             | [README](apps/metrics-service/README.md)       |
-| `api-gateway`        | 443  | Nginx reverse proxy, TLS termination, static assets   | [README](apps/api-gateway/README.md)           |
+| Service             | Port | Responsibility                                       | Docs                                          |
+|---------------------|------|------------------------------------------------------|-----------------------------------------------|
+| `api`               | 3090 | Unified Control Plane: scheduling, node registry, auth| [README](apps/api/README.md)                  |
+| `web`               | 5173 | React 18 dashboard (dev), static bundle (prod)       | [README](apps/web/README.md)                  |
+| `agent`             | 4001+| Edge node agent — heartbeat, task execution, mTLS    | [README](apps/agent/README.md)                |
+| `websocket-gateway` | 3004 | Real-time WebSocket broadcast for dashboard          | [README](apps/websocket-gateway/README.md)    |
+| `metrics-service`   | 3005 | Prometheus metrics aggregation and export            | [README](apps/metrics-service/README.md)      |
+| `api-gateway`       | 443  | Nginx reverse proxy, TLS termination, static assets  | [README](apps/api-gateway/README.md)          |
+
+> [!NOTE]
+> As of v2.0.0, the `scheduler-service`, `node-service`, and `task-service` have been consolidated into the core `api` service to reduce inter-service latency and simplify deployment topology.
 
 ## Packages
 

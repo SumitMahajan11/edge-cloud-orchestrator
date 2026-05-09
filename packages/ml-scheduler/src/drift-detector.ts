@@ -1,5 +1,4 @@
-import { createLogger } from '@edgecloud/shared-kernel';
-import { MetricsCollector } from '@edgecloud/observability';
+import { createLogger, IMetricsCollector } from '@edgecloud/shared-kernel';
 
 const logger = createLogger('ml-drift-detector');
 
@@ -20,7 +19,13 @@ export class DriftDetector {
   private readonly FATAL_THRESHOLD = 0.5;
   private mlSuppressed: boolean = false;
 
-  constructor(private metrics: MetricsCollector) {}
+  private onDriftCallback?: (mae: number) => void;
+
+  constructor(private metrics: IMetricsCollector) {}
+
+  onDrift(callback: (mae: number) => void): void {
+    this.onDriftCallback = callback;
+  }
 
   recordOutcome(outcome: PredictionOutcome): void {
     this.outcomes.push(outcome);
@@ -35,10 +40,12 @@ export class DriftDetector {
       if (!this.mlSuppressed) {
         logger.error({ mae: this.rollingMAE, threshold: this.FATAL_THRESHOLD }, 'CRITICAL DRIFT: ML model performance degraded above fatal threshold. Disabling ML scheduler.');
         this.mlSuppressed = true;
+        this.onDriftCallback?.(this.rollingMAE);
       }
     } else if (this.rollingMAE >= this.WARN_THRESHOLD) {
-      logger.warn({ mae: this.rollingMAE, threshold: this.WARN_THRESHOLD }, 'Model drift warning: Performance degrading.');
-      this.mlSuppressed = false; // Re-enable if it drops back below FATAL but stays in WARN (optional policy)
+      logger.warn({ mae: this.rollingMAE, threshold: this.WARN_THRESHOLD }, 'Model drift warning: Performance degrading. Triggering retraining.');
+      this.onDriftCallback?.(this.rollingMAE);
+      this.mlSuppressed = false; 
     } else {
       this.mlSuppressed = false;
     }
@@ -60,5 +67,14 @@ export class DriftDetector {
 
   isDrifting(): boolean {
     return this.mlSuppressed;
+  }
+
+  getState() {
+    return {
+      driftScore: this.rollingMAE,
+      isDrifting: this.mlSuppressed,
+      lastCheckedAt: new Date().toISOString(),
+      featureDrift: {} // Placeholder for per-feature drift
+    };
   }
 }

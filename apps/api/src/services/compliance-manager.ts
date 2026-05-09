@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { env } from '../config/env';
 
 export interface ComplianceCheck {
   id: string;
@@ -159,7 +160,7 @@ export class ComplianceManager {
         ...check,
         status: result.status,
         lastChecked: new Date(),
-        details: result.details,
+        ...(result.details && { details: result.details }),
       });
     }
 
@@ -178,7 +179,7 @@ export class ComplianceManager {
         ...check,
         status: result.status,
         lastChecked: new Date(),
-        details: result.details,
+        ...(result.details && { details: result.details }),
       });
     }
 
@@ -207,9 +208,9 @@ export class ComplianceManager {
       case 'soc2-3':
         // Check TLS
         return {
-          status: process.env.NODE_ENV === 'production' ? 'pass' : 'warning',
+          status: env.NODE_ENV === 'production' ? 'pass' : 'warning',
           details:
-            process.env.NODE_ENV === 'production'
+            env.NODE_ENV === 'production'
               ? 'TLS enabled in production'
               : 'TLS not enforced in development',
         };

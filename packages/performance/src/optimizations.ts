@@ -125,13 +125,14 @@ export class MultiLayerCache extends EventEmitter {
   private l1Cache: Map<string, { value: any; expires: number }> = new Map();
   private l2Cache: DistributedCache;
   private l1TTL: number = 60000; // 1 minute in-memory
+  private cleanupInterval?: NodeJS.Timeout;
 
   constructor(redisConfig: CacheConfig) {
     super();
     this.l2Cache = new DistributedCache(redisConfig);
     
     // Periodic cleanup of expired L1 entries
-    setInterval(() => this.cleanupL1(), 60000);
+    this.cleanupInterval = setInterval(() => this.cleanupL1(), 60000);
   }
 
   async get<T>(key: string): Promise<T | null> {
@@ -185,6 +186,9 @@ export class MultiLayerCache extends EventEmitter {
   }
 
   async close(): Promise<void> {
+    if (this.cleanupInterval) {
+      clearInterval(this.cleanupInterval);
+    }
     await this.l2Cache.close();
   }
 }

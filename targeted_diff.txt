@@ -1,0 +1,41 @@
+﻿
+  
+   RUN  v1.6.0 D:/Projects/Cloud1/edge-cloud-orchestrator
+  
+  stdout | full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite
+  API init() called
+  API start() called
+  
+  stdout | full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite
+  Registering errorHandler...
+  
+  stdout | full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite
+  [Scheduler] Entering processQueue
+  [Redis Mock] zrange priority:queue:CRITICAL 0 0 -> count=0
+  [Redis Mock] zrange priority:queue:HIGH 0 -1 -> count=0
+  [Redis Mock] zrange priority:queue:MEDIUM 0 -1 -> count=0
+  [Redis Mock] zrange priority:queue:LOW 0 0 -> count=0
+  [Redis Mock] zrevrange task:queue 0 0 -> count=0, first=undefined
+  
+  stdout | full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite
+  [Redis Mock] zrange task:queue 0 0 -> count=0
+  
+  stdout | full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite > V1 API Deprecation Enforcement > should 
+include Deprecation and Sunset headers on v1 endpoints
+  [Redis Mock] zadd attempts:127.0.0.1 1777636295613 1777636295613-0.034866898573509886
+  
+  stdout | full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite > V1 API Deprecation Enforcement > should 
+include Deprecation and Sunset headers on v1 endpoints
+  <empty line>
+   Γ¥» |contract| full-suite.test.ts  (6 tests | 1 failed) 3065ms
+     Γ¥» full-suite.test.ts > Edge-Cloud Orchestrator API Contract Suite > Schema Drift Protection > should match the 
+committed openapi-v2.yml
+>      ΓåÆ expected { components: { schemas: {} }, ΓÇª(3) } to deeply equal { components: { schemas: {} }, ΓÇª(3) }
+  
+   Test Files  1 failed (1)
+        Tests  1 failed | 5 passed (6)
+     Start at  17:21:23
+     Duration  12.46s (transform 2.10s, setup 37ms, collect 8.77s, tests 3.06s, environment 0ms, prepare 176ms)
+  
+
+
