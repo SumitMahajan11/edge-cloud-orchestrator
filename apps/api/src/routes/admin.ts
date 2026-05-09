@@ -1,6 +1,6 @@
 import { FastifyInstance } from 'fastify';
 
-type UserRoleStr = 'ADMIN' | 'OPERATOR' | 'VIEWER';
+type UserRoleStr = 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'VIEWER';
 
 export default async function adminRoutes(fastify: FastifyInstance) {
   // Get audit logs
@@ -26,8 +26,9 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     async (request, _reply) => {
       const { userId, action, limit = 100 } = request.query;
 
-      const logs = await fastify.prisma.auditLog.findMany({
+      const logs = await (fastify.prisma as any).auditLog.findMany({
         where: {
+          tenantId: request.user!.tenantId!,
           ...(userId && { userId }),
           ...(action && { action }),
         },
@@ -54,8 +55,15 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         summary: 'List all users',
       },
     },
-    async (_request, _reply) => {
-      const users = await fastify.prisma.user.findMany({
+    async (request, _reply) => {
+      const users = await (fastify.prisma as any).user.findMany({
+        where: {
+          tenantUsers: {
+            some: {
+              tenantId: request.user!.tenantId!,
+            },
+          },
+        },
         select: {
           id: true,
           email: true,
@@ -102,26 +110,45 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
       const { role } = request.body;
 
-      const currentUser = request.user as { id: string };
+      const currentUser = request.user as { id: string; tenantId: string };
       if (id === currentUser.id) {
-        return reply.status(400).send({ error: 'Cannot change your own role' });
+        return reply.status(400).send({ 
+          code: 'FORBIDDEN', 
+          message: 'Cannot change your own role' 
+        });
       }
 
-      const user = await fastify.prisma.user.update({
+      // Verify target user belongs to the same tenant
+      const tenantUser = await (fastify.prisma as any).tenantUser.findFirst({
+        where: {
+          userId: id,
+          tenantId: currentUser.tenantId,
+        },
+      });
+
+      if (!tenantUser) {
+        return reply.status(404).send({
+          code: 'NOT_FOUND',
+          message: 'User not found in your tenant',
+        });
+      }
+
+      const user = await (fastify.prisma as any).user.update({
         where: { id },
         data: { role },
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await (fastify.prisma as any).auditLog.create({
         data: {
           userId: currentUser.id,
+          tenantId: request.user!.tenantId!,
           action: 'user.role_changed',
           entityType: 'user',
           entityId: id,
-          details: { newRole: role },
+          details: { newRole: role } as any,
           ipAddress: request.ip,
-          userAgent: request.headers['user-agent'],
+          userAgent: request.headers['user-agent'] ?? null,
         },
       });
 
@@ -149,18 +176,36 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
 
-      const currentUser = request.user as { id: string };
+      const currentUser = request.user as { id: string; tenantId: string };
       if (id === currentUser.id) {
-        return reply.status(400).send({ error: 'Cannot deactivate yourself' });
+        return reply.status(400).send({ 
+          code: 'FORBIDDEN', 
+          message: 'Cannot deactivate yourself' 
+        });
       }
 
-      const user = await fastify.prisma.user.update({
+      // Verify target user belongs to the same tenant
+      const tenantUser = await (fastify.prisma as any).tenantUser.findFirst({
+        where: {
+          userId: id,
+          tenantId: currentUser.tenantId,
+        },
+      });
+
+      if (!tenantUser) {
+        return reply.status(404).send({
+          code: 'NOT_FOUND',
+          message: 'User not found in your tenant',
+        });
+      }
+
+      const user = await (fastify.prisma as any).user.update({
         where: { id },
         data: { isActive: false },
       });
 
       // Invalidate all sessions
-      await fastify.prisma.session.deleteMany({ where: { userId: id } });
+      await (fastify.prisma as any).session.deleteMany({ where: { userId: id } });
 
       return user;
     },
@@ -222,33 +267,45 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       if (types.includes('metrics')) {
         results.nodeMetrics = await fastify.prisma.nodeMetric
           .deleteMany({
-            where: { timestamp: { lt: cutoff } },
+            where: { 
+              timestamp: { lt: cutoff },
+              node: { tenantId: request.user!.tenantId! }
+            },
           })
-          .then((r) => r.count);
+          .then((r: any) => r.count);
       }
 
       if (types.includes('logs')) {
         results.taskLogs = await fastify.prisma.taskLog
           .deleteMany({
-            where: { timestamp: { lt: cutoff } },
+            where: { 
+              timestamp: { lt: cutoff },
+              task: { tenantId: request.user!.tenantId! }
+            },
           })
-          .then((r) => r.count);
+          .then((r: any) => r.count);
       }
 
       if (types.includes('webhookDeliveries')) {
-        results.webhookDeliveries = await fastify.prisma.webhookDelivery
+        results.webhookDeliveries = await (fastify.prisma as any).webhookDelivery
           .deleteMany({
-            where: { createdAt: { lt: cutoff } },
+            where: { 
+              createdAt: { lt: cutoff },
+              tenantId: request.user!.tenantId!
+            },
           })
-          .then((r) => r.count);
+          .then((r: any) => r.count);
       }
 
       if (types.includes('auditLogs')) {
-        results.auditLogs = await fastify.prisma.auditLog
+        results.auditLogs = await (fastify.prisma as any).auditLog
           .deleteMany({
-            where: { createdAt: { lt: cutoff } },
+            where: { 
+              createdAt: { lt: cutoff },
+              tenantId: request.user!.tenantId!
+            },
           })
-          .then((r) => r.count);
+          .then((r: any) => r.count);
       }
 
       return { deleted: results, cutoff: cutoff.toISOString() };
@@ -268,7 +325,10 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     async (_request, reply) => {
       const scheduler = (fastify as any).taskScheduler;
       if (!scheduler) {
-        return reply.status(500).send({ error: 'TaskScheduler not initialized' });
+        return reply.status(500).send({ 
+          code: 'INTERNAL_ERROR', 
+          message: 'TaskScheduler not initialized' 
+        });
       }
 
       const { spawn } = await import('child_process');
@@ -278,7 +338,10 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       // 1. Extract data
       const trainingData = await scheduler.featureExtractor.extractTrainingData();
       if (trainingData.length < 50) {
-        return reply.status(400).send({ error: 'Insufficient training data (need at least 50 samples)' });
+        return reply.status(400).send({ 
+          code: 'INSUFFICIENT_DATA', 
+          message: 'Insufficient training data (need at least 50 samples)' 
+        });
       }
 
       // 2. Write to temp file
@@ -327,6 +390,250 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   );
 
   // ============================================
+  // Event Republishing
+  // ============================================
+
+  // Single event republish
+  fastify.post<{
+    Body: {
+      eventType: string;
+      entityId: string;
+      targetTopic?: string;
+    };
+  }>(
+    '/events/republish',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('SUPER_ADMIN')],
+      config: {
+        rateLimit: { max: 10, timeWindow: 60000 },
+      },
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            eventType: { type: 'string' },
+            entityId: { type: 'string' },
+            targetTopic: { type: 'string' },
+          },
+          required: ['eventType', 'entityId'],
+        },
+        tags: ['admin'],
+        summary: 'Republish an event to Kafka',
+      },
+    },
+    async (request, reply) => {
+      const currentUser = request.user as { id: string; tenantId?: string; role: string };
+      if (currentUser.tenantId && currentUser.tenantId !== 'SYSTEM') {
+        return reply.status(403).send({ code: 'FORBIDDEN', message: 'Tenant-scoped tokens cannot republish events' });
+      }
+
+      const { eventType, entityId, targetTopic } = request.body;
+
+      let payload: any = null;
+      let defaultTopic = '';
+
+      if (eventType === 'task.created') {
+        const task = await (fastify.prisma as any).task.findUnique({ where: { id: entityId } });
+        if (!task) return reply.status(404).send({ error: 'Task not found' });
+        payload = {
+          eventType: 'TaskCreated',
+          taskId: task.id,
+          name: task.name,
+          type: task.type,
+          priority: task.priority,
+          target: task.targetNodeId || '',
+          region: task.region || '',
+          aggregateId: task.id,
+          version: 1,
+        };
+        defaultTopic = 'tasks.events';
+      } else if (eventType === 'node.registered') {
+        const node = await (fastify.prisma as any).node.findUnique({ where: { id: entityId } });
+        if (!node) return reply.status(404).send({ error: 'Node not found' });
+        payload = {
+          eventType: 'NodeRegistered',
+          nodeId: node.id,
+          name: node.name,
+          region: node.region || '',
+          capabilities: node.capabilities || [],
+          aggregateId: node.id,
+          version: 1,
+        };
+        defaultTopic = 'nodes.events';
+      } else {
+        return reply.status(400).send({ error: `Unsupported event type: ${eventType}` });
+      }
+
+      const topic = targetTopic || defaultTopic;
+
+      const { EventBus } = await import('@edgecloud/event-bus');
+      const { env } = await import('../config/env');
+      const eventBus = new EventBus({
+        clientId: 'admin-republisher',
+        brokers: env.KAFKA_BROKERS.split(','),
+      });
+      await eventBus.connect();
+      await eventBus.publish(topic, payload);
+      await eventBus.disconnect();
+
+      await (fastify.prisma as any).auditLog.create({
+        data: {
+          userId: currentUser.id,
+          tenantId: 'SYSTEM',
+          action: 'event.republished',
+          entityType: 'event',
+          entityId: entityId,
+          details: { eventType, topic } as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return { success: true, topic };
+    }
+  );
+
+  // Bulk event republish
+  fastify.post<{
+    Body: {
+      eventType: string;
+      fromTimestamp: string;
+      toTimestamp: string;
+      dryRun?: boolean;
+    };
+  }>(
+    '/events/republish-range',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('SUPER_ADMIN')],
+      config: {
+        rateLimit: { max: 10, timeWindow: 60000 },
+      },
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            eventType: { type: 'string' },
+            fromTimestamp: { type: 'string', format: 'date-time' },
+            toTimestamp: { type: 'string', format: 'date-time' },
+            dryRun: { type: 'boolean' },
+          },
+          required: ['eventType', 'fromTimestamp', 'toTimestamp'],
+        },
+        tags: ['admin'],
+        summary: 'Bulk republish events to Kafka',
+      },
+    },
+    async (request, reply) => {
+      const currentUser = request.user as { id: string; tenantId?: string; role: string };
+      if (currentUser.tenantId && currentUser.tenantId !== 'SYSTEM') {
+        return reply.status(403).send({ code: 'FORBIDDEN', message: 'Tenant-scoped tokens cannot republish events' });
+      }
+
+      const { eventType, fromTimestamp, toTimestamp, dryRun } = request.body;
+      const fromDate = new Date(fromTimestamp);
+      const toDate = new Date(toTimestamp);
+
+      if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
+        return reply.status(400).send({ error: 'Invalid timestamps' });
+      }
+
+      let entities: any[] = [];
+      let defaultTopic = '';
+
+      if (eventType === 'task.created') {
+        entities = await (fastify.prisma as any).task.findMany({
+          where: {
+            createdAt: { gte: fromDate, lte: toDate },
+          },
+          take: 1000,
+        });
+        defaultTopic = 'tasks.events';
+      } else if (eventType === 'node.registered') {
+        entities = await (fastify.prisma as any).node.findMany({
+          where: {
+            createdAt: { gte: fromDate, lte: toDate },
+          },
+          take: 1000,
+        });
+        defaultTopic = 'nodes.events';
+      } else {
+        return reply.status(400).send({ error: `Unsupported event type: ${eventType}` });
+      }
+
+      if (dryRun) {
+        return {
+          count: entities.length,
+          events: entities.slice(0, 10),
+        };
+      }
+
+      const { EventBus } = await import('@edgecloud/event-bus');
+      const { env } = await import('../config/env');
+      const eventBus = new EventBus({
+        clientId: 'admin-republisher-bulk',
+        brokers: env.KAFKA_BROKERS.split(','),
+      });
+      await eventBus.connect();
+
+      let published = 0;
+      let failed = 0;
+      const errors: string[] = [];
+
+      for (const entity of entities) {
+        try {
+          let payload: any = null;
+          if (eventType === 'task.created') {
+            payload = {
+              eventType: 'TaskCreated',
+              taskId: entity.id,
+              name: entity.name,
+              type: entity.type,
+              priority: entity.priority,
+              target: entity.targetNodeId || '',
+              region: entity.region || '',
+              aggregateId: entity.id,
+              version: 1,
+            };
+          } else if (eventType === 'node.registered') {
+            payload = {
+              eventType: 'NodeRegistered',
+              nodeId: entity.id,
+              name: entity.name,
+              region: entity.region || '',
+              capabilities: entity.capabilities || [],
+              aggregateId: entity.id,
+              version: 1,
+            };
+          }
+          await eventBus.publish(defaultTopic, payload);
+          published++;
+        } catch (err: any) {
+          failed++;
+          errors.push(`Entity ${entity.id}: ${err.message}`);
+        }
+      }
+
+      await eventBus.disconnect();
+
+      await (fastify.prisma as any).auditLog.create({
+        data: {
+          userId: currentUser.id,
+          tenantId: 'SYSTEM',
+          action: 'event.republished_bulk',
+          entityType: 'event',
+          entityId: 'range',
+          details: { eventType, fromTimestamp, toTimestamp, published } as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return { published, failed, errors };
+    }
+  );
+
+  // ============================================
+
   // DLQ Monitoring Endpoints
   // ============================================
 
@@ -408,14 +715,14 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       if (topic) where.originalTopic = topic;
       if (status) where.status = status;
 
-      const events = await fastify.prisma.deadLetterEvent.findMany({
+      const events = await (fastify.prisma as any).deadLetterEvent.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
       });
 
-      const total = await fastify.prisma.deadLetterEvent.count({ where });
+      const total = await (fastify.prisma as any).deadLetterEvent.count({ where });
 
       return {
         events,
@@ -448,7 +755,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
 
       try {
-        const event = await fastify.prisma.deadLetterEvent.findUnique({
+        const event = await (fastify.prisma as any).deadLetterEvent.findUnique({
           where: { id },
         });
 
@@ -461,7 +768,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         }
 
         // Update status to RETRYING
-        await fastify.prisma.deadLetterEvent.update({
+        await (fastify.prisma as any).deadLetterEvent.update({
           where: { id },
           data: {
             status: 'RETRYING',
@@ -470,10 +777,25 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           },
         });
 
-        // TODO: Republish to Kafka topic via event bus
-        // For now, just mark as retrying
+        try {
+          const { EventBus } = await import('@edgecloud/event-bus');
+          const { env } = await import('../config/env');
+          const eventBus = new EventBus({
+            clientId: 'admin-dlq-retry',
+            brokers: env.KAFKA_BROKERS.split(','),
+          });
+          await eventBus.connect();
+          await eventBus.publish(event.originalTopic, event.payload as any);
+          await eventBus.disconnect();
 
-        return { success: true, eventId: id, message: 'Event marked for retry' };
+          await (fastify.prisma as any).deadLetterEvent.update({
+            where: { id },
+            data: { status: 'REPROCESSED' }
+          });
+          return { success: true, eventId: id, message: 'Event successfully retried and published' };
+        } catch (publishErr: any) {
+          return reply.status(500).send({ error: 'Failed to republish event to Kafka', details: publishErr.message });
+        }
       } catch (err: any) {
         return reply.status(400).send({ error: err.message });
       }
@@ -503,7 +825,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       const cutoff = new Date(Date.now() - olderThanDays * 24 * 60 * 60 * 1000);
 
-      const result = await fastify.prisma.deadLetterEvent.deleteMany({
+      const result = await (fastify.prisma as any).deadLetterEvent.deleteMany({
         where: {
           status: { in: ['REPROCESSED', 'PERMANENTLY_FAILED'] },
           createdAt: { lt: cutoff },
@@ -514,3 +836,5 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     },
   );
 }
+
+
