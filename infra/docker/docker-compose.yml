@@ -1,73 +1,69 @@
 version: '3.8'
-
 services:
-  # PostgreSQL Primary
   postgres-primary:
-    image: bitnami/postgresql:16
+    image: postgres:16-alpine
     environment:
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=postgres
-      - POSTGRESQL_DATABASE=edge_cloud
-      - POSTGRESQL_REPLICATION_MODE=master
-      - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
-      - POSTGRESQL_SYNCHRONOUS_COMMIT_MODE=on
-      - POSTGRESQL_NUM_SYNCHRONOUS_REPLICAS=1
+      POSTGRES_USER: edgecloud
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: edgecloud
+      POSTGRES_REPLICATION_USER: replicator
+      POSTGRES_REPLICATION_PASSWORD: ${POSTGRES_REPLICATION_PASSWORD}
+    command: >
+      postgres
+      -c wal_level=replica
+      -c max_wal_senders=3
+      -c wal_keep_size=64
     volumes:
-      - postgres-primary-data:/bitnami/postgresql
-    networks:
-      - edgecloud
+      - postgres-primary-data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-
-  # PostgreSQL Replica
-  postgres-replica:
-    image: bitnami/postgresql:16
-    depends_on:
-      - postgres-primary
-    environment:
-      - POSTGRESQL_USERNAME=postgres
-      - POSTGRESQL_PASSWORD=postgres
-      - POSTGRESQL_DATABASE=edge_cloud
-      - POSTGRESQL_REPLICATION_MODE=slave
-      - POSTGRESQL_MASTER_HOST=postgres-primary
-      - POSTGRESQL_MASTER_PORT_NUMBER=5432
-      - POSTGRESQL_REPLICATION_USER=repl_user
-      - POSTGRESQL_REPLICATION_PASSWORD=repl_password
-    volumes:
-      - postgres-replica-data:/bitnami/postgresql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edgecloud"]
+      interval: 5s
     networks:
       - edgecloud
 
-  # PgBouncer Connection Pooler
+  postgres-replica:
+    image: postgres:16-alpine
+    environment:
+      PGUSER: replicator
+      PGPASSWORD: ${POSTGRES_REPLICATION_PASSWORD}
+    command: >
+      bash -c "
+      until pg_basebackup -h postgres-primary -U replicator
+        -D /var/lib/postgresql/data -P -Xs -R; do
+        echo 'Waiting for primary...'; sleep 2;
+      done && postgres"
+    depends_on:
+      postgres-primary:
+        condition: service_healthy
+    networks:
+      - edgecloud
   pgbouncer:
     image: bitnami/pgbouncer:latest
     environment:
-      - PGBOUNCER_DATABASE_HOST=postgres-primary
-      - PGBOUNCER_DATABASE_PORT=5432
-      - PGBOUNCER_DATABASE_USER=postgres
-      - PGBOUNCER_DATABASE_PASSWORD=postgres
-      - PGBOUNCER_DATABASE_NAME=edge_cloud
-      - PGBOUNCER_PORT=5432
-      - PGBOUNCER_POOL_MODE=transaction
+    - PGBOUNCER_DATABASE_HOST=postgres-primary
+    - PGBOUNCER_DATABASE_PORT=5432
+    - PGBOUNCER_DATABASE_USER=edgecloud
+    - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+    - PGBOUNCER_DATABASE_NAME=edgecloud
+    - PGBOUNCER_PORT=5432
+    - PGBOUNCER_POOL_MODE=transaction
     depends_on:
-      - postgres-primary
+    - postgres-primary
     networks:
-      - edgecloud
-
-  # Kafka Cluster
+    - edgecloud
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-      - edgecloud
-
+    - edgecloud
   kafka-1:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-      - zookeeper
+    - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -78,14 +74,13 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
     ports:
-      - "29092:29092"
+    - 29092:29092
     networks:
-      - edgecloud
-
+    - edgecloud
   kafka-2:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-      - zookeeper
+    - zookeeper
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -95,12 +90,11 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
     networks:
-      - edgecloud
-
+    - edgecloud
   kafka-3:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-      - zookeeper
+    - zookeeper
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -110,108 +104,7 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
     networks:
-      - edgecloud
-
-  # Microservices
-  task-service:
-    build:
-      context: ../../
-      dockerfile: apps/task-service/Dockerfile
-    environment:
-      PORT: 3001
-      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
-      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      OTEL_ENABLED: "true"
-    depends_on:
-      - pgbouncer
-      - kafka-1
-    networks:
-      - edgecloud
-    ports:
-      - "3001:3001"
-    deploy:
-      replicas: 2
-
-  node-service:
-    build:
-      context: ../../
-      dockerfile: apps/node-service/Dockerfile
-    environment:
-      PORT: 3002
-      DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
-      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      OTEL_ENABLED: "true"
-    depends_on:
-      - pgbouncer
-      - kafka-1
-    networks:
-      - edgecloud
-    ports:
-      - "3002:3002"
-    deploy:
-      replicas: 2
-
-  scheduler-service-1:
-    build:
-      context: ../../
-      dockerfile: apps/scheduler-service/Dockerfile
-    environment:
-      NODE_ID: scheduler-1
-      PORT: 3003
-      RAFT_PORT: 7001
-      RAFT_PEERS: scheduler-2:scheduler-service-2:7002,scheduler-3:scheduler-service-3:7003
-      TASK_SERVICE_URL: http://task-service:3001
-      NODE_SERVICE_URL: http://node-service:3002
-      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      OTEL_ENABLED: "true"
-    depends_on:
-      - task-service
-      - node-service
-    networks:
-      - edgecloud
-    ports:
-      - "3003:3003"
-      - "7001:7001"
-
-  scheduler-service-2:
-    build:
-      context: .
-      dockerfile: apps/scheduler-service/Dockerfile
-    environment:
-      NODE_ID: scheduler-2
-      PORT: 3003
-      RAFT_PORT: 7002
-      RAFT_PEERS: scheduler-1:scheduler-service-1:7001,scheduler-3:scheduler-service-3:7003
-      TASK_SERVICE_URL: http://task-service:3001
-      NODE_SERVICE_URL: http://node-service:3002
-      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      OTEL_ENABLED: "true"
-    depends_on:
-      - task-service
-      - node-service
-    networks:
-      - edgecloud
-
-  scheduler-service-3:
-    build:
-      context: .
-      dockerfile: apps/scheduler-service/Dockerfile
-    environment:
-      NODE_ID: scheduler-3
-      PORT: 3003
-      RAFT_PORT: 7003
-      RAFT_PEERS: scheduler-1:scheduler-service-1:7001,scheduler-2:scheduler-service-2:7002
-      TASK_SERVICE_URL: http://task-service:3001
-      NODE_SERVICE_URL: http://node-service:3002
-      KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      OTEL_ENABLED: "true"
-    depends_on:
-      - task-service
-      - node-service
-    networks:
-      - edgecloud
-
-  # WebSocket Gateway
+    - edgecloud
   websocket-gateway:
     build:
       context: ../../
@@ -220,15 +113,13 @@ services:
       PORT: 3004
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
       REGION: us-east
-      OTEL_ENABLED: "true"
+      OTEL_ENABLED: 'true'
     depends_on:
-      - kafka-1
+    - kafka-1
     networks:
-      - edgecloud
+    - edgecloud
     ports:
-      - "3004:3004"
-
-  # Backend API Service
+    - 3004:3004
   backend:
     build:
       context: ../../apps/api
@@ -237,80 +128,61 @@ services:
       PORT: 3000
       DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
       KAFKA_BROKERS: kafka-1:9092,kafka-2:9092,kafka-3:9092
-      REDIS_URL: redis://redis:6379
+      REDIS_SENTINELS: redis-sentinel-1:26379,redis-sentinel-2:26379,redis-sentinel-3:26379
+      REDIS_SENTINEL_NAME: mymaster
       JWT_SECRET: dev-jwt-secret-change-in-production
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: dev-token
-      OTEL_ENABLED: "true"
+      OTEL_ENABLED: 'true'
     depends_on:
-      - pgbouncer
-      - kafka-1
-      - redis-master
+    - pgbouncer
+    - kafka-1
+    - redis-sentinel-1
     networks:
-      - edgecloud
+    - edgecloud
     ports:
-      - "3000:3000"
-
-  # API Gateway
+    - 3000:3000
   nginx:
     image: nginx:alpine
     volumes:
-      - ../../apps/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    - ../../apps/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
     ports:
-      - "80:80"
+    - 80:80
     depends_on:
-      - task-service
-      - node-service
-      - scheduler-service-1
-      - websocket-gateway
+    - websocket-gateway
     networks:
-      - edgecloud
-
-  # PostgreSQL Database
-  postgres:
-    image: postgres:15-alpine
-    environment:
-      POSTGRES_USER: edgecloud
-      POSTGRES_PASSWORD: edgecloud123
-      POSTGRES_DB: edgecloud
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres-data:/var/lib/postgresql/data
-    networks:
-      - edgecloud
-
-  # Redis Master-Replica-Sentinel HA Setup
+    - edgecloud
   redis-master:
-    image: bitnami/redis:7.2
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_REPLICATION_MODE=master
-    networks:
-      - edgecloud
+    image: redis:7-alpine
+    command: redis-server --appendonly yes --appendfsync everysec
     ports:
       - "6379:6379"
     volumes:
-      - redis-data:/bitnami/redis/data
-
-  redis-replica:
-    image: bitnami/redis:7.2
-    environment:
-      - ALLOW_EMPTY_PASSWORD=yes
-      - REDIS_REPLICATION_MODE=slave
-      - REDIS_MASTER_HOST=redis-master
-    depends_on:
-      - redis-master
+      - redis-master-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - edgecloud
 
-  redis-sentinel:
-    image: bitnami/redis-sentinel:7.2
-    environment:
-      - QUORUM=1
-      - REDIS_MASTER_HOST=redis-master
-      - REDIS_MASTER_NAME=mymaster
-      - ALLOW_EMPTY_PASSWORD=yes
+  redis-replica:
+    image: redis:7-alpine
+    command: redis-server --replicaof redis-master 6379 --appendonly yes
+    depends_on:
+      redis-master:
+        condition: service_healthy
+    networks:
+      - edgecloud
+
+  redis-sentinel-1:
+    image: redis:7-alpine
+    command: >
+      sh -c "echo 'sentinel monitor mymaster redis-master 6379 2
+      sentinel down-after-milliseconds mymaster 5000
+      sentinel failover-timeout mymaster 10000' > /sentinel.conf &&
+      redis-sentinel /sentinel.conf"
     depends_on:
       - redis-master
       - redis-replica
@@ -319,130 +191,118 @@ services:
     ports:
       - "26379:26379"
 
-  # ==========================================
-  # Observability Stack
-  # View traces at:
-  # - Grafana/Tempo UI: http://localhost:3002/explore
-  # - Jaeger UI: http://localhost:16686
-  # ==========================================
-  
-  # Prometheus for metrics collection
+  redis-sentinel-2:
+    image: redis:7-alpine
+    command: >
+      sh -c "echo 'sentinel monitor mymaster redis-master 6379 2
+      sentinel down-after-milliseconds mymaster 5000
+      sentinel failover-timeout mymaster 10000' > /sentinel.conf &&
+      redis-sentinel /sentinel.conf"
+    depends_on:
+      - redis-master
+      - redis-replica
+    networks:
+      - edgecloud
+
+  redis-sentinel-3:
+    image: redis:7-alpine
+    command: >
+      sh -c "echo 'sentinel monitor mymaster redis-master 6379 2
+      sentinel down-after-milliseconds mymaster 5000
+      sentinel failover-timeout mymaster 10000' > /sentinel.conf &&
+      redis-sentinel /sentinel.conf"
+    depends_on:
+      - redis-master
+      - redis-replica
+    networks:
+      - edgecloud
   prometheus:
     image: prom/prometheus:v2.48.0
     volumes:
-      - ../../infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-      - ../../infra/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
-      - prometheus-data:/prometheus
+    - ../../infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    - ../../infra/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+    - prometheus-data:/prometheus
     command:
-      - '--config.file=/etc/prometheus/prometheus.yml'
-      - '--storage.tsdb.path=/prometheus'
-      - '--web.console.libraries=/etc/prometheus/console_libraries'
-      - '--web.console.templates=/etc/prometheus/consoles'
-      - '--storage.tsdb.retention.time=15d'
-      - '--web.enable-lifecycle'
+    - --config.file=/etc/prometheus/prometheus.yml
+    - --storage.tsdb.path=/prometheus
+    - --web.console.libraries=/etc/prometheus/console_libraries
+    - --web.console.templates=/etc/prometheus/consoles
+    - --storage.tsdb.retention.time=15d
+    - --web.enable-lifecycle
     ports:
-      - "9090:9090"
+    - 9090:9090
     networks:
-      - edgecloud
-    depends_on:
-      - task-service
-      - node-service
-      - scheduler-service-1
-
-  # Grafana for visualization
+    - edgecloud
   grafana:
     image: grafana/grafana:10.2.0
     volumes:
-      - grafana-data:/var/lib/grafana
-      - ../../infra/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-      - ../../infra/observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+    - grafana-data:/var/lib/grafana
+    - ../../infra/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+    - ../../infra/observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
     environment:
-      - GF_SECURITY_ADMIN_USER=admin
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-      - GF_USERS_ALLOW_SIGN_UP=false
+    - GF_SECURITY_ADMIN_USER=admin
+    - GF_SECURITY_ADMIN_PASSWORD=admin
+    - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-      - "3002:3000"
+    - 3002:3000
     networks:
-      - edgecloud
+    - edgecloud
     depends_on:
-      - prometheus
-
-  # Jaeger for distributed tracing
+    - prometheus
   jaeger:
     image: jaegertracing/all-in-one:1.50
     environment:
-      - COLLECTOR_OTLP_ENABLED=true
+    - COLLECTOR_OTLP_ENABLED=true
     ports:
-      - "16686:16686"  # UI
-      - "14268:14268"  # Collector HTTP
-      - "4317:4317"    # OTLP gRPC
-      - "4318:4318"    # OTLP HTTP
-      - "9411:9411"    # Zipkin
+    - 16686:16686
+    - 14268:14268
+    - 4317:4317
+    - 4318:4318
+    - 9411:9411
     networks:
-      - edgecloud
-
-  # Loki for log aggregation
+    - edgecloud
   loki:
     image: grafana/loki:2.9.2
     ports:
-      - "3100:3100"
+    - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-      - edgecloud
-
-  # ==========================================
-  # Security Infrastructure
-  # ==========================================
-  
-  # HashiCorp Vault for secrets management
+    - edgecloud
   vault:
     image: hashicorp/vault:1.15
     cap_add:
-      - IPC_LOCK
+    - IPC_LOCK
     environment:
-      - VAULT_DEV_ROOT_TOKEN_ID=dev-token
-      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+    - VAULT_DEV_ROOT_TOKEN_ID=dev-token
+    - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
     volumes:
-      - vault-data:/vault/file
-      - ../../infra/vault/vault-config.hcl:/vault/config/vault.hcl:ro
+    - vault-data:/vault/file
+    - ../../infra/vault/vault-config.hcl:/vault/config/vault.hcl:ro
     ports:
-      - "8200:8200"
+    - 8200:8200
     networks:
-      - edgecloud
+    - edgecloud
     command: server -dev -dev-root-token-id="dev-token"
-
-  # ==========================================
-  # Backup & Disaster Recovery
-  # ==========================================
-  
-  # Backup service for automated backups
   backup-service:
     image: bitnami/postgresql:16
     volumes:
-      - ../../infra/backup:/backup-scripts:ro
-      - backup-data:/backups
-    command: |
-      sh -c "
-        echo 'Backup service ready' &&
-        tail -f /dev/null
-      "
+    - ../../infra/backup:/backup-scripts:ro
+    - backup-data:/backups
+    command: "sh -c \"\n  echo 'Backup service ready' &&\n  tail -f /dev/null\n\"\n"
     networks:
-      - edgecloud
+    - edgecloud
     depends_on:
-      - postgres-primary
+    - postgres-primary
     environment:
-      - BACKUP_SCHEDULE=0 2 * * *
-
+    - BACKUP_SCHEDULE=0 2 * * *
 volumes:
-  postgres-primary-data:
-  postgres-replica-data:
-  redis-data:
-  prometheus-data:
-  grafana-data:
-  vault-data:
-  backup-data:
-  postgres-data:
-
+  postgres-primary-data: null
+  postgres-replica-data: null
+  redis-master-data: null
+  prometheus-data: null
+  grafana-data: null
+  vault-data: null
+  backup-data: null
 networks:
   edgecloud:
     driver: bridge
