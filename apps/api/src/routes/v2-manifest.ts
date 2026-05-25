@@ -1,21 +1,25 @@
 import { FastifyPluginAsync } from 'fastify';
+
 import adminRoutes from './admin.js';
+import agentRoutes from './agents.js';
 import alertRoutes from './alerts.js';
+import analyticsRoutes from './analytics.js';
+import apiKeyRoutes from './api-keys.js';
 import authRoutes from './auth.js';
 import carbonRoutes from './carbon.js';
 import costRoutes from './cost.js';
 import flRoutes from './federated-learning.js';
+import logRoutes from './logs.js';
 import metricsRoutes from './metrics.js';
+import mlRoutes from './ml.js';
 import nodeRoutes from './nodes.js';
+import policyRoutes from './policies.js';
+import resilienceRoutes from './resilience.js';
+import schedulerRoutes from './scheduler.js';
+import systemRoutes from './system.js';
 import taskRoutes from './tasks.js';
 import webhookRoutes from './webhooks.js';
 import workflowRoutes from './workflows.js';
-import agentRoutes from './agents.js';
-import policyRoutes from './policies.js';
-import logRoutes from './logs.js';
-import systemRoutes from './system.js';
-import schedulerRoutes from './scheduler.js';
-import mlRoutes from './ml.js';
 
 /**
  * API V2 Route Manifest
@@ -41,10 +45,9 @@ const v2Routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(systemRoutes, { prefix: '/system' });
   await fastify.register(schedulerRoutes, { prefix: '/scheduler' });
   await fastify.register(mlRoutes, { prefix: '/ml' });
-  const resilienceRoutes = (await import('./resilience.js')).default;
   await fastify.register(resilienceRoutes, { prefix: '/circuit-breakers' });
-  const apiKeyRoutes = (await import('./api-keys.js')).default;
   await fastify.register(apiKeyRoutes, { prefix: '/api-keys' });
+  await fastify.register(analyticsRoutes, { prefix: '/analytics' });
 
   // V2 specific status
   fastify.get('/status', { config: { public: true } }, async () => ({

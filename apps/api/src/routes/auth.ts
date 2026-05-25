@@ -1,15 +1,14 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+
 import { AuthController } from '../controllers/auth.controller';
-import { loginSchema, registerSchema, refreshTokenSchema } from '../schemas';
+import { idParamSchema,loginSchema, refreshTokenSchema,registerSchema  } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
-import { z } from 'zod';
-import { idParamSchema } from '../schemas';
 
 const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   // 1. Initialize Controller with decorated services
   const controller = new AuthController(
-    (fastify as any).authService,
-    (fastify as any).rateLimitService,
+    fastify.authService,
+    fastify.rateLimitService,
   );
 
   // 2. Register new user
@@ -40,8 +39,8 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         tags: ['auth'],
         summary: 'Login and get tokens',
         response: {
-          401: { $ref: 'ErrorSchema#' },
-          429: { $ref: 'ErrorSchema#' },
+          401: { $ref: 'ErrorSchema' },
+          429: { $ref: 'ErrorSchema' },
         },
       },
     },
@@ -67,10 +66,10 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     '/logout',
     {
       preHandler: [async (req, reply) => { 
-        if (typeof (fastify as any).authenticate !== 'function') {
+        if (typeof fastify.authenticate !== 'function') {
           throw new Error('fastify.authenticate is not a function. Auth plugin might not be registered correctly.');
         }
-        return (fastify as any).authenticate(req, reply); 
+        return fastify.authenticate(req, reply); 
       }],
       schema: {
 
@@ -94,10 +93,10 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     '/me',
     {
       preHandler: [async (req, reply) => { 
-        if (typeof (fastify as any).authenticate !== 'function') {
+        if (typeof fastify.authenticate !== 'function') {
           throw new Error('fastify.authenticate is not a function. Auth plugin might not be registered correctly.');
         }
-        return (fastify as any).authenticate(req, reply); 
+        return fastify.authenticate(req, reply); 
       }],
 
       schema: {

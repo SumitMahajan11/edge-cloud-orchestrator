@@ -1,8 +1,12 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyPluginAsync } from 'fastify';
+import { zodToFastifySchema } from '../utils/zod-schema.js';
+import { resilienceResetParamSchema } from '../schemas';
+
 import { 
   getAllCircuitBreakerStates, 
   globalCircuitBreakerRegistry 
-} from '../utils/circuit-breakers.ts';
+} from '../utils/circuit-breakers.js';
 
 const resilienceRoutes: FastifyPluginAsync = async (fastify) => {
   /**
@@ -10,7 +14,7 @@ const resilienceRoutes: FastifyPluginAsync = async (fastify) => {
    * Returns state of all registered circuit breakers
    */
   fastify.get('/', {
-    preHandler: [fastify.authenticate],
+    preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
     schema: {
       tags: ['resilience'],
       summary: 'Get all circuit breaker states',
@@ -44,13 +48,7 @@ const resilienceRoutes: FastifyPluginAsync = async (fastify) => {
     schema: {
       tags: ['resilience'],
       summary: 'Force reset a circuit breaker',
-      params: {
-        type: 'object',
-        properties: {
-          name: { type: 'string' }
-        },
-        required: ['name']
-      },
+      params: zodToFastifySchema(resilienceResetParamSchema),
       response: {
         200: {
           type: 'object',
@@ -60,20 +58,23 @@ const resilienceRoutes: FastifyPluginAsync = async (fastify) => {
           }
         },
         404: {
-          type: 'object',
-          properties: {
-            error: { type: 'string' }
-          }
+          $ref: 'ErrorSchema#',
         }
       }
     },
-    preHandler: [fastify.authenticate, fastify.requireRole('admin')]
+    preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CIRCUIT_BREAKER_RESET)]
   }, async (request, reply) => {
     const { name } = request.params as { name: string };
     const breaker = globalCircuitBreakerRegistry.get(name);
 
     if (!breaker) {
-      return reply.code(404).send({ error: `Circuit breaker '${name}' not found` });
+      return reply.code(404).send({
+        error: {
+          code: 'NOT_FOUND',
+          message: `Circuit breaker '${name}' not found`,
+          requestId: request.id,
+        }
+      });
     }
 
     // Force close transitions it to CLOSED, which allows new calls (effectively HALF_OPEN in behavior for recovery)

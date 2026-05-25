@@ -6,6 +6,7 @@
 // Base URL: /api/v1/tasks
 // ============================================================================
 
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
@@ -43,11 +44,8 @@ const retryTaskSchema = z.object({
   input: z.record(z.unknown()).optional(), // Override input
 });
 
-// Type aliases for route validation
-type TaskLogsQuery = z.infer<typeof taskLogsQuerySchema>;
-type TaskHistoryQuery = z.infer<typeof taskHistoryQuerySchema>;
-type CancelTaskBody = z.infer<typeof cancelTaskSchema>;
-type RetryTaskBody = z.infer<typeof retryTaskSchema>;
+// Type aliases for route validation (Note: Using 'any' in handlers for now to satisfy complex Fastify/Zod constraints)
+
 
 // ============================================================================
 // Response Type Interfaces
@@ -107,12 +105,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    *   }
    * }
    */
-  fastify.post<{
-    Body: z.infer<typeof createTaskSchema>;
-  }>(
+  fastify.post(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CREATE)],
       schema: {
         body: zodToFastifySchema(createTaskSchema),
         tags: ['tasks'],
@@ -121,34 +117,37 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const data = request.body;
+      const data = request.body as z.infer<typeof createTaskSchema>;
 
       // Validate node if specified
       if (data.nodeId) {
-        const node = await fastify.prisma.edgeNode.findUnique({
-          where: { id: data.nodeId, tenantId: request.user!.tenantId! },
+        const node = await request.tPrisma.edgeNode.findUnique({
+          where: { id: data.nodeId },
         });
         if (!node || node.status !== 'ONLINE' || node.isMaintenanceMode) {
           return reply.status(400).send({
-            error: 'Node not available',
-            code: 'NODE_UNAVAILABLE',
+            error: {
+              code: 'NODE_UNAVAILABLE',
+              message: 'Node not available',
+              requestId: request.id,
+            }
           });
         }
       }
 
       // Create task with initial execution record
-      const task = await fastify.prisma.task.create({
+      const task = await request.tPrisma.task.create({
         data: {
           name: data.name,
-          type: data.type as any,
-          priority: data.priority as any,
-          target: data.target as any,
+          type: data.type,
+          priority: data.priority,
+          target: data.target,
           nodeId: data.nodeId ?? null,
           tenantId: request.user!.tenantId!,
           policy: data.nodeId ? 'manual' : 'auto',
           reason: 'User submitted',
-          input: (data.input ?? {}) as any,
-          metadata: (data.metadata ?? {}) as any,
+          input: (data.input ?? {}),
+          metadata: (data.metadata ?? {}),
           maxRetries: data.maxRetries ?? 3,
           executions: {
             create: {
@@ -168,7 +167,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       await fastify.taskScheduler.enqueue(task as any);
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
           userId: request.user!.id,
           tenantId: request.user!.tenantId!,
@@ -186,7 +185,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcast('task:created', task);
+      fastify.wsManager.broadcastToTenant('task:created', task, task.tenantId);
 
       // Build HATEOAS links
       const taskWithLinks = {
@@ -195,7 +194,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       };
 
       return reply.status(201).send(taskWithLinks);
-    },
+    }
   );
 
   // ==========================================================================
@@ -234,12 +233,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    * }
    * ```
    */
-  fastify.get<{
-    Querystring: z.infer<typeof taskQuerySchema>;
-  }>(
+  fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         querystring: zodToFastifySchema(taskQuerySchema),
         tags: ['tasks'],
@@ -258,10 +255,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         sortOrder,
         from,
         to,
-      } = request.query;
+      } = request.query as any;
 
       const where: any = {
-        tenantId: request.user!.tenantId!,
         ...(status && { status }),
         ...(type && { type }),
         ...(nodeId && { nodeId }),
@@ -277,7 +273,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       };
 
       const [tasks, total] = await Promise.all([
-        fastify.prisma.task.findMany({
+        request.tPrisma.task.findMany({
           where,
           orderBy: { [sortBy]: sortOrder },
           skip: (page - 1) * limit,
@@ -290,13 +286,13 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             },
           },
         }),
-        fastify.prisma.task.count({ where }),
+        request.tPrisma.task.count({ where }),
       ]);
 
       const totalPages = Math.ceil(total / limit);
 
       return {
-        data: tasks.map((t) => ({ ...t, _links: buildTaskLinks(t.id) })),
+        data: tasks.map((t: any) => ({ ...t, _links: buildTaskLinks(t.id) })),
         pagination: { page, limit, total, totalPages },
         _links: {
           self: { href: `/api/v1/tasks?page=${page}&limit=${limit}` },
@@ -309,7 +305,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           last: { href: `/api/v1/tasks?page=${totalPages}&limit=${limit}` },
         },
       };
-    },
+    }
   );
 
   // ==========================================================================
@@ -357,12 +353,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    *   "taskId": "550e8400-e29b-41d4-a716-446655440000"
    * }
    */
-  fastify.get<{
-    Params: { id: string };
-  }>(
+  fastify.get(
     '/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -370,10 +364,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { id } = request.params;
+      const { id } = request.params as any;
 
-      const task = await fastify.prisma.task.findUnique({
-        where: { id, tenantId: request.user!.tenantId! },
+      const task = await request.tPrisma.task.findUnique({
+        where: { id },
         include: {
           node: {
             select: { id: true, name: true, region: true, status: true },
@@ -387,9 +381,12 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       if (!task) {
         return reply.status(404).send({
-          error: 'Task not found',
-          code: 'TASK_NOT_FOUND',
-          taskId: id,
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found',
+            details: { taskId: id },
+            requestId: request.id,
+          }
         });
       }
 
@@ -442,13 +439,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    *   "allowedTransitions": []
    * }
    */
-  fastify.post<{
-    Params: { id: string };
-    Body: CancelTaskBody;
-  }>(
+  fastify.post(
     '/:id/cancel',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CANCEL)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: zodToFastifySchema(cancelTaskSchema),
@@ -458,11 +452,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { id } = request.params;
-      const { reason, force } = request.body ?? {};
+      const { id } = request.params as any;
+      const { reason, force } = (request.body ?? {}) as any;
 
-      const task = await fastify.prisma.task.findUnique({
-        where: { id, tenantId: request.user!.tenantId! },
+      const task = await request.tPrisma.task.findUnique({
+        where: { id },
         include: {
           executions: {
             where: { status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] } },
@@ -473,18 +467,26 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       if (!task) {
         return reply.status(404).send({
-          error: 'Task not found',
-          code: 'TASK_NOT_FOUND',
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found',
+            requestId: request.id,
+          }
         });
       }
 
       const cancellableStates = ['PENDING', 'SCHEDULED', 'RUNNING'];
       if (!cancellableStates.includes(task.status)) {
         return reply.status(400).send({
-          error: 'Task cannot be cancelled',
-          code: 'INVALID_STATE_TRANSITION',
-          currentStatus: task.status,
-          allowedTransitions: [],
+          error: {
+            code: 'INVALID_STATE_TRANSITION',
+            message: 'Task cannot be cancelled',
+            details: {
+              currentStatus: task.status,
+              allowedTransitions: [],
+            },
+            requestId: request.id,
+          }
         });
       }
 
@@ -492,7 +494,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       // Update task and execution
       const operations: any[] = [
-        fastify.prisma.task.update({
+        request.tPrisma.task.update({
           where: { id },
           data: {
             status: 'CANCELLED',
@@ -502,7 +504,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       if (task.executions[0]) {
         operations.push(
-          fastify.prisma.taskExecution.update({
+          request.tPrisma.taskExecution.update({
             where: { id: task.executions[0].id },
             data: {
               status: 'CANCELLED',
@@ -513,14 +515,14 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         );
       }
 
-      const results = await fastify.prisma.$transaction(operations);
+      const results = await request.tPrisma.$transaction(operations);
       const updatedTask = results[0];
       const updatedExecution = results[1] ?? null;
 
       // If running, send kill command to edge agent
       if (previousStatus === 'RUNNING' && task.nodeId) {
         try {
-          const node = await fastify.prisma.edgeNode.findUnique({
+          const node = await request.tPrisma.edgeNode.findUnique({
             where: { id: task.nodeId },
           });
 
@@ -548,7 +550,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       }
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
           userId: request.user!.id,
           tenantId: request.user!.tenantId!,
@@ -562,11 +564,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcast('task:cancelled', {
+      fastify.wsManager.broadcastToTenant('task:cancelled', {
         id,
         reason,
         previousStatus,
-      });
+      }, task.tenantId);
 
       return {
         ...updatedTask,
@@ -576,7 +578,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         execution: updatedExecution,
         _links: buildTaskLinks(id),
       };
-    },
+    }
   );
 
   // ==========================================================================
@@ -625,13 +627,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    *   "maxRetries": 3
    * }
    */
-  fastify.post<{
-    Params: { id: string };
-    Body: RetryTaskBody;
-  }>(
+  fastify.post(
     '/:id/retry',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_ADMIN)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: zodToFastifySchema(retryTaskSchema),
@@ -642,11 +641,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { id } = request.params;
-      const overrides = request.body ?? {};
+      const { id } = request.params as any;
+      const overrides = (request.body ?? {}) as any;
 
-      const originalTask = await fastify.prisma.task.findUnique({
-        where: { id, tenantId: request.user!.tenantId! },
+      const originalTask = await request.tPrisma.task.findUnique({
+        where: { id },
         include: {
           executions: {
             orderBy: { attemptNumber: 'desc' },
@@ -657,49 +656,62 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       if (!originalTask) {
         return reply.status(404).send({
-          error: 'Task not found',
-          code: 'TASK_NOT_FOUND',
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found',
+            requestId: request.id,
+          }
         });
       }
 
       const retryableStates = ['FAILED', 'CANCELLED', 'TIMEOUT'];
       if (!retryableStates.includes(originalTask.status)) {
         return reply.status(400).send({
-          error: 'Task cannot be retried',
-          code: 'NOT_RETRYABLE',
-          currentStatus: originalTask.status,
-          retryableStates,
+          error: {
+            code: 'NOT_RETRYABLE',
+            message: 'Task cannot be retried',
+            details: {
+              currentStatus: originalTask.status,
+              retryableStates,
+            },
+            requestId: request.id,
+          }
         });
       }
 
       // Check retry count across all attempts
-      const allExecutions = await fastify.prisma.taskExecution.count({
-        where: { taskId: id, task: { tenantId: request.user!.tenantId! } },
+      const allExecutions = await request.tPrisma.taskExecution.count({
+        where: { taskId: id },
       });
 
       if (allExecutions >= originalTask.maxRetries) {
         return reply.status(400).send({
-          error: 'Maximum retries exceeded',
-          code: 'MAX_RETRIES_EXCEEDED',
-          retryCount: allExecutions,
-          maxRetries: originalTask.maxRetries,
+          error: {
+            code: 'MAX_RETRIES_EXCEEDED',
+            message: 'Maximum retries exceeded',
+            details: {
+              retryCount: allExecutions,
+              maxRetries: originalTask.maxRetries,
+            },
+            requestId: request.id,
+          }
         });
       }
 
       const previousExecution = originalTask.executions[0];
 
       // Reset existing task and create new execution record
-      await fastify.prisma.$transaction([
-        fastify.prisma.task.update({
-          where: { id, tenantId: request.user!.tenantId! },
+      await request.tPrisma.$transaction([
+        request.tPrisma.task.update({
+          where: { id },
           data: {
             status: 'PENDING',
             nodeId: overrides.nodeId ?? null,
             priority: overrides.priority ?? originalTask.priority,
-            input: (overrides.input ?? originalTask.input) as any,
+            input: (overrides.input ?? originalTask.input) as Record<string, unknown>,
           },
         }),
-        fastify.prisma.taskExecution.create({
+        request.tPrisma.taskExecution.create({
           data: {
             taskId: id,
             status: 'PENDING',
@@ -710,7 +722,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         }),
       ]);
 
-      const updatedTask = await fastify.prisma.task.findUnique({
+      const updatedTask = await request.tPrisma.task.findUnique({
         where: { id },
         include: {
           node: { select: { id: true, name: true, region: true } },
@@ -722,7 +734,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       await fastify.taskScheduler.enqueue(updatedTask as any);
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
           userId: request.user!.id,
           tenantId: request.user!.tenantId!,
@@ -739,22 +751,12 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcast('task:created', updatedTask);
+      fastify.wsManager.broadcastToTenant('task:created', updatedTask, updatedTask?.tenantId ?? undefined);
 
       return reply.status(201).send({
-        ...updatedTask,
-        retryOf: id,
-        attemptNumber: allExecutions + 1,
-        previousExecution: {
-          id: previousExecution?.id,
-          status: previousExecution?.status,
-          exitCode: previousExecution?.exitCode,
-          error: previousExecution?.error,
-          durationMs: previousExecution?.durationMs,
-        },
         _links: buildTaskLinks(id),
       });
-    },
+    }
   );
 
   // ==========================================================================
@@ -806,13 +808,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    *   "_links": { ... }
    * }
    */
-  fastify.get<{
-    Params: { id: string };
-    Querystring: TaskLogsQuery;
-  }>(
+  fastify.get(
     '/:id/logs',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: zodToFastifySchema(taskLogsQuerySchema),
@@ -820,22 +819,34 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         summary: 'Get task logs',
       },
     },
-    async (request, reply) => {
-      const { id } = request.params;
-      const { level, executionId, source, from, to, limit, offset } =
-        request.query;
+    async (request) => {
+      const { id } = request.params as { id: string };
+      const {
+        level,
+        executionId,
+        source,
+        from,
+        to,
+        limit,
+        offset,
+      } = request.query as {
+        level?: string;
+        executionId?: string;
+        source?: string;
+        from?: string;
+        to?: string;
+        limit: number;
+        offset: number;
+      };
 
       // Verify task exists
-      const task = await fastify.prisma.task.findUnique({
+      const task = await request.tPrisma.task.findUnique({
         where: { id },
         select: { id: true },
       });
 
       if (!task) {
-        return reply.status(404).send({
-          error: 'Task not found',
-          code: 'TASK_NOT_FOUND',
-        });
+        throw { statusCode: 404, message: 'Task not found', code: 'TASK_NOT_FOUND' };
       }
 
       const where: any = {
@@ -854,27 +865,27 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       };
 
       const [logs, total, levelCounts] = await Promise.all([
-        fastify.prisma.taskLog.findMany({
+        request.tPrisma.taskLog.findMany({
           where,
-          orderBy: { timestamp: 'asc' },
+          orderBy: { timestamp: 'desc' },
           skip: offset,
           take: limit,
         }),
-        fastify.prisma.taskLog.count({ where }),
-        fastify.prisma.taskLog.groupBy({
+        request.tPrisma.taskLog.count({ where }),
+        request.tPrisma.taskLog.groupBy({
           by: ['level'],
           where: { taskId: id },
           _count: true,
         }),
       ]);
 
-      const firstLog = await fastify.prisma.taskLog.findFirst({
+      const firstLog = await (request.tPrisma as any).taskLog.findFirst({
         where: { taskId: id },
         orderBy: { timestamp: 'asc' },
         select: { timestamp: true },
       });
 
-      const lastLog = await fastify.prisma.taskLog.findFirst({
+      const lastLog = await (request.tPrisma as any).taskLog.findFirst({
         where: { taskId: id },
         orderBy: { timestamp: 'desc' },
         select: { timestamp: true },
@@ -886,7 +897,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         pagination: { limit, offset, total },
         summary: {
           byLevel: levelCounts.reduce(
-            (acc, l) => ({ ...acc, [l.level]: l._count }),
+            (acc: any, l: any) => ({ ...acc, [l.level]: l._count }),
             {},
           ),
           firstLog: firstLog?.timestamp,
@@ -929,13 +940,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
    * }
    * ```
    */
-  fastify.get<{
-    Params: { id: string };
-    Querystring: TaskHistoryQuery;
-  }>(
+  fastify.get(
     '/:id/history',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: zodToFastifySchema(taskHistoryQuerySchema),
@@ -945,11 +953,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           'Returns complete execution history including all attempts',
       },
     },
-    async (request, reply) => {
+    async (request: any, reply: any) => {
       const { id } = request.params;
       const { includeExecutions, includeLogs, limit } = request.query;
 
-      const task = await fastify.prisma.task.findUnique({
+      const task = await (request.tPrisma).task.findUnique({
         where: { id },
         include: {
           node: { select: { id: true, name: true, region: true } },
@@ -960,7 +968,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
               node: { select: { id: true, name: true, region: true } },
               ...(includeLogs && {
                 logs: {
-                  orderBy: { timestamp: 'asc' },
+                  orderBy: { timestamp: 'desc' },
+                  take: 100,
                 },
               }),
             },
@@ -970,13 +979,16 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       if (!task) {
         return reply.status(404).send({
-          error: 'Task not found',
-          code: 'TASK_NOT_FOUND',
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found',
+            requestId: request.id,
+          }
         });
       }
 
       // Build timeline from logs
-      const timelineLogs = await fastify.prisma.taskLog.findMany({
+      const timelineLogs = await (request.tPrisma).taskLog.findMany({
         where: {
           taskId: id,
           source: 'scheduler',
@@ -986,7 +998,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       const timeline = [
         { timestamp: task.submittedAt, event: 'created', details: {} },
-        ...timelineLogs.map((log) => ({
+        ...timelineLogs.map((log: any) => ({
           timestamp: log.timestamp,
           event: log.message.toLowerCase().replace(/\s+/g, '_'),
           details: (log.metadata as Record<string, unknown>) ?? {},
@@ -996,14 +1008,14 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Calculate summary
       const { executions } = task;
       const completedExecutions = executions.filter(
-        (e) => e.status === 'COMPLETED',
+        (e: any) => e.status === 'COMPLETED',
       );
       const totalDuration = executions.reduce(
-        (sum, e) => sum + (e.durationMs ?? 0),
+        (sum: any, e: any) => sum + (e.durationMs ?? 0),
         0,
       );
       const totalCost = executions.reduce(
-        (sum, e) => sum + (e.costUSD ?? 0),
+        (sum: any, e: any) => sum + (e.costUSD ?? 0),
         0,
       );
 
@@ -1016,9 +1028,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           priority: task.priority,
           target: task.target,
           node: task.node,
-          input: (task as any).input,
-          metadata: (task as any).metadata,
-          maxRetries: (task as any).maxRetries,
+          input: (task).input,
+          metadata: (task).metadata,
+          maxRetries: (task).maxRetries,
           submittedAt: task.submittedAt,
         },
         executions: includeExecutions ? executions : [],
@@ -1045,13 +1057,13 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         tags: ['tasks'],
         summary: 'Get task statistics',
       },
     },
-    async (request) => {
+    async (request: any) => {
       const [
         byStatus,
         byPriority,
@@ -1059,31 +1071,26 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         avgDuration,
         recentTasks,
       ] = await Promise.all([
-        fastify.prisma.task.groupBy({
+        (request.tPrisma).task.groupBy({
           by: ['status'],
-          where: { tenantId: request.user!.tenantId! },
           _count: true,
         }),
-        fastify.prisma.task.groupBy({
+        (request.tPrisma).task.groupBy({
           by: ['priority'],
-          where: { tenantId: request.user!.tenantId! },
           _count: true,
         }),
-        fastify.prisma.task.groupBy({
+        (request.tPrisma).task.groupBy({
           by: ['type'],
-          where: { tenantId: request.user!.tenantId! },
           _count: true,
         }),
-        (fastify.prisma as any).taskExecution.aggregate({
+        (request.tPrisma).taskExecution.aggregate({
           where: { 
-            status: 'COMPLETED',
-            task: { tenantId: request.user!.tenantId! }
+            status: 'COMPLETED'
           },
           _avg: { durationMs: true },
         }),
-        fastify.prisma.task.count({
+        (request.tPrisma).task.count({
           where: {
-            tenantId: request.user!.tenantId!,
             submittedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
           },
         }),

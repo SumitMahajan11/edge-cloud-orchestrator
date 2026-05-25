@@ -1,4 +1,7 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { Permissions } from '@edgecloud/shared-kernel';
+import { FastifyInstance, FastifyReply,FastifyRequest } from 'fastify';
+import { zodToFastifySchema } from '../utils/zod-schema.js';
+import { carbonSavingsQuerySchema, carbonPolicyUpdateSchema } from '../schemas';
 
 /**
  * Carbon & Eco-Scheduling Routes (v2)
@@ -10,7 +13,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/intensity',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CARBON_READ)],
       schema: {
         tags: ['carbon'],
         summary: 'Get regional carbon intensity',
@@ -36,7 +39,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return { regions: [] };
+      if (!taskScheduler) {return { regions: [] };}
       return taskScheduler.getCarbonIntensityData();
     }
   );
@@ -45,16 +48,11 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/savings',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CARBON_READ)],
       schema: {
         tags: ['carbon'],
         summary: 'Get carbon savings metrics',
-        querystring: {
-          type: 'object',
-          properties: {
-            days: { type: 'number', default: 7 }
-          }
-        },
+        querystring: zodToFastifySchema(carbonSavingsQuerySchema),
         response: {
           200: {
             type: 'object',
@@ -79,7 +77,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const { days } = (request.query as any) || { days: 7 };
-      if (!taskScheduler) return { totalSavedGco2Today: 0, totalSavedGco2Week: 0, equivalentTreesPlanted: 0, savingsHistory: [] };
+      if (!taskScheduler) {return { totalSavedGco2Today: 0, totalSavedGco2Week: 0, equivalentTreesPlanted: 0, savingsHistory: [] };}
       return taskScheduler.getCarbonSavingsData(days);
     }
   );
@@ -88,7 +86,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/policy',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CARBON_READ)],
       schema: {
         tags: ['carbon'],
         summary: 'Get active carbon optimization policy',
@@ -105,7 +103,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return { carbonWeight: 0.2, isActive: false, activePolicy: 'None' };
+      if (!taskScheduler) {return { carbonWeight: 0.2, isActive: false, activePolicy: 'None' };}
       return taskScheduler.getCarbonPolicyData();
     }
   );
@@ -114,17 +112,11 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
   fastify.patch(
     '/policy',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CARBON_POLICY_WRITE)],
       schema: {
         tags: ['carbon'],
         summary: 'Update carbon optimization weight',
-        body: {
-          type: 'object',
-          required: ['carbonWeight'],
-          properties: {
-            carbonWeight: { type: 'number', minimum: 0, maximum: 1 }
-          }
-        },
+        body: zodToFastifySchema(carbonPolicyUpdateSchema),
         response: {
           200: {
             type: 'object',
@@ -138,7 +130,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const { carbonWeight } = request.body as any;
-      if (!taskScheduler) return { success: false, carbonWeight: 0 };
+      if (!taskScheduler) {return { success: false, carbonWeight: 0 };}
       return taskScheduler.updateCarbonPolicy(carbonWeight);
     }
   );

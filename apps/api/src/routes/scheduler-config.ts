@@ -5,8 +5,11 @@
  */
 
 import { ScoreWeights } from '@edgecloud/ml-scheduler';
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+import { zodToFastifySchema } from '../utils/zod-schema.js';
+import { schedulerWeightsBodySchema, schedulerApplyPresetParamSchema } from '../schemas';
 
 // Validation schema for weights
 const WeightsSchema = z.object({
@@ -32,7 +35,7 @@ export async function schedulerConfigRoutes(
 ) {
   // Add authentication and role protection to all routes in this module
   fastify.addHook('preHandler', fastify.authenticate);
-  fastify.addHook('preHandler', fastify.requireRole('ADMIN'));
+  fastify.addHook('preHandler', fastify.requirePermission(Permissions.SCHEDULER_READ));
 
   // Get current scheduler weights
   fastify.get('/weights', async (_, reply) => {
@@ -52,19 +55,9 @@ export async function schedulerConfigRoutes(
   fastify.put(
     '/weights',
     {
+      preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
       schema: {
-        body: {
-          type: 'object',
-          properties: {
-            latency: { type: 'number', minimum: 0, maximum: 1 },
-            cpu: { type: 'number', minimum: 0, maximum: 1 },
-            memory: { type: 'number', minimum: 0, maximum: 1 },
-            cost: { type: 'number', minimum: 0, maximum: 1 },
-            network: { type: 'number', minimum: 0, maximum: 1 },
-            ml: { type: 'number', minimum: 0, maximum: 1 },
-            health: { type: 'number', minimum: 0, maximum: 1 },
-          },
-        },
+        body: zodToFastifySchema(schedulerWeightsBodySchema),
       },
     },
     async (request, reply) => {
@@ -86,7 +79,9 @@ export async function schedulerConfigRoutes(
   );
 
   // Reset weights to defaults
-  fastify.post('/weights/reset', async (_, reply) => {
+  fastify.post('/weights/reset', {
+    preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)]
+  }, async (_, reply) => {
     const defaultWeights: ScoreWeights = {
       latency: 0.2,
       cpu: 0.15,
@@ -198,7 +193,12 @@ export async function schedulerConfigRoutes(
   });
 
   // Apply a preset
-  fastify.post('/presets/:name/apply', async (request, reply) => {
+  fastify.post('/presets/:name/apply', {
+    preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
+    schema: {
+      params: zodToFastifySchema(schedulerApplyPresetParamSchema),
+    },
+  }, async (request, reply) => {
     const { name } = request.params as { name: string };
 
     const presets: Record<string, ScoreWeights> = {
@@ -252,8 +252,11 @@ export async function schedulerConfigRoutes(
     const preset = presets[name];
     if (!preset) {
       return reply.status(404).send({
-        success: false,
-        error: `Preset '${name}' not found`,
+        error: {
+          code: 'NOT_FOUND',
+          message: `Preset '${name}' not found`,
+          requestId: request.id,
+        }
       });
     }
 

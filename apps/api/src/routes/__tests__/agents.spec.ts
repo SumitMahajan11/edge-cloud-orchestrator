@@ -1,9 +1,10 @@
 import 'reflect-metadata';
+
+import { SecretManagerFactory } from '@edgecloud/shared-kernel';
 import fastify from 'fastify';
+
 import { prismaPlugin } from '../../plugins/prisma.js';
 import agentRoutes from '../agents.js';
-import { vi, describe, it, expect, beforeEach } from 'vitest';
-import { SecretManagerFactory } from '@edgecloud/shared-kernel';
 
 // Mock SecretManagerFactory for Vault PKI
 SecretManagerFactory.create = () => ({
@@ -18,6 +19,7 @@ describe('Agent Registration Routes', () => {
   const mockPrisma: any = {
     $extends: vi.fn().mockReturnThis(),
     $disconnect: vi.fn(),
+    $transaction: vi.fn().mockImplementation((cb) => cb(mockPrisma)),
     bootstrapToken: {
       findUnique: vi.fn(),
       update: vi.fn(),
@@ -121,6 +123,6 @@ describe('Agent Registration Routes', () => {
     });
 
     expect(response.statusCode).toBe(400); // Current implementation returns 400
-    expect(JSON.parse(response.body).message).toContain('expired');
+    expect(JSON.parse(response.body).error.message).toContain('expired');
   });
 });

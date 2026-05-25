@@ -1,5 +1,7 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 
 const LogQuerySchema = z.object({
@@ -15,7 +17,7 @@ export default async function logRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         querystring: zodToFastifySchema(LogQuerySchema),
         tags: ['logs'],
@@ -41,7 +43,17 @@ export default async function logRoutes(fastify: FastifyInstance) {
         },
       });
 
-      return logs;
+      return {
+        data: logs,
+        pagination: {
+          page: 1,
+          limit: logs.length || 50,
+          total: logs.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -49,7 +61,7 @@ export default async function logRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         tags: ['logs'],
         summary: 'Get log statistics',

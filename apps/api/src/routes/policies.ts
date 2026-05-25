@@ -1,5 +1,7 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
+
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 
 const PolicySchema = z.object({
@@ -17,7 +19,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
       schema: {
         tags: ['policies'],
         summary: 'List available scheduling policies',
@@ -42,7 +44,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/active',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
       schema: {
         tags: ['policies'],
         summary: 'Get the currently active scheduling policy',
@@ -60,7 +62,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.patch<{ Body: z.infer<typeof PolicySchema> }>(
     '/active',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
       schema: {
         body: zodToFastifySchema(PolicySchema),
         tags: ['policies'],
@@ -83,7 +85,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/config',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
       schema: {
         tags: ['policies'],
         summary: 'Get detailed configuration for all policies',
@@ -102,7 +104,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/thresholds',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
       schema: {
         tags: ['policies'],
         summary: 'Get system health thresholds',
@@ -121,7 +123,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.patch<{ Body: z.infer<typeof ThresholdsSchema> }>(
     '/thresholds',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
       schema: {
         body: zodToFastifySchema(ThresholdsSchema),
         tags: ['policies'],

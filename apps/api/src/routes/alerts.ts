@@ -1,24 +1,40 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 
 import { getAlertingService } from '../services/alerting-service.js';
 
 export default async function alertRoutes(fastify: FastifyInstance) {
-  // Get alert history
-  fastify.get<{
-    Querystring: { severity?: 'critical' | 'warning' | 'info' };
-  }>(
+  // Get all alerts for tenant
+  fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ALERT_READ)],
       schema: {
         tags: ['alerts'],
-        summary: 'Get alert history',
-        querystring: {
-          type: 'object',
-          properties: {
-            severity: { type: 'string', enum: ['critical', 'warning', 'info'] },
-          },
-        },
+        summary: 'Get active alerts for tenant',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              alerts: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    id: { type: 'string' },
+                    severity: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] },
+                    title: { type: 'string' },
+                    description: { type: 'string' },
+                    source: { type: 'string' },
+                    firedAt: { type: 'string' },
+                    acknowledgedAt: { type: 'string', nullable: true },
+                    resolvedAt: { type: 'string', nullable: true },
+                  }
+                }
+              }
+            }
+          }
+        }
       },
     },
     async (request, _reply) => {
@@ -26,54 +42,77 @@ export default async function alertRoutes(fastify: FastifyInstance) {
       if (!alerting) {
         return { alerts: [] };
       }
-      return { alerts: alerting.getAlertHistory(request.user!.tenantId!, request.query.severity) };
+      const alerts = await alerting.getAlerts(request.user!.tenantId!);
+      return { alerts };
     },
   );
 
-  // Clear alert history (admin only)
-  fastify.delete(
-    '/',
+  // Acknowledge an alert
+  fastify.post<{
+    Params: { id: string };
+  }>(
+    '/:id/acknowledge',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ALERT_MANAGE)],
       schema: {
         tags: ['alerts'],
-        summary: 'Clear alert history',
+        summary: 'Acknowledge an alert',
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' }
+          }
+        }
       },
     },
     async (request, reply) => {
       const alerting = getAlertingService();
       if (!alerting) {
-        return reply.status(500).send({ 
-          code: 'SERVICE_UNAVAILABLE', 
-          message: 'Alerting not initialized' 
+        return reply.status(503).send({
+          error: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: 'Alerting service unavailable',
+            requestId: request.id,
+          }
         });
       }
-      alerting.clearHistory(request.user!.tenantId!);
-      return { success: true, message: 'Alert history cleared' };
+
+      const success = await alerting.acknowledge(request.params.id, request.user!.tenantId!);
+      if (!success) {
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Alert not found or access denied',
+            requestId: request.id,
+          }
+        });
+      }
+
+      return { success: true };
     },
   );
 
-  // Test alert (admin only)
+  // Send test alert (admin only)
   fastify.post<{
     Body: {
-      severity: 'critical' | 'warning' | 'info';
+      severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
       title: string;
-      message: string;
+      description: string;
     };
   }>(
     '/test',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ALERT_MANAGE)],
       schema: {
         tags: ['alerts'],
         summary: 'Send test alert',
         body: {
           type: 'object',
-          required: ['severity', 'title', 'message'],
+          required: ['severity', 'title', 'description'],
           properties: {
-            severity: { type: 'string', enum: ['critical', 'warning', 'info'] },
+            severity: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] },
             title: { type: 'string' },
-            message: { type: 'string' },
+            description: { type: 'string' },
           },
         },
       },
@@ -81,22 +120,24 @@ export default async function alertRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const alerting = getAlertingService();
       if (!alerting) {
-        return reply.status(500).send({ 
-          code: 'SERVICE_UNAVAILABLE', 
-          message: 'Alerting not initialized' 
+        return reply.status(503).send({
+          error: {
+            code: 'SERVICE_UNAVAILABLE',
+            message: 'Alerting service unavailable',
+            requestId: request.id,
+          }
         });
       }
 
-      await alerting.alert(
+      const alert = await alerting.alert(
         request.body.severity,
         request.body.title,
-        request.body.message,
-        'test',
+        request.body.description,
+        'manual-test',
         request.user!.tenantId!,
       );
 
-      return { success: true, message: 'Test alert sent' };
+      return { success: true, alertId: alert?.id };
     },
   );
 }
-

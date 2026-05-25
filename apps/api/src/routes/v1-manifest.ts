@@ -1,4 +1,5 @@
 import { FastifyPluginAsync } from 'fastify';
+
 import adminRoutes from './admin';
 import alertRoutes from './alerts';
 import authRoutes from './auth';
@@ -16,6 +17,14 @@ import workflowRoutes from './workflows';
  * Groups all V1 routes for versioned registration.
  */
 const v1Routes: FastifyPluginAsync = async (fastify) => {
+  // Add deprecation headers to all v1 routes
+  fastify.addHook('onRequest', async (request, reply) => {
+    reply.header('Deprecation', 'true');
+    reply.header('Sunset', 'Sat, 31 Dec 2026 23:59:59 GMT');
+    const v2Path = request.url.replace(/^\/api\/v1/, '/api/v2');
+    reply.header('Link', `<${v2Path}>; rel="successor-version"`);
+  });
+
   // Register each route module
   // Note: These prefixes are relative to the parent prefix (/v1)
   await fastify.register(authRoutes, { prefix: '/auth' });

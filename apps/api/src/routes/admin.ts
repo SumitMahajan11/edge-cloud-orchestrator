@@ -1,15 +1,46 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
+import { zodToFastifySchema } from '../utils/zod-schema.js';
+import {
+  adminUserRoleParamSchema,
+  adminUserRoleBodySchema,
+  adminDeactivateParamSchema,
+  adminCleanupBodySchema,
+  adminEventRepublishBodySchema,
+  adminEventRepublishRangeBodySchema,
+  adminDlqEventsQuerySchema,
+  adminDlqEventRetryParamSchema,
+  adminDlqPurgeBodySchema,
+} from '../schemas';
 
 type UserRoleStr = 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'VIEWER';
 
 export default async function adminRoutes(fastify: FastifyInstance) {
+  // WebSocket Statistics
+  fastify.get(
+    '/ws-stats',
+    {
+      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      schema: {
+        tags: ['admin'],
+        summary: 'Get WebSocket statistics',
+      },
+    },
+    async () => {
+      return fastify.wsManager.getStats();
+    },
+  );
+
   // Get audit logs
   fastify.get<{
     Querystring: { userId?: string; action?: string; limit?: number };
   }>(
     '/audit-logs',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.AUDIT_READ),
+      ],
       schema: {
         querystring: {
           type: 'object',
@@ -26,22 +57,37 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     async (request, _reply) => {
       const { userId, action, limit = 100 } = request.query;
 
-      const logs = await (fastify.prisma as any).auditLog.findMany({
-        where: {
-          tenantId: request.user!.tenantId!,
-          ...(userId && { userId }),
-          ...(action && { action }),
-        },
-        orderBy: { createdAt: 'desc' },
-        take: limit,
-        include: {
-          user: {
-            select: { id: true, email: true, name: true },
-          },
-        },
-      });
+      const where = {
+        tenantId: request.user!.tenantId!,
+        ...(userId && { userId }),
+        ...(action && { action }),
+      };
 
-      return logs;
+      const [logs, total] = await Promise.all([
+        fastify.prisma.auditLog.findMany({
+          where,
+          orderBy: { createdAt: 'desc' },
+          take: limit,
+          include: {
+            user: {
+              select: { id: true, email: true, name: true },
+            },
+          },
+        }),
+        fastify.prisma.auditLog.count({ where }),
+      ]);
+
+      return {
+        data: logs,
+        pagination: {
+          page: 1,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: limit < total,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -49,36 +95,55 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/users',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TENANT_MANAGE),
+      ],
       schema: {
         tags: ['admin'],
         summary: 'List all users',
       },
     },
     async (request, _reply) => {
-      const users = await (fastify.prisma as any).user.findMany({
-        where: {
-          tenantUsers: {
-            some: {
-              tenantId: request.user!.tenantId!,
-            },
+      const limit = 50;
+      const where = {
+        tenantUsers: {
+          some: {
+            tenantId: request.user!.tenantId!,
           },
         },
-        select: {
-          id: true,
-          email: true,
-          name: true,
-          role: true,
-          isActive: true,
-          emailVerified: true,
-          createdAt: true,
-          lastLoginAt: true,
-          _count: { select: { sessions: true, apiKeys: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
+      };
 
-      return users;
+      const [users, total] = await Promise.all([
+        fastify.prisma.user.findMany({
+          where,
+          select: {
+            id: true,
+            email: true,
+            name: true,
+            role: true,
+            isActive: true,
+            emailVerified: true,
+            createdAt: true,
+            lastLoginAt: true,
+            _count: { select: { sessions: true, apiKeys: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+        }),
+        fastify.prisma.user.count({ where }),
+      ]);
+
+      return {
+        data: users,
+        pagination: {
+          page: 1,
+          limit,
+          total,
+          totalPages: Math.ceil(total / limit),
+          hasNext: limit < total,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -86,22 +151,13 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.patch<{ Params: { id: string }; Body: { role: UserRoleStr } }>(
     '/users/:id/role',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TENANT_MANAGE),
+      ],
       schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-          required: ['id'],
-        },
-        body: {
-          type: 'object',
-          properties: {
-            role: { type: 'string', enum: ['ADMIN', 'OPERATOR', 'VIEWER'] },
-          },
-          required: ['role'],
-        },
+        params: zodToFastifySchema(adminUserRoleParamSchema),
+        body: zodToFastifySchema(adminUserRoleBodySchema),
         tags: ['admin'],
         summary: 'Update user role',
       },
@@ -112,14 +168,17 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       const currentUser = request.user as { id: string; tenantId: string };
       if (id === currentUser.id) {
-        return reply.status(400).send({ 
-          code: 'FORBIDDEN', 
-          message: 'Cannot change your own role' 
+        return reply.status(400).send({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Cannot change your own role',
+            requestId: request.id,
+          },
         });
       }
 
       // Verify target user belongs to the same tenant
-      const tenantUser = await (fastify.prisma as any).tenantUser.findFirst({
+      const tenantUser = await fastify.prisma.tenantUser.findFirst({
         where: {
           userId: id,
           tenantId: currentUser.tenantId,
@@ -128,18 +187,21 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       if (!tenantUser) {
         return reply.status(404).send({
-          code: 'NOT_FOUND',
-          message: 'User not found in your tenant',
+          error: {
+            code: 'NOT_FOUND',
+            message: 'User not found in your tenant',
+            requestId: request.id,
+          },
         });
       }
 
-      const user = await (fastify.prisma as any).user.update({
+      const user = await fastify.prisma.user.update({
         where: { id },
         data: { role },
       });
 
       // Audit log
-      await (fastify.prisma as any).auditLog.create({
+      await fastify.prisma.auditLog.create({
         data: {
           userId: currentUser.id,
           tenantId: request.user!.tenantId!,
@@ -160,15 +222,12 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
     '/users/:id/deactivate',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TENANT_MANAGE),
+      ],
       schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-          },
-          required: ['id'],
-        },
+        params: zodToFastifySchema(adminDeactivateParamSchema),
         tags: ['admin'],
         summary: 'Deactivate user',
       },
@@ -178,14 +237,17 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       const currentUser = request.user as { id: string; tenantId: string };
       if (id === currentUser.id) {
-        return reply.status(400).send({ 
-          code: 'FORBIDDEN', 
-          message: 'Cannot deactivate yourself' 
+        return reply.status(400).send({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Cannot deactivate yourself',
+            requestId: request.id,
+          },
         });
       }
 
       // Verify target user belongs to the same tenant
-      const tenantUser = await (fastify.prisma as any).tenantUser.findFirst({
+      const tenantUser = await fastify.prisma.tenantUser.findFirst({
         where: {
           userId: id,
           tenantId: currentUser.tenantId,
@@ -194,18 +256,21 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       if (!tenantUser) {
         return reply.status(404).send({
-          code: 'NOT_FOUND',
-          message: 'User not found in your tenant',
+          error: {
+            code: 'NOT_FOUND',
+            message: 'User not found in your tenant',
+            requestId: request.id,
+          },
         });
       }
 
-      const user = await (fastify.prisma as any).user.update({
+      const user = await fastify.prisma.user.update({
         where: { id },
         data: { isActive: false },
       });
 
       // Invalidate all sessions
-      await (fastify.prisma as any).session.deleteMany({ where: { userId: id } });
+      await fastify.prisma.session.deleteMany({ where: { userId: id } });
 
       return user;
     },
@@ -215,7 +280,10 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/health',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SYSTEM_READ),
+      ],
       schema: {
         tags: ['admin'],
         summary: 'Get system health',
@@ -244,16 +312,12 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: { olderThanDays: number; types: string[] } }>(
     '/cleanup',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TENANT_MANAGE),
+      ],
       schema: {
-        body: {
-          type: 'object',
-          properties: {
-            olderThanDays: { type: 'number' },
-            types: { type: 'array', items: { type: 'string' } },
-          },
-          required: ['olderThanDays', 'types'],
-        },
+        body: zodToFastifySchema(adminCleanupBodySchema),
         tags: ['admin'],
         summary: 'Clean up old data',
       },
@@ -267,45 +331,45 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       if (types.includes('metrics')) {
         results.nodeMetrics = await fastify.prisma.nodeMetric
           .deleteMany({
-            where: { 
+            where: {
               timestamp: { lt: cutoff },
-              node: { tenantId: request.user!.tenantId! }
+              node: { tenantId: request.user!.tenantId! },
             },
           })
-          .then((r: any) => r.count);
+          .then((r) => r.count);
       }
 
       if (types.includes('logs')) {
         results.taskLogs = await fastify.prisma.taskLog
           .deleteMany({
-            where: { 
+            where: {
               timestamp: { lt: cutoff },
-              task: { tenantId: request.user!.tenantId! }
+              task: { tenantId: request.user!.tenantId! },
             },
           })
-          .then((r: any) => r.count);
+          .then((r) => r.count);
       }
 
       if (types.includes('webhookDeliveries')) {
-        results.webhookDeliveries = await (fastify.prisma as any).webhookDelivery
+        results.webhookDeliveries = await fastify.prisma.webhookDelivery
           .deleteMany({
-            where: { 
+            where: {
               createdAt: { lt: cutoff },
-              tenantId: request.user!.tenantId!
+              tenantId: request.user!.tenantId!,
             },
           })
-          .then((r: any) => r.count);
+          .then((r) => r.count);
       }
 
       if (types.includes('auditLogs')) {
-        results.auditLogs = await (fastify.prisma as any).auditLog
+        results.auditLogs = await fastify.prisma.auditLog
           .deleteMany({
-            where: { 
+            where: {
               createdAt: { lt: cutoff },
-              tenantId: request.user!.tenantId!
+              tenantId: request.user!.tenantId!,
             },
           })
-          .then((r: any) => r.count);
+          .then((r) => r.count);
       }
 
       return { deleted: results, cutoff: cutoff.toISOString() };
@@ -316,18 +380,24 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/ml/retrain',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.ML_RETRAIN),
+      ],
       schema: {
         tags: ['admin'],
         summary: 'Trigger ML model retraining',
       },
     },
-    async (_request, reply) => {
-      const scheduler = (fastify as any).taskScheduler;
+    async (request, reply) => {
+      const scheduler = fastify.taskScheduler;
       if (!scheduler) {
-        return reply.status(500).send({ 
-          code: 'INTERNAL_ERROR', 
-          message: 'TaskScheduler not initialized' 
+        return reply.status(500).send({
+          error: {
+            code: 'INTERNAL_ERROR',
+            message: 'TaskScheduler not initialized',
+            requestId: request.id,
+          },
         });
       }
 
@@ -336,11 +406,15 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const fs = await import('fs');
 
       // 1. Extract data
-      const trainingData = await scheduler.featureExtractor.extractTrainingData();
+      const trainingData =
+        await scheduler.featureExtractor.extractTrainingData();
       if (trainingData.length < 50) {
-        return reply.status(400).send({ 
-          code: 'INSUFFICIENT_DATA', 
-          message: 'Insufficient training data (need at least 50 samples)' 
+        return reply.status(400).send({
+          error: {
+            code: 'INSUFFICIENT_DATA',
+            message: 'Insufficient training data (need at least 50 samples)',
+            requestId: request.id,
+          },
         });
       }
 
@@ -349,40 +423,59 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       fs.writeFileSync(tempPath, JSON.stringify(trainingData));
 
       // 3. Spawn Python process
-      const pythonScript = path.join(process.cwd(), '../../packages/ml-scheduler/src/training/train_model.py');
+      const pythonScript = path.join(
+        process.cwd(),
+        '../../packages/ml-scheduler/src/training/train_model.py',
+      );
       const modelDir = path.join(process.cwd(), 'models');
 
       return new Promise((resolve, _reject) => {
         const pyProcess = spawn('python', [pythonScript, tempPath, modelDir]);
-        
+
         let output = '';
-        pyProcess.stdout.on('data', (data) => output += data.toString());
-        pyProcess.stderr.on('data', (data) => output += data.toString());
+        pyProcess.stdout.on('data', (data) => (output += data.toString()));
+        pyProcess.stderr.on('data', (data) => (output += data.toString()));
 
         pyProcess.on('close', async (code) => {
           // Cleanup temp file
-          if (fs.existsSync(tempPath)) fs.unlinkSync(tempPath);
+          if (fs.existsSync(tempPath)) {
+            fs.unlinkSync(tempPath);
+          }
 
           if (code !== 0) {
             fastify.log.error({ output }, 'ML retraining failed');
-            return resolve(reply.status(500).send({ error: 'Training process failed', details: output }));
+            return resolve(
+              reply.status(500).send({
+                error: {
+                  code: 'TRAINING_FAILED',
+                  message: 'Training process failed',
+                },
+              }),
+            );
           }
 
           // Parse version from output or latest.json
           try {
             const latestPath = path.join(modelDir, 'latest.json');
             const latest = JSON.parse(fs.readFileSync(latestPath, 'utf-8'));
-            
+
             // 4. Promote new model
             await scheduler.modelRegistry.promoteModel(latest.version);
-            
-            resolve({ 
-              status: 'success', 
-              version: latest.version, 
-              mae: latest.mae 
+
+            resolve({
+              status: 'success',
+              version: latest.version,
+              mae: latest.mae,
             });
           } catch (e) {
-            resolve(reply.status(500).send({ error: 'Failed to promote model', details: (e as Error).message }));
+            resolve(
+              reply.status(500).send({
+                error: {
+                  code: 'MODEL_PROMOTION_FAILED',
+                  message: 'Failed to promote model',
+                },
+              }),
+            );
           }
         });
       });
@@ -403,28 +496,33 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   }>(
     '/events/republish',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('SUPER_ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.EVENT_REPUBLISH),
+      ],
       config: {
         rateLimit: { max: 10, timeWindow: 60000 },
       },
       schema: {
-        body: {
-          type: 'object',
-          properties: {
-            eventType: { type: 'string' },
-            entityId: { type: 'string' },
-            targetTopic: { type: 'string' },
-          },
-          required: ['eventType', 'entityId'],
-        },
+        body: zodToFastifySchema(adminEventRepublishBodySchema),
         tags: ['admin'],
         summary: 'Republish an event to Kafka',
       },
     },
     async (request, reply) => {
-      const currentUser = request.user as { id: string; tenantId?: string; role: string };
+      const currentUser = request.user as {
+        id: string;
+        tenantId?: string;
+        role: string;
+      };
       if (currentUser.tenantId && currentUser.tenantId !== 'SYSTEM') {
-        return reply.status(403).send({ code: 'FORBIDDEN', message: 'Tenant-scoped tokens cannot republish events' });
+        return reply.status(403).send({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Tenant-scoped tokens cannot republish events',
+            requestId: request.id,
+          },
+        });
       }
 
       const { eventType, entityId, targetTopic } = request.body;
@@ -433,8 +531,18 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       let defaultTopic = '';
 
       if (eventType === 'task.created') {
-        const task = await (fastify.prisma as any).task.findUnique({ where: { id: entityId } });
-        if (!task) return reply.status(404).send({ error: 'Task not found' });
+        const task = await fastify.prisma.task.findUnique({
+          where: { id: entityId },
+        });
+        if (!task) {
+          return reply.status(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'Task not found',
+              requestId: request.id,
+            },
+          });
+        }
         payload = {
           eventType: 'TaskCreated',
           taskId: task.id,
@@ -448,8 +556,18 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         };
         defaultTopic = 'tasks.events';
       } else if (eventType === 'node.registered') {
-        const node = await (fastify.prisma as any).node.findUnique({ where: { id: entityId } });
-        if (!node) return reply.status(404).send({ error: 'Node not found' });
+        const node = await fastify.prisma.node.findUnique({
+          where: { id: entityId },
+        });
+        if (!node) {
+          return reply.status(404).send({
+            error: {
+              code: 'NOT_FOUND',
+              message: 'Node not found',
+              requestId: request.id,
+            },
+          });
+        }
         payload = {
           eventType: 'NodeRegistered',
           nodeId: node.id,
@@ -461,13 +579,20 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         };
         defaultTopic = 'nodes.events';
       } else {
-        return reply.status(400).send({ error: `Unsupported event type: ${eventType}` });
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: `Unsupported event type: ${eventType}`,
+            requestId: request.id,
+          },
+        });
       }
 
       const topic = targetTopic || defaultTopic;
 
+      // @ts-ignore
       const { EventBus } = await import('@edgecloud/event-bus');
-      const { env } = await import('../config/env');
+      const { env } = await import('../config/env.js');
       const eventBus = new EventBus({
         clientId: 'admin-republisher',
         brokers: env.KAFKA_BROKERS.split(','),
@@ -476,7 +601,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       await eventBus.publish(topic, payload);
       await eventBus.disconnect();
 
-      await (fastify.prisma as any).auditLog.create({
+      await fastify.prisma.auditLog.create({
         data: {
           userId: currentUser.id,
           tenantId: 'SYSTEM',
@@ -490,7 +615,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       });
 
       return { success: true, topic };
-    }
+    },
   );
 
   // Bulk event republish
@@ -504,29 +629,33 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   }>(
     '/events/republish-range',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('SUPER_ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.EVENT_REPUBLISH),
+      ],
       config: {
         rateLimit: { max: 10, timeWindow: 60000 },
       },
       schema: {
-        body: {
-          type: 'object',
-          properties: {
-            eventType: { type: 'string' },
-            fromTimestamp: { type: 'string', format: 'date-time' },
-            toTimestamp: { type: 'string', format: 'date-time' },
-            dryRun: { type: 'boolean' },
-          },
-          required: ['eventType', 'fromTimestamp', 'toTimestamp'],
-        },
+        body: zodToFastifySchema(adminEventRepublishRangeBodySchema),
         tags: ['admin'],
         summary: 'Bulk republish events to Kafka',
       },
     },
     async (request, reply) => {
-      const currentUser = request.user as { id: string; tenantId?: string; role: string };
+      const currentUser = request.user as {
+        id: string;
+        tenantId?: string;
+        role: string;
+      };
       if (currentUser.tenantId && currentUser.tenantId !== 'SYSTEM') {
-        return reply.status(403).send({ code: 'FORBIDDEN', message: 'Tenant-scoped tokens cannot republish events' });
+        return reply.status(403).send({
+          error: {
+            code: 'FORBIDDEN',
+            message: 'Tenant-scoped tokens cannot republish events',
+            requestId: request.id,
+          },
+        });
       }
 
       const { eventType, fromTimestamp, toTimestamp, dryRun } = request.body;
@@ -534,14 +663,20 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const toDate = new Date(toTimestamp);
 
       if (isNaN(fromDate.getTime()) || isNaN(toDate.getTime())) {
-        return reply.status(400).send({ error: 'Invalid timestamps' });
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'Invalid timestamps',
+            requestId: request.id,
+          },
+        });
       }
 
       let entities: any[] = [];
       let defaultTopic = '';
 
       if (eventType === 'task.created') {
-        entities = await (fastify.prisma as any).task.findMany({
+        entities = await fastify.prisma.task.findMany({
           where: {
             createdAt: { gte: fromDate, lte: toDate },
           },
@@ -549,7 +684,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         });
         defaultTopic = 'tasks.events';
       } else if (eventType === 'node.registered') {
-        entities = await (fastify.prisma as any).node.findMany({
+        entities = await fastify.prisma.node.findMany({
           where: {
             createdAt: { gte: fromDate, lte: toDate },
           },
@@ -557,7 +692,13 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         });
         defaultTopic = 'nodes.events';
       } else {
-        return reply.status(400).send({ error: `Unsupported event type: ${eventType}` });
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: `Unsupported event type: ${eventType}`,
+            requestId: request.id,
+          },
+        });
       }
 
       if (dryRun) {
@@ -567,8 +708,9 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         };
       }
 
+      // @ts-ignore
       const { EventBus } = await import('@edgecloud/event-bus');
-      const { env } = await import('../config/env');
+      const { env } = await import('../config/env.js');
       const eventBus = new EventBus({
         clientId: 'admin-republisher-bulk',
         brokers: env.KAFKA_BROKERS.split(','),
@@ -607,15 +749,15 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           }
           await eventBus.publish(defaultTopic, payload);
           published++;
-        } catch (err: any) {
+        } catch (err) {
           failed++;
-          errors.push(`Entity ${entity.id}: ${err.message}`);
+          errors.push(`Entity ${entity.id}: ${(err as any).message}`);
         }
       }
 
       await eventBus.disconnect();
 
-      await (fastify.prisma as any).auditLog.create({
+      await fastify.prisma.auditLog.create({
         data: {
           userId: currentUser.id,
           tenantId: 'SYSTEM',
@@ -629,7 +771,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       });
 
       return { published, failed, errors };
-    }
+    },
   );
 
   // ============================================
@@ -641,7 +783,10 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/dlq/stats',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.AUDIT_READ),
+      ],
       schema: {
         tags: ['admin'],
         summary: 'Get DLQ statistics across all streams',
@@ -669,14 +814,22 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       dbStats.forEach((s: { status: string; _count: { id: number } }) => {
         stats.totalEvents += s._count.id;
-        if (s.status === 'PENDING') stats.pendingRetry = s._count.id;
-        if (s.status === 'PERMANENTLY_FAILED') stats.permanentlyFailed = s._count.id;
-        if (s.status === 'REPROCESSED') stats.reprocessed = s._count.id;
+        if (s.status === 'PENDING') {
+          stats.pendingRetry = s._count.id;
+        }
+        if (s.status === 'PERMANENTLY_FAILED') {
+          stats.permanentlyFailed = s._count.id;
+        }
+        if (s.status === 'REPROCESSED') {
+          stats.reprocessed = s._count.id;
+        }
       });
 
-      byTopic.forEach((t: { originalTopic: string; _count: { id: number } }) => {
-        stats.byTopic[t.originalTopic] = t._count.id;
-      });
+      byTopic.forEach(
+        (t: { originalTopic: string; _count: { id: number } }) => {
+          stats.byTopic[t.originalTopic] = t._count.id;
+        },
+      );
 
       return stats;
     },
@@ -693,17 +846,12 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   }>(
     '/dlq/events',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.AUDIT_READ),
+      ],
       schema: {
-        querystring: {
-          type: 'object',
-          properties: {
-            topic: { type: 'string' },
-            status: { type: 'string', enum: ['PENDING', 'RETRYING', 'REPROCESSED', 'PERMANENTLY_FAILED'] },
-            limit: { type: 'number', default: 50 },
-            offset: { type: 'number', default: 0 },
-          },
-        },
+        querystring: zodToFastifySchema(adminDlqEventsQuerySchema),
         tags: ['admin'],
         summary: 'List DLQ events with filtering',
       },
@@ -712,17 +860,21 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const { topic, status, limit = 50, offset = 0 } = request.query;
 
       const where: any = {};
-      if (topic) where.originalTopic = topic;
-      if (status) where.status = status;
+      if (topic) {
+        where.originalTopic = topic;
+      }
+      if (status) {
+        where.status = status;
+      }
 
-      const events = await (fastify.prisma as any).deadLetterEvent.findMany({
+      const events = await fastify.prisma.deadLetterEvent.findMany({
         where,
         orderBy: { createdAt: 'desc' },
         take: limit,
         skip: offset,
       });
 
-      const total = await (fastify.prisma as any).deadLetterEvent.count({ where });
+      const total = await fastify.prisma.deadLetterEvent.count({ where });
 
       return {
         events,
@@ -740,13 +892,12 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
     '/dlq/events/:id/retry',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.EVENT_REPUBLISH),
+      ],
       schema: {
-        params: {
-          type: 'object',
-          properties: { id: { type: 'string' } },
-          required: ['id'],
-        },
+        params: zodToFastifySchema(adminDlqEventRetryParamSchema),
         tags: ['admin'],
         summary: 'Retry a specific DLQ event',
       },
@@ -754,50 +905,76 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
 
-      try {
-        const event = await (fastify.prisma as any).deadLetterEvent.findUnique({
-          where: { id },
-        });
+      const event = await fastify.prisma.deadLetterEvent.findUnique({
+        where: { id },
+      });
 
-        if (!event) {
-          return reply.status(404).send({ error: 'Event not found' });
-        }
-
-        if (event.status === 'REPROCESSED') {
-          return reply.status(400).send({ error: 'Event already reprocessed' });
-        }
-
-        // Update status to RETRYING
-        await (fastify.prisma as any).deadLetterEvent.update({
-          where: { id },
-          data: {
-            status: 'RETRYING',
-            attempts: { increment: 1 },
-            lastAttemptAt: new Date(),
+      if (!event) {
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Event not found',
+            requestId: request.id,
           },
         });
+      }
 
-        try {
-          const { EventBus } = await import('@edgecloud/event-bus');
-          const { env } = await import('../config/env');
-          const eventBus = new EventBus({
-            clientId: 'admin-dlq-retry',
-            brokers: env.KAFKA_BROKERS.split(','),
-          });
-          await eventBus.connect();
-          await eventBus.publish(event.originalTopic, event.payload as any);
-          await eventBus.disconnect();
+      if (event.status === 'REPROCESSED') {
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'Event already reprocessed',
+            requestId: request.id,
+          },
+        });
+      }
 
-          await (fastify.prisma as any).deadLetterEvent.update({
-            where: { id },
-            data: { status: 'REPROCESSED' }
-          });
-          return { success: true, eventId: id, message: 'Event successfully retried and published' };
-        } catch (publishErr: any) {
-          return reply.status(500).send({ error: 'Failed to republish event to Kafka', details: publishErr.message });
-        }
-      } catch (err: any) {
-        return reply.status(400).send({ error: err.message });
+      // Update status to RETRYING
+      await fastify.prisma.deadLetterEvent.update({
+        where: { id },
+        data: {
+          status: 'RETRYING',
+          attempts: { increment: 1 },
+          lastAttemptAt: new Date(),
+        },
+      });
+
+      try {
+        // @ts-ignore
+        const { EventBus } = await import('@edgecloud/event-bus');
+        const { env } = await import('../config/env.js');
+        const eventBus = new EventBus({
+          clientId: 'admin-dlq-retry',
+          brokers: env.KAFKA_BROKERS.split(','),
+        });
+        await eventBus.connect();
+        await eventBus.publish(event.originalTopic, event.payload);
+        await eventBus.disconnect();
+
+        await fastify.prisma.deadLetterEvent.update({
+          where: { id },
+          data: { status: 'REPROCESSED', error: null },
+        });
+        return {
+          success: true,
+          eventId: id,
+          message: 'Event successfully retried and published',
+        };
+      } catch (publishErr) {
+        await fastify.prisma.deadLetterEvent.update({
+          where: { id },
+          data: {
+            status: 'PENDING',
+            error: (publishErr as Error).message,
+          },
+        });
+        return reply.status(500).send({
+          error: {
+            code: 'PUBLISH_FAILED',
+            message: 'Failed to republish event to Kafka',
+            requestId: request.id,
+          },
+        });
       }
     },
   );
@@ -808,14 +985,12 @@ export default async function adminRoutes(fastify: FastifyInstance) {
   }>(
     '/dlq/purge',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TENANT_MANAGE),
+      ],
       schema: {
-        body: {
-          type: 'object',
-          properties: {
-            olderThanDays: { type: 'number', default: 7 },
-          },
-        },
+        body: zodToFastifySchema(adminDlqPurgeBodySchema),
         tags: ['admin'],
         summary: 'Purge old DLQ events',
       },
@@ -836,5 +1011,3 @@ export default async function adminRoutes(fastify: FastifyInstance) {
     },
   );
 }
-
-
