@@ -1,3 +1,4 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 
 export default async function systemRoutes(fastify: FastifyInstance) {
@@ -5,7 +6,7 @@ export default async function systemRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/circuit-breakers',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: {
         tags: ['system'],
         summary: 'Get system circuit breaker status',
@@ -26,7 +27,7 @@ export default async function systemRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/info',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: {
         tags: ['system'],
         summary: 'Get system information',

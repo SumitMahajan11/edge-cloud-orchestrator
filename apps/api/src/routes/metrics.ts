@@ -1,3 +1,4 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 import { register } from '../services/metrics-service.js';
@@ -70,7 +71,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/system',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: { 
         tags: ['metrics'], 
         summary: 'Get system metrics',
@@ -88,7 +89,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: { tags: ['metrics'], summary: 'Get system metrics' },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
@@ -100,7 +101,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/requests',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: { tags: ['metrics'], summary: 'Get request metrics' },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
@@ -119,7 +120,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/nodes',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
       schema: { tags: ['metrics'], summary: 'Get node metrics summary' },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
@@ -134,7 +135,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/ml',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
       schema: { 
         tags: ['metrics'], 
         summary: 'Get ML-specific metrics',
@@ -171,7 +172,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/network',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: { 
         tags: ['metrics'], 
         summary: 'Get network performance metrics',
@@ -202,7 +203,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/prometheus',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN' as any)],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
       schema: {
         tags: ['metrics'],
         summary: 'Get Prometheus metrics',
@@ -211,8 +212,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     },
     async (_request: FastifyRequest, reply: FastifyReply) => {
       const metrics = await register.metrics();
-      reply.header('Content-Type', register.contentType);
-      return metrics;
+      void reply.header('Content-Type', register.contentType);      return metrics;
     },
   );
 }

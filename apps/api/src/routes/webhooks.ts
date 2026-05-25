@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { Permissions, validateWebhookUrl } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
@@ -6,15 +7,17 @@ import {
   createWebhookSchema,
   idParamSchema,
   updateWebhookSchema,
+  webhooksDeliveriesQuerySchema,
+  webhooksRedeliverParamSchema,
 } from '../schemas';
-import { zodToFastifySchema } from '../utils/zod-schema';
+import { zodToFastifySchema } from '../utils/zod-schema.js';
 
 export default async function webhookRoutes(fastify: FastifyInstance) {
   // List webhooks
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_READ)],
       schema: {
         tags: ['webhooks'],
         summary: 'List webhooks',
@@ -29,7 +32,17 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         orderBy: { createdAt: 'desc' },
       });
 
-      return webhooks;
+      return {
+        data: webhooks,
+        pagination: {
+          page: 1,
+          limit: webhooks.length || 50,
+          total: webhooks.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -37,7 +50,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_READ)],
       schema: {
         tags: ['webhooks'],
         summary: 'Get webhook delivery statistics',
@@ -82,7 +95,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: z.infer<typeof createWebhookSchema> }>(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_MANAGE)],
       schema: {
         body: zodToFastifySchema(createWebhookSchema),
         tags: ['webhooks'],
@@ -91,6 +104,18 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { name, url, events, secret, enabled } = request.body;
+
+      // SSRF Protection
+      const { safe, reason } = await validateWebhookUrl(url);
+      if (!safe) {
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_WEBHOOK_URL',
+            message: `Webhook URL rejected: ${reason}`,
+            requestId: request.id,
+          }
+        });
+      }
 
       const webhook = await (fastify.prisma as any).webhook.create({
         data: {
@@ -114,7 +139,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_MANAGE)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: zodToFastifySchema(updateWebhookSchema),
@@ -122,9 +147,23 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         summary: 'Update a webhook',
       },
     },
-    async (request, _reply) => {
+    async (request, reply) => {
       const { id } = request.params;
       const data = request.body;
+
+      // SSRF Protection if URL is being updated
+      if (data.url) {
+        const { safe, reason } = await validateWebhookUrl(data.url);
+        if (!safe) {
+          return reply.status(400).send({
+            error: {
+              code: 'INVALID_WEBHOOK_URL',
+              message: `Webhook URL rejected: ${reason}`,
+              requestId: request.id,
+            }
+          });
+        }
+      }
 
       const webhook = await (fastify.prisma as any).webhook.update({
         where: { id, tenantId: request.user!.tenantId! },
@@ -139,7 +178,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.delete<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_MANAGE)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['webhooks'],
@@ -156,15 +195,10 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.get<{ Params: { id: string }; Querystring: { limit?: number } }>(
     '/:id/deliveries',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
-        querystring: {
-          type: 'object',
-          properties: {
-            limit: { type: 'number', default: 50 },
-          },
-        },
+        querystring: zodToFastifySchema(webhooksDeliveriesQuerySchema),
         tags: ['webhooks'],
         summary: 'Get webhook delivery history',
       },
@@ -179,7 +213,17 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         take: limit,
       });
 
-      return deliveries;
+      return {
+        data: deliveries,
+        pagination: {
+          page: 1,
+          limit: deliveries.length || 50,
+          total: deliveries.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -187,16 +231,9 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string; deliveryId: string } }>(
     '/:id/redeliver/:deliveryId',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_MANAGE)],
       schema: {
-        params: {
-          type: 'object',
-          properties: {
-            id: { type: 'string' },
-            deliveryId: { type: 'string' },
-          },
-          required: ['id', 'deliveryId'],
-        },
+        params: zodToFastifySchema(webhooksRedeliverParamSchema),
         tags: ['webhooks'],
         summary: 'Redeliver a webhook',
       },
@@ -210,7 +247,32 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       });
 
       if (!delivery) {
-        return reply.status(404).send({ error: 'Delivery not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Delivery not found',
+            requestId: request.id,
+          }
+        });
+      }
+
+      // Check idempotency for manual redelivery
+      const idempotencyKey = `webhook:redeliver:${deliveryId}`;
+      const result = await fastify.idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'WebhookDelivery',
+        resourceId: deliveryId,
+        ttlMs: 3600000 // 1 hour
+      });
+
+      if (result.isDuplicate) {
+        return reply.status(409).send({
+          error: {
+            code: 'CONFLICT',
+            message: 'A redelivery for this record is already in progress or was recently completed.',
+            requestId: request.id,
+          }
+        });
       }
 
       // Queue redelivery via Redis
@@ -227,7 +289,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
     '/:id/test',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_MANAGE)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['webhooks'],
@@ -251,7 +313,13 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       });
 
       if (!webhook) {
-        return reply.status(404).send({ error: 'Webhook not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Webhook not found',
+            requestId: request.id,
+          }
+        });
       }
 
       // Create a test delivery record
@@ -279,7 +347,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
   fastify.post<{ Params: { id: string } }>(
     '/deliveries/:id/retry',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole('ADMIN')],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.WEBHOOK_MANAGE)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['webhooks'],
@@ -303,7 +371,32 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       });
 
       if (!delivery) {
-        return reply.status(404).send({ error: 'Delivery not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Delivery not found',
+            requestId: request.id,
+          }
+        });
+      }
+
+      // Check idempotency for manual retry
+      const idempotencyKey = `webhook:retry:${id}`;
+      const result = await fastify.idempotencyService.checkAndRecord({
+        idempotencyKey,
+        resourceType: 'WebhookDelivery',
+        resourceId: id,
+        ttlMs: 3600000 // 1 hour
+      });
+
+      if (result.isDuplicate) {
+        return reply.status(409).send({
+          error: {
+            code: 'CONFLICT',
+            message: 'A retry for this delivery is already in progress or was recently completed.',
+            requestId: request.id,
+          }
+        });
       }
 
       // Queue redelivery

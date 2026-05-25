@@ -1,6 +1,7 @@
+import { Permissions,v1NodeContracts, validateIpAddress } from '@edgecloud/shared-kernel';
+import { EdgeNode } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 
-import { v1NodeContracts } from '@edgecloud/shared-kernel';
 import { idParamSchema } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
 
@@ -11,17 +12,13 @@ const NodeStatus = {
   MAINTENANCE: 'MAINTENANCE',
 } as const;
 
-const Role = {
-  ADMIN: 'ADMIN',
-  OPERATOR: 'OPERATOR',
-  VIEWER: 'VIEWER',
-} as const;
+
 
 /**
   * Transform flat Prisma node model to versioned API response schema
   */
- function transformNode(node: any) {
-   if (!node) return null;
+ function transformNode(node: EdgeNode & { _count?: { tasks: number } }) {
+   if (!node) {return null;}
    
    const { cpuCores, memoryGB, storageGB, ...rest } = node;
    
@@ -35,6 +32,7 @@ const Role = {
      // Ensure status is uppercase as per schema
      status: (node.status || 'OFFLINE').toUpperCase(),
      lastHeartbeat: (node.lastHeartbeat || node.createdAt || new Date()).toISOString(),
+     taskCount: node._count?.tasks || 0,
    };
  }
  
@@ -43,7 +41,7 @@ const Role = {
   fastify.get<{ Querystring: v1NodeContracts.NodeQueryV1 }>(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
       schema: {
         querystring: zodToFastifySchema(v1NodeContracts.NodeQueryV1Schema),
         tags: ['nodes'],
@@ -71,15 +69,14 @@ const Role = {
       const { region, status, page, limit, sortBy, sortOrder } = request.query;
 
       const where: any = {
-        tenantId: request.user!.tenantId!,
         ...(region && { region }),
         ...(status && {
-          status: status as (typeof NodeStatus)[keyof typeof NodeStatus],
+          status: status,
         }),
       };
 
       const [nodes, total] = await Promise.all([
-        fastify.prisma.edgeNode.findMany({
+        request.tPrisma.edgeNode.findMany({
           where,
           orderBy: { [sortBy]: sortOrder },
           skip: (page - 1) * limit,
@@ -88,7 +85,7 @@ const Role = {
             _count: { select: { tasks: true } },
           },
         }),
-        fastify.prisma.edgeNode.count({ where }),
+        request.tPrisma.edgeNode.count({ where }),
       ]);
 
       return {
@@ -98,6 +95,8 @@ const Role = {
           limit,
           total,
           totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1,
         },
       };
     },
@@ -107,7 +106,7 @@ const Role = {
   fastify.get<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['nodes'],
@@ -121,8 +120,8 @@ const Role = {
       },
     },
     async (request, reply) => {
-      const node = await fastify.prisma.edgeNode.findFirst({
-        where: { id: request.params.id, tenantId: request.user!.tenantId! },
+      const node = await request.tPrisma.edgeNode.findFirst({
+        where: { id: request.params.id },
         include: {
           tasks: {
             where: { status: 'RUNNING' },
@@ -136,11 +135,13 @@ const Role = {
       });
 
       if (!node) {
-        return reply.status(404).send({ 
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Node not found',
-          requestId: request.id,
-          timestamp: new Date().toISOString()
+        return reply.status(404).send({
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'Node not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
         });
       }
 
@@ -154,7 +155,7 @@ const Role = {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+        fastify.requirePermission(Permissions.NODE_REGISTER),
       ],
       schema: {
         body: zodToFastifySchema(v1NodeContracts.RegisterNodeV1Schema),
@@ -171,26 +172,40 @@ const Role = {
     async (request: FastifyRequest<{ Body: v1NodeContracts.RegisterNodeV1 }>, reply) => {
       const data = request.body;
 
+      // SSRF Protection for IP address
+      const validation = validateIpAddress(data.ipAddress);
+      if (!validation.safe) {
+        return reply.status(400).send({
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: `Invalid IP address: ${validation.reason}`,
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
+        });
+      }
+
       // Check for duplicate name within the same tenant
-      const existing = await fastify.prisma.edgeNode.findFirst({
+      const existing = await request.tPrisma.edgeNode.findFirst({
         where: { 
-          name: data.name,
-          tenantId: request.user!.tenantId!
+          name: data.name
         },
       });
 
       if (existing) {
         return reply
           .status(409)
-          .send({ 
-            code: 'RESOURCE_CONFLICT',
-            message: 'Node with this name already exists in your tenant',
-            requestId: request.id,
-            timestamp: new Date().toISOString()
+          .send({
+            error: {
+              code: 'RESOURCE_CONFLICT',
+              message: 'Node with this name already exists in your tenant',
+              requestId: request.id,
+              timestamp: new Date().toISOString()
+            }
           });
       }
 
-      const node = await fastify.prisma.edgeNode.create({
+      const node = await request.tPrisma.edgeNode.create({
         data: {
           name: data.name,
           location: data.location,
@@ -217,9 +232,9 @@ const Role = {
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
-          userId: (request.user as any).id,
+          userId: request.user!.id,
           tenantId: request.user!.tenantId!,
           action: 'node.created',
           entityType: 'node',
@@ -243,7 +258,7 @@ const Role = {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+        fastify.requirePermission(Permissions.NODE_REGISTER),
       ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
@@ -252,7 +267,7 @@ const Role = {
         summary: 'Update node configuration',
       },
     },
-    async (request, _reply) => {
+    async (request, reply) => {
       const { id } = request.params;
       const data = request.body;
 
@@ -262,20 +277,24 @@ const Role = {
 
       if (!existingNode) {
         return reply.status(404).send({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Node not found',
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'Node not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
         });
       }
 
-      const node = await fastify.prisma.edgeNode.update({
-        where: { id, tenantId: request.user!.tenantId! },
+      const node = await request.tPrisma.edgeNode.update({
+        where: { id },
         data: data as any,
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
-          userId: (request.user as any).id,
+          userId: request.user!.id,
           tenantId: request.user!.tenantId!,
           action: 'node.updated',
           entityType: 'node',
@@ -294,7 +313,7 @@ const Role = {
   fastify.delete<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requireRole(Role.ADMIN)],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_REGISTER)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['nodes'],
@@ -305,15 +324,19 @@ const Role = {
       const { id } = request.params;
 
       // Check for running tasks
-      const runningTasks = await fastify.prisma.task.count({
-        where: { nodeId: id, status: 'RUNNING', tenantId: request.user!.tenantId! },
+      const runningTasks = await request.tPrisma.task.count({
+        where: { nodeId: id, status: 'RUNNING' },
       });
 
       if (runningTasks > 0) {
         return reply.status(400).send({
-          code: 'VALIDATION_ERROR',
-          message: 'Cannot delete node with running tasks',
-          details: { runningTasks } as any,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Cannot delete node with running tasks',
+            details: { runningTasks } as any,
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
         });
       }
 
@@ -323,19 +346,23 @@ const Role = {
 
       if (!existingNode) {
         return reply.status(404).send({
-          code: 'RESOURCE_NOT_FOUND',
-          message: 'Node not found',
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'Node not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
         });
       }
 
-      await fastify.prisma.edgeNode.delete({ 
-        where: { id, tenantId: request.user!.tenantId! } 
+      await request.tPrisma.edgeNode.delete({ 
+        where: { id } 
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
-          userId: (request.user as any).id,
+          userId: request.user!.id,
           tenantId: request.user!.tenantId!,
           action: 'node.deleted',
           entityType: 'node',
@@ -385,21 +412,28 @@ const Role = {
         summary: 'Receive heartbeat from edge agent',
       },
     },
-    async (request, _reply) => {
+    async (request, reply) => {
       const { id } = request.params;
       const metrics = (request as any).body;
 
       // Verify node belongs to user's tenant
-      const node = await fastify.prisma.edgeNode.findFirst({
-        where: { id, tenantId: request.user!.tenantId! }
+      const node = await request.tPrisma.edgeNode.findFirst({
+        where: { id }
       });
 
       if (!node) {
-        return reply.status(404).send({ error: 'Node not found or access denied' });
+        return reply.status(404).send({
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'Node not found or access denied',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
+        });
       }
 
-      await fastify.prisma.edgeNode.update({
-        where: { id, tenantId: request.user!.tenantId! },
+      await request.tPrisma.edgeNode.update({
+        where: { id },
         data: {
           cpuUsage: metrics.cpuUsage,
           memoryUsage: metrics.memoryUsage,
@@ -411,8 +445,13 @@ const Role = {
         },
       });
 
+      if (node && (node).metrics?.length > 0) {
+        (node).status = 'ONLINE';
+        (node).lastHeartbeat = (node).metrics[0].timestamp;
+      }
+
       // Store metrics
-      await fastify.prisma.nodeMetric.create({
+      await request.tPrisma.nodeMetric.create({
         data: {
           nodeId: id,
           cpuUsage: metrics.cpuUsage,
@@ -426,11 +465,11 @@ const Role = {
       });
 
       // Publish to WebSocket subscribers
-      fastify.wsManager.broadcast('node:heartbeat', {
+      fastify.wsManager.broadcastToTenant('node:heartbeat', {
         nodeId: id,
         metrics,
         timestamp: new Date().toISOString(),
-      });
+      }, node.tenantId);
 
       return { success: true, timestamp: new Date().toISOString() };
     },
@@ -443,7 +482,7 @@ const Role = {
   }>(
     '/:id/metrics',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: {
@@ -462,10 +501,9 @@ const Role = {
       const { id } = request.params;
       const { from, to, limit = 100 } = request.query;
 
-      const metrics = await fastify.prisma.nodeMetric.findMany({
+      const metrics = await request.tPrisma.nodeMetric.findMany({
         where: {
           nodeId: id,
-          node: { tenantId: request.user!.tenantId! },
           ...(from && { timestamp: { gte: new Date(from) } }),
           ...(to && { timestamp: { lte: new Date(to) } }),
         },
@@ -473,7 +511,17 @@ const Role = {
         take: limit,
       });
 
-      return metrics;
+      return {
+        data: metrics,
+        pagination: {
+          page: 1,
+          limit: metrics.length || 50,
+          total: metrics.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -483,7 +531,7 @@ const Role = {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+        fastify.requirePermission(Permissions.NODE_DRAIN),
       ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
@@ -502,8 +550,8 @@ const Role = {
       const { id } = request.params;
       const { enabled } = request.body;
 
-      const node = await fastify.prisma.edgeNode.update({
-        where: { id, tenantId: request.user!.tenantId! },
+      const node = await request.tPrisma.edgeNode.update({
+        where: { id },
         data: {
           isMaintenanceMode: enabled,
           status: enabled ? NodeStatus.MAINTENANCE : NodeStatus.ONLINE,
@@ -511,9 +559,9 @@ const Role = {
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
-          userId: (request.user as any).id,
+          userId: request.user!.id,
           tenantId: request.user!.tenantId!,
           action: enabled
             ? 'node.maintenance_enabled'
@@ -536,7 +584,7 @@ const Role = {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+        fastify.requirePermission(Permissions.NODE_DRAIN),
       ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
@@ -556,8 +604,8 @@ const Role = {
     async (request, _reply) => {
       const { id } = request.params;
 
-      await fastify.prisma.edgeNode.update({
-        where: { id, tenantId: request.user!.tenantId! },
+      await request.tPrisma.edgeNode.update({
+        where: { id },
         data: {
           isMaintenanceMode: true,
           status: NodeStatus.MAINTENANCE, // For now, we use MAINTENANCE as the underlying status
@@ -565,9 +613,9 @@ const Role = {
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
-          userId: (request.user as any).id,
+          userId: request.user!.id,
           tenantId: request.user!.tenantId!,
           action: 'node.drain_started',
           entityType: 'node',
@@ -588,7 +636,7 @@ const Role = {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requireRole(Role.ADMIN, Role.OPERATOR),
+        fastify.requirePermission(Permissions.NODE_DRAIN),
       ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
@@ -608,22 +656,22 @@ const Role = {
     async (request, _reply) => {
       const { id } = request.params;
 
-      await fastify.prisma.edgeNode.update({
-        where: { id, tenantId: request.user!.tenantId! },
+      await request.tPrisma.edgeNode.update({
+        where: { id },
         data: {
           status: NodeStatus.OFFLINE,
         },
       });
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
-          userId: (request.user as any).id,
+          userId: request.user!.id,
           tenantId: request.user!.tenantId!,
           action: 'node.forced_offline',
           entityType: 'node',
           entityId: id,
-          details: {} as any,
+          details: {},
           ipAddress: request.ip,
           userAgent: request.headers['user-agent'] ?? null,
         },
@@ -637,7 +685,7 @@ const Role = {
   fastify.get<{ Params: { id: string }; Querystring: { days?: number } }>(
     '/:id/scheduling-history',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: {
@@ -657,17 +705,26 @@ const Role = {
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
-      const history = await (fastify.prisma as any).schedulingDecision.findMany({
+      const history = await request.tPrisma.schedulingDecision.findMany({
         where: {
           selectedNodeId: id,
-          node: { tenantId: request.user!.tenantId! },
           timestamp: { gte: startDate },
         },
         orderBy: { timestamp: 'desc' },
         take: 1000,
       });
 
-      return history;
+      return {
+        data: history,
+        pagination: {
+          page: 1,
+          limit: history.length || 50,
+          total: history.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 }

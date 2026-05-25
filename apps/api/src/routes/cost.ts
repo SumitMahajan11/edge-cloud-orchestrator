@@ -1,3 +1,4 @@
+import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
@@ -9,7 +10,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/summary',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
       schema: {
         tags: ['cost'],
         summary: 'Get cost summary',
@@ -25,21 +26,21 @@ export default async function costRoutes(fastify: FastifyInstance) {
       );
 
       const [currentMonth, lastMonth, byResourceType] = await Promise.all([
-        (fastify.prisma as any).costRecord.aggregate({
+        request.tPrisma.costRecord.aggregate({
           where: { 
             recordedAt: { gte: startOfMonth },
             tenantId: request.user!.tenantId!
           },
           _sum: { cost: true },
         }),
-        (fastify.prisma as any).costRecord.aggregate({
+        request.tPrisma.costRecord.aggregate({
           where: {
             recordedAt: { gte: startOfLastMonth, lt: startOfMonth },
             tenantId: request.user!.tenantId!
           },
           _sum: { cost: true },
         }),
-        (fastify.prisma as any).costRecord.groupBy({
+        request.tPrisma.costRecord.groupBy({
           by: ['resourceType'],
           where: { tenantId: request.user!.tenantId! },
           _sum: { cost: true },
@@ -56,9 +57,9 @@ export default async function costRoutes(fastify: FastifyInstance) {
         lastMonth: lastTotal,
         changePercent: change.toFixed(2),
         byResourceType: byResourceType.reduce(
-          (acc: any, r: any) => ({
+          (acc: Record<string, number>, r) => ({
             ...acc,
-            [r.resourceType]: r._sum.cost || 0,
+            [r.resourceType]: Number(r._sum.cost) || 0,
           }),
           {},
         ),
@@ -70,7 +71,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: z.infer<typeof costQuerySchema> }>(
     '/records',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
       schema: {
         querystring: zodToFastifySchema(costQuerySchema),
         tags: ['cost'],
@@ -86,7 +87,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         granularity: _granularity,
       } = request.query;
 
-      const records = await (fastify.prisma as any).costRecord.findMany({
+      const records = await request.tPrisma.costRecord.findMany({
         where: {
           tenantId: request.user!.tenantId!,
           ...(nodeId && { nodeId }),
@@ -98,7 +99,17 @@ export default async function costRoutes(fastify: FastifyInstance) {
         take: 1000,
       });
 
-      return records;
+      return {
+        data: records,
+        pagination: {
+          page: 1,
+          limit: records.length || 50,
+          total: records.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -106,14 +117,14 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/by-node',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
       schema: {
         tags: ['cost'],
         summary: 'Get cost breakdown by node',
       },
     },
     async (request, _reply) => {
-      const byNode = await (fastify.prisma as any).costRecord.groupBy({
+      const byNode = await request.tPrisma.costRecord.groupBy({
         by: ['nodeId'],
         where: { tenantId: request.user!.tenantId! },
         _sum: { cost: true },
@@ -121,21 +132,21 @@ export default async function costRoutes(fastify: FastifyInstance) {
       });
 
       // Get node names
-      const nodeIds = byNode.map((n: any) => n.nodeId).filter(Boolean) as string[];
-      const nodes = await fastify.prisma.edgeNode.findMany({
+      const nodeIds = byNode.map((n) => n.nodeId).filter((id): id is string => !!id);
+      const nodes = await request.tPrisma.edgeNode.findMany({
         where: { id: { in: nodeIds }, tenantId: request.user!.tenantId! },
         select: { id: true, name: true, region: true },
       });
 
       const nodeMap = nodes.reduce(
-        (acc: any, n: any) => ({ ...acc, [n.id]: n }),
+        (acc: Record<string, (typeof nodes)[0]>, n) => ({ ...acc, [n.id]: n }),
         {} as Record<string, (typeof nodes)[0]>,
       );
 
-      return byNode.map((n: any) => ({
+      return byNode.map((n) => ({
         nodeId: n.nodeId,
         node: n.nodeId ? nodeMap[n.nodeId] : null,
-        totalCost: n._sum.cost || 0,
+        totalCost: Number(n._sum.cost) || 0,
         recordCount: n._count,
       }));
     },
@@ -145,7 +156,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/projections',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
       schema: {
         tags: ['cost'],
         summary: 'Get cost projections',
@@ -161,7 +172,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         0,
       ).getDate();
 
-      const monthToDate = await (fastify.prisma as any).costRecord.aggregate({
+      const monthToDate = await request.tPrisma.costRecord.aggregate({
         where: { 
           recordedAt: { gte: startOfMonth },
           tenantId: request.user!.tenantId!
@@ -169,7 +180,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         _sum: { cost: true },
       });
 
-      const mtdCost = monthToDate._sum.cost || 0;
+      const mtdCost = Number(monthToDate._sum.cost) || 0;
       const dailyAvg = mtdCost / dayOfMonth;
       const projectedMonth = dailyAvg * daysInMonth;
 

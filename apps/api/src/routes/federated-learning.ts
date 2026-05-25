@@ -24,7 +24,17 @@ export default async function flRoutes(fastify: FastifyInstance) {
         },
         orderBy: { createdAt: 'desc' },
       });
-      return models;
+      return {
+        data: models,
+        pagination: {
+          page: 1,
+          limit: models.length || 50,
+          total: models.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -81,7 +91,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
       });
 
       if (!model) {
-        return reply.status(404).send({ error: 'Model not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Model not found',
+            requestId: request.id,
+          }
+        });
       }
 
       return model;
@@ -102,7 +118,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const data = await request.file();
       if (!data) {
-        return reply.status(400).send({ error: 'No file uploaded' });
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'No file uploaded',
+            requestId: request.id,
+          }
+        });
       }
 
       const buffer = await data.toBuffer();
@@ -113,7 +135,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
       });
 
       if (!model) {
-        return reply.status(404).send({ error: 'Model not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Model not found',
+            requestId: request.id,
+          }
+        });
       }
 
       try {
@@ -131,7 +159,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
         return { success: true, weightsUrl, weightsChecksum, size: buffer.length };
       } catch (err: any) {
         fastify.log.error({ err }, 'Failed to upload weights to S3');
-        return reply.status(500).send({ error: 'Storage backend error', details: err.message });
+        return reply.status(500).send({
+          error: {
+            code: 'STORAGE_ERROR',
+            message: 'Storage backend error',
+            requestId: request.id,
+          }
+        });
       }
     },
   );
@@ -153,7 +187,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
       });
 
       if (!model || !model.weightsUrl) {
-        return reply.status(404).send({ error: 'Weights not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Weights not found',
+            requestId: request.id,
+          }
+        });
       }
 
       try {
@@ -162,12 +202,16 @@ export default async function flRoutes(fastify: FastifyInstance) {
           model.weightsChecksum || undefined
         );
 
-        reply.header('Content-Type', 'application/octet-stream');
-        reply.header('Content-Disposition', `attachment; filename="weights_${model.version}.bin"`);
-        return reply.send(buffer);
+        void reply.header('Content-Type', 'application/octet-stream');        void reply.header('Content-Disposition', `attachment; filename="weights_${model.version}.bin"`);        return reply.send(buffer);
       } catch (err: any) {
         fastify.log.error({ err }, 'Failed to download weights from S3');
-        return reply.status(500).send({ error: 'Storage backend error', details: err.message });
+        return reply.status(500).send({
+          error: {
+            code: 'STORAGE_ERROR',
+            message: 'Storage backend error',
+            requestId: request.id,
+          }
+        });
       }
     },
   );
@@ -191,7 +235,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
       });
 
       if (!model) {
-        return reply.status(404).send({ error: 'Model not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Model not found',
+            requestId: request.id,
+          }
+        });
       }
 
       const nodes = await (fastify.prisma.edgeNode as any).findMany({
@@ -201,9 +251,15 @@ export default async function flRoutes(fastify: FastifyInstance) {
 
       if (nodes.length < (config?.minClients || 3)) {
         return reply.status(400).send({
-          error: 'Insufficient clients',
-          available: nodes.length,
-          required: config?.minClients || 3,
+          error: {
+            code: 'INSUFFICIENT_CLIENTS',
+            message: 'Insufficient clients',
+            details: {
+              available: nodes.length,
+              required: config?.minClients || 3,
+            },
+            requestId: request.id,
+          }
         });
       }
 
@@ -239,7 +295,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
       });
 
       if (!session) {
-        return reply.status(404).send({ error: 'Session not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Session not found',
+            requestId: request.id,
+          }
+        });
       }
 
       return session;

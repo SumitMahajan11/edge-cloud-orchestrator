@@ -1,50 +1,52 @@
+import { Permissions,v1Contracts } from '@edgecloud/shared-kernel';
+import { Task, TaskExecution } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 
-import { v1Contracts } from '@edgecloud/shared-kernel';
-import { idParamSchema } from '../schemas';
-import { zodToFastifySchema } from '../utils/zod-schema';
+import { idParamSchema, tasksLogsQuerySchema } from '../schemas';
 import { deprecated } from '../utils/deprecation';
-
-type TaskStatusStr =
-  | 'PENDING'
-  | 'SCHEDULED'
-  | 'RUNNING'
-  | 'COMPLETED'
-  | 'FAILED'
-  | 'CANCELLED';
+import { zodToFastifySchema } from '../utils/zod-schema';
 
 /**
   * Transform flat Prisma task model to versioned API response schema
   */
- function transformTask(task: any) {
-   if (!task) return null;
+ function transformTask(task: Task & { executions?: TaskExecution[] }) {
+   if (!task) {return null;}
  
    const metadata = typeof task.metadata === 'string' 
-     ? JSON.parse(task.metadata) 
-     : (task.metadata || {});
+     ? JSON.parse(task.metadata) as Record<string, unknown>
+     : (task.metadata as Record<string, unknown> || {});
  
    return {
      ...task,
      status: (task.status || 'PENDING').toUpperCase(),
      priority: (task.priority || 'MEDIUM').toUpperCase(),
-     submittedAt: task.submittedAt?.toISOString() || new Date().toISOString(),
-     startedAt: task.startedAt?.toISOString() || null,
-     completedAt: task.completedAt?.toISOString() || null,
+     submittedAt: task.submittedAt.toISOString(),
+     startedAt: (task.executions?.[0]?.startedAt || null)?.toISOString() || null,
+     completedAt: (task.executions?.[0]?.completedAt || null)?.toISOString() || null,
      image: task.image || '',
-     specs: metadata.specs || null,
+     specs: (metadata.specs as Record<string, unknown>) || null,
      runtime: task.runtime,
      affinity: task.affinity,
      traceId: task.traceId,
+     retryCount: Array.isArray(task.executions) ? Math.max(0, task.executions.length - 1) : 0,
      metadata: metadata
    };
  }
  
  export default async function taskRoutes(fastify: FastifyInstance) {
+  // Global hook for this plugin to surface rate limiter degradation
+  fastify.addHook('onSend', async (_request, reply, payload) => {
+    if (fastify.schedulerRateLimiter?.isDegraded()) {
+      reply.header('X-RateLimit-Mode', 'degraded');
+    }
+    return payload;
+  });
+
   // List tasks
   fastify.get<{ Querystring: v1Contracts.TaskQueryV1 }>(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         querystring: zodToFastifySchema(v1Contracts.TaskQueryV1Schema),
         tags: ['tasks'],
@@ -82,12 +84,11 @@ type TaskStatusStr =
         to,
       } = request.query;
 
-      const where: any = {
-        tenantId: request.user!.tenantId!,
-        ...(status && { status: status as TaskStatusStr }),
-        ...(type && { type }),
+      const where: import('@prisma/client').Prisma.TaskWhereInput = {
+        ...(status && { status: status as any }),
+        ...(type && { type: type as any }),
         ...(nodeId && { nodeId }),
-        ...(priority && { priority }),
+        ...(priority && { priority: priority as any }),
         ...(from || to
           ? {
               submittedAt: {
@@ -99,7 +100,7 @@ type TaskStatusStr =
       };
 
       const [tasks, total] = await Promise.all([
-        fastify.prisma.task.findMany({
+        request.tPrisma.task.findMany({
           where,
           orderBy: { [sortBy]: sortOrder },
           skip: (page - 1) * limit,
@@ -108,9 +109,10 @@ type TaskStatusStr =
             node: {
               select: { id: true, name: true, region: true },
             },
+            executions: true,
           },
         }),
-        fastify.prisma.task.count({ where }),
+        request.tPrisma.task.count({ where }),
       ]);
 
       return {
@@ -120,6 +122,8 @@ type TaskStatusStr =
           limit,
           total,
           totalPages: Math.ceil(total / limit),
+          hasNext: page * limit < total,
+          hasPrev: page > 1,
         },
       };
     },
@@ -129,7 +133,7 @@ type TaskStatusStr =
   fastify.get<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -141,19 +145,30 @@ type TaskStatusStr =
       },
     },
     async (request, reply) => {
-      const task = await fastify.prisma.task.findFirst({
-        where: { id: request.params.id, tenantId: request.user!.tenantId! },
+      const task = await request.tPrisma.task.findFirst({
+        where: { id: request.params.id },
         include: {
           node: true,
           logs: {
             orderBy: { timestamp: 'desc' },
             take: 100,
           },
+          executions: {
+            orderBy: { scheduledAt: 'desc' },
+            take: 1,
+          },
         },
       });
 
       if (!task) {
-        return reply.status(404).send({ error: 'Task not found' });
+        return reply.status(404).send({ 
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'Task not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
+        });
       }
 
       return transformTask(task);
@@ -164,7 +179,7 @@ type TaskStatusStr =
   fastify.get<{ Params: { id: string } }>(
     '/:id/scheduling-decision',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -172,17 +187,20 @@ type TaskStatusStr =
       },
     },
     async (request, reply) => {
-      const decision = await (fastify.prisma as any).schedulingDecision.findFirst({
+      const decision = await request.tPrisma.schedulingDecision.findFirst({
         where: { 
-          taskId: request.params.id,
-          task: { tenantId: request.user!.tenantId! }
+          taskId: request.params.id
         },
       });
 
       if (!decision) {
-        return reply.status(404).send({ 
-          code: 'DECISION_NOT_FOUND', 
-          message: 'Scheduling decision not found' 
+        return reply.status(404).send({
+          error: {
+            code: 'DECISION_NOT_FOUND',
+            message: 'Scheduling decision not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
         });
       }
 
@@ -194,19 +212,31 @@ type TaskStatusStr =
   fastify.post<{ Body: v1Contracts.CreateTaskV1 }>(
     '/',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CREATE)],
       preValidation: async (request: any, reply: any) => {
         const { TaskInputSchema, TaskMetadataSchema } = await import('@edgecloud/shared-kernel');
         if (request.body?.input) {
           const res = TaskInputSchema.safeParse(request.body.input);
           if (!res.success) {
-            return reply.status(400).send({ error: 'Invalid input payload: ' + res.error.issues[0]?.message });
+            return reply.status(400).send({
+              error: {
+                code: 'BAD_REQUEST',
+                message: `Invalid input payload: ${res.error.issues[0]?.message}`,
+                requestId: request.id,
+              }
+            });
           }
         }
         if (request.body?.metadata) {
           const res = TaskMetadataSchema.safeParse(request.body.metadata);
           if (!res.success) {
-            return reply.status(400).send({ error: 'Invalid metadata payload: ' + res.error.issues[0]?.message });
+            return reply.status(400).send({
+              error: {
+                code: 'BAD_REQUEST',
+                message: `Invalid metadata payload: ${res.error.issues[0]?.message}`,
+                requestId: request.id,
+              }
+            });
           }
         }
       },
@@ -222,37 +252,49 @@ type TaskStatusStr =
       },
     },
     async (request: FastifyRequest<{ Body: v1Contracts.CreateTaskV1 }>, reply) => {
-      const data = request.body;
+      const data = request.body as any;
 
       // If nodeId specified, verify node is available
       if (data.nodeId) {
-        const node = await fastify.prisma.edgeNode.findFirst({
-          where: { id: data.nodeId, tenantId: request.user!.tenantId! },
+        const node = await request.tPrisma.edgeNode.findFirst({
+          where: { id: data.nodeId as string },
+          include: { metrics: { take: 1, orderBy: { timestamp: 'desc' } } }
         });
 
+        if (node && node.metrics?.length > 0) {
+          (node as any).status = 'ONLINE';
+          (node as any).lastHeartbeat = node.metrics[0].timestamp;
+        }
+
         if (!node || node.status !== 'ONLINE' || node.isMaintenanceMode) {
-          return reply.status(400).send({ error: 'Node not available' });
+          return reply.status(400).send({
+            error: {
+              code: 'BAD_REQUEST',
+              message: 'Node not available',
+              requestId: request.id,
+            }
+          });
         }
       }
 
       const tenantId = request.user!.tenantId!;
 
-      const task = await fastify.prisma.task.create({
+      const task = await request.tPrisma.task.create({
         data: {
           name: data.name,
-          type: data.type as any,
-          priority: data.priority as any,
-          target: data.target as any,
+          type: data.type,
+          priority: data.priority,
+          target: data.target,
           nodeId: data.nodeId ?? null,
           policy: 'manual',
           reason: 'Manually submitted',
-          input: (data.input || {}) as any,
+          input: (data.input || {}),
           metadata: {
             ...(data.metadata || {}),
             specs: data.specs,
-          } as any,
+          },
           maxRetries: data.maxRetries,
-          runtime: data.runtime as any,
+          runtime: data.runtime,
           image: data.image,
           affinity: data.affinity ?? null,
           traceId: data.traceId ?? null,
@@ -261,7 +303,7 @@ type TaskStatusStr =
             create: {
               status: 'PENDING',
               attemptNumber: 1,
-              tenantId,
+              tenantId: tenantId,
             },
           },
         },
@@ -274,13 +316,16 @@ type TaskStatusStr =
       });
 
       // Add to task queue
-      await fastify.taskScheduler.enqueue(task as any);
+      await fastify.taskScheduler.enqueue(task);
+
+      // Record metric
+      fastify.taskScheduler.recordTaskSubmission(task.priority, tenantId);
 
       // Audit log
-      await fastify.prisma.auditLog.create({
+      await request.tPrisma.auditLog.create({
         data: {
           userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          tenantId: tenantId,
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
@@ -291,7 +336,8 @@ type TaskStatusStr =
       });
 
       // Broadcast via WebSocket
-      fastify.wsManager.broadcast('task:created', task);
+      fastify.log.info({ taskId: task.id }, 'Broadcasting task:created');
+      fastify.wsManager.broadcastToTenant('task:created', task, task.tenantId);
 
       return reply.status(201).send(transformTask(task));
     },
@@ -301,7 +347,7 @@ type TaskStatusStr =
   fastify.post<{ Params: { id: string } }>(
     '/:id/cancel',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CANCEL)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -311,31 +357,38 @@ type TaskStatusStr =
     async (request, reply) => {
       const { id } = request.params;
 
-      const task = await fastify.prisma.task.findUnique({ where: { id, tenantId: request.user!.tenantId! } });
+      const task = await request.tPrisma.task.findUnique({ where: { id } });
 
       if (!task) {
-        return reply.status(404).send({ 
-          code: 'TASK_NOT_FOUND', 
-          message: 'Task not found' 
+        return reply.status(404).send({
+          error: {
+            code: 'TASK_NOT_FOUND',
+            message: 'Task not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
         });
       }
 
       if (!['PENDING', 'SCHEDULED', 'RUNNING'].includes(task.status)) {
-        return reply.status(400).send({ 
-          code: 'INVALID_TASK_STATE', 
-          message: 'Task cannot be cancelled in its current state' 
+        return reply.status(400).send({
+          error: {
+            code: 'INVALID_TASK_STATE',
+            message: 'Task cannot be cancelled in its current state',
+            requestId: request.id,
+          }
         });
       }
 
-      const updated = await fastify.prisma.task.update({
-        where: { id, tenantId: request.user!.tenantId! },
+      const updated = await request.tPrisma.task.update({
+        where: { id },
         data: {
-          status: 'CANCELLED' as TaskStatusStr,
+          status: 'CANCELLED',
         },
       });
 
       // Broadcast via WebSocket
-      fastify.wsManager.broadcast('task:cancelled', updated);
+      fastify.wsManager.broadcastToTenant('task:cancelled', updated, updated.tenantId);
 
       return updated;
     },
@@ -345,7 +398,7 @@ type TaskStatusStr =
   fastify.post<{ Params: { id: string } }>(
     '/:id/retry',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_ADMIN)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -355,41 +408,58 @@ type TaskStatusStr =
     async (request, reply) => {
       const { id } = request.params;
 
-      const task = await fastify.prisma.task.findUnique({ where: { id, tenantId: request.user!.tenantId! } });
+      const task = await request.tPrisma.task.findUnique({ where: { id } });
 
       if (!task) {
-        return reply.status(404).send({ error: 'Task not found' });
+        return reply.status(404).send({
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'Task not found',
+            requestId: request.id,
+            timestamp: new Date().toISOString()
+          }
+        });
       }
 
       if (task.status !== 'FAILED') {
-        return reply
-          .status(400)
-          .send({ error: 'Only failed tasks can be retried' });
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'Only failed tasks can be retried',
+            requestId: request.id,
+          }
+        });
       }
 
       // Check existing execution count instead of retryCount field
-      const executionCount = await fastify.prisma.taskExecution.count({
-        where: { taskId: id, task: { tenantId: request.user!.tenantId! } },
+      const executionCount = await request.tPrisma.taskExecution.count({
+        where: { taskId: id },
       });
       if (executionCount >= task.maxRetries) {
-        return reply.status(400).send({ error: 'Max retries exceeded' });
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'Max retries exceeded',
+            requestId: request.id,
+          }
+        });
       }
 
-      const previousExecution = await fastify.prisma.taskExecution.findFirst({
-        where: { taskId: id, task: { tenantId: request.user!.tenantId! } },
+      const previousExecution = await (request.tPrisma as any).taskExecution.findFirst({
+        where: { taskId: id },
         orderBy: { attemptNumber: 'desc' },
       });
 
       // Reset existing task and create new execution record
-      await fastify.prisma.$transaction([
-        fastify.prisma.task.update({
-          where: { id, tenantId: request.user!.tenantId! },
+      await request.tPrisma.$transaction([
+        request.tPrisma.task.update({
+          where: { id },
           data: {
             status: 'PENDING',
             nodeId: null,
           },
         }),
-        fastify.prisma.taskExecution.create({
+        request.tPrisma.taskExecution.create({
           data: {
             taskId: id,
             status: 'PENDING',
@@ -400,18 +470,23 @@ type TaskStatusStr =
         }),
       ]);
 
-      const updatedTask = await fastify.prisma.task.findUnique({
-        where: { id, tenantId: request.user!.tenantId! },
+      const updatedTask = await request.tPrisma.task.findUnique({
+        where: { id },
         include: {
           node: { select: { id: true, name: true, region: true } },
           executions: { orderBy: { attemptNumber: 'desc' }, take: 1 },
         },
       });
+      
+      const tUpdatedTask = updatedTask;
 
-      await fastify.taskScheduler.enqueue(updatedTask as any);
-      fastify.wsManager.broadcast('task:created', updatedTask);
+      await fastify.taskScheduler.enqueue(tUpdatedTask);
+      fastify.wsManager.broadcastToTenant('task:created', tUpdatedTask, tUpdatedTask.tenantId);
 
-      return reply.status(201).send(updatedTask);
+      // Record metric
+      fastify.taskScheduler.recordTaskSubmission(tUpdatedTask.priority, request.user!.tenantId!);
+
+      return reply.status(201).send(tUpdatedTask);
     },
   );
 
@@ -422,16 +497,10 @@ type TaskStatusStr =
   }>(
     '/:id/logs',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         params: zodToFastifySchema(idParamSchema),
-        querystring: {
-          type: 'object',
-          properties: {
-            level: { type: 'string' },
-            limit: { type: 'number', default: 100 },
-          },
-        },
+        querystring: zodToFastifySchema(tasksLogsQuerySchema),
         tags: ['tasks'],
         summary: 'Get task logs',
       },
@@ -440,17 +509,26 @@ type TaskStatusStr =
       const { id } = request.params;
       const { level, limit = 100 } = request.query;
 
-      const logs = await fastify.prisma.taskLog.findMany({
+      const logs = await request.tPrisma.taskLog.findMany({
         where: {
           taskId: id,
-          task: { tenantId: request.user!.tenantId! },
           ...(level && { level: level as any }),
         },
         orderBy: { timestamp: 'desc' },
         take: limit,
       });
 
-      return logs;
+      return {
+        data: logs,
+        pagination: {
+          page: 1,
+          limit: logs.length || 50,
+          total: logs.length,
+          totalPages: 1,
+          hasNext: false,
+          hasPrev: false,
+        }
+      };
     },
   );
 
@@ -458,7 +536,7 @@ type TaskStatusStr =
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
       schema: {
         tags: ['tasks'],
         summary: 'Get task statistics (Deprecated)',
@@ -471,35 +549,34 @@ type TaskStatusStr =
         link: 'https://docs.edgecloud.com/api/v2/stats' 
       },
       async (request, _reply) => {
-        const tenantId = request.user!.tenantId!;
-        const stats = await fastify.prisma.task.groupBy({
-        where: { tenantId },
+        const stats = await request.tPrisma.task.groupBy({
+        where: {},
         by: ['status'],
         _count: true,
       });
 
-      const byPriority = await fastify.prisma.task.groupBy({
-        where: { tenantId },
+      const byPriority = await request.tPrisma.task.groupBy({
+        where: {},
         by: ['priority'],
         _count: true,
       });
 
-      const byType = await fastify.prisma.task.groupBy({
-        where: { tenantId },
+      const byType = await request.tPrisma.task.groupBy({
+        where: {},
         by: ['type'],
         _count: true,
       });
 
       return {
         byStatus: stats.reduce(
-          (acc, s) => ({ ...acc, [s.status]: s._count }),
+          (acc: any, s: any) => ({ ...acc, [s.status]: s._count }),
           {},
         ),
         byPriority: byPriority.reduce(
-          (acc, p) => ({ ...acc, [p.priority]: p._count }),
+          (acc: any, p: any) => ({ ...acc, [p.priority]: p._count }),
           {},
         ),
-        byType: byType.reduce((acc, t) => ({ ...acc, [t.type]: t._count }), {}),
+        byType: byType.reduce((acc: any, t: any) => ({ ...acc, [t.type]: t._count }), {}),
       };
     })
   );

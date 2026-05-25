@@ -1,4 +1,7 @@
-import { FastifyInstance, FastifyRequest, FastifyReply } from 'fastify';
+import { Permissions } from '@edgecloud/shared-kernel';
+import { FastifyInstance, FastifyReply,FastifyRequest } from 'fastify';
+import { zodToFastifySchema } from '../utils/zod-schema.js';
+import { mlDriftHistoryQuerySchema } from '../schemas';
 
 /**
  * ML Pipeline Monitoring Routes (v2)
@@ -10,7 +13,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/drift/current',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
       schema: {
         tags: ['ml'],
         summary: 'Get current ML drift status',
@@ -28,8 +31,8 @@ export default async function mlRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return { driftScore: 0, isDrifting: false, lastCheckedAt: new Date().toISOString(), featureDrift: {} };
-      return taskScheduler.getMLDriftState();
+      if (!taskScheduler) {return { driftScore: 0, isDrifting: false, lastCheckedAt: new Date().toISOString(), featureDrift: {} };}
+      return await taskScheduler.getMLDriftState();
     }
   );
 
@@ -37,16 +40,11 @@ export default async function mlRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/drift/history',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
       schema: {
         tags: ['ml'],
         summary: 'Get ML drift history',
-        querystring: {
-          type: 'object',
-          properties: {
-            hours: { type: 'number', default: 24 }
-          }
-        },
+        querystring: zodToFastifySchema(mlDriftHistoryQuerySchema),
         response: {
           200: {
             type: 'array',
@@ -63,7 +61,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const { hours } = (request.query as any) || { hours: 24 };
-      if (!taskScheduler) return [];
+      if (!taskScheduler) {return [];}
       return taskScheduler.getMLDriftHistory(hours);
     }
   );
@@ -72,7 +70,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/model/current',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
       schema: {
         tags: ['ml'],
         summary: 'Get current ML model status',
@@ -92,7 +90,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return null;
+      if (!taskScheduler) {return null;}
       return taskScheduler.getMLModelCurrent();
     }
   );
@@ -101,7 +99,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/outcomes/stats',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
       schema: {
         tags: ['ml'],
         summary: 'Get ML outcome collection stats',
@@ -119,7 +117,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return { outcomesBuffered: 0, banditExplorationRate: 0.1, predictionErrorP99Ms: 0, nextUpdateAt: 500 };
+      if (!taskScheduler) {return { outcomesBuffered: 0, banditExplorationRate: 0.1, predictionErrorP99Ms: 0, nextUpdateAt: 500 };}
       return taskScheduler.getMLOutcomeStats();
     }
   );
@@ -128,7 +126,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/retrain',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_RETRAIN)],
       schema: {
         tags: ['ml'],
         summary: 'Manually trigger model retraining',
@@ -144,7 +142,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return { success: false, message: 'TaskScheduler not initialized' };
+      if (!taskScheduler) {return { success: false, message: 'TaskScheduler not initialized' };}
       return taskScheduler.triggerMLRetrain();
     }
   );
@@ -153,7 +151,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/retrain/status',
     {
-      preHandler: [fastify.authenticate],
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
       schema: {
         tags: ['ml'],
         summary: 'Get status of current retraining job',
@@ -170,7 +168,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
-      if (!taskScheduler) return { status: 'IDLE' };
+      if (!taskScheduler) {return { status: 'IDLE' };}
       return taskScheduler.getMLRetrainStatus();
     }
   );
