@@ -1,36 +1,103 @@
-import { test, expect, beforeAll, afterAll } from 'vitest';
-import https from 'https';
-import axios from 'axios';
-import Fastify from 'fastify';
-import { createMtlsServer, createMtlsAgent } from '../../security/src/tls';
-import fs from 'fs';
-import path from 'path';
 import { execSync } from 'child_process';
+import Fastify from 'fastify';
+import fs from 'fs';
+import https from 'https';
+import path from 'path';
+import axios from 'axios';
+import { afterAll,beforeAll, expect, test } from 'vitest';
+import * as x509 from '@peculiar/x509';
+import { webcrypto } from 'crypto';
+
+import { createMtlsAgent,createMtlsServer } from '../../packages/security/src/tls';
 
 const TEST_CERTS_DIR = path.join(__dirname, '../temp-certs');
 
-beforeAll(() => {
+async function generateTestCerts() {
+  // Generate CA keys
+  const caKeys = await webcrypto.subtle.generateKey(
+    { name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+    true,
+    ['sign', 'verify']
+  );
+  
+  // Create self-signed CA cert
+  const caCert = await x509.X509CertificateGenerator.createSelfSigned({
+    serialNumber: '01',
+    name: 'CN=TestCA',
+    notBefore: new Date(Date.now() - 3600000), // 1 hour ago
+    notAfter: new Date(Date.now() + 30 * 86400000), // 30 days
+    signingAlgorithm: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    keys: caKeys,
+    extensions: [
+      new x509.BasicConstraintsExtension(true, undefined, true),
+      new x509.KeyUsagesExtension(x509.KeyUsageFlags.keyCertSign | x509.KeyUsageFlags.cRLSign, true),
+    ]
+  });
+
+  // Generate Server keys
+  const serverKeys = await webcrypto.subtle.generateKey(
+    { name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+    true,
+    ['sign', 'verify']
+  );
+
+  // Create Server cert signed by CA
+  const serverCert = await x509.X509CertificateGenerator.create({
+    serialNumber: '02',
+    subject: 'CN=test-server.edgecloud.local',
+    issuer: 'CN=TestCA',
+    notBefore: new Date(Date.now() - 3600000),
+    notAfter: new Date(Date.now() + 30 * 86400000), // 30 days
+    signingAlgorithm: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    publicKey: serverKeys.publicKey,
+    signingKey: caKeys.privateKey,
+  });
+
+  // Generate Client keys
+  const clientKeys = await webcrypto.subtle.generateKey(
+    { name: 'RSASSA-PKCS1-v1_5', modulusLength: 2048, publicExponent: new Uint8Array([1, 0, 1]), hash: 'SHA-256' },
+    true,
+    ['sign', 'verify']
+  );
+
+  // Create Client cert signed by CA
+  const clientCert = await x509.X509CertificateGenerator.create({
+    serialNumber: '03',
+    subject: 'CN=test-client.edgecloud.local',
+    issuer: 'CN=TestCA',
+    notBefore: new Date(Date.now() - 3600000),
+    notAfter: new Date(Date.now() + 30 * 86400000), // 30 days
+    signingAlgorithm: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+    publicKey: clientKeys.publicKey,
+    signingKey: caKeys.privateKey,
+  });
+
+  // Export private keys to PEM format
+  const exportPrivateKeyPem = async (key: webcrypto.CryptoKey) => {
+    const buf = await webcrypto.subtle.exportKey('pkcs8', key);
+    return `-----BEGIN PRIVATE KEY-----\n${Buffer.from(buf).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END PRIVATE KEY-----`;
+  };
+
+  const caKeyPem = await exportPrivateKeyPem(caKeys.privateKey);
+  const serverKeyPem = await exportPrivateKeyPem(serverKeys.privateKey);
+  const clientKeyPem = await exportPrivateKeyPem(clientKeys.privateKey);
+
+  // Save them
+  fs.writeFileSync(path.join(TEST_CERTS_DIR, 'ca.crt'), caCert.toString('pem'));
+  fs.writeFileSync(path.join(TEST_CERTS_DIR, 'ca.key'), caKeyPem);
+  
+  fs.writeFileSync(path.join(TEST_CERTS_DIR, 'server.crt'), serverCert.toString('pem'));
+  fs.writeFileSync(path.join(TEST_CERTS_DIR, 'server.key'), serverKeyPem);
+
+  fs.writeFileSync(path.join(TEST_CERTS_DIR, 'client.crt'), clientCert.toString('pem'));
+  fs.writeFileSync(path.join(TEST_CERTS_DIR, 'client.key'), clientKeyPem);
+}
+
+beforeAll(async () => {
   if (!fs.existsSync(TEST_CERTS_DIR)) {
     fs.mkdirSync(TEST_CERTS_DIR, { recursive: true });
   }
-
-  // Generate self-signed CA and certs for testing if openssl is available
-  try {
-    execSync(`
-      openssl genrsa -out ${TEST_CERTS_DIR}/ca.key 2048
-      openssl req -x509 -new -nodes -key ${TEST_CERTS_DIR}/ca.key -sha256 -days 1 -out ${TEST_CERTS_DIR}/ca.crt -subj "/CN=TestCA"
-      
-      openssl genrsa -out ${TEST_CERTS_DIR}/server.key 2048
-      openssl req -new -key ${TEST_CERTS_DIR}/server.key -out ${TEST_CERTS_DIR}/server.csr -subj "/CN=test-server.edgecloud.local"
-      openssl x509 -req -in ${TEST_CERTS_DIR}/server.csr -CA ${TEST_CERTS_DIR}/ca.crt -CAkey ${TEST_CERTS_DIR}/ca.key -CAcreateserial -out ${TEST_CERTS_DIR}/server.crt -days 1 -sha256
-      
-      openssl genrsa -out ${TEST_CERTS_DIR}/client.key 2048
-      openssl req -new -key ${TEST_CERTS_DIR}/client.key -out ${TEST_CERTS_DIR}/client.csr -subj "/CN=test-client.edgecloud.local"
-      openssl x509 -req -in ${TEST_CERTS_DIR}/client.csr -CA ${TEST_CERTS_DIR}/ca.crt -CAkey ${TEST_CERTS_DIR}/ca.key -CAcreateserial -out ${TEST_CERTS_DIR}/client.crt -days 1 -sha256
-    `);
-  } catch (err) {
-    console.warn('Skipping cert generation in test (openssl not found). Assuming certs exist or test will fail.');
-  }
+  await generateTestCerts();
 });
 
 afterAll(() => {
@@ -66,8 +133,14 @@ test('mTLS server should reject connections without client certificate', async (
   } catch (err: any) {
     // Expect connection reset or 400
     expect(err.code).toBeDefined();
-    // In node, a rejected mTLS connection often shows as ECONNRESET or an SSL error
-    expect(['ECONNRESET', 'ERR_TLS_CERT_ALTNAME_INVALID', 'ECONNREFUSED']).toContain(err.code);
+    expect([
+      'ECONNRESET',
+      'ERR_TLS_CERT_ALTNAME_INVALID',
+      'ECONNREFUSED',
+      'ERR_SSL_TLSV13_ALERT_CERTIFICATE_REQUIRED',
+      'ERR_SSL_TLSV13_ALERT_BAD_CERTIFICATE',
+      'EPROTO'
+    ]).toContain(err.code);
   } finally {
     await server.close();
   }
