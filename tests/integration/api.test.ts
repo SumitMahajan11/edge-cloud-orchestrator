@@ -23,6 +23,35 @@ describe('Integration Tests', () => {
   let testTaskId: string;
 
   beforeAll(async () => {
+    axios.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (axios.isAxiosError(error)) {
+          const serializableError = new Error(error.message);
+          Object.defineProperties(serializableError, {
+            response: {
+              value: error.response ? {
+                status: error.response.status,
+                data: error.response.data,
+                headers: error.response.headers,
+              } : undefined,
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            },
+            code: {
+              value: error.code,
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            }
+          });
+          return Promise.reject(serializableError);
+        }
+        return Promise.reject(error);
+      }
+    );
+
     apiClient = axios.create({
       baseURL: API_URL,
       timeout: 10000,
@@ -30,6 +59,35 @@ describe('Integration Tests', () => {
         'Content-Type': 'application/json',
       },
     });
+
+    apiClient.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (axios.isAxiosError(error)) {
+          const serializableError = new Error(error.message);
+          Object.defineProperties(serializableError, {
+            response: {
+              value: error.response ? {
+                status: error.response.status,
+                data: error.response.data,
+                headers: error.response.headers,
+              } : undefined,
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            },
+            code: {
+              value: error.code,
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            }
+          });
+          return Promise.reject(serializableError);
+        }
+        return Promise.reject(error);
+      }
+    );
   });
 
   describe('Health Checks', () => {
