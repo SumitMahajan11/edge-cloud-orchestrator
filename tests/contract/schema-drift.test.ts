@@ -1,8 +1,10 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import path from 'path';
 import fs from 'fs';
+import path from 'path';
+
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import yaml from 'yaml';
-import { init, app } from '../../apps/api/src/index';
+
+import { app,init } from '../../apps/api/src/index';
 
 vi.hoisted(() => {
   process.env.NODE_ENV = 'test';
@@ -30,7 +32,7 @@ describe('Schema Drift Protection', () => {
 
     // 2. Generate the OpenAPI spec fresh from the running server
     // Give swagger a moment to generate the spec
-    await new Promise(resolve => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 500));
     
     let currentFullSpec: any;
     if (typeof (app as any).swagger === 'function') {
@@ -67,7 +69,7 @@ describe('Schema Drift Protection', () => {
     const sortObjectKeys = (obj: any): any => {
       if (Array.isArray(obj)) {
         return obj.map(sortObjectKeys).sort((a, b) => {
-          if (typeof a === 'string' && typeof b === 'string') return a.localeCompare(b);
+          if (typeof a === 'string' && typeof b === 'string') {return a.localeCompare(b);}
           return 0;
         });
       }
