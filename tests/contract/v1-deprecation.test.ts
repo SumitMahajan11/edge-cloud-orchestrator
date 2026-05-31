@@ -1,6 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
 import jwt from 'jsonwebtoken';
-import { init, app } from '../../apps/api/src/index';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+
+import { app,init } from '../../apps/api/src/index';
 
 vi.hoisted(() => {
   process.env.NODE_ENV = 'test';
@@ -8,6 +9,7 @@ vi.hoisted(() => {
   process.env.FORCE_MOCK_REDIS = 'true';
   process.env.JWT_SECRET = 'test-secret-at-least-32-characters-long';
   process.env.ENCRYPTION_KEY = 'test-key-at-least-32-characters-long';
+  process.env.ELECTRICITY_MAPS_API_KEY = '';
 });
 
 describe('V1 API Deprecation Validation', () => {
@@ -17,7 +19,7 @@ describe('V1 API Deprecation Validation', () => {
   beforeAll(async () => {
     // Collect v1 routes
     app.addHook('onRoute', (routeOptions) => {
-      const url = routeOptions.url;
+      const {url} = routeOptions;
       if (url.startsWith('/v1')) {
         v1Routes.push({
           method: (Array.isArray(routeOptions.method) ? routeOptions.method[0] : routeOptions.method as string).toLowerCase(),
@@ -39,7 +41,11 @@ describe('V1 API Deprecation Validation', () => {
         permissions: ['*'] 
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '1h' }
+      { 
+        expiresIn: '1h',
+        issuer: 'edge-cloud-orchestrator',
+        audience: 'edge-cloud-clients'
+      }
     );
   });
 
@@ -49,7 +55,7 @@ describe('V1 API Deprecation Validation', () => {
 
   it('should include Deprecation and Sunset headers on all v1 endpoints', async () => {
     // Test a sample of v1 endpoints
-    const sampleRoutes = v1Routes.filter(r => !r.url.includes(':')).slice(0, 5);
+    const sampleRoutes = v1Routes.filter((r) => !r.url.includes(':')).slice(0, 5);
     
     for (const route of sampleRoutes) {
       const response = await app.inject({

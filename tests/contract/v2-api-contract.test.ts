@@ -1,11 +1,14 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
-import path from 'path';
 import fs from 'fs';
-import yaml from 'yaml';
-import jwt from 'jsonwebtoken';
 import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
-import { init, app } from '../../apps/api/src/index';
+import jwt from 'jsonwebtoken';
+
+import path from 'path';
+
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+import yaml from 'yaml';
+
+import { app,init } from '../../apps/api/src/index';
 
 vi.hoisted(() => {
   process.env.NODE_ENV = 'test';
@@ -13,6 +16,7 @@ vi.hoisted(() => {
   process.env.FORCE_MOCK_REDIS = 'true';
   process.env.JWT_SECRET = 'test-secret-at-least-32-characters-long';
   process.env.ENCRYPTION_KEY = 'test-key-at-least-32-characters-long';
+  process.env.ELECTRICITY_MAPS_API_KEY = '';
 });
 
 // Load the committed V2 spec at top level for dynamic test generation
@@ -28,7 +32,7 @@ describe('V2 API Contract Verification', () => {
   beforeAll(async () => {
     // Collect all registered routes
     app.addHook('onRoute', (routeOptions) => {
-      const url = routeOptions.url;
+      const {url} = routeOptions;
       if (url.startsWith('/v2')) {
         v2Routes.push({
           method: (Array.isArray(routeOptions.method) ? routeOptions.method[0] : routeOptions.method as string).toLowerCase(),
@@ -64,7 +68,11 @@ describe('V2 API Contract Verification', () => {
         permissions: ['*'] 
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '1h' }
+      { 
+        expiresIn: '1h',
+        issuer: 'edge-cloud-orchestrator',
+        audience: 'edge-cloud-clients'
+      }
     );
   });
 
@@ -74,11 +82,11 @@ describe('V2 API Contract Verification', () => {
 
   it('should verify all endpoints in the spec exist in the server', () => {
     for (const [routePath, methods] of Object.entries(openapi.paths)) {
-      if (routePath === '/ws') continue;
+      if (routePath === '/ws') {continue;}
 
       for (const [method] of Object.entries(methods as any)) {
         if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
-          const exists = v2Routes.some(r => {
+          const exists = v2Routes.some((r) => {
             const normalizedRouteUrl = r.url.replace(/\/$/, '').replace(/\{([^}]+)\}/g, ':$1');
             const normalizedSpecUrl = routePath.replace(/\/$/, '').replace(/\{([^}]+)\}/g, ':$1');
             return r.method === method && normalizedRouteUrl === normalizedSpecUrl;
@@ -94,7 +102,7 @@ describe('V2 API Contract Verification', () => {
     for (const route of v2Routes) {
       // Skip some internal or auto-generated routes
       // Fastify automatically adds HEAD routes for GET routes, which usually aren't in the spec
-      if (route.url.includes('/docs') || route.url === '/v2' || route.method === 'head') continue;
+      if (route.url.includes('/docs') || route.url === '/v2' || route.method === 'head') {continue;}
 
       const normalizedServerPath = route.url.replace(/\/$/, '').replace(/:([^/]+)/g, '{$1}');
       let found = false;
@@ -119,11 +127,11 @@ describe('V2 API Contract Verification', () => {
       '/v2/auth/logout', // Usually 204 or different schema
     ];
 
-    for (const [routePath, methods] of Object.entries(openapi.paths as any)) {
-      if (routePath === '/ws' || skipEndpoints.includes(routePath)) continue;
+    for (const [routePath, methods] of Object.entries(openapi.paths)) {
+      if (routePath === '/ws' || skipEndpoints.includes(routePath)) {continue;}
 
       for (const [method, operation] of Object.entries(methods as any)) {
-        if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) continue;
+        if (!['get', 'post', 'put', 'patch', 'delete'].includes(method)) {continue;}
 
         it(`${method.toUpperCase()} ${routePath} matches schema`, async () => {
           // Construct a test URL (replace path params with dummy values)

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 
 vi.hoisted(() => {
   process.env.NODE_ENV = 'test';
@@ -6,13 +6,16 @@ vi.hoisted(() => {
   process.env.FORCE_MOCK_REDIS = 'true';
   process.env.JWT_SECRET = 'test-secret-at-least-32-characters-long';
   process.env.ENCRYPTION_KEY = 'test-key-at-least-32-characters-long';
+  process.env.ELECTRICITY_MAPS_API_KEY = '';
 });
 
-import path from 'path';
 import fs from 'fs';
-import yaml from 'yaml';
+
+import path from 'path';
 import jwt from 'jsonwebtoken';
-import { init, app } from '../../apps/api/src/index';
+import yaml from 'yaml';
+
+import { app,init } from '../../apps/api/src/index';
 
 describe('Edge-Cloud Orchestrator API Contract Suite', () => {
   let openapi: any;
@@ -30,8 +33,8 @@ describe('Edge-Cloud Orchestrator API Contract Suite', () => {
       };
       
       allRoutes.push(route);
-      if (route.url.startsWith('/v1')) v1Routes.push(route);
-      if (route.url.startsWith('/v2')) v2Routes.push(route);
+      if (route.url.startsWith('/v1')) {v1Routes.push(route);}
+      if (route.url.startsWith('/v2')) {v2Routes.push(route);}
     });
 
     // Initialize the app (registers plugins, routes, etc.)
@@ -54,7 +57,11 @@ describe('Edge-Cloud Orchestrator API Contract Suite', () => {
         permissions: ['*'] 
       },
       process.env.JWT_SECRET!,
-      { expiresIn: '1h' }
+      { 
+        expiresIn: '1h',
+        issuer: 'edge-cloud-orchestrator',
+        audience: 'edge-cloud-clients'
+      }
     );
   });
 
@@ -65,12 +72,12 @@ describe('Edge-Cloud Orchestrator API Contract Suite', () => {
   describe('V2 API Contract Verification', () => {
     it('should verify all endpoints in the spec exist in the server', () => {
       for (const [routePath, methods] of Object.entries(openapi.paths)) {
-        if (routePath === '/ws') continue; // Skip WebSocket endpoint as it might not be in spec
+        if (routePath === '/ws') {continue;} // Skip WebSocket endpoint as it might not be in spec
 
         for (const [method] of Object.entries(methods as any)) {
           if (['get', 'post', 'put', 'patch', 'delete'].includes(method)) {
             const normalizedSpecPath = routePath.replace(/\/$/, '');
-            const exists = v2Routes.some(r => {
+            const exists = v2Routes.some((r) => {
               const normalizedRouteUrl = r.url.replace(/\/$/, '').replace(/\{([^}]+)\}/g, ':$1');
               const normalizedSpecUrl = normalizedSpecPath.replace(/\{([^}]+)\}/g, ':$1');
               return r.method.toLowerCase() === method.toLowerCase() && normalizedRouteUrl === normalizedSpecUrl;
@@ -134,7 +141,7 @@ describe('Edge-Cloud Orchestrator API Contract Suite', () => {
 
       // 2. Generate the OpenAPI spec fresh from the running server
       // Give swagger a moment to generate the spec
-      await new Promise(resolve => setTimeout(resolve, 500));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       
       let currentFullSpec: any;
       if (typeof (app as any).swagger === 'function') {
@@ -169,7 +176,7 @@ describe('Edge-Cloud Orchestrator API Contract Suite', () => {
         if (Array.isArray(obj)) {
           const mapped = obj.map(sortObjectKeys);
           // Sort arrays of primitives to ensure deterministic comparison of enums, required fields, etc.
-          if (mapped.every(i => typeof i === 'string' || typeof i === 'number')) {
+          if (mapped.every((i) => typeof i === 'string' || typeof i === 'number')) {
             return mapped.sort();
           }
           return mapped;
@@ -212,7 +219,7 @@ describe('Edge-Cloud Orchestrator API Contract Suite', () => {
 
   describe('V1 API Deprecation Enforcement', () => {
     it('should include Deprecation and Sunset headers on v1 endpoints', async () => {
-      const sampleRoutes = v1Routes.filter(r => !r.url.includes(':')).slice(0, 5);
+      const sampleRoutes = v1Routes.filter((r) => !r.url.includes(':')).slice(0, 5);
       
       for (const route of sampleRoutes) {
         const response = await app.inject({

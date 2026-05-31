@@ -13,29 +13,34 @@ components:
     def-0:
       type: object
       properties:
-        code:
-          type: string
-          description: Machine-readable error code
-        message:
-          type: string
-          description: Human-readable error description
-        requestId:
-          type: string
-          description: Unique request ID
-        timestamp:
-          type: string
-          format: date-time
-          description: ISO 8601 timestamp
-        details:
-          description: Optional error details
-        stack:
-          type: string
-          description: Error stack trace (non-production only)
+        error:
+          type: object
+          properties:
+            code:
+              type: string
+              description: Machine-readable error code
+            message:
+              type: string
+              description: Human-readable error description
+            requestId:
+              type: string
+              description: Unique request ID
+            timestamp:
+              type: string
+              format: date-time
+              description: ISO 8601 timestamp
+            details:
+              description: Optional error details
+            stack:
+              type: string
+              description: Error stack trace (non-production only)
+          required:
+            - code
+            - message
+            - requestId
+          additionalProperties: false
       required:
-        - code
-        - message
-        - requestId
-        - timestamp
+        - error
       additionalProperties: false
       title: ErrorSchema
     def-1:
@@ -102,14 +107,20 @@ paths:
               type: object
               properties:
                 olderThanDays:
-                  type: number
+                  type: integer
+                  minimum: 1
+                  maximum: 365
                 types:
                   type: array
                   items:
                     type: string
+                    maxLength: 50
+                  minItems: 1
+                  maxItems: 10
               required:
                 - olderThanDays
                 - types
+              additionalProperties: false
         required: true
       responses:
         "200":
@@ -122,6 +133,7 @@ paths:
       parameters:
         - schema:
             type: string
+            maxLength: 100
           in: query
           name: topic
           required: false
@@ -136,13 +148,16 @@ paths:
           name: status
           required: false
         - schema:
-            type: number
+            type: integer
+            minimum: 1
+            maximum: 100
             default: 50
           in: query
           name: limit
           required: false
         - schema:
-            type: number
+            type: integer
+            minimum: 0
             default: 0
           in: query
           name: offset
@@ -158,6 +173,7 @@ paths:
       parameters:
         - schema:
             type: string
+            format: uuid
           in: path
           name: id
           required: true
@@ -176,8 +192,11 @@ paths:
               type: object
               properties:
                 olderThanDays:
-                  type: number
+                  type: integer
+                  minimum: 1
+                  maximum: 365
                   default: 7
+              additionalProperties: false
       responses:
         "200":
           description: Default Response
@@ -186,6 +205,65 @@ paths:
       summary: Get DLQ statistics across all streams
       tags:
         - admin
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/events/republish:
+    post:
+      summary: Republish an event to Kafka
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventType:
+                  type: string
+                  maxLength: 100
+                entityId:
+                  type: string
+                  maxLength: 100
+                targetTopic:
+                  type: string
+                  maxLength: 100
+              required:
+                - eventType
+                - entityId
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/events/republish-range:
+    post:
+      summary: Bulk republish events to Kafka
+      tags:
+        - admin
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                eventType:
+                  type: string
+                  maxLength: 100
+                fromTimestamp:
+                  type: string
+                  format: date-time
+                toTimestamp:
+                  type: string
+                  format: date-time
+                dryRun:
+                  type: boolean
+              required:
+                - eventType
+                - fromTimestamp
+                - toTimestamp
+              additionalProperties: false
+        required: true
       responses:
         "200":
           description: Default Response
@@ -221,6 +299,7 @@ paths:
       parameters:
         - schema:
             type: string
+            format: uuid
           in: path
           name: id
           required: true
@@ -246,13 +325,23 @@ paths:
                     - VIEWER
               required:
                 - role
+              additionalProperties: false
         required: true
       parameters:
         - schema:
             type: string
+            format: uuid
           in: path
           name: id
           required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/admin/ws-stats:
+    get:
+      summary: Get WebSocket statistics
+      tags:
+        - admin
       responses:
         "200":
           description: Default Response
@@ -404,10 +493,7 @@ paths:
           content:
             application/json:
               schema:
-                type: object
-                properties:
-                  message:
-                    type: string
+                $ref: "#/components/schemas/def-0"
   /v2/agents/tasks/{taskId}/result:
     post:
       summary: Report task result
@@ -435,6 +521,42 @@ paths:
                 error:
                   type: string
                   nullable: true
+                metrics:
+                  type: object
+                  properties:
+                    cpu_usage_avg:
+                      type: number
+                    memory_usage_max:
+                      type: number
+                    network_ingress_bytes:
+                      type: number
+                    network_egress_bytes:
+                      type: number
+        required: true
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: taskId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/agents/tasks/{taskId}/status:
+    post:
+      summary: Update task execution status
+      tags:
+        - agents
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - status
+              properties:
+                status:
+                  type: string
         required: true
       parameters:
         - schema:
@@ -447,29 +569,45 @@ paths:
           description: Default Response
   /v2/alerts/:
     get:
-      summary: Get alert history
-      tags:
-        - alerts
-      parameters:
-        - schema:
-            type: string
-            enum:
-              - critical
-              - warning
-              - info
-          in: query
-          name: severity
-          required: false
-      responses:
-        "200":
-          description: Default Response
-    delete:
-      summary: Clear alert history
+      summary: Get active alerts for tenant
       tags:
         - alerts
       responses:
         "200":
           description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  alerts:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        severity:
+                          type: string
+                          enum:
+                            - CRITICAL
+                            - HIGH
+                            - MEDIUM
+                            - LOW
+                        title:
+                          type: string
+                        description:
+                          type: string
+                        source:
+                          type: string
+                        firedAt:
+                          type: string
+                        acknowledgedAt:
+                          type: string
+                          nullable: true
+                        resolvedAt:
+                          type: string
+                          nullable: true
   /v2/alerts/test:
     post:
       summary: Send test alert
@@ -483,19 +621,148 @@ paths:
               required:
                 - severity
                 - title
-                - message
+                - description
               properties:
                 severity:
                   type: string
                   enum:
-                    - critical
-                    - warning
-                    - info
+                    - CRITICAL
+                    - HIGH
+                    - MEDIUM
+                    - LOW
                 title:
                   type: string
-                message:
+                description:
                   type: string
         required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/alerts/{id}/acknowledge:
+    post:
+      summary: Acknowledge an alert
+      tags:
+        - alerts
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/analytics/cost:
+    get:
+      summary: Get cost analytics
+      tags:
+        - analytics
+      parameters:
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: from
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: to
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: nodeId
+          required: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalActualCost:
+                    type: number
+                  totalSavings:
+                    type: number
+                  costByNode:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        nodeId:
+                          type: string
+                        nodeName:
+                          type: string
+                        cost:
+                          type: number
+                        taskCount:
+                          type: number
+                  costOverTime:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        cost:
+                          type: number
+  /v2/api-keys/:
+    get:
+      summary: List my API keys
+      tags:
+        - api-keys
+      responses:
+        "200":
+          description: Default Response
+    post:
+      summary: Create a new API key
+      tags:
+        - api-keys
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  maxLength: 100
+                  pattern: ^[a-zA-Z0-9\s\-_]+$
+                permissions:
+                  type: array
+                  items:
+                    type: string
+                expiresAt:
+                  anyOf:
+                    - anyOf:
+                        - not: {}
+                        - type: string
+                          format: date-time
+                    - type: "null"
+              required:
+                - name
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/api-keys/{id}:
+    delete:
+      summary: Revoke an API key
+      tags:
+        - api-keys
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
       responses:
         "200":
           description: Default Response
@@ -557,24 +824,6 @@ paths:
       responses:
         "200":
           description: Default Response
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  id:
-                    type: string
-                  email:
-                    type: string
-                  name:
-                    type: string
-                  role:
-                    type: string
-                  createdAt:
-                    type: string
-                  lastLoginAt:
-                    type: string
-                    nullable: true
   /v2/auth/refresh:
     post:
       summary: Refresh access token
@@ -612,15 +861,18 @@ paths:
                   format: email
                 password:
                   type: string
-                  minLength: 8
+                  minLength: 12
+                  maxLength: 128
                   allOf:
                     - pattern: "[A-Z]"
                     - pattern: "[a-z]"
                     - pattern: "[0-9]"
+                    - pattern: "[^A-Za-z0-9]"
                 name:
                   type: string
                   minLength: 2
                   maxLength: 100
+                  pattern: ^[a-zA-Z\s\-\.]+$
               required:
                 - email
                 - password
@@ -640,6 +892,36 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/def-0"
+  /v2/auth/sessions:
+    get:
+      summary: List active user sessions
+      tags:
+        - auth
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      summary: Revoke all user sessions (logout everywhere)
+      tags:
+        - auth
+      responses:
+        "200":
+          description: Default Response
+  /v2/auth/sessions/{id}:
+    delete:
+      summary: Revoke a specific session
+      tags:
+        - auth
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
   /v2/carbon/by-region:
     get:
       summary: Get carbon breakdown by region
@@ -648,46 +930,68 @@ paths:
       responses:
         "200":
           description: Default Response
-  /v2/carbon/metrics:
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    zone:
+                      type: string
+                    carbonIntensityGco2:
+                      type: number
+                    lastUpdatedAt:
+                      type: string
+                    source:
+                      type: string
+  /v2/carbon/intensity:
     get:
-      summary: Get carbon metrics
+      summary: Get regional carbon intensity
       tags:
         - carbon
-      parameters:
-        - schema:
-            type: string
-          in: query
-          name: region
-          required: false
-        - schema:
-            type: string
-            format: date-time
-          in: query
-          name: from
-          required: false
-        - schema:
-            type: string
-            format: date-time
-          in: query
-          name: to
-          required: false
-        - schema:
-            type: string
-            enum:
-              - hour
-              - day
-              - week
-              - month
-            default: day
-          in: query
-          name: granularity
-          required: false
       responses:
         "200":
           description: Default Response
-  /v2/carbon/record:
-    post:
-      summary: Record carbon metric
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  regions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        zone:
+                          type: string
+                        carbonIntensityGco2:
+                          type: number
+                        lastUpdatedAt:
+                          type: string
+                        source:
+                          type: string
+  /v2/carbon/policy:
+    get:
+      summary: Get active carbon optimization policy
+      tags:
+        - carbon
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  carbonWeight:
+                    type: number
+                  isActive:
+                    type: boolean
+                  activePolicy:
+                    type: string
+    patch:
+      summary: Update carbon optimization weight
       tags:
         - carbon
       requestBody:
@@ -696,24 +1000,63 @@ paths:
             schema:
               type: object
               properties:
-                nodeId:
-                  type: string
-                region:
-                  type: string
-                energyKwh:
+                carbonWeight:
                   type: number
-                carbonKg:
-                  type: number
-                renewablePercent:
-                  type: number
+                  minimum: 0
+                  maximum: 1
               required:
-                - region
-                - energyKwh
-                - carbonKg
+                - carbonWeight
+              additionalProperties: false
         required: true
       responses:
         "200":
           description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  carbonWeight:
+                    type: number
+  /v2/carbon/savings:
+    get:
+      summary: Get carbon savings metrics
+      tags:
+        - carbon
+      parameters:
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 365
+            default: 7
+          in: query
+          name: days
+          required: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalSavedGco2Today:
+                    type: number
+                  totalSavedGco2Week:
+                    type: number
+                  equivalentTreesPlanted:
+                    type: number
+                  savingsHistory:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        savedGco2:
+                          type: number
   /v2/carbon/summary:
     get:
       summary: Get carbon footprint summary
@@ -722,6 +1065,91 @@ paths:
       responses:
         "200":
           description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  totalSavedGco2Today:
+                    type: number
+                  totalSavedGco2Week:
+                    type: number
+                  equivalentTreesPlanted:
+                    type: number
+                  savingsHistory:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        savedGco2:
+                          type: number
+  /v2/circuit-breakers/:
+    get:
+      summary: Get all circuit breaker states
+      tags:
+        - resilience
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                    state:
+                      type: string
+                      enum:
+                        - CLOSED
+                        - OPEN
+                        - HALF_OPEN
+                    failureRate:
+                      type: number
+                    lastStateChange:
+                      type: string
+                    successCount:
+                      type: number
+                    failureCount:
+                      type: number
+                    nextRetryAt:
+                      type: string
+  /v2/circuit-breakers/{name}/reset:
+    post:
+      summary: Force reset a circuit breaker
+      tags:
+        - resilience
+      parameters:
+        - schema:
+            type: string
+            minLength: 1
+            maxLength: 100
+            pattern: ^[a-zA-Z0-9\-_]+$
+          in: path
+          name: name
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+        "404":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
   /v2/cost/by-node:
     get:
       summary: Get cost breakdown by node
@@ -1115,6 +1543,140 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/def-0"
+  /v2/ml/drift/current:
+    get:
+      summary: Get current ML drift status
+      tags:
+        - ml
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  driftScore:
+                    type: number
+                  isDrifting:
+                    type: boolean
+                  lastCheckedAt:
+                    type: string
+                  featureDrift:
+                    type: object
+                    additionalProperties:
+                      type: number
+  /v2/ml/drift/history:
+    get:
+      summary: Get ML drift history
+      tags:
+        - ml
+      parameters:
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 8760
+            default: 24
+          in: query
+          name: hours
+          required: false
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    timestamp:
+                      type: string
+                    score:
+                      type: number
+  /v2/ml/model/current:
+    get:
+      summary: Get current ML model status
+      tags:
+        - ml
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  version:
+                    type: string
+                  trainedAt:
+                    type: string
+                  accuracy:
+                    type: number
+                  fallbackRate:
+                    type: number
+                  lastUpdatedAt:
+                    type: string
+                  modelType:
+                    type: string
+  /v2/ml/outcomes/stats:
+    get:
+      summary: Get ML outcome collection stats
+      tags:
+        - ml
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  outcomesBuffered:
+                    type: number
+                  banditExplorationRate:
+                    type: number
+                  predictionErrorP99Ms:
+                    type: number
+                  nextUpdateAt:
+                    type: number
+  /v2/ml/retrain:
+    post:
+      summary: Manually trigger model retraining
+      tags:
+        - ml
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /v2/ml/retrain/status:
+    get:
+      summary: Get status of current retraining job
+      tags:
+        - ml
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  error:
+                    type: string
+                    nullable: true
+                  lastStartedAt:
+                    type: string
   /v2/nodes/:
     get:
       summary: List edge nodes
@@ -1793,6 +2355,29 @@ paths:
       responses:
         "200":
           description: Default Response
+  /v2/scheduler/decisions:
+    get:
+      summary: Get recent scheduling decisions
+      tags:
+        - scheduler
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: nodeId
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+          in: query
+          name: limit
+          required: false
+      responses:
+        "200":
+          description: Default Response
   /v2/scheduler/metrics:
     get:
       summary: Get scheduler-specific metrics
@@ -2023,6 +2608,10 @@ paths:
                                 - not: {}
                                 - type: string
                             - type: "null"
+                        retryCount:
+                          type: integer
+                          minimum: 0
+                          default: 0
                       required:
                         - id
                         - name
@@ -2241,6 +2830,10 @@ paths:
                           - not: {}
                           - type: string
                       - type: "null"
+                  retryCount:
+                    type: integer
+                    minimum: 0
+                    default: 0
                 required:
                   - id
                   - name
@@ -2377,6 +2970,10 @@ paths:
                           - not: {}
                           - type: string
                       - type: "null"
+                  retryCount:
+                    type: integer
+                    minimum: 0
+                    default: 0
                 required:
                   - id
                   - name
@@ -2415,15 +3012,22 @@ paths:
         - tasks
       parameters:
         - schema:
-            type: string
-          in: query
-          name: level
-          required: false
-        - schema:
-            type: number
-            default: 100
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
           in: query
           name: limit
+          required: false
+        - schema:
+            type: string
+            enum:
+              - DEBUG
+              - INFO
+              - WARN
+              - ERROR
+          in: query
+          name: level
           required: false
         - schema:
             type: string
@@ -2486,6 +3090,7 @@ paths:
                   type: string
                   minLength: 1
                   maxLength: 100
+                  pattern: ^[a-zA-Z0-9\s\-_]+$
                 url:
                   type: string
                   format: uri
@@ -2496,8 +3101,8 @@ paths:
                   minItems: 1
                 secret:
                   type: string
-                  minLength: 16
-                  maxLength: 100
+                  minLength: 32
+                  maxLength: 128
                 enabled:
                   type: boolean
                   default: true
@@ -2616,7 +3221,9 @@ paths:
         - webhooks
       parameters:
         - schema:
-            type: number
+            type: integer
+            minimum: 1
+            maximum: 100
             default: 50
           in: query
           name: limit
@@ -2638,11 +3245,13 @@ paths:
       parameters:
         - schema:
             type: string
+            format: uuid
           in: path
           name: id
           required: true
         - schema:
             type: string
+            format: uuid
           in: path
           name: deliveryId
           required: true
@@ -2705,8 +3314,13 @@ paths:
                     properties:
                       id:
                         type: string
+                        minLength: 1
+                        maxLength: 100
+                        pattern: ^[a-zA-Z0-9\-_]+$
                       name:
                         type: string
+                        minLength: 1
+                        maxLength: 100
                       type:
                         type: string
                         enum:
@@ -2718,6 +3332,8 @@ paths:
                       config:
                         type: object
                         additionalProperties: {}
+                        propertyNames:
+                          maxLength: 100
                       inputs:
                         type: array
                         items:
