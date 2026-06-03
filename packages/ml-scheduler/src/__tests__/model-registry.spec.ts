@@ -86,12 +86,18 @@ describe('ModelRegistry', () => {
       const { MLScheduler } = await import('../ml-scheduler');
       const { SchedulingPredictor } = await import('../predictor');
       const predictor = new SchedulingPredictor();
-      const detector = { isDrifting: () => false } as any;
       const metrics = {
         recordMLFallback: vi.fn(),
         recordSchedulingDecision: vi.fn(),
+        recordMetric: vi.fn(),
+        recordCarbonMetrics: vi.fn(),
       };
-      const scheduler = new MLScheduler(predictor, registry, detector, metrics as any);
+      const outcomeCollector = {
+        getReward: vi.fn().mockResolvedValue(0.5),
+        onOutcomeRecorded: vi.fn(),
+      } as any;
+      const detector = { isDrifting: () => false } as any;
+      const scheduler = new MLScheduler(predictor, registry, detector, metrics as any, outcomeCollector);
 
       // Simulate a hot-swap starting
       redis.get.mockResolvedValue('v2.0.0');

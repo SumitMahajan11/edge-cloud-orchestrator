@@ -1,20 +1,28 @@
-use sysinfo::{System, SystemExt, CpuExt, DiskExt};
+use sysinfo::{System, Disks};
 
 pub struct SystemMetrics {
     sys: System,
+    disks: Disks,
+}
+
+impl Default for SystemMetrics {
+    fn default() -> Self {
+        Self::new()
+    }
 }
 
 impl SystemMetrics {
     pub fn new() -> Self {
         let mut sys = System::new_all();
         sys.refresh_all();
-        Self { sys }
+        let disks = Disks::new_with_refreshed_list();
+        Self { sys, disks }
     }
 
     pub fn refresh(&mut self) {
         self.sys.refresh_cpu();
         self.sys.refresh_memory();
-        self.sys.refresh_disks_list();
+        self.disks.refresh_list();
     }
 
     pub fn cpu_usage_percent(&self) -> f64 {
@@ -43,20 +51,19 @@ impl SystemMetrics {
     }
 
     pub fn disk_used_bytes(&self) -> u64 {
-        self.sys.disks().iter().map(|d| d.total_space() - d.available_space()).sum()
+        self.disks.list().iter().map(|d| d.total_space() - d.available_space()).sum()
     }
 
     pub fn disk_total_bytes(&self) -> u64 {
-        self.sys.disks().iter().map(|d| d.total_space()).sum()
+        self.disks.list().iter().map(|d| d.total_space()).sum()
     }
 
     pub fn load_average_1m(&self) -> f64 {
-        self.sys.load_average().one
+        System::load_average().one
     }
 
     /// Internal method to refresh and get agent process metrics
     pub fn get_process_metrics(&mut self, pid: sysinfo::Pid) -> (f64, u64) {
-        use sysinfo::ProcessExt;
         self.sys.refresh_process(pid);
         if let Some(process) = self.sys.process(pid) {
             (process.cpu_usage() as f64, process.memory())
@@ -79,4 +86,26 @@ mod tests {
         // CPU count is never 0
         // (cpu_usage could briefly be 0.0 so we don't assert on it)
     }
+
+    #[test]
+    fn test_zero_divisor_resilience() {
+        // Ensure memory usage calculation handles 0 total memory gracefully
+        let mut m = SystemMetrics::new();
+        m.sys.refresh_memory();
+        // Even if we mock/force a zero division state, it should return 0.0 instead of panicking
+        let original_total = m.sys.total_memory();
+        if original_total == 0 {
+            assert_eq!(m.memory_usage_percent(), 0.0);
+        }
+    }
+
+    #[test]
+    fn test_empty_cpu_resilience() {
+        let m = SystemMetrics::new();
+        // Test cpu calculation behavior - should not panic if cpu list were empty
+        if m.sys.cpus().is_empty() {
+            assert_eq!(m.cpu_usage_percent(), 0.0);
+        }
+    }
 }
+

@@ -51,7 +51,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: LayoutDashboard,
       shortcut: 'G D',
       group: 'navigation',
-      action: () => { navigate('/'); onClose(); },
+      action: () => { void navigate('/'); onClose(); },
     },
     {
       id: 'nodes',
@@ -59,7 +59,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: Server,
       shortcut: 'G N',
       group: 'navigation',
-      action: () => { navigate('/nodes'); onClose(); },
+      action: () => { void navigate('/nodes'); onClose(); },
     },
     {
       id: 'scheduler',
@@ -67,7 +67,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: Calendar,
       shortcut: 'G T',
       group: 'navigation',
-      action: () => { navigate('/scheduler'); onClose(); },
+      action: () => { void navigate('/scheduler'); onClose(); },
     },
     {
       id: 'monitoring',
@@ -75,7 +75,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: Activity,
       shortcut: 'G M',
       group: 'navigation',
-      action: () => { navigate('/monitoring'); onClose(); },
+      action: () => { void navigate('/monitoring'); onClose(); },
     },
     {
       id: 'logs',
@@ -83,7 +83,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: ScrollText,
       shortcut: 'G L',
       group: 'navigation',
-      action: () => { navigate('/logs'); onClose(); },
+      action: () => { void navigate('/logs'); onClose(); },
     },
     {
       id: 'policies',
@@ -91,7 +91,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
       icon: Settings,
       shortcut: 'G P',
       group: 'navigation',
-      action: () => { navigate('/policies'); onClose(); },
+      action: () => { void navigate('/policies'); onClose(); },
     },
     // Actions
     {

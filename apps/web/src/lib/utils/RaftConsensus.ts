@@ -189,7 +189,7 @@ export class RaftConsensus {
 
     // Simulate sending RequestVote to peers (in real impl, use HTTP/WebSocket)
     this.peers.forEach((peerId) => {
-      this.sendRequestVote(peerId, request)
+      void this.sendRequestVote(peerId, request)
     })
 
     // Reset election timer
@@ -329,7 +329,7 @@ export class RaftConsensus {
         leaderCommit: this.commitIndex,
       }
 
-      this.sendAppendEntries(peerId, request)
+      void this.sendAppendEntries(peerId, request)
     })
   }
 

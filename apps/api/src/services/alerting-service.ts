@@ -26,16 +26,26 @@ export interface AlertingConfig {
 export class AlertingService {
   private logger: Logger;
   private config: AlertingConfig;
+  private redis?: any;
   private alertHistory: Alert[] = [];
   private lastAlertTime = new Map<string, number>();
 
-  constructor(logger: Logger, config: Partial<AlertingConfig> = {}) {
+  constructor(logger: Logger, redisOrConfig?: any, config?: Partial<AlertingConfig>) {
     this.logger = logger;
-    this.config = {
-      logAlerts: true,
-      throttleMs: 60000, // 1 minute throttle per alert type
-      ...config,
-    };
+    if (redisOrConfig && typeof redisOrConfig.multi === 'function') {
+      this.redis = redisOrConfig;
+      this.config = {
+        logAlerts: true,
+        throttleMs: 60000, // 1 minute throttle per alert type
+        ...config,
+      };
+    } else {
+      this.config = {
+        logAlerts: true,
+        throttleMs: 60000,
+        ...redisOrConfig,
+      };
+    }
   }
 
   /**
@@ -113,11 +123,66 @@ export class AlertingService {
     }
   }
 
+  private isSafeUrl(urlStr: string): boolean {
+    try {
+      const url = new URL(urlStr);
+      const hostname = url.hostname.toLowerCase();
+      // Block common local/metadata IPs
+      if (
+        hostname === 'localhost' ||
+        hostname === '127.0.0.1' ||
+        hostname === '169.254.169.254' ||
+        hostname.startsWith('10.') ||
+        hostname.startsWith('192.168.') ||
+        hostname.startsWith('172.16.') ||
+        hostname.startsWith('172.17.') ||
+        hostname.startsWith('172.18.') ||
+        hostname.startsWith('172.19.') ||
+        hostname.startsWith('172.2') ||
+        hostname.startsWith('172.30.') ||
+        hostname.startsWith('172.31.')
+      ) {
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
+  private async recordFailedDelivery(
+    url: string,
+    reason: string,
+    error: string,
+  ): Promise<void> {
+    this.logger.error({ url, reason, error }, 'Alert webhook delivery failed');
+    if (this.redis) {
+      await this.redis.lpush(
+        'alerts:webhook:failures',
+        JSON.stringify({
+          url,
+          reason,
+          error,
+          timestamp: new Date().toISOString(),
+        }),
+      );
+    }
+  }
+
   /**
    * Send alert to webhook
    */
   private async sendWebhook(alert: Alert): Promise<void> {
     if (!this.config.webhookUrl) {
+      return;
+    }
+
+    if (!this.isSafeUrl(this.config.webhookUrl)) {
+      await this.recordFailedDelivery(
+        this.config.webhookUrl,
+        'SSRF_BLOCKED',
+        'SSRF blocked'
+      );
       return;
     }
 
@@ -133,11 +198,21 @@ export class AlertingService {
           { status: response.status, alertId: alert.id },
           'Failed to send alert webhook',
         );
+        await this.recordFailedDelivery(
+          this.config.webhookUrl,
+          'HTTP_ERROR',
+          `HTTP status ${response.status}`
+        );
       }
     } catch (error) {
       this.logger.error(
         { error: (error as Error).message, alertId: alert.id },
         'Error sending alert webhook',
+      );
+      await this.recordFailedDelivery(
+        this.config.webhookUrl,
+        'DELIVERY_ERROR',
+        (error as Error).message
       );
     }
   }
@@ -151,6 +226,19 @@ export class AlertingService {
       alerts = alerts.filter((a) => a.severity === severity);
     }
     return [...alerts];
+  }
+
+  getAlerts(tenantId: string): Alert[] {
+    return this.getAlertHistory(tenantId);
+  }
+
+  acknowledge(id: string, tenantId: string): boolean {
+    const alert = this.alertHistory.find(a => a.id === id && a.tenantId === tenantId);
+    if (alert) {
+      (alert as any).acknowledgedAt = new Date();
+      return true;
+    }
+    return false;
   }
 
   /**

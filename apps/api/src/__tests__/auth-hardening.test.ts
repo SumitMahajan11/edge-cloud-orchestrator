@@ -2,7 +2,6 @@
 import { AuthService } from '../services/auth.service';
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
-import { env } from '../config/env';
 
 // Mock Prisma
 const mockPrisma = {

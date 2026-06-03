@@ -69,7 +69,7 @@ class ErrorBoundary extends Component<Props, State> {
       url: window.location.href,
     }
 
-    navigator.clipboard.writeText(JSON.stringify(bugReport, null, 2))
+    void navigator.clipboard.writeText(JSON.stringify(bugReport, null, 2))
     alert('Telemetry dump copied to clipboard. Please include this in your report.')
   }
 

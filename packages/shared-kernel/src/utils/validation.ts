@@ -106,13 +106,15 @@ export const NodeMetricsBodySchema = z.object({
 export const ApiErrorSchema = z.object({
   code: z.string().describe('Machine-readable error code'),
   message: z.string().describe('Human-readable error description'),
-  requestId: z.string().describe('Unique request ID'),
-  timestamp: z.string().datetime().describe('ISO 8601 timestamp'),
+  requestId: z.string().optional().describe('Unique request ID'),
+  timestamp: z.string().datetime().optional().describe('ISO 8601 timestamp'),
   details: z.unknown().optional().describe('Optional error details'),
   stack: z.string().optional().describe('Error stack trace (non-production only)'),
 });
 
-export const ErrorSchema = ApiErrorSchema;
+export const ErrorSchema = z.object({
+  error: ApiErrorSchema,
+});
 
 export const HealthSchema = z.object({
   status: z.enum(['healthy', 'degraded', 'unhealthy']),

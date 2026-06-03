@@ -7,8 +7,6 @@ export const tenantContextPlugin = fp(async (fastify) => {
   fastify.addHook('preHandler', async (request: any, _reply) => {
     const tenantId = request.user?.tenantId;
     
-    if (tenantId) {
-      enterWithTenantContext(tenantId);
-    }
+    enterWithTenantContext(tenantId || undefined);
   });
 });

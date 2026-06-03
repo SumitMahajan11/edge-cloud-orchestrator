@@ -95,7 +95,7 @@ export function useCachedMetrics(nodes: EdgeNode[]) {
 
   useEffect(() => {
     // Initial fetch
-    fetchMetrics()
+    void fetchMetrics()
 
     // Set up interval for periodic updates
     const interval = setInterval(fetchMetrics, METRICS_CACHE_TTL)
@@ -170,7 +170,7 @@ export function useNodeMetrics(node: EdgeNode | null) {
       }
     }
 
-    fetchMetrics()
+    void fetchMetrics()
     const interval = setInterval(fetchMetrics, METRICS_CACHE_TTL)
 
     return () => {

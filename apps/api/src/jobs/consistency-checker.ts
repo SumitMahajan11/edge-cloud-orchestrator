@@ -44,7 +44,7 @@ export class ConsistencyCheckerJob {
 
     this.interval = setInterval(() => {
       const now = new Date();
-      const currentDay = now.toISOString().split('T')[0];
+      const currentDay = now.toISOString().split('T')[0]!;
       const currentHour = now.getUTCHours();
       
       if (currentHour === this.scheduleHour && this.lastRunDay !== currentDay) {
@@ -61,8 +61,15 @@ export class ConsistencyCheckerJob {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
-      this.logger.info('Consistency checker job stopped');
     }
+    if (this.s3Client) {
+      try {
+        this.s3Client.destroy();
+      } catch (err) {
+        this.logger.error({ err }, 'Failed to destroy s3Client');
+      }
+    }
+    this.logger.info('Consistency checker job stopped');
   }
 
   /**
@@ -88,7 +95,7 @@ export class ConsistencyCheckerJob {
 
     try {
       // 1. Run Invariant Checks
-      for (const [key, invariant] of Object.entries(SYSTEM_INVARIANTS)) {
+      for (const invariant of Object.values(SYSTEM_INVARIANTS)) {
         try {
           const violations = await this.prisma.$queryRawUnsafe(invariant.query);
           const violationCount = Array.isArray(violations) ? violations.length : 0;
@@ -125,7 +132,7 @@ export class ConsistencyCheckerJob {
       }
 
       // 2. Run Safe Fixes
-      for (const [key, fix] of Object.entries(SAFE_FIXES)) {
+      for (const fix of Object.values(SAFE_FIXES)) {
         try {
           const toFix: any[] = await this.prisma.$queryRawUnsafe(fix.query);
           if (toFix.length > 0) {

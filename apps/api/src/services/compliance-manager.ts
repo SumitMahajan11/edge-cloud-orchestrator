@@ -387,7 +387,7 @@ export class ComplianceManager {
     const details: Record<string, number> = {};
 
     // Delete in order due to foreign key constraints
-    details.sessions = await this.prisma.session
+    details.sessions = await this.prisma.userSession
       .deleteMany({ where: { userId } })
       .then((r) => r.count);
     details.apiKeys = await this.prisma.apiKey

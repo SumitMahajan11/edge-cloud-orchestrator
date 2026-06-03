@@ -114,8 +114,8 @@ export function tracingMiddleware(fastify: FastifyInstance): void {
     // Add trace ID to response headers for debugging
     const { span } = request as any;
     if (span) {
-      reply.header('X-Trace-Id', span.spanContext().traceId);
-      reply.header('X-Span-Id', span.spanContext().spanId);
+      void reply.header('X-Trace-Id', span.spanContext().traceId);
+      void reply.header('X-Span-Id', span.spanContext().spanId);
     }
   });
 }

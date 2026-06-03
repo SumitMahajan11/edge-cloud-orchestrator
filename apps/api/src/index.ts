@@ -60,7 +60,7 @@ import {
   initializeServices,
   shutdownServices,
 } from './initializers/services.js';
-import { errorHandler } from './plugins/error-handler';
+import { globalErrorHandler } from './plugins/error-handler';
 import { v1Routes } from './routes/v1-manifest';
 import { v2Routes } from './routes/v2-manifest';
 import { BackpressureController } from './services/backpressure-controller';
@@ -118,6 +118,10 @@ app.decorate('requireRole', function(this: any, ...roles: any[]) {
   return authState.requireRole(...roles);
 });
 
+app.decorate('requirePermission', function(this: any, permission: string) {
+  return authState.requirePermission(permission);
+});
+
 /**
  * Global 'Default Deny' Authentication Hook
  * 
@@ -136,7 +140,7 @@ app.decorate('requireRole', function(this: any, ...roles: any[]) {
       url.startsWith('/health') || 
       url === '/version' || 
       url.startsWith('/docs') ||
-      url === '/ws'
+      url.startsWith('/ws')
     ) {
       return;
     }
@@ -279,7 +283,7 @@ async function registerPlugins() {
   });
 
   const rateLimitWindow = parseInt(await secretManager.getSecret('RATE_LIMIT_WINDOW_MS') || '60000', 10);
-  const redisUrlForRateLimit = await secretManager.getSecret('REDIS_URL');
+  const redisUrlForRateLimit = !env.FORCE_MOCK_REDIS ? await secretManager.getSecret('REDIS_URL') : null;
 
   await app.register(rateLimit, {
     max: async () => {
@@ -290,7 +294,7 @@ async function registerPlugins() {
     timeWindow: rateLimitWindow,
     cache: 10000,
     allowList: ['127.0.0.1'],
-    ...(redisUrlForRateLimit ? { redis: redis } : {}),
+    ...(redisUrlForRateLimit && !env.FORCE_MOCK_REDIS ? { redis: redis } : {}),
     keyGenerator: (request) => {
       return (request as any).user?.id || request.ip;
     },
@@ -379,7 +383,7 @@ async function registerPlugins() {
 
   // Global services decoration (Directly on root app to ensure propagation)
   const isMockPrisma = (prisma as any)?.isMock;
-  const { prismaForTenant } = await import('@edgecloud/shared-kernel');
+  const { prismaForTenant, enterWithTenantContext } = await import('@edgecloud/shared-kernel');
   const scopedPrisma = isMockPrisma ? prisma : prismaForTenant(prisma);
   
   if (!app.hasDecorator('prisma')) {
@@ -393,23 +397,40 @@ async function registerPlugins() {
       getter: () => redis
     });
   }
+
+  // Request-level tenant-scoped prisma decorator
+  app.decorateRequest('tPrisma', {
+    getter: function(this: any) {
+      const tenantId = this.user?.tenantId;
+      const prismaInstance = this.server.prisma;
+      enterWithTenantContext(tenantId || undefined);
+      if (tenantId && typeof prismaInstance.$extends === 'function') {
+        return prismaForTenant(prismaInstance, tenantId);
+      }
+      return prismaInstance;
+    }
+  });
   
   // 1. Instantiate Auth/RateLimit Services
   const authService = new AuthService(scopedPrisma);
   const rateLimitService = new RateLimitService(redis);
   
   // 2. Decorate instance with services
-  app.decorate('authService', authService);
-  app.decorate('rateLimitService', rateLimitService);
+  if (!app.hasDecorator('authService')) {
+    app.decorate('authService', authService);
+  }
+  if (!app.hasDecorator('rateLimitService')) {
+    app.decorate('rateLimitService', rateLimitService);
+  }
   
   // 3. Update auth state indirection
-  const { authenticate, requireRole } = await import('./middleware/auth.middleware.js');
+  const { authenticate, requireRole, requirePermission } = await import('./middleware/auth.middleware.js');
   authState.authenticate = authenticate;
   authState.requireRole = requireRole;
+  authState.requirePermission = requirePermission;
 
-  // Custom plugins (remaining)
-  logger.info('Registering errorHandler...');
-  await app.register(errorHandler);
+  // Register error handler globally
+  app.setErrorHandler(globalErrorHandler);
 
 
 
@@ -421,14 +442,19 @@ async function registerPlugins() {
 
 
   // Decorate services on fastify instance
-  app.decorate('wsManager', wsManager);
-  app.decorate('heartbeatMonitor', heartbeatMonitor);
-  app.decorate('taskScheduler', taskScheduler);
-  app.decorate('idempotencyService', idempotencyService);
-  app.decorate('priorityScheduler', priorityScheduler);
-  app.decorate('backpressureController', backpressureController);
-  app.decorate('gracefulDegradation', gracefulDegradation);
-  app.decorate('schedulerRateLimiter', schedulerRateLimiter);
+  const decorateIfMissing = (name: string, value: any) => {
+    if (!app.hasDecorator(name)) {
+      app.decorate(name, value);
+    }
+  };
+  decorateIfMissing('wsManager', wsManager);
+  decorateIfMissing('heartbeatMonitor', heartbeatMonitor);
+  decorateIfMissing('taskScheduler', taskScheduler);
+  decorateIfMissing('idempotencyService', idempotencyService);
+  decorateIfMissing('priorityScheduler', priorityScheduler);
+  decorateIfMissing('backpressureController', backpressureController);
+  decorateIfMissing('gracefulDegradation', gracefulDegradation);
+  decorateIfMissing('schedulerRateLimiter', schedulerRateLimiter);
 
 }
 
@@ -437,8 +463,8 @@ async function registerRoutes() {
   const frontendDist = path.resolve(process.cwd(), '..', 'dist');
 
   // WebSocket route - registered first to take priority over wildcard
-  app.get('/ws', { websocket: true }, (socket: any, req: any) => {
-    wsManager.handleConnection(socket, req.raw);
+  app.get('/ws', { websocket: true }, (connection: any, req: any) => {
+    wsManager.handleConnection(connection.socket, req.raw);
   });
 
   // API V1 Routes
@@ -448,7 +474,7 @@ async function registerRoutes() {
   // Debug route for mock DB
   app.get('/debug/nodes', async () => {
     if (env.FORCE_MOCK_DB) {
-      const { mockNodes } = await import('./initializers/mock-prisma');
+      const { mockNodes } = await import('./initializers/mock-prisma.js');
       return { count: mockNodes.size, nodeIds: Array.from(mockNodes.keys()) };
     }
     return { error: 'Mock DB not enabled' };
@@ -561,7 +587,7 @@ async function registerRoutes() {
     const liveness = HealthCheck.getLiveness();
     // Fail liveness if Redis has been unreachable for > 30s
     if (redis && !(redis as any).isMock && Date.now() - lastRedisHealthy > 30000) {
-      reply.status(503);
+      void reply.status(503);
       return { ...liveness, status: 'error', reason: 'Redis unreachable' };
     }
     return liveness;
@@ -647,7 +673,7 @@ async function registerRoutes() {
     };
 
     if (!isReady) {
-      reply.status(503);
+      void reply.status(503);
     }
     return response;
   });
@@ -680,6 +706,7 @@ async function registerRoutes() {
  * Initialize application without listening
  */
 export async function init(overrides: any = {}) {
+  process.stdout.write('[index.ts] init() ENTERED!\n');
   logger.info('API init() called');
 
   const secretManagerInstance = overrides.secretManager || SecretManagerFactory.create();
@@ -711,8 +738,8 @@ export async function init(overrides: any = {}) {
   }
 
   const forceMock = env.FORCE_MOCK_DB;
-  const useMockDb = isDevelopment && (!dbUrl || forceMock);
-  
+  // forceMock overrides environment check — allows safe test runs against production config
+  const useMockDb = forceMock || (isDevelopment && !dbUrl);
   prisma = useMockDb ? (mockPrisma as any) : new PrismaClient();
 
   if (useMockDb) {
@@ -735,13 +762,14 @@ export async function init(overrides: any = {}) {
   
   logger.info({ redisUrl, redisSentinels, forceMockRedis, forceMock }, 'Redis/DB configuration detection');
 
+  let redisPingInterval: NodeJS.Timeout | null = null;
   if ((redisUrl || redisSentinels) && !forceMockRedis) {
     const { SLAMonitor } = await import('./services/sla-monitor.js');
     redis = await RedisFactory.createClient(secretManager);
     
     // Track Redis health for liveness probe
     redis.on('ready', () => { lastRedisHealthy = Date.now(); });
-    setInterval(async () => {
+    redisPingInterval = setInterval(async () => {
       try {
         await redis.ping();
         lastRedisHealthy = Date.now();
@@ -905,7 +933,7 @@ export async function init(overrides: any = {}) {
   }
 
   wsManager = new WebSocketManager(logger, redis);
-  const { setWebSocketManager } = await import('./utils/circuit-breakers.ts');
+  const { setWebSocketManager } = await import('./utils/circuit-breakers.js');
   setWebSocketManager(wsManager);
   
   heartbeatMonitor = new HeartbeatMonitor(prisma, redis, wsManager, logger);
@@ -944,12 +972,77 @@ export async function init(overrides: any = {}) {
     await initializeServices(app, prisma, redis, logger, idempotencyService);
 
     // Monitor mock DB size
-    if (env.FORCE_MOCK_DB) {
-      setInterval(async () => {
-        const { mockNodes } = await import('./initializers/mock-prisma');
+    let dbMonitorInterval: NodeJS.Timeout | null = null;
+    if (env.FORCE_MOCK_DB && env.NODE_ENV !== 'test') {
+      dbMonitorInterval = setInterval(async () => {
+        const { mockNodes } = await import('./initializers/mock-prisma.js');
         logger.info({ count: mockNodes.size }, '[Debug] mockNodes size');
       }, 5000);
     }
+
+    app.addHook('onClose', async () => {
+      logger.info('OnClose hook triggered, shutting down all services...');
+      if (dbMonitorInterval) {
+        clearInterval(dbMonitorInterval);
+      }
+      if (redisPingInterval) {
+        clearInterval(redisPingInterval);
+      }
+      
+      // Stop local jobs
+      if (webhookRetryJob) {
+        try { webhookRetryJob.stop(); } catch (e) { logger.error(e, 'Error stopping webhookRetryJob'); }
+      }
+      if (consistencyCheckerJob) {
+        try { consistencyCheckerJob.stop(); } catch (e) { logger.error(e, 'Error stopping consistencyCheckerJob'); }
+      }
+
+      // Stop exported monitors/schedulers
+      if (heartbeatMonitor) {
+        try { heartbeatMonitor.stop(); } catch (e) { logger.error(e, 'Error stopping heartbeatMonitor'); }
+      }
+      if (backpressureController) {
+        try { backpressureController.stop(); } catch (e) { logger.error(e, 'Error stopping backpressureController'); }
+      }
+      if (schedulerRateLimiter) {
+        try { schedulerRateLimiter.stop(); } catch (e) { logger.error(e, 'Error stopping schedulerRateLimiter'); }
+      }
+      if (priorityScheduler) {
+        try { priorityScheduler.stop(); } catch (e) { logger.error(e, 'Error stopping priorityScheduler'); }
+      }
+      if (gracefulDegradation) {
+        try { gracefulDegradation.stop(); } catch (e) { logger.error(e, 'Error stopping gracefulDegradation'); }
+      }
+      if (taskScheduler) {
+        try { taskScheduler.stop(); } catch (e) { logger.error(e, 'Error stopping taskScheduler'); }
+      }
+      if (wsManager) {
+        try { wsManager.close(); } catch (e) { logger.error(e, 'Error closing wsManager'); }
+      }
+
+      // Stop other advanced services
+      try {
+        await shutdownServices(logger);
+      } catch (e) {
+        logger.error(e, 'Error shutting down advanced services');
+      }
+
+      // Disconnect DB/Redis
+      if (prisma) {
+        try { await prisma.$disconnect(); } catch (e) { logger.error(e, 'Error disconnecting prisma'); }
+      }
+      if (redis) {
+        try {
+          if (typeof redis.disconnect === 'function') {
+            redis.disconnect();
+          } else if (typeof redis.quit === 'function') {
+            await redis.quit();
+          }
+        } catch (e) {
+          logger.error(e, 'Error disconnecting redis');
+        }
+      }
+    });
     
     return app;
   } catch (err) {

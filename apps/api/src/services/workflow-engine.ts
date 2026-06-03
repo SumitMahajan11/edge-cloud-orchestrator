@@ -1,8 +1,9 @@
-import { PrismaClient, TaskStatus, WorkflowExecutionStatus } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import type { Logger } from 'pino';
 import { DAGExecutor, WorkflowNode } from '@edgecloud/shared-kernel';
 import type { TaskScheduler } from './task-scheduler';
 import type { WebSocketManager } from './websocket-manager';
+import type { TenantId } from '../types/fastify.js';
 
 export class WorkflowEngine {
   private prisma: PrismaClient;
@@ -89,7 +90,7 @@ export class WorkflowEngine {
       });
     }
 
-    this.wsManager.broadcastToTenant(tenantId, 'workflow:execution_started', {
+    this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:execution_started', {
       executionId: execution.id,
       workflowId,
     });
@@ -100,7 +101,7 @@ export class WorkflowEngine {
   /**
    * Handle task outcome and advance workflow if needed
    */
-  private async handleTaskOutcome(taskId: string, status: 'COMPLETED' | 'FAILED') {
+  private async handleTaskOutcome(taskId: string, status: 'COMPLETED' | 'FAILED'): Promise<void> {
     const taskRun = await this.prisma.workflowTaskRun.findFirst({
       where: { taskId },
       include: { execution: { include: { workflow: true } } },
@@ -129,7 +130,7 @@ export class WorkflowEngine {
         data: { status: 'FAILED', completedAt: new Date() },
       });
 
-      this.wsManager.broadcastToTenant(tenantId, 'workflow:execution_failed', {
+      this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:execution_failed', {
         executionId,
         taskId,
         error: 'Task failed',
@@ -178,14 +179,14 @@ export class WorkflowEngine {
           data: { status: 'COMPLETED', completedAt: new Date() },
         });
 
-        this.wsManager.broadcastToTenant(tenantId, 'workflow:execution_completed', {
+        this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:execution_completed', {
           executionId,
         });
       }
     }
     
     // Broadcast progress update
-    this.wsManager.broadcastToTenant(tenantId, 'workflow:progress', {
+    this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:progress', {
       executionId,
       completedSteps: Array.from(completedIds),
     });
@@ -214,7 +215,7 @@ export class WorkflowEngine {
     });
   }
 
-  private async submitTaskForNode(executionId: string, node: WorkflowNode, tenantId: string) {
+  private async submitTaskForNode(executionId: string, node: WorkflowNode, tenantId: string): Promise<void> {
     this.logger.info({ executionId, step: node.stepName }, 'Submitting task for workflow step');
 
     // Create the actual Task
@@ -233,7 +234,7 @@ export class WorkflowEngine {
           workflowExecutionId: executionId,
           workflowStepName: node.stepName,
         },
-        nodeId: node.taskSpec.nodeId,
+        nodeId: node.taskSpec.nodeId || null,
         executions: {
           create: {
             status: 'PENDING',

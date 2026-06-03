@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll } from 'vitest';
 import axios from 'axios';
 import crypto from 'crypto';
-import { startAgent } from '../../apps/agent/src/index';
+// import { startAgent } from '../../apps/agent/src/index';
 
 describe('Agent Task Execution Integration', () => {
   let agentInstance: any;
@@ -20,6 +20,7 @@ describe('Agent Task Execution Integration', () => {
     const cwd = process.cwd().replace(/\\/g, '/');
     process.env.SANDBOX_ROOT_DIR = '/tmp/magic/sandbox';
     
+    const { startAgent } = await import('../../apps/agent/src/index');
     agentInstance = await startAgent();
     
     // Mock runTask to prevent Docker volume mount errors on Windows host

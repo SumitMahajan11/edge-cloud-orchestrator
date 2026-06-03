@@ -9,7 +9,7 @@ import { env } from '../config/env';
 
 export class AuthService {
   private prisma: PrismaClient;
-  private redis?: Redis;
+  private redis: Redis | undefined;
   private readonly jwtSecret: string;
   private readonly jwtExpiresIn: string;
   private readonly refreshExpiresIn: string;
@@ -104,12 +104,14 @@ export class AuthService {
     const hashedOldToken = this.hashToken(oldRefreshToken);
     const session = await this.prisma.userSession.findUnique({
       where: { refreshTokenHash: hashedOldToken },
-      include: { user: true },
+      include: { user: { include: { tenantUsers: { take: 1 } } } },
     });
 
     if (!session) {
       throw new Error('Invalid refresh token');
     }
+
+    const tenantId = (session.user as any).tenantUsers?.[0]?.tenantId;
 
     // REUSE DETECTION: If token is already revoked, it indicates potential theft
     if (session.revoked) {
@@ -123,7 +125,7 @@ export class AuthService {
       await this.prisma.auditLog.create({
         data: {
           userId: session.userId,
-          tenantId: session.user.tenantId,
+          tenantId: tenantId || 'system',
           action: 'SECURITY_ALERT',
           entityType: 'auth',
           details: {
@@ -151,7 +153,7 @@ export class AuthService {
       id: session.user.id,
       email: session.user.email,
       role: session.user.role as any,
-      tenantId: session.user.tenantId,
+      tenantId: tenantId,
       permissions: this.getPermissionsForRole(session.user.role),
     };
 
@@ -258,7 +260,7 @@ export class AuthService {
   /**
    * Lists active sessions for a user.
    */
-  async listUserSessions(userId: string) {
+  async listUserSessions(userId: string): Promise<any[]> {
     return this.prisma.userSession.findMany({
       where: { 
         userId,

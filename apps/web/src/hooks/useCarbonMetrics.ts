@@ -79,9 +79,9 @@ export function useCarbonMetrics() {
     isUpdating: updatePolicy.isPending,
     
     refetch: () => {
-      intensity.refetch();
-      savings.refetch();
-      policy.refetch();
+      void intensity.refetch();
+      void savings.refetch();
+      void policy.refetch();
     }
   };
 }

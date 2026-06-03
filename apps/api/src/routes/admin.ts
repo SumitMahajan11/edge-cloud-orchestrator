@@ -126,7 +126,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
             emailVerified: true,
             createdAt: true,
             lastLoginAt: true,
-            _count: { select: { sessions: true, apiKeys: true } },
+            _count: { select: { userSessions: true, apiKeys: true } },
           },
           orderBy: { createdAt: 'desc' },
         }),
@@ -197,7 +197,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       const user = await fastify.prisma.user.update({
         where: { id },
-        data: { role },
+        data: { role: role as any },
       });
 
       // Audit log
@@ -270,7 +270,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       });
 
       // Invalidate all sessions
-      await fastify.prisma.session.deleteMany({ where: { userId: id } });
+      await fastify.prisma.userSession.deleteMany({ where: { userId: id } });
 
       return user;
     },
@@ -460,7 +460,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
             const latest = JSON.parse(fs.readFileSync(latestPath, 'utf-8'));
 
             // 4. Promote new model
-            await scheduler.modelRegistry.promoteModel(latest.version);
+            await (scheduler as any).modelRegistry.promoteModel(latest.version);
 
             resolve({
               status: 'success',
@@ -549,14 +549,14 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           name: task.name,
           type: task.type,
           priority: task.priority,
-          target: task.targetNodeId || '',
-          region: task.region || '',
+          target: (task as any).targetNodeId || task.nodeId || '',
+          region: (task as any).region || '',
           aggregateId: task.id,
           version: 1,
         };
         defaultTopic = 'tasks.events';
       } else if (eventType === 'node.registered') {
-        const node = await fastify.prisma.node.findUnique({
+        const node = await fastify.prisma.edgeNode.findUnique({
           where: { id: entityId },
         });
         if (!node) {
@@ -573,7 +573,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           nodeId: node.id,
           name: node.name,
           region: node.region || '',
-          capabilities: node.capabilities || [],
+          capabilities: (node as any).capabilities || [],
           aggregateId: node.id,
           version: 1,
         };
@@ -678,13 +678,13 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       if (eventType === 'task.created') {
         entities = await fastify.prisma.task.findMany({
           where: {
-            createdAt: { gte: fromDate, lte: toDate },
+            submittedAt: { gte: fromDate, lte: toDate },
           },
           take: 1000,
         });
         defaultTopic = 'tasks.events';
       } else if (eventType === 'node.registered') {
-        entities = await fastify.prisma.node.findMany({
+        entities = await fastify.prisma.edgeNode.findMany({
           where: {
             createdAt: { gte: fromDate, lte: toDate },
           },
@@ -742,7 +742,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
               nodeId: entity.id,
               name: entity.name,
               region: entity.region || '',
-              capabilities: entity.capabilities || [],
+              capabilities: (entity as any).capabilities || [],
               aggregateId: entity.id,
               version: 1,
             };
@@ -953,7 +953,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
         await fastify.prisma.deadLetterEvent.update({
           where: { id },
-          data: { status: 'REPROCESSED', error: null },
+          data: { status: 'REPROCESSED', error: '' },
         });
         return {
           success: true,

@@ -281,4 +281,12 @@ export class BackpressureController extends EventEmitter {
       config: this.config,
     };
   }
+
+  /**
+   * Stop the backpressure controller and remove listeners
+   */
+  stop(): void {
+    this.removeAllListeners();
+    this.logger.info('Backpressure controller stopped');
+  }
 }

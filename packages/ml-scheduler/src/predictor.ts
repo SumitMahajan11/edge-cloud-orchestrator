@@ -6,7 +6,11 @@ let tf: any = null;
 try {
   tf = require('@tensorflow/tfjs-node');
 } catch (e) {
-  console.warn('TensorFlow native addon not available, using mock predictor');
+  if ((globalThis as any).tf) {
+    tf = (globalThis as any).tf;
+  } else {
+    console.warn('TensorFlow native addon not available, using mock predictor');
+  }
 }
 
 const logger = createLogger('ml-predictor');
@@ -36,6 +40,12 @@ export class SchedulingPredictor {
 
   constructor() {
     this.useMock = tf === null;
+  }
+
+  setMetrics(metrics: any) {
+    if (metrics && typeof metrics.setMLFallbackMode === 'function') {
+      metrics.setMLFallbackMode(this.useMock);
+    }
   }
 
   async train(historicalData: TrainingExample[]): Promise<{ version: string; mae: number }> {
@@ -134,7 +144,7 @@ export class SchedulingPredictor {
     if (meta.algorithm === 'XGBoost') {
       logger.info(`XGBoost model version ${meta.version} detected. Loading artifact from ${meta.artifact_path}`);
       this.currentVersion = meta.version;
-      this.isTrained = true;
+      this.isTrained = false; // Fallback to heuristics if algorithm is XGBoost
     } else {
       const modelPath = `file://${path.join(modelDir, version, 'model.json')}`;
       this.model = await tf.loadLayersModel(modelPath);
@@ -142,6 +152,36 @@ export class SchedulingPredictor {
       this.currentVersion = meta.version;
       logger.info(`Model version ${meta.version} loaded and active`);
     }
+  }
+
+  async saveModel(modelDir: string): Promise<void> {
+    if (this.useMock || !this.isTrained || !this.model) {
+      return;
+    }
+    
+    if (!fs.existsSync(modelDir)) {
+      fs.mkdirSync(modelDir, { recursive: true });
+    }
+    
+    const version = this.currentVersion || new Date().toISOString().replace(/[:.-]/g, '');
+    const modelPath = path.join(modelDir, version);
+    if (!fs.existsSync(modelPath)) {
+      fs.mkdirSync(modelPath, { recursive: true });
+    }
+    
+    // Save layers model
+    await this.model.save(`file://${modelPath}`);
+    
+    // Save metadata JSON
+    const metadata = {
+      version,
+      algorithm: 'TF',
+      timestamp: new Date().toISOString()
+    };
+    fs.writeFileSync(
+      path.join(modelDir, `model_${version}.json`),
+      JSON.stringify(metadata, null, 2)
+    );
   }
 
   private isVersionSatisfied(current: string, min: string): boolean {

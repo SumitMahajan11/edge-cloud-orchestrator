@@ -3,7 +3,6 @@ import 'reflect-metadata';
 import { SecretManagerFactory } from '@edgecloud/shared-kernel';
 import fastify from 'fastify';
 
-import { prismaPlugin } from '../../plugins/prisma.js';
 import agentRoutes from '../agents.js';
 
 // Mock SecretManagerFactory for Vault PKI
@@ -42,7 +41,8 @@ describe('Agent Registration Routes', () => {
 
   beforeEach(async () => {
     app = fastify();
-    await app.register(prismaPlugin, { prisma: mockPrisma });
+    mockPrisma.isMock = true;
+    app.decorate('prisma', mockPrisma);
     app.decorate('authenticate', vi.fn());
     app.decorate('requireRole', vi.fn(() => (_req: any, _res: any, done: any) => done()));
     
@@ -122,6 +122,7 @@ describe('Agent Registration Routes', () => {
       },
     });
 
+    console.log('DEBUG EXPIRED TOKEN RESPONSE:', response.statusCode, response.body);
     expect(response.statusCode).toBe(400); // Current implementation returns 400
     expect(JSON.parse(response.body).error.message).toContain('expired');
   });

@@ -1,10 +1,10 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import fp from 'fastify-plugin';
-import { runWithTenantContext, tenantContext } from '@edgecloud/shared-kernel';
+import { enterWithTenantContext } from '@edgecloud/shared-kernel';
 
 /**
  * Middleware to enforce tenant scoping at the request level.
- * Uses AsyncLocalStorage.run() to ensure context is scoped strictly to the request lifecycle.
+ * Uses enterWithTenantContext to scope context to the request execution chain.
  */
 export const tenantScopePlugin: FastifyPluginAsync = fp(async (fastify: FastifyInstance) => {
   fastify.addHook('onRequest', (request, _reply, done) => {
@@ -26,16 +26,7 @@ export const tenantScopePlugin: FastifyPluginAsync = fp(async (fastify: FastifyI
       }
     }
 
-    if (tenantId) {
-      runWithTenantContext(tenantId, () => {
-        done();
-      });
-    } else {
-      // For SUPER_ADMIN or unauthenticated requests, run without specific tenant context
-      // Explicitly enter an empty context to ensure no leakage from previous requests
-      tenantContext.run(undefined as any, () => {
-        done();
-      });
-    }
+    enterWithTenantContext(tenantId || undefined);
+    done();
   });
 });

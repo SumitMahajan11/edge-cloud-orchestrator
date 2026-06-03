@@ -108,7 +108,7 @@ export class MultiRegionCoordinator {
     })
 
     // Measure latency to other regions
-    this.measureLatency(region.id)
+    void this.measureLatency(region.id)
   }
 
   /**
@@ -426,7 +426,7 @@ export class MultiRegionCoordinator {
       const isHealthy = Math.random() > 0.05 // 95% uptime simulation
 
       if (!isHealthy && region.status === 'active') {
-        this.handleRegionFailure(region.id)
+        void this.handleRegionFailure(region.id)
       }
     }
   }

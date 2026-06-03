@@ -162,7 +162,7 @@ export class FailureRecoveryManager {
 
     // Auto-recovery if enabled
     if (this.config.autoRecoveryEnabled) {
-      this.initiateRecovery(failure)
+      void this.initiateRecovery(failure)
     }
 
     return failure

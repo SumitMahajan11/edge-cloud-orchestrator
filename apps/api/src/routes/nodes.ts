@@ -1,6 +1,7 @@
 import { Permissions,v1NodeContracts, validateIpAddress } from '@edgecloud/shared-kernel';
 import { EdgeNode } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
+import type { TenantId } from '../types/fastify.js';
 
 import { idParamSchema } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
@@ -20,8 +21,15 @@ const NodeStatus = {
  function transformNode(node: EdgeNode & { _count?: { tasks: number } }) {
    if (!node) {return null;}
    
-   const { cpuCores, memoryGB, storageGB, ...rest } = node;
+   const { cpuCores, memoryGB, storageGB, cpuUsage, memoryUsage, tasksRunning, load, ...rest } = node as any;
    
+   // Map to NodeV1ResponseSchema load format
+   const nodeLoad = {
+     cpuUsage: typeof cpuUsage === 'number' ? cpuUsage : (typeof load === 'number' ? load : 0),
+     memoryUsage: typeof memoryUsage === 'number' ? memoryUsage : 0,
+     activeTasks: typeof tasksRunning === 'number' ? tasksRunning : (typeof load === 'number' ? load : 0),
+   };
+
    return {
      ...rest,
      specs: {
@@ -29,6 +37,7 @@ const NodeStatus = {
        memoryGB: memoryGB || 0,
        storageGB: storageGB || 0,
      },
+     load: nodeLoad,
      // Ensure status is uppercase as per schema
      status: (node.status || 'OFFLINE').toUpperCase(),
      lastHeartbeat: (node.lastHeartbeat || node.createdAt || new Date()).toISOString(),
@@ -445,11 +454,6 @@ const NodeStatus = {
         },
       });
 
-      if (node && (node).metrics?.length > 0) {
-        (node).status = 'ONLINE';
-        (node).lastHeartbeat = (node).metrics[0].timestamp;
-      }
-
       // Store metrics
       await request.tPrisma.nodeMetric.create({
         data: {
@@ -465,11 +469,11 @@ const NodeStatus = {
       });
 
       // Publish to WebSocket subscribers
-      fastify.wsManager.broadcastToTenant('node:heartbeat', {
+      fastify.wsManager.broadcastToTenant(node.tenantId as TenantId, 'node:heartbeat', {
         nodeId: id,
         metrics,
         timestamp: new Date().toISOString(),
-      }, node.tenantId);
+      });
 
       return { success: true, timestamp: new Date().toISOString() };
     },

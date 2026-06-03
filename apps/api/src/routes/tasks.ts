@@ -1,6 +1,7 @@
 import { Permissions,v1Contracts } from '@edgecloud/shared-kernel';
 import { Task, TaskExecution } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
+import type { TenantId } from '../types/fastify.js';
 
 import { idParamSchema, tasksLogsQuerySchema } from '../schemas';
 import { deprecated } from '../utils/deprecation';
@@ -37,7 +38,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   // Global hook for this plugin to surface rate limiter degradation
   fastify.addHook('onSend', async (_request, reply, payload) => {
     if (fastify.schedulerRateLimiter?.isDegraded()) {
-      reply.header('X-RateLimit-Mode', 'degraded');
+      void reply.header('X-RateLimit-Mode', 'degraded');
     }
     return payload;
   });
@@ -261,9 +262,9 @@ import { zodToFastifySchema } from '../utils/zod-schema';
           include: { metrics: { take: 1, orderBy: { timestamp: 'desc' } } }
         });
 
-        if (node && node.metrics?.length > 0) {
+        if (node && node.metrics && node.metrics.length > 0) {
           (node as any).status = 'ONLINE';
-          (node as any).lastHeartbeat = node.metrics[0].timestamp;
+          (node as any).lastHeartbeat = node.metrics[0]!.timestamp;
         }
 
         if (!node || node.status !== 'ONLINE' || node.isMaintenanceMode) {
@@ -337,7 +338,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
 
       // Broadcast via WebSocket
       fastify.log.info({ taskId: task.id }, 'Broadcasting task:created');
-      fastify.wsManager.broadcastToTenant('task:created', task, task.tenantId);
+      fastify.wsManager.broadcastToTenant(task.tenantId as TenantId, 'task:created', task);
 
       return reply.status(201).send(transformTask(task));
     },
@@ -388,7 +389,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
       });
 
       // Broadcast via WebSocket
-      fastify.wsManager.broadcastToTenant('task:cancelled', updated, updated.tenantId);
+      fastify.wsManager.broadcastToTenant(updated.tenantId as TenantId, 'task:cancelled', updated);
 
       return updated;
     },
@@ -480,8 +481,12 @@ import { zodToFastifySchema } from '../utils/zod-schema';
       
       const tUpdatedTask = updatedTask;
 
-      await fastify.taskScheduler.enqueue(tUpdatedTask);
-      fastify.wsManager.broadcastToTenant('task:created', tUpdatedTask, tUpdatedTask.tenantId);
+      if (!tUpdatedTask) {
+        return reply.status(404).send({ error: 'Task not found after creation' });
+      }
+
+      await fastify.taskScheduler.enqueue(tUpdatedTask as any);
+      fastify.wsManager.broadcastToTenant(tUpdatedTask.tenantId as TenantId, 'task:created', tUpdatedTask);
 
       // Record metric
       fastify.taskScheduler.recordTaskSubmission(tUpdatedTask.priority, request.user!.tenantId!);

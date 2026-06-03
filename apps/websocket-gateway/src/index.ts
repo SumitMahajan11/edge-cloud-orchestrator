@@ -91,7 +91,7 @@ class ConnectionManager extends EventEmitter {
     try {
       const message = JSON.parse(data.toString());
       switch (message.type) {
-        case 'subscribe': this.handleSubscribe(connectionId, message.channels); break;
+        case 'subscribe': void this.handleSubscribe(connectionId, message.channels); break;
         case 'unsubscribe': this.handleUnsubscribe(connectionId, message.channels); break;
         case 'ping': this.send(connectionId, { type: 'pong', timestamp: Date.now() }); break;
         case 'reconnect': this.handleReconnect(connectionId, message.previousConnectionId); break;
@@ -233,7 +233,7 @@ async function start() {
   redis = await RedisFactory.createClient(secretManager);
   redisSub = await RedisFactory.createClient(secretManager);
 
-  redisSub.subscribe(REDIS_CHANNELS.NODE_HEARTBEAT);
+  void redisSub.subscribe(REDIS_CHANNELS.NODE_HEARTBEAT);
   redisSub.on('message', async (channel, message) => {
     if (channel === REDIS_CHANNELS.NODE_HEARTBEAT) {
       try {
@@ -272,14 +272,14 @@ async function start() {
   });
 
   const corsOrigins = env.CORS_ORIGINS.split(',');
-  app.register(cors, { origin: corsOrigins, credentials: true });
+  void app.register(cors, { origin: corsOrigins, credentials: true });
 
   // Register unified logging
   await app.register(fastifyLoggingPlugin, { logger, serviceName: 'websocket-gateway' });
 
-  app.register(websocket);
+  void app.register(websocket);
 
-  app.register(async (fastify) => {
+  void app.register(async (fastify) => {
     fastify.get('/ws', { websocket: true }, (connection, req) => {
       const validation = validateWebSocketToken(req);
       if (!validation.valid) { connection.socket.close(4001, validation.error); return; }
@@ -332,4 +332,4 @@ async function start() {
 }
 
 // Start the application
-start();
+void start();

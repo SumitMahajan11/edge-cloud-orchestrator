@@ -21,6 +21,9 @@ import type { z } from 'zod';
 // User Types
 // ============================================================================
 
+declare const __tenantIdBrand: unique symbol;
+export type TenantId = string & { readonly __brand: typeof __tenantIdBrand };
+
 export type UserRole = 'ADMIN' | 'OPERATOR' | 'VIEWER' | 'SERVICE';
 
 export interface UserPayload {
@@ -62,6 +65,25 @@ declare module 'fastify' {
     wsManager: WebSocketManager;
     heartbeatMonitor: HeartbeatMonitor;
     taskScheduler: TaskScheduler;
+    idempotencyService: import('../services/idempotency-service.js').IdempotencyService;
+    schedulerRateLimiter: import('../services/scheduler-rate-limiter.js').SchedulerRateLimiter;
+    authService: import('../services/auth.service.js').AuthService;
+    rateLimitService: import('../services/rate-limit.service.js').RateLimitService;
+    apiKeyService: import('../services/api-key.service.js').ApiKeyService;
+    priorityScheduler: import('../services/priority-scheduler.js').PriorityScheduler;
+    backpressureController: import('../services/backpressure-controller.js').BackpressureController;
+    gracefulDegradation: import('../services/graceful-degradation.js').GracefulDegradationService;
+    alerting: import('../services/alerting-service.js').AlertingService;
+    autoHealer: import('../services/auto-healer.js').AutoHealer;
+    healthMonitor: import('../services/health-monitor.js').HealthMonitor;
+    slaMonitor: import('../services/sla-monitor.js').SLAMonitor;
+    costOptimizer: import('../services/cost-optimizer.js').CostOptimizer;
+    sagaOrchestrator: import('@edgecloud/saga').SagaOrchestrator;
+    k8sOperator?: import('../services/kubernetes-operator.js').EdgeCloudOperator;
+    modelStorage: import('@edgecloud/ml-scheduler').ModelStorageService;
+    coldStartHandler: import('../services/cold-start-handler.js').ColdStartHandler;
+    workflowEngine: import('../services/workflow-engine.js').WorkflowEngine;
+    dbCircuitBreaker: import('@edgecloud/circuit-breaker').CircuitBreaker;
 
     // Auth decorators
     authenticate: (
@@ -69,7 +91,10 @@ declare module 'fastify' {
       reply: FastifyReply,
     ) => Promise<void>;
     requireRole: (
-      ...roles: UserRole[]
+      ...roles: (UserRole | string)[]
+    ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
+    requirePermission: (
+      permission: string
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 
@@ -85,6 +110,16 @@ declare module 'fastify' {
      * Type is narrowed from @fastify/jwt's FastifyJWT interface.
      */
     user: UserPayload;
+    tPrisma: PrismaClient;
+    apiVersion: string;
+  }
+
+  interface FastifyContextConfig {
+    public?: boolean;
+    rateLimit?: {
+      max?: number;
+      timeWindow?: number;
+    };
   }
 }
 

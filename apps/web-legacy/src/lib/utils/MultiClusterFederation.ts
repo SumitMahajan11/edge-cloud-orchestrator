@@ -460,7 +460,7 @@ export class MultiClusterFederation {
       for (const cluster of this.clusters.values()) {
         if (now - cluster.lastHeartbeat > intervalMs * 2) {
           if (cluster.status === 'active') {
-            this.handleClusterFailure(cluster.id)
+            void this.handleClusterFailure(cluster.id)
           }
         }
       }

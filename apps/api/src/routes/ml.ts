@@ -62,7 +62,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const { hours } = (request.query as any) || { hours: 24 };
       if (!taskScheduler) {return [];}
-      return taskScheduler.getMLDriftHistory(hours);
+      return await taskScheduler.getMLDriftHistory(hours);
     }
   );
 

@@ -127,11 +127,11 @@ export class HealthMonitor extends EventEmitter {
    */
   start(): void {
     this.checkInterval = setInterval(() => {
-      this.performChecks();
+      void this.performChecks();
     }, this.config.checkIntervalMs);
 
     // Perform initial check
-    this.performChecks();
+    void this.performChecks();
 
     this.logger.info('Health monitor started');
     this.emit('started');
@@ -145,6 +145,8 @@ export class HealthMonitor extends EventEmitter {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
     }
+
+    this.removeAllListeners();
 
     this.logger.info('Health monitor stopped');
     this.emit('stopped');

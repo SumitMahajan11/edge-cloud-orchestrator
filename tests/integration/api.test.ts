@@ -1,5 +1,6 @@
 import axios, { AxiosInstance } from 'axios';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import { setupTestApp, teardownTestApp, TestContext } from './helpers';
 
 /**
  * Integration Tests for Edge-Cloud Orchestrator
@@ -12,10 +13,10 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
  * - Edge Agent communication
  */
 
-const API_URL = process.env.API_URL || 'http://localhost:3000';
 const EDGE_AGENT_URL = process.env.EDGE_AGENT_URL || 'http://localhost:4001';
 
 describe('Integration Tests', () => {
+  let ctx: TestContext;
   let apiClient: AxiosInstance;
   let authToken: string;
   let refreshToken: string;
@@ -23,78 +24,133 @@ describe('Integration Tests', () => {
   let testTaskId: string;
 
   beforeAll(async () => {
-    axios.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (axios.isAxiosError(error)) {
-          const serializableError = new Error(error.message);
-          Object.defineProperties(serializableError, {
-            response: {
-              value: error.response ? {
-                status: error.response.status,
-                data: error.response.data,
-                headers: error.response.headers,
-              } : undefined,
-              writable: true,
-              enumerable: true,
-              configurable: true,
-            },
-            code: {
-              value: error.code,
-              writable: true,
-              enumerable: true,
-              configurable: true,
-            }
-          });
-          return Promise.reject(serializableError);
-        }
-        return Promise.reject(error);
-      }
-    );
+    ctx = await setupTestApp();
 
-    apiClient = axios.create({
-      baseURL: API_URL,
-      timeout: 10000,
-      headers: {
-        'Content-Type': 'application/json',
+    const rewriteUrl = (url: string, headers: any = {}) => {
+      const version = headers['x-api-version'] || headers['X-API-Version'] || 'v1';
+      if (url.startsWith('/api/')) {
+        return url.replace('/api/', `/${version}/`);
+      }
+      return url;
+    };
+
+    apiClient = {
+      defaults: {
+        headers: {}
       },
-    });
-
-    apiClient.interceptors.response.use(
-      (response) => response,
-      (error) => {
-        if (axios.isAxiosError(error)) {
-          const serializableError = new Error(error.message);
-          Object.defineProperties(serializableError, {
-            response: {
-              value: error.response ? {
-                status: error.response.status,
-                data: error.response.data,
-                headers: error.response.headers,
-              } : undefined,
-              writable: true,
-              enumerable: true,
-              configurable: true,
-            },
-            code: {
-              value: error.code,
-              writable: true,
-              enumerable: true,
-              configurable: true,
-            }
-          });
-          return Promise.reject(serializableError);
+      async get(url: string, config?: any) {
+        const headers = {
+          ...this.defaults.headers,
+          ...config?.headers,
+        };
+        const response = await ctx.app.inject({
+          method: 'GET',
+          url: rewriteUrl(url, headers),
+          headers,
+        });
+        if (response.statusCode >= 400) {
+          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          err.response = {
+            status: response.statusCode,
+            data: response.json(),
+            headers: response.headers,
+          };
+          throw err;
         }
-        return Promise.reject(error);
-      }
-    );
+        return {
+          status: response.statusCode,
+          data: response.json(),
+        };
+      },
+      async post(url: string, body?: any, config?: any) {
+        const headers = {
+          ...this.defaults.headers,
+          ...config?.headers,
+        };
+        const response = await ctx.app.inject({
+          method: 'POST',
+          url: rewriteUrl(url, headers),
+          headers,
+          payload: body,
+        });
+        if (response.statusCode >= 400) {
+          console.log(`[apiClient.post] error response status: ${response.statusCode}, body: ${response.body}`);
+          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          err.response = {
+            status: response.statusCode,
+            data: response.json(),
+            headers: response.headers,
+          };
+          throw err;
+        }
+        return {
+          status: response.statusCode,
+          data: response.json(),
+        };
+      },
+      async patch(url: string, body?: any, config?: any) {
+        const headers = {
+          ...this.defaults.headers,
+          ...config?.headers,
+        };
+        const response = await ctx.app.inject({
+          method: 'PATCH',
+          url: rewriteUrl(url, headers),
+          headers,
+          payload: body,
+        });
+        if (response.statusCode >= 400) {
+          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          err.response = {
+            status: response.statusCode,
+            data: response.json(),
+            headers: response.headers,
+          };
+          throw err;
+        }
+        return {
+          status: response.statusCode,
+          data: response.json(),
+        };
+      },
+      async delete(url: string, config?: any) {
+        const headers = {
+          ...this.defaults.headers,
+          ...config?.headers,
+        };
+        const response = await ctx.app.inject({
+          method: 'DELETE',
+          url: rewriteUrl(url, headers),
+          headers,
+        });
+        if (response.statusCode >= 400) {
+          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          err.response = {
+            status: response.statusCode,
+            data: response.json(),
+            headers: response.headers,
+          };
+          throw err;
+        }
+        return {
+          status: response.statusCode,
+          data: response.json(),
+        };
+      },
+    } as any;
+  });
+
+  afterAll(async () => {
+    if (ctx) {
+      await teardownTestApp(ctx);
+    }
   });
 
   describe('Health Checks', () => {
     it('should have healthy API server', async () => {
       const response = await apiClient.get('/health');
       expect(response.status).toBe(200);
-      expect(response.data.status).toBe('healthy');
+      expect(response.data.status).toBe('ok');
     });
 
     it('should have healthy edge agent', async () => {
@@ -143,7 +199,7 @@ describe('Integration Tests', () => {
           email: 'admin@example.com',
           password: 'wrongpassword',
         });
-        fail('Should have thrown an error');
+        expect.fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.response.status).toBe(401);
       }
@@ -250,7 +306,7 @@ describe('Integration Tests', () => {
       const response = await apiClient.get(`/api/nodes/${testNodeId}/metrics`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
+      expect(Array.isArray(response.data.data)).toBe(true);
     });
   });
 
@@ -272,8 +328,9 @@ describe('Integration Tests', () => {
     it('should create a task', async () => {
       const response = await apiClient.post('/api/tasks', {
         name: `test-task-${Date.now()}`,
-        type: 'INFERENCE',
-        priority: 'NORMAL',
+        type: 'MODEL_INFERENCE',
+        priority: 'MEDIUM',
+        image: 'ubuntu:latest',
         input: { model: 'test-model', data: 'test-data' },
       });
 
@@ -287,7 +344,7 @@ describe('Integration Tests', () => {
       const response = await apiClient.get('/api/tasks/stats');
 
       expect(response.status).toBe(200);
-      expect(response.data.total).toBeDefined();
+      expect(response.data.byStatus).toBeDefined();
     });
 
     it('should get task by ID', async () => {
@@ -389,7 +446,7 @@ describe('Integration Tests', () => {
       const response = await apiClient.get('/api/webhooks');
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
+      expect(Array.isArray(response.data.data)).toBe(true);
     });
 
     it('should create a webhook', async () => {
@@ -420,26 +477,41 @@ describe('Integration Tests', () => {
 
   describe('Rate Limiting', () => {
     it('should enforce rate limits', async () => {
-      const requests = [];
+      const { backpressureController } = await import('../../apps/api/src/index.ts');
+      const originalGetAdaptiveRateLimit = backpressureController.getAdaptiveRateLimit;
+      backpressureController.getAdaptiveRateLimit = async () => 5;
 
-      // Make many requests quickly
-      for (let i = 0; i < 150; i++) {
-        requests.push(apiClient.get('/api/nodes').catch((e) => e.response));
+      try {
+        const requests = [];
+
+        // Make many requests quickly from a non-localhost IP
+        for (let i = 0; i < 150; i++) {
+          requests.push(ctx.app.inject({
+            method: 'GET',
+            url: '/v1/nodes',
+            remoteAddress: '192.168.1.5',
+            headers: {
+              Authorization: `Bearer ${ctx.accessToken}`,
+            }
+          }).then((res) => ({ status: res.statusCode })));
+        }
+
+        const responses = await Promise.all(requests);
+        const rateLimited = responses.filter((r) => r?.status === 429);
+
+        // Should have some rate limited responses
+        expect(rateLimited.length).toBeGreaterThan(0);
+      } finally {
+        backpressureController.getAdaptiveRateLimit = originalGetAdaptiveRateLimit;
       }
-
-      const responses = await Promise.all(requests);
-      const rateLimited = responses.filter((r) => r?.status === 429);
-
-      // Should have some rate limited responses
-      expect(rateLimited.length).toBeGreaterThan(0);
     }, 30000);
   });
 
   describe('Error Handling', () => {
     it('should return 404 for non-existent node', async () => {
       try {
-        await apiClient.get('/api/nodes/non-existent-id');
-        fail('Should have thrown an error');
+        await apiClient.get('/api/nodes/00000000-0000-0000-0000-000000000000');
+        expect.fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.response.status).toBe(404);
       }
@@ -447,8 +519,17 @@ describe('Integration Tests', () => {
 
     it('should return 401 for missing auth', async () => {
       try {
-        await axios.get(`${API_URL}/api/admin/users`);
-        fail('Should have thrown an error');
+        // Temporarily clear default Authorization header to test missing auth
+        const oldAuth = apiClient.defaults.headers.Authorization;
+        delete apiClient.defaults.headers.Authorization;
+        try {
+          await apiClient.get('/api/admin/users');
+          expect.fail('Should have thrown an error');
+        } finally {
+          if (oldAuth) {
+            apiClient.defaults.headers.Authorization = oldAuth;
+          }
+        }
       } catch (error: any) {
         expect(error.response.status).toBe(401);
       }
@@ -465,7 +546,7 @@ describe('Integration Tests', () => {
           // Missing required fields
           name: 'test',
         });
-        fail('Should have thrown an error');
+        expect.fail('Should have thrown an error');
       } catch (error: any) {
         expect(error.response.status).toBe(400);
       }

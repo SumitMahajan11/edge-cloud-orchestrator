@@ -1,6 +1,7 @@
 use opentelemetry::{global, Context, KeyValue};
-use opentelemetry::trace::{TraceContextExt, Tracer, TraceId, SpanId};
+use opentelemetry::trace::{TraceContextExt, TraceId, SpanId};
 use opentelemetry_sdk::{propagation::TraceContextPropagator, runtime, trace as sdktrace, Resource};
+use opentelemetry_otlp::WithExportConfig;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 use std::env;
 

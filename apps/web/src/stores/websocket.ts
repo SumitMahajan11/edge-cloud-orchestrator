@@ -130,26 +130,26 @@ function processBatch() {
 function invalidateForEvent(evt: WsEvent) {
   const t = evt.type
   if (t.startsWith('task.')) {
-    queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
     // If it's a state change, also invalidate stats
     if (t === 'task.completed' || t === 'task.failed' || t === 'task.scheduled') {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.stats() })
-      queryClient.invalidateQueries({ queryKey: queryKeys.metrics.system() })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.stats() })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.metrics.system() })
     }
   } else if (t.startsWith('node.')) {
-    queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
-    queryClient.invalidateQueries({ queryKey: queryKeys.metrics.system() })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.metrics.system() })
   } else if (t.startsWith('scheduler.') || t.startsWith('ml.')) {
-    queryClient.invalidateQueries({ queryKey: queryKeys.scheduler.metrics() })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.scheduler.metrics() })
     if (t === 'ml.drift_detected') {
-      queryClient.invalidateQueries({ queryKey: queryKeys.scheduler.status() })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.scheduler.status() })
     }
   } else if (t.startsWith('circuit_breaker.')) {
-    queryClient.invalidateQueries({ queryKey: queryKeys.metrics.system() })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.metrics.system() })
     // Specifically refresh circuit breaker states
-    queryClient.invalidateQueries({ queryKey: ['circuit-breakers'] })
+    void queryClient.invalidateQueries({ queryKey: ['circuit-breakers'] })
   } else if (t.startsWith('saga.')) {
-    queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+    void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
   }
 }
 

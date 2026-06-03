@@ -99,7 +99,7 @@ impl Agent {
                     }
                 });
 
-                if let Ok(_) = transport_hb.send_heartbeat(&heartbeat).await {
+                if transport_hb.send_heartbeat(&heartbeat).await.is_ok() {
                     let mut lc = last_contact_hb.write().await;
                     *lc = Some(Instant::now());
                 } else {
@@ -218,7 +218,7 @@ impl Agent {
             let assigned_at: i64 = sqlx::Row::get(&row, 2);
 
             if let Ok(result) = serde_json::from_str::<ExecutionResult>(&result_json) {
-                if let Ok(_) = transport.report_task_result(&result).await {
+                if transport.report_task_result(&result).await.is_ok() {
                     db.mark_task_synced(&task_id).await?;
                 } else {
                     // Escalation check
@@ -247,7 +247,7 @@ impl Agent {
         warn!("Network outage detected! Reconnected after {} seconds. Flushing {} buffered heartbeats...", outage_duration, buffered.len());
 
         for (id, payload) in buffered {
-            if let Ok(_) = transport.send_heartbeat(&payload).await {
+            if transport.send_heartbeat(&payload).await.is_ok() {
                 db.mark_heartbeat_sent(id).await?;
                 // Throttle as per requirements: 10 per second
                 tokio::time::sleep(Duration::from_millis(100)).await;

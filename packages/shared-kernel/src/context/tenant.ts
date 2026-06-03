@@ -19,11 +19,8 @@ export function runWithTenantContext<T>(tenantId: string, fn: () => T): T {
   return tenantContext.run({ tenantId }, fn);
 }
 
-/**
- * Sets the tenant context for the current execution chain (useful for hooks).
- */
-export function enterWithTenantContext(tenantId: string): void {
-  tenantContext.enterWith({ tenantId });
+export function enterWithTenantContext(tenantId: string | undefined): void {
+  tenantContext.enterWith({ tenantId: tenantId as any });
 }
 
 /**
@@ -33,11 +30,91 @@ export function getTenantId(): string | undefined {
   return tenantContext.getStore()?.tenantId;
 }
 
+const jsonFields = new Set([
+  'config',
+  'permissions',
+  'payload',
+  'details',
+  'input',
+  'metadata',
+  'context',
+  'output',
+  'explanation',
+  'candidateNodes',
+  'schedulingDecision',
+  'result'
+]);
+
+function serializeJsonFields(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (obj instanceof Date) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(serializeJsonFields);
+  }
+  if (typeof obj === 'object') {
+    const serialized: any = {};
+    for (const key of Object.keys(obj)) {
+      if (jsonFields.has(key) && obj[key] !== null && obj[key] !== undefined && typeof obj[key] === 'object') {
+        serialized[key] = JSON.stringify(obj[key]);
+      } else {
+        serialized[key] = serializeJsonFields(obj[key]);
+      }
+    }
+    return serialized;
+  }
+  return obj;
+}
+
+function deserializeJsonFields(obj: any): any {
+  if (obj === null || obj === undefined) return obj;
+  if (obj instanceof Date) return obj;
+  if (Array.isArray(obj)) {
+    return obj.map(deserializeJsonFields);
+  }
+  if (typeof obj === 'object') {
+    for (const key of Object.keys(obj)) {
+      if (jsonFields.has(key) && typeof obj[key] === 'string') {
+        try {
+          obj[key] = JSON.parse(obj[key]);
+        } catch {
+          // ignore parsing error, keep as string
+        }
+      } else {
+        obj[key] = deserializeJsonFields(obj[key]);
+      }
+    }
+    return obj;
+  }
+  return obj;
+}
+
 /**
  * Prisma Client Extension to automatically scope queries by tenantId.
  */
 export function prismaForTenant(prisma: any, forcedTenantId?: string) {
-  return prisma.$extends({
+  let extended = prisma;
+
+  const isSqlite = process.env.DATABASE_URL?.startsWith('file:');
+  if (isSqlite) {
+    extended = extended.$extends({
+      query: {
+        $allModels: {
+          async $allOperations({ args, query }: any) {
+            if (args) {
+              if (args.data) args.data = serializeJsonFields(args.data);
+              if (args.create) args.create = serializeJsonFields(args.create);
+              if (args.update) args.update = serializeJsonFields(args.update);
+              if (args.where) args.where = serializeJsonFields(args.where);
+            }
+            const result = await query(args);
+            return deserializeJsonFields(result);
+          }
+        }
+      }
+    });
+  }
+
+  return extended.$extends({
     query: {
       $allModels: {
         async $allOperations({ model, operation, args, query }: any) {
@@ -66,7 +143,10 @@ export function prismaForTenant(prisma: any, forcedTenantId?: string) {
             'CostRecord',
             'CarbonMetric',
             'SagaInstance',
-            'EdgeNode'
+            'SagaStep',
+            'EdgeNode',
+            'Webhook',
+            'WebhookDelivery'
           ];
 
           if (scopedModels.includes(model)) {

@@ -15,8 +15,8 @@ const envSchema = baseEnvSchema.extend({
   TRUST_PROXY: z.string().optional(),
 
   // --- Database Configuration ---
-  DATABASE_URL: z.string().url(),
-  DATABASE_READ_URL: z.string().url().optional(),
+  DATABASE_URL: z.string(),
+  DATABASE_READ_URL: z.string().optional(),
   FORCE_MOCK_DB: z.string().transform((v) => v === 'true').default('false'),
 
   // --- Redis & Messaging ---
@@ -62,6 +62,7 @@ const envSchema = baseEnvSchema.extend({
   GITHUB_REPO_NAME: z.string().optional(),
   ALERT_WEBHOOK_URL: z.string().url().optional(),
   ALERT_THROTTLE_MS: z.coerce.number().default(60000),
+  ELECTRICITY_MAPS_API_KEY: z.string().optional(),
 
   // --- Orchestrator Specific ---
   SCHEDULING_INTERVAL: z.coerce.number().default(5000),

@@ -44,8 +44,8 @@ export function useSubmitTask() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.stats() })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.stats() })
     },
   })
 }
@@ -58,8 +58,8 @@ export function useCancelTask() {
       return data
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(id) })
     },
   })
 }
@@ -72,8 +72,8 @@ export function useRetryTask() {
       return data
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.tasks.detail(id) })
     },
   })
 }

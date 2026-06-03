@@ -4,36 +4,43 @@
       "def-0": {
         "additionalProperties": false,
         "properties": {
-          "code": {
-            "description": "Machine-readable error code",
-            "type": "string"
-          },
-          "details": {
-            "description": "Optional error details"
-          },
-          "message": {
-            "description": "Human-readable error description",
-            "type": "string"
-          },
-          "requestId": {
-            "description": "Unique request ID",
-            "type": "string"
-          },
-          "stack": {
-            "description": "Error stack trace (non-production only)",
-            "type": "string"
-          },
-          "timestamp": {
-            "description": "ISO 8601 timestamp",
-            "format": "date-time",
-            "type": "string"
+          "error": {
+            "additionalProperties": false,
+            "properties": {
+              "code": {
+                "description": "Machine-readable error code",
+                "type": "string"
+              },
+              "details": {
+                "description": "Optional error details"
+              },
+              "message": {
+                "description": "Human-readable error description",
+                "type": "string"
+              },
+              "requestId": {
+                "description": "Unique request ID",
+                "type": "string"
+              },
+              "stack": {
+                "description": "Error stack trace (non-production only)",
+                "type": "string"
+              },
+              "timestamp": {
+                "description": "ISO 8601 timestamp",
+                "format": "date-time",
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "type": "object"
           }
         },
         "required": [
-          "code",
-          "message",
-          "requestId",
-          "timestamp"
+          "error"
         ],
         "title": "ErrorSchema",
         "type": "object"
@@ -136,9 +143,11 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": false,
                 "properties": {
                   "olderThanDays": {
-                    "type": "number"
+                    "minimum": 1,
+                    "type": "integer"
                   },
                   "types": {
                     "items": {
@@ -198,8 +207,9 @@
             "name": "limit",
             "required": false,
             "schema": {
-              "default": 50,
-              "type": "number"
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           {
@@ -207,8 +217,8 @@
             "name": "offset",
             "required": false,
             "schema": {
-              "default": 0,
-              "type": "number"
+              "minimum": 0,
+              "type": "integer"
             }
           }
         ],
@@ -231,6 +241,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -252,10 +263,10 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": false,
                 "properties": {
                   "olderThanDays": {
-                    "default": 7,
-                    "type": "number"
+                    "type": "integer"
                   }
                 },
                 "type": "object"
@@ -282,6 +293,88 @@
           }
         },
         "summary": "Get DLQ statistics across all streams",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v2/admin/events/republish": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "entityId": {
+                    "type": "string"
+                  },
+                  "eventType": {
+                    "type": "string"
+                  },
+                  "targetTopic": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "entityId",
+                  "eventType"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Republish an event to Kafka",
+        "tags": [
+          "admin"
+        ]
+      }
+    },
+    "/v2/admin/events/republish-range": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "dryRun": {
+                    "type": "boolean"
+                  },
+                  "eventType": {
+                    "type": "string"
+                  },
+                  "fromTimestamp": {
+                    "type": "string"
+                  },
+                  "toTimestamp": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "eventType",
+                  "fromTimestamp",
+                  "toTimestamp"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Bulk republish events to Kafka",
         "tags": [
           "admin"
         ]
@@ -334,6 +427,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -357,6 +451,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -365,11 +460,13 @@
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": false,
                 "properties": {
                   "role": {
                     "enum": [
                       "ADMIN",
                       "OPERATOR",
+                      "SUPER_ADMIN",
                       "VIEWER"
                     ],
                     "type": "string"
@@ -395,40 +492,428 @@
         ]
       }
     },
-    "/v2/alerts/": {
-      "delete": {
+    "/v2/admin/ws-stats": {
+      "get": {
         "responses": {
           "200": {
             "description": "Default Response"
           }
         },
-        "summary": "Clear alert history",
+        "summary": "Get WebSocket statistics",
         "tags": [
-          "alerts"
+          "admin"
         ]
-      },
+      }
+    },
+    "/v2/agents/ca": {
       "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "certificate": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get CA certificate",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/v2/agents/certificates/sign": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "bootstrapToken": {
+                    "description": "One-time bootstrap token",
+                    "type": "string"
+                  },
+                  "cpuCores": {
+                    "type": "number"
+                  },
+                  "csr": {
+                    "description": "PEM encoded Certificate Signing Request",
+                    "type": "string"
+                  },
+                  "hardwareId": {
+                    "type": "string"
+                  },
+                  "ipAddress": {
+                    "type": "string"
+                  },
+                  "memoryGB": {
+                    "type": "number"
+                  },
+                  "nodeName": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "number"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "storageGB": {
+                    "type": "number"
+                  }
+                },
+                "required": [
+                  "bootstrapToken",
+                  "csr",
+                  "nodeName",
+                  "region"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "caCertificate": {
+                      "type": "string"
+                    },
+                    "certificate": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "nodeId": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "400": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "401": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "403": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Bootstrap agent certificate and register node",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/v2/agents/heartbeat": {
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "metrics": {
+                    "properties": {
+                      "cpu_usage": {
+                        "type": "number"
+                      },
+                      "memory_usage": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "timestamp": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Agent heartbeat",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/v2/agents/tasks/pending": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "cpu_fuel": {
+                      "nullable": true,
+                      "type": "number"
+                    },
+                    "image": {
+                      "type": "string"
+                    },
+                    "input": {
+                      "additionalProperties": true,
+                      "type": "object"
+                    },
+                    "memory_limit_mb": {
+                      "type": "number"
+                    },
+                    "runtime": {
+                      "type": "string"
+                    },
+                    "task_id": {
+                      "type": "string"
+                    },
+                    "timeout_seconds": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Poll for pending tasks",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/v2/agents/tasks/{taskId}/result": {
+      "post": {
         "parameters": [
           {
-            "in": "query",
-            "name": "severity",
-            "required": false,
+            "in": "path",
+            "name": "taskId",
+            "required": true,
             "schema": {
-              "enum": [
-                "critical",
-                "info",
-                "warning"
-              ],
               "type": "string"
             }
           }
         ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "duration_ms": {
+                    "type": "number"
+                  },
+                  "error": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "exit_code": {
+                    "type": "number"
+                  },
+                  "metrics": {
+                    "properties": {
+                      "cpu_usage_avg": {
+                        "type": "number"
+                      },
+                      "memory_usage_max": {
+                        "type": "number"
+                      },
+                      "network_egress_bytes": {
+                        "type": "number"
+                      },
+                      "network_ingress_bytes": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "stderr": {
+                    "type": "string"
+                  },
+                  "stdout": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "exit_code",
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
         "responses": {
           "200": {
             "description": "Default Response"
           }
         },
-        "summary": "Get alert history",
+        "summary": "Report task result",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/v2/agents/tasks/{taskId}/status": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "taskId",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Update task execution status",
+        "tags": [
+          "agents"
+        ]
+      }
+    },
+    "/v2/alerts/": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "alerts": {
+                      "items": {
+                        "properties": {
+                          "acknowledgedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "firedAt": {
+                            "type": "string"
+                          },
+                          "id": {
+                            "type": "string"
+                          },
+                          "resolvedAt": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "severity": {
+                            "enum": [
+                              "CRITICAL",
+                              "HIGH",
+                              "LOW",
+                              "MEDIUM"
+                            ],
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "title": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get active alerts for tenant",
         "tags": [
           "alerts"
         ]
@@ -441,14 +926,15 @@
             "application/json": {
               "schema": {
                 "properties": {
-                  "message": {
+                  "description": {
                     "type": "string"
                   },
                   "severity": {
                     "enum": [
-                      "critical",
-                      "info",
-                      "warning"
+                      "CRITICAL",
+                      "HIGH",
+                      "LOW",
+                      "MEDIUM"
                     ],
                     "type": "string"
                   },
@@ -457,7 +943,7 @@
                   }
                 },
                 "required": [
-                  "message",
+                  "description",
                   "severity",
                   "title"
                 ],
@@ -475,6 +961,214 @@
         "summary": "Send test alert",
         "tags": [
           "alerts"
+        ]
+      }
+    },
+    "/v2/alerts/{id}/acknowledge": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Acknowledge an alert",
+        "tags": [
+          "alerts"
+        ]
+      }
+    },
+    "/v2/analytics/cost": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to",
+            "required": false,
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "nodeId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "costByNode": {
+                      "items": {
+                        "properties": {
+                          "cost": {
+                            "type": "number"
+                          },
+                          "nodeId": {
+                            "type": "string"
+                          },
+                          "nodeName": {
+                            "type": "string"
+                          },
+                          "taskCount": {
+                            "type": "number"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "costOverTime": {
+                      "items": {
+                        "properties": {
+                          "cost": {
+                            "type": "number"
+                          },
+                          "date": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "totalActualCost": {
+                      "type": "number"
+                    },
+                    "totalSavings": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get cost analytics",
+        "tags": [
+          "analytics"
+        ]
+      }
+    },
+    "/v2/api-keys/": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "List my API keys",
+        "tags": [
+          "api-keys"
+        ]
+      },
+      "post": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "expiresAt": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "name": {
+                    "maxLength": 100,
+                    "minLength": 1,
+                    "pattern": "^[a-zA-Z0-9\\s\\-_]+$",
+                    "type": "string"
+                  },
+                  "permissions": {
+                    "items": {
+                      "type": "string"
+                    },
+                    "type": "array"
+                  }
+                },
+                "required": [
+                  "name"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Create a new API key",
+        "tags": [
+          "api-keys"
+        ]
+      }
+    },
+    "/v2/api-keys/{id}": {
+      "delete": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Revoke an API key",
+        "tags": [
+          "api-keys"
         ]
       }
     },
@@ -506,6 +1200,64 @@
           "required": true
         },
         "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "email": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "email",
+                        "id",
+                        "role"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "expiresAt",
+                    "refreshToken",
+                    "token",
+                    "user"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Login successful"
+          },
           "401": {
             "content": {
               "application/json": {
@@ -562,34 +1314,6 @@
       "get": {
         "responses": {
           "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "properties": {
-                    "createdAt": {
-                      "type": "string"
-                    },
-                    "email": {
-                      "type": "string"
-                    },
-                    "id": {
-                      "type": "string"
-                    },
-                    "lastLoginAt": {
-                      "nullable": true,
-                      "type": "string"
-                    },
-                    "name": {
-                      "type": "string"
-                    },
-                    "role": {
-                      "type": "string"
-                    }
-                  },
-                  "type": "object"
-                }
-              }
-            },
             "description": "Default Response"
           }
         },
@@ -647,6 +1371,7 @@
                   "name": {
                     "maxLength": 100,
                     "minLength": 2,
+                    "pattern": "^[a-zA-Z\\s\\-\\.]+$",
                     "type": "string"
                   },
                   "password": {
@@ -659,9 +1384,13 @@
                       },
                       {
                         "pattern": "[0-9]"
+                      },
+                      {
+                        "pattern": "[^A-Za-z0-9]"
                       }
                     ],
-                    "minLength": 8,
+                    "maxLength": 128,
+                    "minLength": 12,
                     "type": "string"
                   }
                 },
@@ -677,6 +1406,64 @@
           "required": true
         },
         "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "accessToken": {
+                      "type": "string"
+                    },
+                    "expiresAt": {
+                      "format": "date-time",
+                      "type": "string"
+                    },
+                    "refreshToken": {
+                      "type": "string"
+                    },
+                    "token": {
+                      "type": "string"
+                    },
+                    "user": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "email": {
+                          "format": "email",
+                          "type": "string"
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "role": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "email",
+                        "id",
+                        "role"
+                      ],
+                      "type": "object"
+                    }
+                  },
+                  "required": [
+                    "accessToken",
+                    "expiresAt",
+                    "refreshToken",
+                    "token",
+                    "user"
+                  ],
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Registration successful"
+          },
           "400": {
             "content": {
               "application/json": {
@@ -704,60 +1491,39 @@
         ]
       }
     },
-    "/v2/carbon/by-region": {
+    "/v2/auth/sessions": {
+      "delete": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Revoke all user sessions (logout everywhere)",
+        "tags": [
+          "auth"
+        ]
+      },
       "get": {
         "responses": {
           "200": {
             "description": "Default Response"
           }
         },
-        "summary": "Get carbon breakdown by region",
+        "summary": "List active user sessions",
         "tags": [
-          "carbon"
+          "auth"
         ]
       }
     },
-    "/v2/carbon/metrics": {
-      "get": {
+    "/v2/auth/sessions/{id}": {
+      "delete": {
         "parameters": [
           {
-            "in": "query",
-            "name": "region",
-            "required": false,
+            "in": "path",
+            "name": "id",
+            "required": true,
             "schema": {
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "from",
-            "required": false,
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "to",
-            "required": false,
-            "schema": {
-              "format": "date-time",
-              "type": "string"
-            }
-          },
-          {
-            "in": "query",
-            "name": "granularity",
-            "required": false,
-            "schema": {
-              "default": "day",
-              "enum": [
-                "day",
-                "hour",
-                "month",
-                "week"
-              ],
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -767,39 +1533,136 @@
             "description": "Default Response"
           }
         },
-        "summary": "Get carbon metrics",
+        "summary": "Revoke a specific session",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/v2/carbon/by-region": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "carbonIntensityGco2": {
+                        "type": "number"
+                      },
+                      "lastUpdatedAt": {
+                        "type": "string"
+                      },
+                      "source": {
+                        "type": "string"
+                      },
+                      "zone": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get carbon breakdown by region",
         "tags": [
           "carbon"
         ]
       }
     },
-    "/v2/carbon/record": {
-      "post": {
+    "/v2/carbon/intensity": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "regions": {
+                      "items": {
+                        "properties": {
+                          "carbonIntensityGco2": {
+                            "type": "number"
+                          },
+                          "lastUpdatedAt": {
+                            "type": "string"
+                          },
+                          "source": {
+                            "type": "string"
+                          },
+                          "zone": {
+                            "type": "string"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get regional carbon intensity",
+        "tags": [
+          "carbon"
+        ]
+      }
+    },
+    "/v2/carbon/policy": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "activePolicy": {
+                      "type": "string"
+                    },
+                    "carbonWeight": {
+                      "type": "number"
+                    },
+                    "isActive": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get active carbon optimization policy",
+        "tags": [
+          "carbon"
+        ]
+      },
+      "patch": {
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
+                "additionalProperties": false,
                 "properties": {
-                  "carbonKg": {
-                    "type": "number"
-                  },
-                  "energyKwh": {
-                    "type": "number"
-                  },
-                  "nodeId": {
-                    "type": "string"
-                  },
-                  "region": {
-                    "type": "string"
-                  },
-                  "renewablePercent": {
+                  "carbonWeight": {
+                    "maximum": 1,
+                    "minimum": 0,
                     "type": "number"
                   }
                 },
                 "required": [
-                  "carbonKg",
-                  "energyKwh",
-                  "region"
+                  "carbonWeight"
                 ],
                 "type": "object"
               }
@@ -809,10 +1672,83 @@
         },
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "carbonWeight": {
+                      "type": "number"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
             "description": "Default Response"
           }
         },
-        "summary": "Record carbon metric",
+        "summary": "Update carbon optimization weight",
+        "tags": [
+          "carbon"
+        ]
+      }
+    },
+    "/v2/carbon/savings": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "days",
+            "required": false,
+            "schema": {
+              "default": 7,
+              "maximum": 365,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "equivalentTreesPlanted": {
+                      "type": "number"
+                    },
+                    "savingsHistory": {
+                      "items": {
+                        "properties": {
+                          "date": {
+                            "type": "string"
+                          },
+                          "savedGco2": {
+                            "type": "number"
+                          }
+                        },
+                        "type": "object"
+                      },
+                      "type": "array"
+                    },
+                    "totalSavedGco2Today": {
+                      "type": "number"
+                    },
+                    "totalSavedGco2Week": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get carbon savings metrics",
         "tags": [
           "carbon"
         ]
@@ -822,12 +1758,130 @@
       "get": {
         "responses": {
           "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "equivalentTreesPlanted": {
+                      "type": "number"
+                    },
+                    "totalSavedGco2Today": {
+                      "type": "number"
+                    },
+                    "totalSavedGco2Week": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
             "description": "Default Response"
           }
         },
         "summary": "Get carbon footprint summary",
         "tags": [
           "carbon"
+        ]
+      }
+    },
+    "/v2/circuit-breakers/": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "failureCount": {
+                        "type": "number"
+                      },
+                      "failureRate": {
+                        "type": "number"
+                      },
+                      "lastStateChange": {
+                        "type": "string"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "nextRetryAt": {
+                        "type": "string"
+                      },
+                      "state": {
+                        "enum": [
+                          "CLOSED",
+                          "HALF_OPEN",
+                          "OPEN"
+                        ],
+                        "type": "string"
+                      },
+                      "successCount": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get all circuit breaker states",
+        "tags": [
+          "resilience"
+        ]
+      }
+    },
+    "/v2/circuit-breakers/{name}/reset": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "name",
+            "required": true,
+            "schema": {
+              "minLength": 1,
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          },
+          "404": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/def-0"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Force reset a circuit breaker",
+        "tags": [
+          "resilience"
         ]
       }
     },
@@ -1214,6 +2268,82 @@
         ]
       }
     },
+    "/v2/logs/": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "taskId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "nodeId",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "level",
+            "required": false,
+            "schema": {
+              "enum": [
+                "DEBUG",
+                "ERROR",
+                "INFO",
+                "WARN"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 100,
+              "type": "number"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get system-wide logs",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
+    "/v2/logs/stats": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get log statistics",
+        "tags": [
+          "logs"
+        ]
+      }
+    },
     "/v2/metrics/": {
       "get": {
         "responses": {
@@ -1222,6 +2352,74 @@
           }
         },
         "summary": "Get system metrics",
+        "tags": [
+          "metrics"
+        ]
+      }
+    },
+    "/v2/metrics/ml": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "activeModels": {
+                      "type": "number"
+                    },
+                    "avgAccuracy": {
+                      "type": "number"
+                    },
+                    "totalPredictions": {
+                      "type": "number"
+                    },
+                    "trainingJobs": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get ML-specific metrics",
+        "tags": [
+          "metrics"
+        ]
+      }
+    },
+    "/v2/metrics/network": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "avgLatency": {
+                      "type": "number"
+                    },
+                    "egressGbps": {
+                      "type": "number"
+                    },
+                    "ingressGbps": {
+                      "type": "number"
+                    },
+                    "packetLoss": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get network performance metrics",
         "tags": [
           "metrics"
         ]
@@ -1284,6 +2482,221 @@
         "summary": "Get system metrics",
         "tags": [
           "metrics"
+        ]
+      }
+    },
+    "/v2/ml/drift/current": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "driftScore": {
+                      "type": "number"
+                    },
+                    "featureDrift": {
+                      "additionalProperties": {
+                        "type": "number"
+                      },
+                      "type": "object"
+                    },
+                    "isDrifting": {
+                      "type": "boolean"
+                    },
+                    "lastCheckedAt": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get current ML drift status",
+        "tags": [
+          "ml"
+        ]
+      }
+    },
+    "/v2/ml/drift/history": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "hours",
+            "required": false,
+            "schema": {
+              "default": 24,
+              "maximum": 720,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "properties": {
+                      "score": {
+                        "type": "number"
+                      },
+                      "timestamp": {
+                        "type": "string"
+                      }
+                    },
+                    "type": "object"
+                  },
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get ML drift history",
+        "tags": [
+          "ml"
+        ]
+      }
+    },
+    "/v2/ml/model/current": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "accuracy": {
+                      "type": "number"
+                    },
+                    "fallbackRate": {
+                      "type": "number"
+                    },
+                    "lastUpdatedAt": {
+                      "type": "string"
+                    },
+                    "modelType": {
+                      "type": "string"
+                    },
+                    "trainedAt": {
+                      "type": "string"
+                    },
+                    "version": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get current ML model status",
+        "tags": [
+          "ml"
+        ]
+      }
+    },
+    "/v2/ml/outcomes/stats": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "banditExplorationRate": {
+                      "type": "number"
+                    },
+                    "nextUpdateAt": {
+                      "type": "number"
+                    },
+                    "outcomesBuffered": {
+                      "type": "number"
+                    },
+                    "predictionErrorP99Ms": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get ML outcome collection stats",
+        "tags": [
+          "ml"
+        ]
+      }
+    },
+    "/v2/ml/retrain": {
+      "post": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Manually trigger model retraining",
+        "tags": [
+          "ml"
+        ]
+      }
+    },
+    "/v2/ml/retrain/status": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "error": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "lastStartedAt": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get status of current retraining job",
+        "tags": [
+          "ml"
         ]
       }
     },
@@ -1905,6 +3318,45 @@
         ]
       }
     },
+    "/v2/nodes/{id}/drain": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Start draining a node (stop accepting new tasks)",
+        "tags": [
+          "nodes"
+        ]
+      }
+    },
     "/v2/nodes/{id}/heartbeat": {
       "post": {
         "parameters": [
@@ -2059,6 +3511,45 @@
         ]
       }
     },
+    "/v2/nodes/{id}/offline": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Force a node to OFFLINE status",
+        "tags": [
+          "nodes"
+        ]
+      }
+    },
     "/v2/nodes/{id}/scheduling-history": {
       "get": {
         "parameters": [
@@ -2092,6 +3583,194 @@
         ]
       }
     },
+    "/v2/policies/": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "List available scheduling policies",
+        "tags": [
+          "policies"
+        ]
+      }
+    },
+    "/v2/policies/active": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get the currently active scheduling policy",
+        "tags": [
+          "policies"
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "policy": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "policy"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Update the active scheduling policy",
+        "tags": [
+          "policies"
+        ]
+      }
+    },
+    "/v2/policies/config": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get detailed configuration for all policies",
+        "tags": [
+          "policies"
+        ]
+      }
+    },
+    "/v2/policies/thresholds": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get system health thresholds",
+        "tags": [
+          "policies"
+        ]
+      },
+      "patch": {
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "cpu": {
+                    "maximum": 100,
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "latency": {
+                    "minimum": 0,
+                    "type": "number"
+                  },
+                  "memory": {
+                    "maximum": 100,
+                    "minimum": 0,
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Update system health thresholds",
+        "tags": [
+          "policies"
+        ]
+      }
+    },
+    "/v2/scheduler/decisions": {
+      "get": {
+        "parameters": [
+          {
+            "in": "query",
+            "name": "nodeId",
+            "required": false,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get recent scheduling decisions",
+        "tags": [
+          "scheduler"
+        ]
+      }
+    },
+    "/v2/scheduler/metrics": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "avgSchedulingTime": {
+                      "type": "number"
+                    },
+                    "efficiency": {
+                      "type": "number"
+                    },
+                    "queueLength": {
+                      "type": "number"
+                    },
+                    "throughput": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get scheduler-specific metrics",
+        "tags": [
+          "scheduler"
+        ]
+      }
+    },
     "/v2/status": {
       "get": {
         "responses": {
@@ -2099,6 +3778,32 @@
             "description": "Default Response"
           }
         }
+      }
+    },
+    "/v2/system/circuit-breakers": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get system circuit breaker status",
+        "tags": [
+          "system"
+        ]
+      }
+    },
+    "/v2/system/info": {
+      "get": {
+        "responses": {
+          "200": {
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get system information",
+        "tags": [
+          "system"
+        ]
       }
     },
     "/v2/tasks/": {
@@ -2288,6 +3993,9 @@
                             "format": "uuid",
                             "type": "string"
                           },
+                          "image": {
+                            "type": "string"
+                          },
                           "metadata": {
                             "additionalProperties": {},
                             "type": "object"
@@ -2410,6 +4118,7 @@
                         },
                         "required": [
                           "id",
+                          "image",
                           "name",
                           "priority",
                           "runtime",
@@ -2459,6 +4168,10 @@
                 "additionalProperties": false,
                 "properties": {
                   "affinity": {
+                    "type": "string"
+                  },
+                  "image": {
+                    "minLength": 1,
                     "type": "string"
                   },
                   "input": {
@@ -2515,12 +4228,13 @@
                         "maximum": 1024,
                         "minimum": 1,
                         "type": "integer"
+                      },
+                      "memoryMB": {
+                        "maximum": 262144,
+                        "minimum": 1,
+                        "type": "integer"
                       }
                     },
-                    "required": [
-                      "cpuCores",
-                      "memoryGB"
-                    ],
                     "type": "object"
                   },
                   "target": {
@@ -2563,6 +4277,7 @@
                   }
                 },
                 "required": [
+                  "image",
                   "name",
                   "type"
                 ],
@@ -2633,6 +4348,9 @@
                     },
                     "id": {
                       "format": "uuid",
+                      "type": "string"
+                    },
+                    "image": {
                       "type": "string"
                     },
                     "metadata": {
@@ -2757,6 +4475,7 @@
                   },
                   "required": [
                     "id",
+                    "image",
                     "name",
                     "priority",
                     "runtime",
@@ -2886,6 +4605,9 @@
                       "format": "uuid",
                       "type": "string"
                     },
+                    "image": {
+                      "type": "string"
+                    },
                     "metadata": {
                       "additionalProperties": {},
                       "type": "object"
@@ -3008,6 +4730,7 @@
                   },
                   "required": [
                     "id",
+                    "image",
                     "name",
                     "priority",
                     "runtime",
@@ -3078,8 +4801,9 @@
             "name": "limit",
             "required": false,
             "schema": {
-              "default": 100,
-              "type": "number"
+              "maximum": 1000,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           {
@@ -3184,11 +4908,12 @@
                   "name": {
                     "maxLength": 100,
                     "minLength": 1,
+                    "pattern": "^[a-zA-Z0-9\\s\\-_]+$",
                     "type": "string"
                   },
                   "secret": {
-                    "maxLength": 100,
-                    "minLength": 16,
+                    "maxLength": 128,
+                    "minLength": 32,
                     "type": "string"
                   },
                   "url": {
@@ -3213,6 +4938,79 @@
           }
         },
         "summary": "Create a webhook",
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/v2/webhooks/deliveries/{id}/retry": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "message": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Retry a failed webhook delivery",
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/v2/webhooks/stats": {
+      "get": {
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "active": {
+                      "type": "number"
+                    },
+                    "avgLatency": {
+                      "type": "number"
+                    },
+                    "failedLast24h": {
+                      "type": "number"
+                    },
+                    "total": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Get webhook delivery statistics",
         "tags": [
           "webhooks"
         ]
@@ -3308,8 +5106,9 @@
             "name": "limit",
             "required": false,
             "schema": {
-              "default": 50,
-              "type": "number"
+              "maximum": 100,
+              "minimum": 1,
+              "type": "integer"
             }
           },
           {
@@ -3341,6 +5140,7 @@
             "name": "id",
             "required": true,
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           },
@@ -3349,6 +5149,7 @@
             "name": "deliveryId",
             "required": true,
             "schema": {
+              "format": "uuid",
               "type": "string"
             }
           }
@@ -3359,6 +5160,45 @@
           }
         },
         "summary": "Redeliver a webhook",
+        "tags": [
+          "webhooks"
+        ]
+      }
+    },
+    "/v2/webhooks/{id}/test": {
+      "post": {
+        "parameters": [
+          {
+            "in": "path",
+            "name": "id",
+            "required": true,
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "properties": {
+                    "deliveryId": {
+                      "type": "string"
+                    },
+                    "success": {
+                      "type": "boolean"
+                    }
+                  },
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Default Response"
+          }
+        },
+        "summary": "Send a test event to the webhook",
         "tags": [
           "webhooks"
         ]
@@ -3420,9 +5260,15 @@
                       "properties": {
                         "config": {
                           "additionalProperties": {},
+                          "propertyNames": {
+                            "maxLength": 100
+                          },
                           "type": "object"
                         },
                         "id": {
+                          "maxLength": 100,
+                          "minLength": 1,
+                          "pattern": "^[a-zA-Z0-9\\-_]+$",
                           "type": "string"
                         },
                         "inputs": {
@@ -3432,6 +5278,8 @@
                           "type": "array"
                         },
                         "name": {
+                          "maxLength": 100,
+                          "minLength": 1,
                           "type": "string"
                         },
                         "outputs": {

@@ -23,7 +23,7 @@ const logger = createLogger('node-service');
 const app = Fastify({ logger: false, trustProxy: true });
 
 // Standardized Logging & Tracing
-app.register(fastifyLoggingPlugin, { logger, serviceName: 'node-service' });
+void app.register(fastifyLoggingPlugin, { logger, serviceName: 'node-service' });
 
 let pool: Pool;
 let eventBus: EventBus;
@@ -35,16 +35,16 @@ let redisClient: any;
 const circuitBreakerRegistry = new CircuitBreakerRegistry();
 
 // Rate limiting
-app.register(async (instance) => {
+void app.register(async (instance) => {
   if (redisClient) {
-    instance.register(rateLimit, {
+    void instance.register(rateLimit, {
       max: 100,
       timeWindow: '1 minute',
       allowList: ['127.0.0.1'],
       redis: redisClient,
     });
   } else {
-    instance.register(rateLimit, {
+    void instance.register(rateLimit, {
       max: 100,
       timeWindow: '1 minute',
       allowList: ['127.0.0.1'],
@@ -101,7 +101,7 @@ app.post('/nodes', async (request: FastifyRequest, reply: FastifyReply) => {
     logger.warn({ err: (err as Error).message }, 'Failed to publish node registered event:');
   }
   
-  reply.status(201).send(node);
+  void reply.status(201).send(node);
 });
 
 // List nodes
@@ -136,7 +136,7 @@ app.get('/nodes/:id', async (request: FastifyRequest, reply: FastifyReply) => {
   const result = await pool.query('SELECT * FROM nodes WHERE id = $1', [id]);
   
   if (result.rows.length === 0) {
-    reply.status(404).send({ error: 'Node not found' });
+    void reply.status(404).send({ error: 'Node not found' });
     return;
   }
   
@@ -159,7 +159,7 @@ app.post('/nodes/:id/heartbeat', async (request: FastifyRequest, reply: FastifyR
   );
   
   if (result.rows.length === 0) {
-    reply.status(404).send({ error: 'Node not found' });
+    void reply.status(404).send({ error: 'Node not found' });
     return;
   }
   
@@ -226,6 +226,7 @@ function mapRowToNode(row: any): EdgeNode {
     capabilities: row.capabilities,
     labels: row.labels,
     lastHeartbeat: row.last_heartbeat,
+    carbonIntensity: row.carbon_intensity || 0,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
   };
@@ -287,4 +288,4 @@ async function start() {
 let isShuttingDown = false;
 
 // Start the application
-start();
+void start();

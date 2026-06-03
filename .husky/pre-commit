@@ -1,5 +1,5 @@
 #!/bin/sh
-CERT_FILES=$(git diff --staged --name-only | grep -E '\.(crt|pfx|pem|key|p12|cer|der)$')
+CERT_FILES=$(git diff --staged --name-only | grep -E '\.(crt|pfx|pem|key|p12|cer|der)$' || true)
 if [ -n "$CERT_FILES" ]; then
   echo "BLOCKED: Certificate/key files cannot be committed:"
   echo "$CERT_FILES"

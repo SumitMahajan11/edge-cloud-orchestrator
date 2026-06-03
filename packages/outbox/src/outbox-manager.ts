@@ -142,7 +142,7 @@ export class OutboxManager extends EventEmitter {
     }
 
     this.pollingInterval = setInterval(() => {
-      this.processPendingEvents();
+      void this.processPendingEvents();
     }, this.config.pollingIntervalMs);
 
     this.emit('started');

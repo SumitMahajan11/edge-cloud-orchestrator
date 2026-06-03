@@ -81,6 +81,7 @@ describe('reliableCall', () => {
       const fn = vi.fn().mockRejectedValue(new Error('ECONNRESET'));
 
       const promise = reliableCall(fn, { retries: 1 });
+      promise.catch(() => {});
       
       await vi.runAllTimersAsync();
 
@@ -92,6 +93,7 @@ describe('reliableCall', () => {
       const fn = vi.fn().mockRejectedValue(new Error('ECONNRESET'));
 
       const promise = reliableCall(fn, { retries: 3 });
+      promise.catch(() => {});
       
       await vi.runAllTimersAsync();
 

@@ -45,8 +45,8 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
     const requestId = (request.headers['x-request-id'] as string) || uuidv4();
     const traceId = (request.headers['x-trace-id'] as string) || requestId;
     
-    reply.header('x-request-id', requestId);
-    reply.header('x-trace-id', traceId);
+    void reply.header('x-request-id', requestId);
+    void reply.header('x-trace-id', traceId);
 
     // Set up AsyncLocalStorage context for the entire request duration
     return new Promise<void>((resolve) => {

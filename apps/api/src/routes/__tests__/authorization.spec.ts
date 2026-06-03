@@ -1,16 +1,16 @@
 import fastify from 'fastify';
-import jwt from 'jsonwebtoken';
+import { generateTestToken } from '../../__tests__/helpers/token-factory.js';
 
 vi.hoisted(() => {
   process.env.LOG_LEVEL = 'fatal';
   process.env.NODE_ENV = 'test';
-  process.env.JWT_SECRET = 'a-very-long-secret-that-is-at-least-32-chars';
+  process.env.JWT_SECRET = 'a'.repeat(32);
   process.env.DATABASE_URL = 'postgresql://localhost:5432/test';
-  process.env.ENCRYPTION_KEY = 'a-very-long-secret-that-is-at-least-32-chars';
+  process.env.ENCRYPTION_KEY = 'a'.repeat(32);
 });
 
 const { JWT_SECRET } = vi.hoisted(() => ({
-  JWT_SECRET: 'a-very-long-secret-that-is-at-least-32-chars'
+  JWT_SECRET: 'a'.repeat(32)
 }));
 
 // Mock logger COMPLETELY to avoid pino initialization issues in tests
@@ -40,10 +40,10 @@ vi.mock('../../config/env', () => ({
     NODE_ENV: 'test',
     LOG_LEVEL: 'fatal',
     LOG_FORMAT: 'json',
-    JWT_ISSUER: 'edgecloud',
-    JWT_AUDIENCE: 'orchestrator',
+    JWT_ISSUER: 'edge-cloud-orchestrator',
+    JWT_AUDIENCE: 'edge-cloud-clients',
     DATABASE_URL: 'postgresql://localhost:5432/test',
-    ENCRYPTION_KEY: 'a-very-long-secret-that-is-at-least-32-chars',
+    ENCRYPTION_KEY: 'a'.repeat(32),
     KAFKA_BROKERS: 'localhost:9092',
   }
 }));
@@ -104,6 +104,7 @@ describe('Granular RBAC Authorization Suite', () => {
     auditLog: {
       create: vi.fn().mockResolvedValue({ id: 'audit-1' }),
       findMany: vi.fn().mockResolvedValue([]),
+      count: vi.fn().mockResolvedValue(0),
     },
     deadLetterEvent: { 
       findUnique: vi.fn().mockResolvedValue({ id: 'dlq-1', status: 'PENDING' }),
@@ -171,15 +172,11 @@ describe('Granular RBAC Authorization Suite', () => {
   });
 
   const generateToken = (role: string, customTenantId: string = tenantId) => {
-    return jwt.sign({ 
-      id: 'user-1', 
-      email: 'test@test.com', 
-      role, 
-      tenantId: customTenantId, 
-      jti: 'test-jti' 
-    }, JWT_SECRET, { 
-      issuer: 'edgecloud', 
-      audience: 'orchestrator' 
+    return generateTestToken({
+      id: 'user-1',
+      email: 'test@test.com',
+      role,
+      tenantId: customTenantId,
     });
   };
 

@@ -53,7 +53,7 @@ function AppContent() {
       // T for new task
       if (e.key === 't' && !['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement).tagName)) {
         e.preventDefault()
-        navigate('/scheduler')
+        void navigate('/scheduler')
       }
     }
     

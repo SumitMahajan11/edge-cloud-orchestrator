@@ -34,8 +34,8 @@ export function useExecuteWorkflow() {
       return data
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.workflows.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workflows.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workflows.detail(id) })
     },
   })
 }

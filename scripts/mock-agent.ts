@@ -55,7 +55,7 @@ async function main() {
       if (tasks.length > 0) {
         console.log(`📥 Received ${tasks.length} new tasks`);
         for (const task of tasks) {
-          executeTask(task);
+          void executeTask(task);
         }
       }
     } catch (error: any) {

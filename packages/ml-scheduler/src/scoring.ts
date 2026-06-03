@@ -1,4 +1,4 @@
-import { DEFAULT_SCORE_WEIGHTS,EdgeNode, Task } from '@edgecloud/shared-kernel';
+import { DEFAULT_SCORE_WEIGHTS, EdgeNode, Task } from '@edgecloud/shared-kernel';
 
 import { SchedulingPredictor } from './predictor';
 
@@ -27,8 +27,25 @@ export interface NodeScoreResult {
   };
 }
 
+const FALLBACK_SCORE_WEIGHTS = {
+  cpu: 0.40,
+  memory: 0.30,
+  latency: 0.30,
+  cost: 0.0,
+  network: 0.0,
+  ml: 0.0,
+  health: 0.0,
+  carbon: 0.0,
+};
+
 export class MultiObjectiveScorer {
-  constructor(private predictor: SchedulingPredictor, private weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS) {}
+  constructor(private predictor: SchedulingPredictor, private weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS) {
+    if (!this.weights || Object.keys(this.weights).length === 0) {
+      this.weights = (DEFAULT_SCORE_WEIGHTS && Object.keys(DEFAULT_SCORE_WEIGHTS).length > 0)
+        ? DEFAULT_SCORE_WEIGHTS
+        : (FALLBACK_SCORE_WEIGHTS as any);
+    }
+  }
 
   async calculateScore(task: Task, node: EdgeNode, maxCarbon?: number): Promise<NodeScoreResult> {
     // Normalize metrics to 0-1 scale (higher is better)

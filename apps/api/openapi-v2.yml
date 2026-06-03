@@ -37,7 +37,6 @@ components:
           required:
             - code
             - message
-            - requestId
           additionalProperties: false
       required:
         - error
@@ -109,14 +108,10 @@ paths:
                 olderThanDays:
                   type: integer
                   minimum: 1
-                  maximum: 365
                 types:
                   type: array
                   items:
                     type: string
-                    maxLength: 50
-                  minItems: 1
-                  maxItems: 10
               required:
                 - olderThanDays
                 - types
@@ -133,7 +128,6 @@ paths:
       parameters:
         - schema:
             type: string
-            maxLength: 100
           in: query
           name: topic
           required: false
@@ -151,14 +145,12 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
           in: query
           name: limit
           required: false
         - schema:
             type: integer
             minimum: 0
-            default: 0
           in: query
           name: offset
           required: false
@@ -193,9 +185,6 @@ paths:
               properties:
                 olderThanDays:
                   type: integer
-                  minimum: 1
-                  maximum: 365
-                  default: 7
               additionalProperties: false
       responses:
         "200":
@@ -221,13 +210,10 @@ paths:
               properties:
                 eventType:
                   type: string
-                  maxLength: 100
                 entityId:
                   type: string
-                  maxLength: 100
                 targetTopic:
                   type: string
-                  maxLength: 100
               required:
                 - eventType
                 - entityId
@@ -249,13 +235,10 @@ paths:
               properties:
                 eventType:
                   type: string
-                  maxLength: 100
                 fromTimestamp:
                   type: string
-                  format: date-time
                 toTimestamp:
                   type: string
-                  format: date-time
                 dryRun:
                   type: boolean
               required:
@@ -320,6 +303,7 @@ paths:
                 role:
                   type: string
                   enum:
+                    - SUPER_ADMIN
                     - ADMIN
                     - OPERATOR
                     - VIEWER
@@ -789,6 +773,51 @@ paths:
               additionalProperties: false
         required: true
       responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                        format: email
+                      name:
+                        anyOf:
+                          - anyOf:
+                              - not: {}
+                              - type: string
+                          - type: "null"
+                      role:
+                        type: string
+                    required:
+                      - id
+                      - email
+                      - role
+                    additionalProperties: false
+                required:
+                  - token
+                  - accessToken
+                  - refreshToken
+                  - expiresAt
+                  - user
+                additionalProperties: false
         "401":
           description: Default Response
           content:
@@ -880,6 +909,51 @@ paths:
               additionalProperties: false
         required: true
       responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+                  expiresAt:
+                    type: string
+                    format: date-time
+                  user:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        format: uuid
+                      email:
+                        type: string
+                        format: email
+                      name:
+                        anyOf:
+                          - anyOf:
+                              - not: {}
+                              - type: string
+                          - type: "null"
+                      role:
+                        type: string
+                    required:
+                      - id
+                      - email
+                      - role
+                    additionalProperties: false
+                required:
+                  - token
+                  - accessToken
+                  - refreshToken
+                  - expiresAt
+                  - user
+                additionalProperties: false
         "400":
           description: Default Response
           content:
@@ -1076,15 +1150,6 @@ paths:
                     type: number
                   equivalentTreesPlanted:
                     type: number
-                  savingsHistory:
-                    type: array
-                    items:
-                      type: object
-                      properties:
-                        date:
-                          type: string
-                        savedGco2:
-                          type: number
   /v2/circuit-breakers/:
     get:
       summary: Get all circuit breaker states
@@ -1127,8 +1192,6 @@ paths:
         - schema:
             type: string
             minLength: 1
-            maxLength: 100
-            pattern: ^[a-zA-Z0-9\-_]+$
           in: path
           name: name
           required: true
@@ -1575,7 +1638,7 @@ paths:
         - schema:
             type: integer
             minimum: 1
-            maximum: 8760
+            maximum: 720
             default: 24
           in: query
           name: hours
@@ -2370,7 +2433,7 @@ paths:
         - schema:
             type: integer
             minimum: 1
-            maximum: 100
+            maximum: 500
             default: 50
           in: query
           name: limit
@@ -2608,10 +2671,6 @@ paths:
                                 - not: {}
                                 - type: string
                             - type: "null"
-                        retryCount:
-                          type: integer
-                          minimum: 0
-                          default: 0
                       required:
                         - id
                         - name
@@ -2830,10 +2889,6 @@ paths:
                           - not: {}
                           - type: string
                       - type: "null"
-                  retryCount:
-                    type: integer
-                    minimum: 0
-                    default: 0
                 required:
                   - id
                   - name
@@ -2970,10 +3025,6 @@ paths:
                           - not: {}
                           - type: string
                       - type: "null"
-                  retryCount:
-                    type: integer
-                    minimum: 0
-                    default: 0
                 required:
                   - id
                   - name
@@ -3012,22 +3063,16 @@ paths:
         - tasks
       parameters:
         - schema:
-            type: integer
-            minimum: 1
-            maximum: 100
-            default: 20
-          in: query
-          name: limit
-          required: false
-        - schema:
             type: string
-            enum:
-              - DEBUG
-              - INFO
-              - WARN
-              - ERROR
           in: query
           name: level
+          required: false
+        - schema:
+            type: integer
+            minimum: 1
+            maximum: 1000
+          in: query
+          name: limit
           required: false
         - schema:
             type: string
@@ -3224,7 +3269,6 @@ paths:
             type: integer
             minimum: 1
             maximum: 100
-            default: 50
           in: query
           name: limit
           required: false

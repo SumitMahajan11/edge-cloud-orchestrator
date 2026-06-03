@@ -51,7 +51,7 @@ export class StreamProcessor extends EventEmitter {
 
     // Start window processing loop
     this.processingInterval = setInterval(() => {
-      this.processWindows();
+      void this.processWindows();
     }, 1000);
 
     this.emit('started');
@@ -105,7 +105,9 @@ export class StreamProcessor extends EventEmitter {
   }
 
   private async emitWindowResults(windowKey: string, window: StreamWindow): Promise<void> {
-    const [ruleId] = windowKey.split(':');
+    const parts = windowKey.split(':');
+    const ruleId = parts[0];
+    if (!ruleId) { return; }
     const rule = this.rules.get(ruleId);
     if (!rule) {return;}
 
@@ -171,7 +173,7 @@ export class StreamProcessor extends EventEmitter {
   private calculatePercentile(values: any[], percentile: number): number {
     const sorted = values.map((v) => Number(v) || 0).sort((a, b) => a - b);
     const index = Math.ceil((percentile / 100) * sorted.length) - 1;
-    return sorted[Math.max(0, index)];
+    return sorted[Math.max(0, index)] ?? 0;
   }
 }
 
@@ -193,7 +195,7 @@ export class RealTimeAnalytics extends EventEmitter {
   private eventBus: IEventBus;
   private metrics: DashboardMetrics[] = [];
   private maxHistorySize: number = 1000;
-  private calculationInterval?: NodeJS.Timeout;
+  private calculationInterval: NodeJS.Timeout | null = null;
 
   constructor(eventBus: IEventBus) {
     super();
@@ -218,7 +220,7 @@ export class RealTimeAnalytics extends EventEmitter {
   stop(): void {
     if (this.calculationInterval) {
       clearInterval(this.calculationInterval);
-      this.calculationInterval = undefined;
+      this.calculationInterval = null;
     }
   }
 
@@ -241,7 +243,7 @@ export class RealTimeAnalytics extends EventEmitter {
     const latest = this.getLatestMetrics();
     
     // Publish real-time dashboard update
-    this.eventBus.publish('metrics.realtime', {
+    void this.eventBus.publish('metrics.realtime', {
       eventType: 'RealtimeMetrics',
       aggregateId: 'dashboard',
       version: 1,
@@ -250,7 +252,7 @@ export class RealTimeAnalytics extends EventEmitter {
   }
 
   getLatestMetrics(): DashboardMetrics | null {
-    return this.metrics.length > 0 ? this.metrics[this.metrics.length - 1] : null;
+    return this.metrics.length > 0 ? (this.metrics[this.metrics.length - 1] ?? null) : null;
   }
 
   getMetricsHistory(durationMinutes: number): DashboardMetrics[] {

@@ -287,7 +287,7 @@ export class StructuredLogger {
         case 'http':
           this.buffer.push(entry)
           if (this.buffer.length >= this.bufferSize) {
-            this.flush()
+            void this.flush()
           }
           break
       }

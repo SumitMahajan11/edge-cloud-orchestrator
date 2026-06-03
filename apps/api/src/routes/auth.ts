@@ -1,7 +1,7 @@
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
 
 import { AuthController } from '../controllers/auth.controller';
-import { idParamSchema,loginSchema, refreshTokenSchema,registerSchema  } from '../schemas';
+import { idParamSchema, loginSchema, refreshTokenSchema, registerSchema, authResponseSchema } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
 
 const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
@@ -21,6 +21,7 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         tags: ['auth'],
         summary: 'Register a new user',
         response: {
+          201: zodToFastifySchema(authResponseSchema),
           400: { $ref: 'ErrorSchema#' },
           409: { $ref: 'ErrorSchema#' },
         },
@@ -39,6 +40,7 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         tags: ['auth'],
         summary: 'Login and get tokens',
         response: {
+          200: zodToFastifySchema(authResponseSchema),
           401: { $ref: 'ErrorSchema' },
           429: { $ref: 'ErrorSchema' },
         },
@@ -130,7 +132,7 @@ const authRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         summary: 'Revoke a specific session',
       },
     },
-    controller.revokeSession.bind(controller),
+    (request, reply) => controller.revokeSession(request as any, reply),
   );
 
   fastify.delete(

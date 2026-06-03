@@ -1,15 +1,16 @@
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { getV2Alerts } from '@edgecloud/api-client'
+import { api } from '../lib/api-client'
 
 export interface SystemAlert {
   id: string
-  severity: 'critical' | 'warning' | 'info'
+  severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'
   title: string
-  message: string
+  description: string
   source: string
-  timestamp: number
-  acknowledged: boolean
-  metadata?: Record<string, any>
+  firedAt: string
+  acknowledgedAt?: string | null
+  resolvedAt?: string | null
 }
 
 export function useAlerts() {
@@ -19,7 +20,7 @@ export function useAlerts() {
       try {
         const { data, error } = await getV2Alerts()
         if (error) throw error
-        return data as unknown as SystemAlert[]
+        return ((data as any)?.alerts || []) as SystemAlert[]
       } catch (err) {
         return MOCK_ALERTS
       }
@@ -28,34 +29,44 @@ export function useAlerts() {
   })
 }
 
+export function useAcknowledgeAlert() {
+  const queryClient = useQueryClient()
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return api.post(`/v2/alerts/${id}/acknowledge`)
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['alerts'] })
+    }
+  })
+}
+
 const MOCK_ALERTS: SystemAlert[] = [
   {
     id: 'alt-1',
-    severity: 'critical',
+    severity: 'CRITICAL',
     title: 'Edge Node Latency Spike',
-    message: 'Multiple nodes in us-east region reporting p99 latency > 2s.',
+    description: 'Multiple nodes in us-east region reporting p99 latency > 2s.',
     source: 'monitoring.latency',
-    timestamp: Date.now() - 1000 * 60 * 15,
-    acknowledged: false,
-    metadata: { region: 'us-east', affectedNodes: 12 }
+    firedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+    acknowledgedAt: null,
   },
   {
     id: 'alt-2',
-    severity: 'warning',
+    severity: 'HIGH',
     title: 'Model Drift Detected',
-    message: 'Scheduling accuracy dropped below 90% threshold in APAC.',
+    description: 'Scheduling accuracy dropped below 90% threshold in APAC.',
     source: 'ml.optimizer',
-    timestamp: Date.now() - 1000 * 60 * 45,
-    acknowledged: false,
-    metadata: { model: 'XGBoost-v4', driftScore: 0.48 }
+    firedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
+    acknowledgedAt: null,
   },
   {
     id: 'alt-3',
-    severity: 'info',
+    severity: 'LOW',
     title: 'Scheduled Retraining Started',
-    message: 'Auto-retraining job initiated for global scheduler model.',
+    description: 'Auto-retraining job initiated for global scheduler model.',
     source: 'system.cron',
-    timestamp: Date.now() - 1000 * 60 * 120,
-    acknowledged: true
+    firedAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
+    acknowledgedAt: new Date(Date.now() - 1000 * 60 * 115).toISOString(),
   }
 ]

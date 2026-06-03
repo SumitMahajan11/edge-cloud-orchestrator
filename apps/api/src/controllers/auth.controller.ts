@@ -17,30 +17,34 @@ export class AuthController {
   async login(
     request: FastifyRequest<{ Body: InferSchema<typeof loginSchema> }>,
     reply: FastifyReply,
-  ) {
+  ): Promise<any> {
     const { email, password } = request.body;
     const ip = request.ip;
 
     // 1. Check rate limit and lockout
     const rateLimit = await this.rateLimitService.checkLimit(ip, email);
     if (!rateLimit.allowed) {
-      return reply.status(429).send({
-        error: rateLimit.isLocked
-          ? 'Account locked due to multiple failed attempts. Please try again in 15 minutes.'
-          : 'Too many login attempts. Please try again later.',
-        retryAfter: Math.ceil((rateLimit.reset - Date.now()) / 1000),
-      });
+      const err = new Error(rateLimit.isLocked
+        ? 'Account locked due to multiple failed attempts. Please try again in 15 minutes.'
+        : 'Too many login attempts. Please try again later.') as any;
+      err.statusCode = 429;
+      err.code = 'RATE_LIMIT_EXCEEDED';
+      throw err;
     }
 
     // 2. Find user
     const user = await (request.server as any).prisma.user.findUnique({
       where: { email },
+      include: { tenantUsers: { take: 1 } },
     });
 
     // 3. Verify user and password
     if (!user || !user.isActive) {
       await this.rateLimitService.recordAttempt(ip);
-      return reply.status(401).send({ error: 'Invalid credentials' });
+      const err = new Error('Invalid credentials') as any;
+      err.statusCode = 401;
+      err.code = 'UNAUTHORIZED';
+      throw err;
     }
 
     const isValid = await this.authService.comparePassword(
@@ -49,7 +53,10 @@ export class AuthController {
     );
     if (!isValid) {
       await this.rateLimitService.recordAttempt(ip);
-      return reply.status(401).send({ error: 'Invalid credentials' });
+      const err = new Error('Invalid credentials') as any;
+      err.statusCode = 401;
+      err.code = 'UNAUTHORIZED';
+      throw err;
     }
 
     // 4. Reset attempts on success
@@ -60,11 +67,11 @@ export class AuthController {
       id: user.id,
       email: user.email,
       role: user.role,
-      tenantId: (user as any).tenantId,
+      tenantId: user.tenantUsers?.[0]?.tenantId,
     }, request.ip, request.headers['user-agent'] || 'unknown');
 
     // 6. Set refresh token in httpOnly cookie
-    reply.setCookie('refreshToken', tokens.refreshToken, {
+    void reply.setCookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
@@ -74,6 +81,7 @@ export class AuthController {
 
     return {
       token: tokens.accessToken,
+      accessToken: tokens.accessToken,
       refreshToken: tokens.refreshToken,
       expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       user: {
@@ -88,13 +96,16 @@ export class AuthController {
   async register(
     request: FastifyRequest<{ Body: InferSchema<typeof registerSchema> }>,
     reply: FastifyReply,
-  ) {
+  ): Promise<FastifyReply> {
     const { email, password, name } = request.body;
     const prisma = (request.server as any).prisma;
 
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) {
-      return reply.status(409).send({ error: 'Email already registered' });
+      const err = new Error('Email already registered') as any;
+      err.statusCode = 409;
+      err.code = 'RESOURCE_CONFLICT';
+      throw err;
     }
 
     const passwordHash = await this.authService.hashPassword(password);
@@ -105,25 +116,52 @@ export class AuthController {
         name,
         role: 'VIEWER',
       },
+      include: { tenantUsers: { take: 1 } },
+    });
+
+    // Generate tokens
+    const tokens = await this.authService.generateTokens({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tenantId: user.tenantUsers?.[0]?.tenantId,
+    }, request.ip, request.headers['user-agent'] || 'unknown');
+
+    // Set refresh token in httpOnly cookie
+    void reply.setCookie('refreshToken', tokens.refreshToken, {
+      httpOnly: true,
+      secure: env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      expires: tokens.expiresAt,
+      path: '/api/auth',
     });
 
     return reply.status(201).send({
-      id: user.id,
-      email: user.email,
-      name: user.name,
-      role: user.role,
+      token: tokens.accessToken,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
+      expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        role: user.role,
+      },
     });
   }
 
   async refresh(
     request: FastifyRequest<{ Body: InferSchema<typeof refreshTokenSchema> }>,
     reply: FastifyReply,
-  ) {
+  ): Promise<any> {
     const refreshToken =
       request.body.refreshToken || request.cookies.refreshToken;
 
     if (!refreshToken) {
-      return reply.status(401).send({ error: 'Refresh token required' });
+      const err = new Error('Refresh token required') as any;
+      err.statusCode = 401;
+      err.code = 'UNAUTHORIZED';
+      throw err;
     }
 
     try {
@@ -133,7 +171,7 @@ export class AuthController {
         request.headers['user-agent'] || 'unknown'
       );
 
-      reply.setCookie('refreshToken', tokens.refreshToken, {
+      void reply.setCookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
         sameSite: 'strict',
@@ -143,6 +181,7 @@ export class AuthController {
 
       return {
         token: tokens.accessToken,
+        accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + 15 * 60 * 1000).toISOString(),
       };
@@ -152,22 +191,23 @@ export class AuthController {
         ? 'Security alert: Refresh token reuse detected. All sessions invalidated.'
         : 'Invalid or expired refresh token';
         
-      return reply
-        .status(401)
-        .send({ error: message });
+      const err = new Error(message) as any;
+      err.statusCode = 401;
+      err.code = 'UNAUTHORIZED';
+      throw err;
     }
   }
 
-  async logout(request: FastifyRequest, reply: FastifyReply) {
+  async logout(request: FastifyRequest, reply: FastifyReply): Promise<any> {
     const refreshToken = request.cookies.refreshToken;
     if (refreshToken) {
       await this.authService.revokeSession(refreshToken);
     }
-    reply.clearCookie('refreshToken', { path: '/api/auth' });
+    void reply.clearCookie('refreshToken', { path: '/api/auth' });
     return { success: true };
   }
 
-  async me(request: FastifyRequest, _reply: FastifyReply) {
+  async me(request: FastifyRequest, _reply: FastifyReply): Promise<any> {
     const user = await (request.server as any).prisma.user.findUnique({
       where: { id: request.user!.id },
       select: {
@@ -182,20 +222,20 @@ export class AuthController {
     return user;
   }
 
-  async listSessions(request: FastifyRequest, _reply: FastifyReply) {
+  async listSessions(request: FastifyRequest, _reply: FastifyReply): Promise<any> {
     const userId = request.user!.id;
     const sessions = await this.authService.listUserSessions(userId);
     return sessions;
   }
 
-  async revokeSession(request: FastifyRequest<{ Params: { id: string } }>, _reply: FastifyReply) {
+  async revokeSession(request: FastifyRequest<{ Params: { id: string } }>, _reply: FastifyReply): Promise<any> {
     const userId = request.user!.id;
     const sessionId = request.params.id;
     await this.authService.revokeSessionById(sessionId, userId);
     return { success: true };
   }
 
-  async revokeAllSessions(request: FastifyRequest, _reply: FastifyReply) {
+  async revokeAllSessions(request: FastifyRequest, _reply: FastifyReply): Promise<any> {
     const userId = request.user!.id;
     await this.authService.revokeAllUserSessions(userId);
     return { success: true };

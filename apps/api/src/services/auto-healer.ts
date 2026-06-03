@@ -99,6 +99,7 @@ export class AutoHealer extends EventEmitter {
   private alertCheckInterval: ReturnType<typeof setInterval> | null = null;
   private leaderElection: LeaderElection;
   private instanceId: string;
+  private subscriber: Redis | null = null;
 
   constructor(
     prisma: PrismaClient,
@@ -132,7 +133,7 @@ export class AutoHealer extends EventEmitter {
 
     // Periodic health check
     this.alertCheckInterval = setInterval(() => {
-      this.performHealthChecks();
+      void this.performHealthChecks();
     }, 30000);
 
     this.logger.info({ instanceId: this.instanceId }, 'Auto-healer started');
@@ -150,6 +151,17 @@ export class AutoHealer extends EventEmitter {
 
     await this.leaderElection.stop();
 
+    if (this.subscriber) {
+      try {
+        await this.subscriber.quit();
+      } catch (err) {
+        this.logger.error(err, 'Failed to quit alert subscriber');
+      }
+      this.subscriber = null;
+    }
+
+    this.removeAllListeners();
+
     this.logger.info('Auto-healer stopped');
     this.emit('stopped');
   }
@@ -158,13 +170,13 @@ export class AutoHealer extends EventEmitter {
    * Subscribe to Redis alert channel
    */
   private subscribeToAlerts(): void {
-    const subscriber = this.redis.duplicate();
-    subscriber.subscribe('alerts:prometheus', 'alerts:custom');
+    this.subscriber = this.redis.duplicate();
+    void this.subscriber.subscribe('alerts:prometheus', 'alerts:custom');
 
-    subscriber.on('message', (channel, message) => {
+    this.subscriber.on('message', (channel, message) => {
       try {
         const alert = JSON.parse(message);
-        this.handleAlert(alert);
+        void this.handleAlert(alert);
       } catch (error) {
         this.logger.error({ error, channel }, 'Failed to parse alert message');
       }

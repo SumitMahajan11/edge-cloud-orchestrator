@@ -1,6 +1,5 @@
 use anyhow::Result;
 use sqlx::{sqlite::SqliteConnectOptions, SqlitePool};
-use std::path::Path;
 use chrono::Utc;
 use crate::types::{TaskSpec, ExecutionResult};
 use serde_json;

@@ -98,14 +98,14 @@ export function validateTaskPayload(payload: TaskPayload, config: AgentConfig): 
   if (payload.input) {
     const res = TaskInputSchema.safeParse(payload.input);
     if (!res.success) {
-      return { valid: false, error: 'Invalid input payload: ' + res.error.issues[0].message };
+      return { valid: false, error: 'Invalid input payload: ' + (res.error.issues[0]?.message ?? 'Unknown error') };
     }
   }
 
   if (payload.metadata) {
     const res = TaskMetadataSchema.safeParse(payload.metadata);
     if (!res.success) {
-      return { valid: false, error: 'Invalid metadata payload: ' + res.error.issues[0].message };
+      return { valid: false, error: 'Invalid metadata payload: ' + (res.error.issues[0]?.message ?? 'Unknown error') };
     }
   }
 

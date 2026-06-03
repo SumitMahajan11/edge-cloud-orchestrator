@@ -4,7 +4,7 @@ import { createMockNode, createMockTask } from '../../../shared-kernel/src/domai
 // Mock dependencies
 const mockPredictor = {
   getVersion: vi.fn(),
-  getFeatureImportance: vi.fn(),
+  getFeatureImportance: vi.fn().mockResolvedValue([]),
   updateModel: vi.fn(),
 };
 
@@ -19,6 +19,12 @@ const mockDriftDetector = {
 const mockMetrics = {
   recordMLFallback: vi.fn(),
   recordSchedulingDecision: vi.fn(),
+  recordMetric: vi.fn(),
+  recordCarbonMetrics: vi.fn(),
+};
+
+const mockOutcomeCollector = {
+  getReward: vi.fn().mockResolvedValue(0.0),
 };
 
 describe('MLScheduler Fallback Logic', () => {
@@ -27,11 +33,13 @@ describe('MLScheduler Fallback Logic', () => {
 
   beforeEach(() => {
     vi.useFakeTimers();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     scheduler = new MLScheduler(
       mockPredictor as any,
       mockRegistry as any,
       mockDriftDetector as any,
-      mockMetrics as any
+      mockMetrics as any,
+      mockOutcomeCollector as any
     );
     mockDriftDetector.isDrifting.mockReturnValue(false);
   });

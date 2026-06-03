@@ -175,7 +175,7 @@ export class CapacityPlanner {
       logger.warn('Critical threshold breached', { metric, value, threshold: threshold.criticalThreshold })
       
       if (this.config.enableAutoScaling) {
-        this.triggerAutoScaling(metric, 'critical')
+        void this.triggerAutoScaling(metric, 'critical')
       }
     } else if (value >= threshold.warningThreshold) {
       this.emit('threshold.breached', { metric, value, level: 'warning' })

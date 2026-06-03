@@ -32,7 +32,7 @@ describe('Task Lifecycle Integration', () => {
     it('should reject invalid task type', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
         payload: {
           name: 'Invalid Task',
@@ -41,13 +41,15 @@ describe('Task Lifecycle Integration', () => {
         },
       })
       
+      console.log('STATUS:', response.statusCode);
+      console.log('PAYLOAD:', response.payload);
       expect(response.statusCode).toBe(400)
     })
     
     it('should reject missing required fields', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
         payload: {
           priority: 'MEDIUM',
@@ -64,7 +66,7 @@ describe('Task Lifecycle Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'GET',
-        url: `/api/tasks/${task.id}`,
+        url: `/v1/tasks/${task.id}`,
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -76,7 +78,7 @@ describe('Task Lifecycle Integration', () => {
     it('should return 404 for non-existent task', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks/00000000-0000-0000-0000-000000000000',
+        url: '/v1/tasks/00000000-0000-0000-0000-000000000000',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -92,7 +94,7 @@ describe('Task Lifecycle Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks?page=1&limit=10',
+        url: '/v1/tasks?page=1&limit=10',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -106,7 +108,7 @@ describe('Task Lifecycle Integration', () => {
     it('should filter by status', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks?status=PENDING',
+        url: '/v1/tasks?status=PENDING',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -116,7 +118,7 @@ describe('Task Lifecycle Integration', () => {
     it('should sort by allowed fields', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks?sortBy=priority&sortOrder=desc',
+        url: '/v1/tasks?sortBy=priority&sortOrder=desc',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -126,7 +128,7 @@ describe('Task Lifecycle Integration', () => {
     it('should reject invalid sortBy field', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks?sortBy=invalid_field',
+        url: '/v1/tasks?sortBy=invalid_field',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -140,7 +142,7 @@ describe('Task Lifecycle Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'POST',
-        url: `/api/tasks/${task.id}/cancel`,
+        url: `/v1/tasks/${task.id}/cancel`,
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -160,7 +162,7 @@ describe('Task Lifecycle Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'POST',
-        url: `/api/tasks/${task.id}/cancel`,
+        url: `/v1/tasks/${task.id}/cancel`,
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -180,7 +182,7 @@ describe('Task Lifecycle Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'POST',
-        url: `/api/tasks/${task.id}/retry`,
+        url: `/v1/tasks/${task.id}/retry`,
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -194,7 +196,7 @@ describe('Task Lifecycle Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'POST',
-        url: `/api/tasks/${task.id}/retry`,
+        url: `/v1/tasks/${task.id}/retry`,
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       

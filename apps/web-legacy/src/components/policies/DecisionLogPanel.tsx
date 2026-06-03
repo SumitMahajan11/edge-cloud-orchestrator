@@ -67,7 +67,7 @@ export function DecisionLogPanel({ nodeId }: DecisionLogPanelProps) {
       }
     }
 
-    fetchDecisions()
+    void fetchDecisions()
     const interval = setInterval(fetchDecisions, 10000)
     return () => clearInterval(interval)
   }, [nodeId])

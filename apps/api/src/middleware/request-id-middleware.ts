@@ -91,10 +91,10 @@ export function createRequestIdMiddleware(logger: Logger) {
     asyncLocalStorage.run(context, () => {});
 
     // Set response headers
-    reply.header('x-request-id', requestId);
-    reply.header('x-trace-id', traceId);
-    reply.header('x-span-id', spanId);
-    reply.header('x-source', source);
+    void reply.header('x-request-id', requestId);
+    void reply.header('x-trace-id', traceId);
+    void reply.header('x-span-id', spanId);
+    void reply.header('x-source', source);
 
     // Add to request object for easy access
     request.requestContext = context;

@@ -44,6 +44,68 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
     }
   );
 
+  // GET /api/v2/carbon/summary
+  fastify.get(
+    '/summary',
+    {
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CARBON_READ)],
+      schema: {
+        tags: ['carbon'],
+        summary: 'Get carbon footprint summary',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              totalSavedGco2Today: { type: 'number' },
+              totalSavedGco2Week: { type: 'number' },
+              equivalentTreesPlanted: { type: 'number' },
+            }
+          }
+        }
+      },
+    },
+    async (_request: FastifyRequest, _reply: FastifyReply) => {
+      if (!taskScheduler) {return { totalSavedGco2Today: 0, totalSavedGco2Week: 0, equivalentTreesPlanted: 0 };}
+      const savings = await taskScheduler.getCarbonSavingsData(1);
+      return {
+        totalSavedGco2Today: savings.totalSavedGco2Today,
+        totalSavedGco2Week: savings.totalSavedGco2Week,
+        equivalentTreesPlanted: savings.equivalentTreesPlanted,
+      };
+    }
+  );
+
+  // GET /api/v2/carbon/by-region
+  fastify.get(
+    '/by-region',
+    {
+      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.CARBON_READ)],
+      schema: {
+        tags: ['carbon'],
+        summary: 'Get carbon breakdown by region',
+        response: {
+          200: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                zone: { type: 'string' },
+                carbonIntensityGco2: { type: 'number' },
+                lastUpdatedAt: { type: 'string' },
+                source: { type: 'string' }
+              }
+            }
+          }
+        }
+      },
+    },
+    async (_request: FastifyRequest, _reply: FastifyReply) => {
+      if (!taskScheduler) {return [];}
+      const data = await taskScheduler.getCarbonIntensityData();
+      return data.regions;
+    }
+  );
+
   // GET /api/v2/carbon/savings
   fastify.get(
     '/savings',

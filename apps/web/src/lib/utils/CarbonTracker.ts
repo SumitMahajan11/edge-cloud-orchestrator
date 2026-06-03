@@ -502,7 +502,7 @@ export class CarbonTracker {
    */
   startReporting(): void {
     this.reportingTimer = setInterval(() => {
-      this.collectMetrics()
+      void this.collectMetrics()
     }, this.config.reportingInterval)
   }
 

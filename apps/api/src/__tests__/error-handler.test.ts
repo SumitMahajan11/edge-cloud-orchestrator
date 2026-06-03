@@ -71,7 +71,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(400);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('VALIDATION_ERROR');
     expect(body.message).toBe('Validation failed');
     expect(body.details).toBeDefined();
@@ -86,7 +86,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(404);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('RESOURCE_NOT_FOUND');
     expect(body.message).toBe('The requested resource was not found');
   });
@@ -98,7 +98,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(409);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('RESOURCE_CONFLICT');
     expect(body.details).toMatchObject({ target: ['email'] });
   });
@@ -110,7 +110,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(401);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('TOKEN_EXPIRED');
   });
 
@@ -121,7 +121,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(401);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('TOKEN_INVALID');
   });
 
@@ -132,7 +132,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(403);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('FORBIDDEN');
   });
 
@@ -144,7 +144,7 @@ describe('Global Error Handler', () => {
 
     expect(response.statusCode).toBe(429);
     console.log('PAYLOAD:', response.payload);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('RATE_LIMIT_EXCEEDED');
   });
 
@@ -155,7 +155,7 @@ describe('Global Error Handler', () => {
     });
 
     expect(response.statusCode).toBe(500);
-    const body = JSON.parse(response.payload) as ApiError;
+    const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('INTERNAL_ERROR');
     
     // In test environment, stack should be included
@@ -173,7 +173,7 @@ describe('Global Error Handler', () => {
       });
 
       expect(response.statusCode).toBe(500);
-      const body = JSON.parse(response.payload) as ApiError;
+      const { error: body } = JSON.parse(response.payload) as { error: ApiError };
       expect(body.stack).toBeUndefined();
       expect(body.message).toBe('An internal server error occurred');
     } finally {

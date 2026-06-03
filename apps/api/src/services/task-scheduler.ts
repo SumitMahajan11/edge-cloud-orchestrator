@@ -2,7 +2,6 @@ import { env } from '../config/env';
 import { 
   selectNode, 
   LeaderElection, 
-  evaluateBackpressure, 
   type ScoreWeights,
   tracer,
   getTraceId,
@@ -20,6 +19,7 @@ import axios from 'axios';
 import { CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import Redlock from 'redlock';
 import type { Logger } from 'pino';
 import { MetricsCollector } from '@edgecloud/observability';
 import { EventEmitter } from 'events';
@@ -81,6 +81,7 @@ export class TaskScheduler extends EventEmitter {
   private wsManager: WebSocketManager;
   private logger: Logger;
   private leaderElection: LeaderElection;
+  private redlock: Redlock;
   private interval: NodeJS.Timeout | null = null;
   private hotswapInterval: NodeJS.Timeout | null = null;
   private reconcileInterval: NodeJS.Timeout | null = null;
@@ -122,12 +123,13 @@ export class TaskScheduler extends EventEmitter {
     wsManager: WebSocketManager,
     logger: Logger,
   ) {
+    super(); // Initialize EventEmitter
     this.prisma = prisma;
     this.redis = redis;
     this.wsManager = wsManager;
     this.logger = logger;
     this.circuitBreakerRegistry = new CircuitBreakerRegistry();
-    super(); // Initialize EventEmitter
+    this.redlock = new Redlock([this.redis as any]);
 
     // Initialize metrics
     this.metrics = new MetricsCollector({
@@ -138,7 +140,7 @@ export class TaskScheduler extends EventEmitter {
     // Initialize ML scheduler components
     const predictor = new SchedulingPredictor();
     this.modelRegistry = new ModelRegistry(this.redis);
-    this.driftDetector = new DriftDetector(this.metrics);
+    this.driftDetector = new DriftDetector(this.metrics, this.prisma);
     
     // Register drift alert listener to trigger automated retraining
     this.driftDetector.onDrift(async (mae) => {
@@ -178,8 +180,8 @@ export class TaskScheduler extends EventEmitter {
       }
     });
 
-    this.outcomeCollector = new OutcomeCollector(this.redis);
-    this.incrementalUpdater = new IncrementalUpdater(this.prisma, this.modelRegistry, predictor, this.metrics);
+    this.incrementalUpdater = new IncrementalUpdater(this.prisma, this.modelRegistry, this.metrics);
+    this.outcomeCollector = new OutcomeCollector(this.prisma, this.redis, this.metrics, this.incrementalUpdater);
     this.carbonClient = new GridCarbonClient(this.redis, env.ELECTRICITY_MAPS_API_KEY);
     
     this.mlScheduler = new MLScheduler(predictor, this.modelRegistry, this.driftDetector, this.metrics, this.outcomeCollector, this.carbonClient);
@@ -207,41 +209,41 @@ export class TaskScheduler extends EventEmitter {
   }
 
   // Setter methods for integration
-  setPriorityScheduler(scheduler: IPriorityScheduler) {
+  setPriorityScheduler(scheduler: IPriorityScheduler): void {
     this.priorityScheduler = scheduler;
   }
 
-  setBackpressureController(controller: IBackpressureController) {
+  setBackpressureController(controller: IBackpressureController): void {
     this.backpressureController = controller;
   }
 
-  setGracefulDegradation(service: IGracefulDegradation) {
+  setGracefulDegradation(service: IGracefulDegradation): void {
     this._gracefulDegradation = service;
   }
 
-  setSchedulerRateLimiter(limiter: ISchedulerRateLimiter) {
+  setSchedulerRateLimiter(limiter: ISchedulerRateLimiter): void {
     this.schedulerRateLimiter = limiter;
   }
 
-  setColdStartHandler(handler: any) {
+  setColdStartHandler(handler: any): void {
     this.coldStartHandler = handler;
   }
 
 
-  async start() {
+  async start(): Promise<void> {
     await this.leaderElection.start(this.instanceId, LEADER_LOCK_TTL);
     this.isRunning = true;
 
     // Initial check
     if (this.leaderElection.isCurrentlyLeader()) {
-      this.processQueue();
+      void this.processQueue();
     }
 
     // Only process queue if we are the leader
     this.interval = setInterval(() => {
       const isLeader = this.leaderElection.isCurrentlyLeader();
       if (isLeader) {
-        this.processQueue();
+        void this.processQueue();
       } else {
         this.logger.info({ instanceId: this.instanceId }, 'Not currently leader, skipping processQueue');
       }
@@ -258,14 +260,14 @@ export class TaskScheduler extends EventEmitter {
     // Start reconciliation job (every 5 minutes) to fix drift
     this.reconcileInterval = setInterval(() => {
       if (this.leaderElection.isCurrentlyLeader()) {
-        this.reconcileTaskCounts();
+        void this.reconcileTaskCounts();
       }
     }, 300000);
 
     // Start decision retention cleanup (every 24 hours)
     this.retentionInterval = setInterval(() => {
       if (this.leaderElection.isCurrentlyLeader()) {
-        this.runRetentionCleanup();
+        void this.runRetentionCleanup();
       }
     }, 86400000);
 
@@ -283,7 +285,7 @@ export class TaskScheduler extends EventEmitter {
     );
   }
 
-  private async checkActiveModel() {
+  private async checkActiveModel(): Promise<void> {
     try {
       await this.mlScheduler.checkHotSwap();
     } catch (error) {
@@ -296,6 +298,33 @@ export class TaskScheduler extends EventEmitter {
    */
   private async reconcileTaskCounts(): Promise<void> {
     try {
+      // 1. Recover zombie tasks stuck in SCHEDULED for > 60s
+      const cutoff = new Date(Date.now() - 60000);
+      const zombieTasks = await this.prisma.task.findMany({
+        where: {
+          status: 'SCHEDULED',
+          submittedAt: { lt: cutoff },
+        },
+        select: { id: true, priority: true, submittedAt: true },
+      });
+
+      if (zombieTasks.length > 0) {
+        const zombieIds = zombieTasks.map((t) => t.id);
+        this.logger.warn({ zombieIds }, 'Recovering zombie tasks stuck in SCHEDULED');
+
+        await this.prisma.task.updateMany({
+          where: { id: { in: zombieIds } },
+          data: { status: 'PENDING', nodeId: null },
+        });
+
+        // Re-enqueue in Redis queue
+        for (const task of zombieTasks) {
+          const score = this.getPriorityScore(task as any);
+          await this.redis.zadd('task:queue', score, task.id);
+        }
+      }
+
+      // 2. Reconcile node running counts
       const nodes = await this.prisma.edgeNode.findMany({
         select: { id: true, tasksRunning: true },
       });
@@ -331,7 +360,7 @@ export class TaskScheduler extends EventEmitter {
     }
   }
 
-  stop() {
+  stop(): void {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
@@ -349,7 +378,7 @@ export class TaskScheduler extends EventEmitter {
       this.retentionInterval = null;
     }
 
-    this.leaderElection.stop();
+    void this.leaderElection.stop();
 
     this.logger.info({ instanceId: this.instanceId }, 'Task scheduler stopped');
   }
@@ -361,7 +390,7 @@ export class TaskScheduler extends EventEmitter {
     return this.leaderElection.isCurrentlyLeader();
   }
 
-  async enqueue(task: Task) {
+  async enqueue(task: Task): Promise<void> {
     // Add to Redis queue with priority
     const priority = this.getPriorityScore(task);
     await this.redis.zadd(this.queueKey, priority, task.id);
@@ -370,7 +399,7 @@ export class TaskScheduler extends EventEmitter {
     this.logger.info({ taskId: task.id, priority }, 'Task enqueued');
   }
 
-  async dequeue(taskId: string) {
+  async dequeue(taskId: string): Promise<void> {
     // Remove task from queue
     await this.redis.zrem(this.queueKey, taskId);
     this.logger.info({ taskId }, 'Task dequeued');
@@ -420,7 +449,7 @@ export class TaskScheduler extends EventEmitter {
     return isOpen;
   }
 
-  private async recordSuccess(nodeId: string) {
+  private async recordSuccess(nodeId: string): Promise<void> {
     const breaker = this.circuitBreakerRegistry.get(nodeId);
     if (breaker) {
       breaker.forceClose();
@@ -432,11 +461,57 @@ export class TaskScheduler extends EventEmitter {
   /**
    * Get circuit breaker health for all nodes
    */
-  getCircuitBreakerHealth() {
+  getCircuitBreakerHealth(): any {
     return this.circuitBreakerRegistry.healthCheck();
   }
 
-  async processQueue() {
+  /**
+   * scoreAndAssignWithLock - Selects a node, acquires a lock, checks capacity, and assigns the task.
+   * Asserts concurrency control.
+   */
+  public async scoreAndAssignWithLock(task: Task): Promise<boolean> {
+    const node = await this.findNode(task);
+    if (!node) {
+      this.logger.warn({ taskId: task.id }, 'No suitable node found for task');
+      return false;
+    }
+
+    const lockKey = `lock:node:assignment:${node.id}`;
+    let lock;
+    try {
+      lock = await this.redlock.acquire([lockKey], 2000);
+    } catch (err) {
+      this.logger.warn({ taskId: task.id, nodeId: node.id }, 'Failed to acquire node assignment lock');
+      return false;
+    }
+
+    try {
+      const latestNode = await this.prisma.edgeNode.findUnique({
+        where: { id: node.id },
+        select: { tasksRunning: true, status: true, isMaintenanceMode: true, maxTasks: true }
+      });
+
+      if (!latestNode) {
+        return false;
+      }
+
+      const maxTasks = (latestNode as any).maxTasks || 10;
+      if (latestNode.tasksRunning >= maxTasks || latestNode.status !== 'ONLINE' || latestNode.isMaintenanceMode) {
+        return false;
+      }
+
+      await this.assignTask(task, node as any, node.mlResult);
+      return true;
+    } finally {
+      try {
+        await (lock as any).release();
+      } catch (err) {
+        this.logger.error({ err }, 'Failed to release node assignment lock');
+      }
+    }
+  }
+
+  async processQueue(): Promise<void> {
     if (!this.isRunning) return;
     
     const isLeader = this.leaderElection.isCurrentlyLeader();
@@ -460,13 +535,13 @@ export class TaskScheduler extends EventEmitter {
         batchTaskIds = priorityBatch.map(t => t.id);
       }
     }
-
     if (batchTaskIds.length < BATCH_SIZE) {
       const needed = BATCH_SIZE - batchTaskIds.length;
       const fallbackIds = await this.redis.zrevrange(this.queueKey, 0, needed - 1);
-      batchTaskIds.push(...fallbackIds);
+      if (fallbackIds && Array.isArray(fallbackIds)) {
+        batchTaskIds.push(...fallbackIds);
+      }
     }
-
     if (batchTaskIds.length === 0) {
       this.logger.debug('[Scheduler] Queue empty');
       empty = true;
@@ -542,7 +617,7 @@ export class TaskScheduler extends EventEmitter {
     }
   }
 
-  private async getSystemMetrics() {
+  public async getSystemMetrics(): Promise<any> {
     if (this.backpressureController) {
       return this.backpressureController.getSystemMetrics();
     }
@@ -599,7 +674,6 @@ export class TaskScheduler extends EventEmitter {
     // 1. Mandatory Fallback / Policy check
     if (task.policy === 'ml-optimized') {
       const { withSpan } = await import('../lib/tracing.js');
-      const tNodeQuery = performance.now();
       const selectedResult = await withSpan('scheduler:ml_decision', async (span: any) => {
         const result = await this.mlScheduler.schedule(
           task as any,
@@ -613,7 +687,6 @@ export class TaskScheduler extends EventEmitter {
       });
       // Correctly track mlInference timing (can be passed back or calculated)
       // Since findNode is called from processQueue, we need a way to pass this up or log it here
-      const mlTime = performance.now() - tNodeQuery;
 
       if (selectedResult) {
         const node = availableNodes.find(
@@ -634,7 +707,7 @@ export class TaskScheduler extends EventEmitter {
     return selected ? { id: selected.id, url: (selected as any).url } : null;
   }
 
-  private async runRetentionCleanup() {
+  private async runRetentionCleanup(): Promise<void> {
     try {
       const thirtyDaysAgo = new Date();
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -660,7 +733,7 @@ export class TaskScheduler extends EventEmitter {
   /**
    * Records the outcome of a task for drift detection and metrics
    */
-  async recordTaskOutcome(taskId: string, durationMs: number, status: 'COMPLETED' | 'FAILED') {
+  async recordTaskOutcome(taskId: string, durationMs: number, status: 'COMPLETED' | 'FAILED'): Promise<void> {
     try {
       const task = await this.prisma.task.findUnique({
         where: { id: taskId },
@@ -715,7 +788,7 @@ export class TaskScheduler extends EventEmitter {
     return { ...this.schedulerWeights };
   }
 
-  private async assignTask(task: Task, node: { id: string; url: string }, mlResult?: any) {
+  private async assignTask(task: Task, node: { id: string; url: string }, mlResult?: any): Promise<void> {
     this.logger.info(
       { taskId: task.id, nodeId: node.id, hasML: !!mlResult },
       'Assigning task to node',
@@ -980,7 +1053,7 @@ export class TaskScheduler extends EventEmitter {
       error?: string;
       duration: number;
     },
-  ) {
+  ): Promise<void> {
     const task = await this.prisma.task.findUnique({ where: { id: taskId } });
 
     if (!task) {
@@ -1046,14 +1119,32 @@ export class TaskScheduler extends EventEmitter {
       });
 
       if (decision && !decision.fallbackUsed) {
+        let explanation = decision.explanation;
+        if (typeof explanation === 'string') {
+          try {
+            explanation = JSON.parse(explanation);
+          } catch (e) {
+            // ignore
+          }
+        }
+        const predictions = (explanation as any)?.predictions;
+        const predictedLatency = typeof predictions?.latency === 'number' ? predictions.latency : 100;
+        const predictedCpuUsage = typeof predictions?.cpuUsage === 'number' ? predictions.cpuUsage : 0.5;
+
+        const latestMetric = await this.prisma.nodeMetric.findFirst({
+          where: { nodeId },
+          orderBy: { timestamp: 'desc' }
+        });
+        const actualCpuUsage = latestMetric ? latestMetric.cpuUsage : 0.5;
+
         await this.outcomeCollector.recordOutcome({
           taskId,
           nodeId,
-          schedulingDecision: decision.explanation, // Contains feature importance/vector
-          predictedLatency: 100, // Placeholder if not explicitly predicted
+          schedulingDecision: explanation, // Contains feature importance/vector
+          predictedLatency,
           actualLatency: result.duration,
-          predictedCpuUsage: 0.5, // Placeholder
-          actualCpuUsage: 0.5,    // Placeholder
+          predictedCpuUsage,
+          actualCpuUsage,
           outcome: result.status === 'completed' ? 'SUCCESS' : 'FAILED',
           timestamp: new Date()
         });
@@ -1073,11 +1164,11 @@ export class TaskScheduler extends EventEmitter {
     return rank !== null ? rank + 1 : -1;
   }
 
-  getMLDriftState() {
+  getMLDriftState(): any {
     return this.driftDetector.getState();
   }
 
-  async getMLModelCurrent() {
+  async getMLModelCurrent(): Promise<any> {
     const active = await this.modelRegistry.getActiveModel();
     if (!active) return null;
     
@@ -1091,7 +1182,7 @@ export class TaskScheduler extends EventEmitter {
     };
   }
 
-  async getMLOutcomeStats() {
+  async getMLOutcomeStats(): Promise<any> {
     const collectorStats = await this.outcomeCollector.getStats();
     const updaterStats = this.incrementalUpdater.getStats();
     
@@ -1103,7 +1194,7 @@ export class TaskScheduler extends EventEmitter {
     };
   }
 
-  getMLRetrainStatus() {
+  getMLRetrainStatus(): any {
     return {
       status: this.retrainStatus,
       error: this.retrainError,
@@ -1111,7 +1202,7 @@ export class TaskScheduler extends EventEmitter {
     };
   }
 
-  getMLDriftHistory(hours: number = 24) {
+  async getMLDriftHistory(hours: number = 24): Promise<any[]> {
     // If buffer is empty, seed it with some realistic data
     if (this.driftHistory.length === 0) {
       const now = Date.now();
@@ -1127,7 +1218,7 @@ export class TaskScheduler extends EventEmitter {
     // Update buffer with current state if enough time passed
     const now = Date.now();
     if (now - this.lastDriftCheck > 300000) { // Every 5 mins
-      const current = this.driftDetector.getState();
+      const current = await this.driftDetector.getState();
       this.driftHistory.push({
         timestamp: new Date().toISOString(),
         score: current.driftScore
@@ -1136,7 +1227,7 @@ export class TaskScheduler extends EventEmitter {
       this.lastDriftCheck = now;
     }
 
-    return this.driftHistory.slice(-24); // Return last 24 points
+    return this.driftHistory.slice(-hours); // Return last hours points
   }
 
   async triggerMLRetrain(): Promise<{ success: boolean; message: string }> {
@@ -1150,7 +1241,7 @@ export class TaskScheduler extends EventEmitter {
 
     // Simulate the workflow transitions
     // In a real production system, this would be an async background job or a GitHub Action
-    const simulateStep = async (status: typeof this.retrainStatus, delay: number) => {
+    const simulateStep = async (status: 'IDLE' | 'QUEUED' | 'TRAINING' | 'VALIDATING' | 'DEPLOYED' | 'FAILED', delay: number) => {
       await new Promise(r => setTimeout(r, delay));
       this.retrainStatus = status;
       this.logger.info({ status }, 'ML Retraining progress update');
@@ -1160,7 +1251,7 @@ export class TaskScheduler extends EventEmitter {
     };
 
     // Trigger simulation in background
-    (async () => {
+    void (async () => {
       try {
         await simulateStep('TRAINING', 2000);
         await simulateStep('VALIDATING', 3000);
@@ -1191,7 +1282,7 @@ export class TaskScheduler extends EventEmitter {
     };
   }
 
-  async getCarbonIntensityData() {
+  async getCarbonIntensityData(): Promise<any> {
     const zones = [
       'EU-DE', 'US-WEST', 'US-EAST', 'AP-SG', 'EU-FR', 'EU-UK', 
       'US-CENTER', 'AP-JP', 'AP-AU', 'SA-BR', 'AP-IN', 'ME-AE'
@@ -1208,7 +1299,7 @@ export class TaskScheduler extends EventEmitter {
     return { regions };
   }
 
-  async getCarbonSavingsData(days: number = 7) {
+  async getCarbonSavingsData(days: number = 7): Promise<any> {
     // In a real system, these would be aggregated from DB (CostRecords with gCO2 savings)
     // For now, we'll return calculated placeholders based on throughput
     const metrics = await (this.metrics as any).getMetrics?.() || {};
@@ -1231,7 +1322,7 @@ export class TaskScheduler extends EventEmitter {
     };
   }
 
-  getCarbonPolicyData() {
+  getCarbonPolicyData(): any {
     return {
       carbonWeight: this.schedulerWeights.carbon || 0.2,
       isActive: true,
@@ -1239,7 +1330,7 @@ export class TaskScheduler extends EventEmitter {
     };
   }
 
-  async updateCarbonPolicy(carbonWeight: number) {
+  async updateCarbonPolicy(carbonWeight: number): Promise<any> {
     this.schedulerWeights.carbon = carbonWeight;
     this.logger.info({ carbonWeight }, 'Updated carbon policy weight');
     
@@ -1251,5 +1342,9 @@ export class TaskScheduler extends EventEmitter {
     });
 
     return { success: true, carbonWeight };
+  }
+
+  recordTaskSubmission(priority: string, tenantId: string): void {
+    this.logger.info({ priority, tenantId }, 'Task submission recorded');
   }
 }

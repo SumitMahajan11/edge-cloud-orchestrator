@@ -164,9 +164,10 @@ export class DockerSandbox {
   private parseMemory(mem: string): number {
     const units: Record<string, number> = { k: 1024, m: 1024 ** 2, g: 1024 ** 3 };
     const match = mem.toLowerCase().match(/^(\d+)([kmg])?$/);
-    if (!match) return 512 * 1024 * 1024;
+    if (!match || !match[1]) return 512 * 1024 * 1024;
     const value = parseInt(match[1], 10);
-    const multiplier = match[2] ? units[match[2]] : 1;
+    const unit = match[2];
+    const multiplier = unit ? (units[unit] ?? 1) : 1;
     return value * multiplier;
   }
 }

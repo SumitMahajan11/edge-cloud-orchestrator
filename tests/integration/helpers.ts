@@ -5,6 +5,8 @@
 
 import { PrismaClient } from '@prisma/client'
 import { FastifyInstance } from 'fastify'
+import fs from 'fs'
+import path from 'path'
 
 import { buildApp } from '../../backend/src/app'
 
@@ -17,20 +19,45 @@ export interface TestContext {
   accessToken: string
   refreshToken: string
   userId: string
+  tenantId: string
 }
 
 /**
  * Setup test application with isolated database
  */
 export async function setupTestApp(): Promise<TestContext> {
-  // Use test database URL
-  process.env.DATABASE_URL = process.env.TEST_DATABASE_URL || 'postgresql://test:test@localhost:5432/edge_cloud_test'
-  process.env.JWT_SECRET = 'test-jwt-secret-key-with-at-least-32-characters'
-  process.env.ENCRYPTION_KEY = 'test-encryption-key-with-at-least-32-characters'
-  process.env.NODE_ENV = 'test'
-  process.env.FORCE_MOCK_DB = 'true'
-  process.env.FORCE_MOCK_REDIS = 'true'
+  const workerId = process.env.VITEST_WORKER_ID || '0';
+  const tmpDir = path.resolve(__dirname, '../tmp');
+  if (!fs.existsSync(tmpDir)) {
+    fs.mkdirSync(tmpDir, { recursive: true });
+  }
+  const dbPath = path.resolve(tmpDir, `test-${workerId}.db`);
   
+  // Use worker-specific SQLite database URL
+  process.env.DATABASE_URL = `file:${dbPath}`;
+  process.env.JWT_SECRET = 'a'.repeat(32)
+  process.env.ENCRYPTION_KEY = 'b'.repeat(32)
+  process.env.NODE_ENV = 'test'
+  process.env.FORCE_MOCK_DB = 'false'
+  process.env.FORCE_MOCK_REDIS = 'true'
+  process.env.ALLOW_PRIVATE_IPS = 'true'
+  
+  // Run migrations/push dynamically on the SQLite DB
+  const schemaPath = path.resolve(__dirname, './client/schema.prisma');
+  try {
+    const { execSync } = await import('child_process');
+    execSync(`pnpm exec prisma db push --schema=${schemaPath} --force-reset --accept-data-loss --skip-generate`, {
+      stdio: 'pipe',
+      env: {
+        ...process.env,
+        DATABASE_URL: process.env.DATABASE_URL
+      }
+    });
+  } catch (error: any) {
+    console.error('Prisma db push failed:', error.stdout?.toString(), error.stderr?.toString());
+    throw error;
+  }
+
   let buildApp;
   try {
     const apiModule = await import('../../apps/api/src/index.ts');
@@ -52,8 +79,9 @@ export async function setupTestApp(): Promise<TestContext> {
   // Create test admin user
   const bcrypt = await import('bcryptjs')
   const passwordHash = await bcrypt.hash('testpassword123', 12)
+  const adminPasswordHash = await bcrypt.hash('admin123', 12)
   
-  console.log('[setupTestApp] Upserting admin user...');
+  console.log('[setupTestApp] Upserting admin users...');
   const user = await testPrisma.user.upsert({
     where: { email: 'test-admin@edgecloud.io' },
     update: {},
@@ -63,6 +91,61 @@ export async function setupTestApp(): Promise<TestContext> {
       name: 'Test Admin',
       role: 'ADMIN',
       emailVerified: true,
+    },
+  })
+
+  const adminUser = await testPrisma.user.upsert({
+    where: { email: 'admin@example.com' },
+    update: {},
+    create: {
+      email: 'admin@example.com',
+      passwordHash: adminPasswordHash,
+      name: 'System Administrator',
+      role: 'ADMIN',
+      emailVerified: true,
+    },
+  })
+
+  // Create a default tenant and associate users with it
+  console.log('[setupTestApp] Upserting default tenant and user linkages...');
+  const tenant = await (testPrisma as any).tenant.upsert({
+    where: { slug: 'default-tenant' },
+    update: {},
+    create: {
+      name: 'Default Tenant',
+      slug: 'default-tenant',
+      config: '{}',
+      isActive: true,
+    },
+  })
+
+  await (testPrisma as any).tenantUser.upsert({
+    where: {
+      tenantId_userId: {
+        tenantId: tenant.id,
+        userId: user.id,
+      },
+    },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      userId: user.id,
+      role: 'ADMIN',
+    },
+  })
+
+  await (testPrisma as any).tenantUser.upsert({
+    where: {
+      tenantId_userId: {
+        tenantId: tenant.id,
+        userId: adminUser.id,
+      },
+    },
+    update: {},
+    create: {
+      tenantId: tenant.id,
+      userId: adminUser.id,
+      role: 'ADMIN',
     },
   })
   
@@ -88,6 +171,7 @@ export async function setupTestApp(): Promise<TestContext> {
     accessToken: tokens.token,
     refreshToken: tokens.refreshToken,
     userId: user.id,
+    tenantId: tenant.id,
   }
 }
 
@@ -101,19 +185,44 @@ export async function teardownTestApp(ctx?: TestContext): Promise<void> {
   }
   // Clean up test data
   if (ctx.prisma) {
-    await ctx.prisma.taskExecution.deleteMany({})
-    await ctx.prisma.taskLog.deleteMany({})
-    await ctx.prisma.task.deleteMany({})
-    await ctx.prisma.edgeNode.deleteMany({})
-    await ctx.prisma.apiKey.deleteMany({})
-    await ctx.prisma.webhook.deleteMany({})
-    await ctx.prisma.auditLog.deleteMany({})
-    await ctx.prisma.user.deleteMany({})
+    try {
+      await ctx.prisma.taskExecution.deleteMany({})
+      await ctx.prisma.taskLog.deleteMany({})
+      await ctx.prisma.task.deleteMany({})
+      await (ctx.prisma as any).nodeMetric.deleteMany({})
+      await (ctx.prisma as any).schedulingDecision.deleteMany({})
+      await (ctx.prisma as any).outcomeLog.deleteMany({})
+      await ctx.prisma.edgeNode.deleteMany({})
+      await ctx.prisma.apiKey.deleteMany({})
+      await ctx.prisma.webhook.deleteMany({})
+      await ctx.prisma.auditLog.deleteMany({})
+      await ctx.prisma.user.deleteMany({})
+    } catch (e) {
+      console.warn('Error cleaning up tables:', e);
+    }
     await ctx.prisma.$disconnect()
   }
   
   if (ctx.app) {
     await ctx.app.close()
+  }
+
+  // Delete worker-specific DB file with retry to handle Windows file locks
+  const workerId = process.env.VITEST_WORKER_ID || '0';
+  const dbPath = path.resolve(__dirname, `../tmp/test-${workerId}.db`);
+  for (let i = 0; i < 5; i++) {
+    try {
+      if (fs.existsSync(dbPath)) {
+        fs.rmSync(dbPath, { force: true });
+      }
+      break;
+    } catch (err) {
+      if (i === 4) {
+        console.error(`Failed to delete database file ${dbPath} after 5 attempts:`, err);
+      } else {
+        await new Promise((resolve) => setTimeout(resolve, 200));
+      }
+    }
   }
 }
 
@@ -152,6 +261,7 @@ export async function createTestTask(
       name: 'Test Task',
       type: 'DATA_PROCESSING',
       priority: 'MEDIUM',
+      image: 'ubuntu:latest',
       ...overrides,
     },
   })
