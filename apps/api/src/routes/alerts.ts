@@ -129,15 +129,22 @@ export default async function alertRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const alert = await alerting.alert(
-        request.body.severity,
+      let mappedSeverity: 'critical' | 'warning' | 'info' = 'info';
+      if (request.body.severity === 'CRITICAL') {
+        mappedSeverity = 'critical';
+      } else if (request.body.severity === 'HIGH' || request.body.severity === 'MEDIUM') {
+        mappedSeverity = 'warning';
+      }
+
+      await alerting.alert(
+        mappedSeverity,
         request.body.title,
         request.body.description,
         'manual-test',
         request.user!.tenantId!,
       );
 
-      return { success: true, alertId: alert?.id };
+      return { success: true };
     },
   );
 }

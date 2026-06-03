@@ -4,8 +4,7 @@ use std::time::{Duration, Instant};
 use anyhow::{Context, Result};
 use tokio::sync::RwLock;
 use wasmtime::*;
-use wasmtime_wasi::sync::WasiCtxBuilder;
-use wasmtime_wasi::WasiCtx;
+use wasmtime_wasi::tokio::WasiCtxBuilder;
 use sha2::{Digest, Sha256};
 use crate::types::{TaskSpec, ExecutionResult};
 use metrics::{increment_counter, histogram};
@@ -41,21 +40,19 @@ impl WasmExecutor {
         // 2. Get or compile module
         let module = self.get_or_compile_module(&content_hash, &wasm_bytes).await?;
         
-        // 3. Prepare WASI context
-        let stdout = Arc::new(std::sync::Mutex::new(Vec::new()));
-        let stderr = Arc::new(std::sync::Mutex::new(Vec::new()));
-        
+        // 3. Prepare WASI context using wasi_common pipes
         let mut wasi_builder = WasiCtxBuilder::new();
         
         // Pass task.input as JSON via WASI stdin
         let input_bytes = serde_json::to_vec(&spec.input)?;
-        wasi_builder.stdin(Box::new(wasmtime_wasi::sync::file::ReadOnlyFile::new(
-            wasmtime_wasi::sync::file::File::from(input_bytes)
-        )));
+        let stdin = wasi_common::pipe::ReadPipe::new(std::io::Cursor::new(input_bytes));
+        wasi_builder.stdin(Box::new(stdin));
         
-        // Capture stdout/stderr
-        wasi_builder.stdout(Box::new(VecWriter(stdout.clone())));
-        wasi_builder.stderr(Box::new(VecWriter(stderr.clone())));
+        // Capture stdout/stderr using memory pipes
+        let stdout_pipe = wasi_common::pipe::WritePipe::new_in_memory();
+        let stderr_pipe = wasi_common::pipe::WritePipe::new_in_memory();
+        wasi_builder.stdout(Box::new(stdout_pipe.clone()));
+        wasi_builder.stderr(Box::new(stderr_pipe.clone()));
         
         // No filesystem access by default
         // No network access from within WASM (wasmtime doesn't provide it by default)
@@ -64,13 +61,12 @@ impl WasmExecutor {
         
         // 4. Instantiate with limits
         let mut store = Store::new(&self.engine, wasi);
+        store.add_fuel(spec.cpu_fuel.unwrap_or(10_000_000_000))?;
         
-        // Resource limits: Memory
-        // Wasmtime 14.0 uses a different approach for memory limits if not using Pools.
-        // We'll use the basic Store-level limits.
-        store.set_fuel(spec.cpu_fuel.unwrap_or(10_000_000_000))?;
+        let mut linker = Linker::new(&self.engine);
+        wasmtime_wasi::tokio::add_to_linker(&mut linker, |cx| cx)?;
         
-        let instance = Instance::new(&mut store, &module, &[])?;
+        let instance = linker.instantiate_async(&mut store, &module).await?;
         let main = instance.get_typed_func::<(), ()>(&mut store, "_start")
             .context("failed to find _start function")?;
 
@@ -81,10 +77,21 @@ impl WasmExecutor {
         let duration = start_time.elapsed();
         histogram!("wasm_task_execution_duration_seconds", duration.as_secs_f64());
         
+        // Drop store to release pipe references
+        drop(store);
+        
+        let stdout_bytes = stdout_pipe.try_into_inner()
+            .expect("sole remaining reference to stdout_pipe")
+            .into_inner();
+        let stderr_bytes = stderr_pipe.try_into_inner()
+            .expect("sole remaining reference to stderr_pipe")
+            .into_inner();
+            
+        let out = String::from_utf8_lossy(&stdout_bytes).to_string();
+        let err = String::from_utf8_lossy(&stderr_bytes).to_string();
+        
         match execution_result {
             Ok(Ok(_)) => {
-                let out = String::from_utf8_lossy(&stdout.lock().unwrap()).to_string();
-                let err = String::from_utf8_lossy(&stderr.lock().unwrap()).to_string();
                 Ok(ExecutionResult {
                     task_id: spec.task_id.clone(),
                     status: "completed".to_string(),
@@ -101,8 +108,8 @@ impl WasmExecutor {
                     task_id: spec.task_id.clone(),
                     status: "failed".to_string(),
                     exit_code: 1,
-                    stdout: "".to_string(),
-                    stderr: err_msg.clone(),
+                    stdout: out,
+                    stderr: if err.is_empty() { err_msg.clone() } else { format!("{}\nError: {}", err, err_msg) },
                     duration_ms: duration.as_millis() as u64,
                     error: Some(err_msg),
                 })
@@ -112,8 +119,8 @@ impl WasmExecutor {
                     task_id: spec.task_id.clone(),
                     status: "timeout".to_string(),
                     exit_code: 137,
-                    stdout: "".to_string(),
-                    stderr: "Execution timed out".to_string(),
+                    stdout: out,
+                    stderr: if err.is_empty() { "Execution timed out".to_string() } else { format!("{}\nExecution timed out", err) },
                     duration_ms: duration.as_millis() as u64,
                     error: Some("Timeout".to_string()),
                 })
@@ -122,7 +129,6 @@ impl WasmExecutor {
     }
 
     async fn get_wasm_bytes(&self, url: &str) -> Result<Vec<u8>> {
-        // In a real app, this would handle caching on disk too
         let resp = self.client.get(url).send().await?;
         let bytes = resp.bytes().await?;
         Ok(bytes.to_vec())
@@ -160,15 +166,3 @@ impl WasmExecutor {
     }
 }
 
-// Helper for capturing stdout/stderr
-struct VecWriter(Arc<std::sync::Mutex<Vec<u8>>>);
-
-impl std::io::Write for VecWriter {
-    fn write(&mut self, buf: &[u8]) -> std::io::Result<usize> {
-        self.0.lock().unwrap().extend_from_slice(buf);
-        Ok(buf.len())
-    }
-    fn flush(&mut self) -> std::io::Result<()> {
-        Ok(())
-    }
-}

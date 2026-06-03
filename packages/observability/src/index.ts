@@ -1,5 +1,5 @@
 export { MetricsCollector, type MetricsConfig } from './metrics';
-export { getTracingManager, initializeTracing, type TracingConfig, TracingManager } from './tracing';
+export { initTracing } from './tracing';
 
 // Stub metrics collector for use by packages that need type compatibility
 export const metricsCollectorStub = {

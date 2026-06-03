@@ -198,6 +198,16 @@ export class CertificateAuthorityManager {
   }
 
   /**
+   * Get CA private key for test usage
+   */
+  getCAPrivateKey(): string {
+    if (!this.ca) {
+      throw new Error('CA not initialized');
+    }
+    return this.ca.privateKey;
+  }
+
+  /**
    * Sign a Certificate Signing Request (CSR)
    */
   async signCSR(
@@ -486,68 +496,55 @@ export interface CertificateValidationResult {
 export class CertificateValidator {
   private prisma: PrismaClient;
   private logger: Logger;
+  private caManager: CertificateAuthorityManager | undefined;
   private crlCache: Map<string, { revoked: boolean; expiresAt: number }> = new Map();
   private crlLastRefresh: Date = new Date(0);
 
-  constructor(prisma: PrismaClient, logger: Logger) {
+  constructor(prisma: PrismaClient, logger: Logger, caManager?: CertificateAuthorityManager) {
     this.prisma = prisma;
     this.logger = logger;
+    this.caManager = caManager;
   }
 
   /**
    * Validate a client certificate presented during mTLS handshake
-   *
-   * SECURITY CHECKS:
-   * 1. Certificate signature is valid (signed by our CA)
-   * 2. Certificate is not expired
-   * 3. Certificate is not revoked (check CRL)
-   * 4. Certificate subject matches expected format
-   * 5. Certificate is active in database
    */
   async validateClientCertificate(
     certPem: string,
   ): Promise<CertificateValidationResult> {
     try {
-      // Refresh CRL if needed
       await this.refreshCRLIfNeeded();
-
-      // Parse certificate
       const cert = new X509Certificate(certPem);
-
-      // Extract subject info
       const { subject } = cert;
-      const nodeIdMatch = subject.match(/CN=([^,]+)/);
-      const nodeId = nodeIdMatch ? nodeIdMatch[1] : null;
+      const nodeIdMatch = subject.match(/CN=([^\n,;]+)/);
+      const nodeId = nodeIdMatch && nodeIdMatch[1] ? nodeIdMatch[1].trim() : null;
 
       if (!nodeId) {
-        return { valid: false, error: 'Certificate missing CN (node ID)' };
+        return { valid: false, error: "Certificate missing CN (node ID)" };
       }
 
-      // Check expiration
       const validFrom = new Date(cert.validFrom);
       const validTo = new Date(cert.validTo);
       const now = new Date();
 
       if (now < validFrom) {
-        return { valid: false, nodeId, error: 'Certificate not yet valid' };
+        return { valid: false, nodeId, error: "Certificate not yet valid" };
       }
 
       if (now > validTo) {
-        return { valid: false, nodeId, error: 'Certificate expired' };
+        return { valid: false, nodeId, error: "Certificate expired" };
       }
 
-      // Check if revoked
       const { serialNumber } = cert;
       if (await this.isRevoked(serialNumber)) {
         return {
           valid: false,
           nodeId,
           serialNumber,
-          error: 'Certificate revoked',
+          error: "Certificate revoked",
         };
       }
 
-      // Check database for active certificate
       const dbCert = await this.prisma.nodeCertificate.findFirst({
         where: { nodeId, serialNumber, isActive: true },
       });
@@ -557,17 +554,24 @@ export class CertificateValidator {
           valid: false,
           nodeId,
           serialNumber,
-          error: 'Certificate not found or inactive in database',
+          error: "Certificate not found or inactive in database",
         };
       }
 
-      // Verify signature (simplified - would verify against CA public key)
-      // const caCert = await this.getCACertificate()
-      // const isValid = cert.verify(caCert.publicKey)
+      // Verify signature and chain
+      const isChainValid = await this.verifyCertificateChain(certPem);
+      if (!isChainValid) {
+        return {
+          valid: false,
+          nodeId,
+          serialNumber,
+          error: "Certificate signature or chain verification failed",
+        };
+      }
 
       this.logger.debug(
         { nodeId, serialNumber },
-        'Certificate validated successfully',
+        "Certificate validated successfully",
       );
 
       return {
@@ -576,23 +580,45 @@ export class CertificateValidator {
         serialNumber,
         expiresAt: validTo,
       };
-    } catch (error) {
-      this.logger.error({ error }, 'Certificate validation failed');
-      return { valid: false, error: 'Invalid certificate format' };
+    } catch (error: any) {
+      this.logger.error({ error }, "Certificate validation failed");
+      return { valid: false, error: "Invalid certificate format" };
     }
   }
 
-  /**
-   * Check if certificate serial number is in CRL
-   */
+  async verifyCertificateChain(clientCertPem: string): Promise<boolean> {
+    try {
+      const clientCert = new X509Certificate(clientCertPem);
+      const now = new Date();
+      if (new Date(clientCert.validTo) < now) {
+        this.logger.warn({ serialNumber: clientCert.serialNumber, expiry: clientCert.validTo }, "Client certificate expired");
+        return false;
+      }
+      if (!this.caManager) {
+        this.logger.error("CA Manager not available for signature verification");
+        return false;
+      }
+      const caCertPem = this.caManager.getCACertificate();
+      const caCert = new X509Certificate(caCertPem);
+      const isSignedByCA = clientCert.verify(caCert.publicKey);
+      if (!isSignedByCA) {
+        this.logger.warn({ serialNumber: clientCert.serialNumber, issuer: clientCert.issuer }, "Certificate not signed by trusted CA");
+        return false;
+      }
+      return true;
+    } catch (err) {
+      this.logger.error({ err }, "Certificate chain verification error");
+      return false;
+    }
+  }
+
   private async isRevoked(serialNumber: string): Promise<boolean> {
     const cached = this.crlCache.get(serialNumber);
     if (cached) {
-      if (cached.revoked) return true;
-      if (cached.expiresAt > Date.now()) return false;
+      if (cached.revoked) {return true;}
+      if (cached.expiresAt > Date.now()) {return false;}
     }
 
-    // Check database
     const revoked = await this.prisma.certificateRevocation.findUnique({
       where: { serialNumber },
     });
@@ -601,7 +627,6 @@ export class CertificateValidator {
       this.crlCache.set(serialNumber, { revoked: true, expiresAt: Infinity });
       return true;
     } else {
-      // Cache non-revoked certs for 5 minutes (300,000ms) to prevent DB thundering herd
       this.crlCache.set(serialNumber, {
         revoked: false,
         expiresAt: Date.now() + 300_000,
@@ -610,24 +635,18 @@ export class CertificateValidator {
     }
   }
 
-  /**
-   * Refresh CRL cache periodically
-   */
   private async refreshCRLIfNeeded(): Promise<void> {
     const now = new Date();
     const cacheAge = now.getTime() - this.crlLastRefresh.getTime();
-    const CACHE_TTL = 6 * 60 * 60 * 1000; // 6 hours
+    const CACHE_TTL = 6 * 60 * 60 * 1000;
 
     if (cacheAge > CACHE_TTL) {
       const revoked = await this.prisma.certificateRevocation.findMany();
-      
-      // Pre-populate cache with revoked serial numbers
       revoked.forEach((r) => {
         this.crlCache.set(r.serialNumber, { revoked: true, expiresAt: Infinity });
       });
-
       this.crlLastRefresh = now;
-      this.logger.info({ count: revoked.length }, 'Refreshed CRL cache');
+      this.logger.info({ count: revoked.length }, "Refreshed CRL cache");
     }
   }
 }
@@ -1142,7 +1161,7 @@ export async function setupMTLSServer(
   await caManager.initialize();
 
   // Initialize validator
-  const validator = new CertificateValidator(prisma, logger);
+  const validator = new CertificateValidator(prisma, logger, caManager);
   const { env } = await import('../config/env.js');
 
   // Load certificates from environment-configured paths

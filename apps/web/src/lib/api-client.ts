@@ -170,3 +170,5 @@ export const authApi = {
     return transformUserFromApi(data)
   },
 }
+
+export const apiClient = api

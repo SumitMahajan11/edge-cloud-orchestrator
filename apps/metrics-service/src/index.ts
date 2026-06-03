@@ -167,7 +167,7 @@ app.get('/metrics', async (request, reply) => {
     }
   }
   
-  reply.header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
+  void reply.header('Content-Type', 'text/plain; version=0.0.4; charset=utf-8');
   return aggregatedOutput;
 });
 
@@ -209,4 +209,4 @@ async function start() {
   }
 }
 
-start();
+void start();

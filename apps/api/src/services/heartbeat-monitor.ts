@@ -28,22 +28,22 @@ export class HeartbeatMonitor {
     this.logger = logger;
   }
 
-  start() {
+  start(): void {
     this.interval = setInterval(() => this.checkNodes(), CHECK_INTERVAL);
   }
 
-  setTaskScheduler(taskScheduler: TaskScheduler) {
+  setTaskScheduler(taskScheduler: TaskScheduler): void {
     this.taskScheduler = taskScheduler;
   }
 
-  stop() {
+  stop(): void {
     if (this.interval) {
       clearInterval(this.interval);
       this.interval = null;
     }
   }
 
-  private async checkNodes() {
+  private async checkNodes(): Promise<void> {
     await tracer.startActiveSpan('orchestrator:heartbeat_check', async (span) => {
       try {
         const now = new Date();
@@ -154,7 +154,7 @@ export class HeartbeatMonitor {
     });
   }
 
-  private async handleNodeFailure(nodeId: string) {
+  private async handleNodeFailure(nodeId: string): Promise<void> {
     // Find running tasks on failed node
     const runningTasks = await this.prisma.task.findMany({
       where: {

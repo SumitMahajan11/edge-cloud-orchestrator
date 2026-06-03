@@ -35,10 +35,31 @@ describe('mTLS Certificate Authority', () => {
       },
       bootstrapToken: {
         updateMany: vi.fn(),
-        findUnique: vi.fn(),
+        findUnique: vi.fn(() => Promise.resolve({
+          token: 'valid-token',
+          usedAt: null,
+          expiresAt: new Date(Date.now() + 100000),
+          user: {
+            tenantUsers: [{ tenantId: 'test-tenant' }]
+          }
+        })),
+        update: vi.fn(() => Promise.resolve({
+          token: 'valid-token',
+          usedAt: new Date(),
+          expiresAt: new Date(Date.now() + 100000),
+          user: {
+            tenantUsers: [{ tenantId: 'test-tenant' }]
+          }
+        })),
       },
       nodeCertificate: {
         create: vi.fn(),
+      },
+      $transaction: async (arg: any) => {
+        if (Array.isArray(arg)) {
+          return Promise.all(arg);
+        }
+        return arg(prisma);
       },
     };
   });

@@ -67,8 +67,8 @@ export function useMLMetrics() {
     },
     onSuccess: () => {
       // Refresh status immediately
-      retrainStatus.refetch();
-      queryClient.invalidateQueries({ queryKey: ['ml'] });
+      void retrainStatus.refetch();
+      void queryClient.invalidateQueries({ queryKey: ['ml'] });
     },
   });
 
@@ -94,10 +94,10 @@ export function useMLMetrics() {
     
     // Helpers
     refetch: () => {
-      driftCurrent.refetch();
-      modelCurrent.refetch();
-      outcomeStats.refetch();
-      retrainStatus.refetch();
+      void driftCurrent.refetch();
+      void modelCurrent.refetch();
+      void outcomeStats.refetch();
+      void retrainStatus.refetch();
     }
   };
 }

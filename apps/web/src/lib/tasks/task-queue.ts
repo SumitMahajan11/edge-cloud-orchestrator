@@ -64,7 +64,7 @@ class PriorityTaskQueue {
       this.queue.splice(insertIndex, 0, queuedTask)
     }
 
-    this.processQueue()
+    void this.processQueue()
   }
 
   private calculatePriority(task: Task): number {
@@ -108,7 +108,7 @@ class PriorityTaskQueue {
     } finally {
       this.processing.delete(nextTask.id)
       // Process next task
-      this.processQueue()
+      void this.processQueue()
     }
   }
 
@@ -132,12 +132,12 @@ class PriorityTaskQueue {
 
   setProcessor(callback: (task: Task) => Promise<void>): void {
     this.processingCallback = callback
-    this.processQueue()
+    void this.processQueue()
   }
 
   setMaxConcurrent(max: number): void {
     this.maxConcurrent = max
-    this.processQueue()
+    void this.processQueue()
   }
 
   getStats(): QueueStats {

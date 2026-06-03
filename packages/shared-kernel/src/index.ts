@@ -14,6 +14,22 @@ export {
   API_CONSTANTS
 } from './constants.js';
 
+// Types
+export { 
+  TaskStatus, 
+  NodeStatus, 
+  Priority, 
+  DomainTask, 
+  DomainNode, 
+  ScoreWeights, 
+  DEFAULT_SCORE_WEIGHTS, 
+  HealingAction, 
+  Alert, 
+  SystemLoad, 
+  BackpressureDecision 
+} from './types/domain.js';
+export { ApiError } from './types/errors.js';
+
 // Domain models
 export { 
   EdgeNode, 
@@ -85,21 +101,7 @@ export {
   LeaderEvents 
 } from './leader-election/index.js';
 
-// Types
-export { 
-  TaskStatus, 
-  NodeStatus, 
-  Priority, 
-  DomainTask, 
-  DomainNode, 
-  ScoreWeights, 
-  DEFAULT_SCORE_WEIGHTS, 
-  HealingAction, 
-  Alert, 
-  SystemLoad, 
-  BackpressureDecision 
-} from './types/domain.js';
-export { ApiError } from './types/errors.js';
+
 
 export * from './interfaces/scheduler.js';
 export * from './interfaces/metrics.js';
@@ -232,3 +234,13 @@ export { TaskInputSchema, TaskMetadataSchema } from './schemas/task.js';
 
 // Invariants
 export * from './invariants/system-invariants.js';
+
+// Permissions
+export { Permissions, Permission, RolePermissions } from './auth/permissions.js';
+
+// Workflow
+export { DAGExecutor, WorkflowNode } from './workflow/dag-executor.js';
+
+// SSRF Protection
+export { validateWebhookUrl, validateIpAddress } from './security/ssrf-protection.js';
+

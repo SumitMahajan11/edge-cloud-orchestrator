@@ -888,7 +888,7 @@ export async function registerMetricsPlugin(
     '/metrics',
     async (_request: FastifyRequest, reply: FastifyReply) => {
       const metrics = await getMetricsOutput();
-      reply.type('text/plain').send(metrics);
+      void reply.type('text/plain').send(metrics);
     },
   );
 

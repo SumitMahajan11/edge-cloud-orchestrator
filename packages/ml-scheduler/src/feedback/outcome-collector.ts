@@ -76,6 +76,10 @@ export class OutcomeCollector {
     await this.redis.set(key, newReward.toString());
   }
 
+  private isSqlite(): boolean {
+    return !!process.env.DATABASE_URL?.startsWith('file:') || !!process.env.DATABASE_URL?.includes('.db');
+  }
+
   async flush() {
     try {
       const outcomes = await this.redis.zrange(this.bufferKey, 0, -1);
@@ -84,24 +88,40 @@ export class OutcomeCollector {
       logger.info(`Flushing ${outcomes.length} outcomes to PostgreSQL`);
 
       const parsedOutcomes = outcomes.map(o => JSON.parse(o) as TaskOutcome);
+      const isSqlite = this.isSqlite();
 
       // Use transaction to ensure consistency
-      await this.prisma.$transaction([
-        this.prisma.outcomeLog.createMany({
-          data: parsedOutcomes.map(o => ({
+      await this.prisma.outcomeLog.createMany({
+        data: parsedOutcomes.map(o => {
+          let decision = o.schedulingDecision;
+          if (isSqlite) {
+            if (typeof decision !== 'string') {
+              decision = JSON.stringify(decision);
+            }
+          } else {
+            if (typeof decision === 'string') {
+              try {
+                decision = JSON.parse(decision);
+              } catch (e) {
+                // Keep as string if not valid JSON
+              }
+            }
+          }
+
+          return {
             taskId: o.taskId,
             nodeId: o.nodeId,
-            schedulingDecision: o.schedulingDecision,
+            schedulingDecision: decision,
             predictedLatency: o.predictedLatency,
             actualLatency: o.actualLatency,
             predictedCpuUsage: o.predictedCpuUsage,
             actualCpuUsage: o.actualCpuUsage,
             outcome: o.outcome,
-            timestamp: o.timestamp,
-          })),
+            timestamp: new Date(o.timestamp),
+          };
         }),
-        this.redis.del(this.bufferKey) as any
-      ]);
+      });
+      await this.redis.del(this.bufferKey);
 
       logger.info('Successfully flushed outcomes to PostgreSQL');
     } catch (error) {

@@ -26,6 +26,19 @@ export const refreshTokenSchema = z.object({
   refreshToken: z.string().min(1, 'Refresh token is required'),
 });
 
+export const authResponseSchema = z.object({
+  token: z.string(),
+  accessToken: z.string(),
+  refreshToken: z.string(),
+  expiresAt: z.string().datetime(),
+  user: z.object({
+    id: z.string().uuid(),
+    email: z.string().email(),
+    name: z.string().optional().nullable(),
+    role: z.string(),
+  }),
+});
+
 export const createApiKeySchema = z.object({
   name: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/, 'API Key name contains invalid characters'),
   permissions: z.array(z.string().trim()).optional(),
@@ -298,3 +311,107 @@ export const ApiErrorSchema = z.object({
 });
 
 export const ErrorSchema = ApiErrorSchema;
+
+export const webhooksDeliveriesQuerySchema = z.object({
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+});
+
+export const webhooksRedeliverParamSchema = z.object({
+  id: z.string().uuid(),
+  deliveryId: z.string().uuid(),
+});
+
+export const tasksLogsQuerySchema = z.object({
+  level: z.string().optional(),
+  limit: z.coerce.number().int().min(1).max(1000).optional(),
+});
+
+export const mlDriftHistoryQuerySchema = z.object({
+  hours: z.coerce.number().int().min(1).max(720).optional().default(24),
+});
+
+export const resilienceResetParamSchema = z.object({
+  name: z.string().min(1),
+});
+
+export const schedulerWeightsBodySchema = z.object({
+  latency: z.number().min(0).max(1).optional(),
+  cpu: z.number().min(0).max(1).optional(),
+  memory: z.number().min(0).max(1).optional(),
+  cost: z.number().min(0).max(1).optional(),
+  network: z.number().min(0).max(1).optional(),
+  ml: z.number().min(0).max(1).optional(),
+  health: z.number().min(0).max(1).optional(),
+});
+
+export const schedulerApplyPresetParamSchema = z.object({
+  name: z.string().min(1),
+});
+
+export const schedulerDecisionsQuerySchema = z.object({
+  nodeId: z.string().uuid().optional(),
+  limit: z.coerce.number().int().min(1).max(500).optional().default(50),
+});
+
+export const carbonSavingsQuerySchema = z.object({
+  days: z.coerce.number().int().min(1).max(365).optional().default(7),
+});
+
+export const carbonPolicyUpdateSchema = z.object({
+  carbonWeight: z.number().min(0).max(1),
+});
+
+export const analyticsCostQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  nodeId: z.string().uuid().optional(),
+});
+
+// ============================================
+// Admin Schemas
+// ============================================
+
+export const adminUserRoleParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const adminUserRoleBodySchema = z.object({
+  role: z.enum(['SUPER_ADMIN', 'ADMIN', 'OPERATOR', 'VIEWER']),
+});
+
+export const adminDeactivateParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const adminCleanupBodySchema = z.object({
+  olderThanDays: z.number().int().min(1),
+  types: z.array(z.string()),
+});
+
+export const adminEventRepublishBodySchema = z.object({
+  eventType: z.string(),
+  entityId: z.string(),
+  targetTopic: z.string().optional(),
+});
+
+export const adminEventRepublishRangeBodySchema = z.object({
+  eventType: z.string(),
+  fromTimestamp: z.string(),
+  toTimestamp: z.string(),
+  dryRun: z.boolean().optional(),
+});
+
+export const adminDlqEventsQuerySchema = z.object({
+  topic: z.string().optional(),
+  status: z.enum(['PENDING', 'RETRYING', 'REPROCESSED', 'PERMANENTLY_FAILED']).optional(),
+  limit: z.coerce.number().int().min(1).max(100).optional(),
+  offset: z.coerce.number().int().min(0).optional(),
+});
+
+export const adminDlqEventRetryParamSchema = z.object({
+  id: z.string().uuid(),
+});
+
+export const adminDlqPurgeBodySchema = z.object({
+  olderThanDays: z.number().int().optional(),
+});

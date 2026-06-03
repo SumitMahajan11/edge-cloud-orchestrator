@@ -62,12 +62,12 @@ const versionNegotiationPluginInternal: FastifyPluginAsync<VersionNegotiationOpt
   fastify.addHook('onSend', async (request, reply, payload) => {
     if (request.apiVersion === 'v1') {
       request.log.info({ url: request.url }, 'Adding deprecation headers to v1 request');
-      reply.header('Deprecation', 'true');
+      void reply.header('Deprecation', 'true');
       
       // Set sunset date to 6 months from now
       const sunsetDate = new Date();
       sunsetDate.setMonth(sunsetDate.getMonth() + 6);
-      reply.header('Sunset', sunsetDate.toUTCString());
+      void reply.header('Sunset', sunsetDate.toUTCString());
     }
     return payload;
   });

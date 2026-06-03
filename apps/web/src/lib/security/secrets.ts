@@ -125,7 +125,7 @@ class SecretManager {
     for (const [key, value] of Object.entries(process.env)) {
       if (key.startsWith(prefix) && typeof value === 'string') {
         const secretKey = key.slice(prefix.length).toLowerCase()
-        this.set(secretKey, value)
+        void this.set(secretKey, value)
         count++
       }
     }

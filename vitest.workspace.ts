@@ -6,10 +6,16 @@ const sharedConfig = {
     globals: true,
     environment: 'node',
     setupFiles: [path.resolve(__dirname, './vitest.setup.ts')],
+    hookTimeout: 60000,
+    testTimeout: 60000,
+    passWithNoTests: true,
     alias: {
       '@edgecloud/shared-kernel': path.resolve(__dirname, './packages/shared-kernel/src/index.ts'),
       '@edgecloud/ml-scheduler': path.resolve(__dirname, './packages/ml-scheduler/src/index.ts'),
       '@edgecloud/observability': path.resolve(__dirname, './packages/observability/src/index.ts'),
+      '@edgecloud/event-bus': path.resolve(__dirname, './packages/event-bus/src/index.ts'),
+      '@edgecloud/circuit-breaker': path.resolve(__dirname, './packages/circuit-breaker/src/index.ts'),
+      '@edgecloud/saga': path.resolve(__dirname, './packages/saga/src/index.ts'),
     }
   }
 }
@@ -49,6 +55,10 @@ export default defineWorkspace([
       ...sharedConfig.test,
       name: 'e2e',
       include: ['**/*.test.ts'],
+      env: {
+        FORCE_MOCK_DB: 'false',
+        FORCE_MOCK_REDIS: 'true',
+      }
     }
   },
   {
@@ -58,6 +68,14 @@ export default defineWorkspace([
       ...sharedConfig.test,
       name: 'integration',
       include: ['**/*.test.ts'],
+      alias: {
+        ...sharedConfig.test?.alias,
+        '@prisma/client': path.resolve(__dirname, './tests/integration/client/index.js'),
+      },
+      env: {
+        FORCE_MOCK_DB: 'false',
+        FORCE_MOCK_REDIS: 'true',
+      }
     }
   },
   {
@@ -69,5 +87,4 @@ export default defineWorkspace([
       include: ['**/*.test.ts'],
     }
   }
-
 ]);

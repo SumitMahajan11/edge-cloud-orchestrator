@@ -22,7 +22,7 @@ export function Login() {
     if (isLogin) {
       const result = await login(email, password)
       if (result) {
-        navigate(from, { replace: true })
+        void navigate(from, { replace: true })
       }
     } else {
       if (password.length < 8) {

@@ -160,12 +160,12 @@ export class LeaderElection {
    */
   private startElectionLoop(): void {
     // Try to acquire leadership immediately
-    this.tryAcquireLeadership()
+    void this.tryAcquireLeadership()
 
     // Set up retry loop
     this.retryTimer = setInterval(() => {
       if (!this.state.isLeader) {
-        this.tryAcquireLeadership()
+        void this.tryAcquireLeadership()
       }
     }, this.config.retryInterval)
   }
@@ -214,7 +214,7 @@ export class LeaderElection {
 
     // Start refresh loop
     this.refreshTimer = setInterval(() => {
-      this.refreshLeadership()
+      void this.refreshLeadership()
     }, this.config.refreshInterval)
 
     this.emit('elected', { nodeId: this.config.nodeId, term: this.state.term })
@@ -451,11 +451,11 @@ export class ClusterCoordinator {
     
     // Set up event handlers
     this.leaderElection.on('elected', () => {
-      this.executeLeaderActions()
+      void this.executeLeaderActions()
     })
 
     this.leaderElection.on('demoted', () => {
-      this.executeFollowerActions()
+      void this.executeFollowerActions()
     })
   }
 

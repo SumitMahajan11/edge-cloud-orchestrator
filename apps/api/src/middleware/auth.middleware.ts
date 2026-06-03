@@ -1,6 +1,6 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
-import { enterWithTenantContext } from '@edgecloud/shared-kernel';
+import { enterWithTenantContext, RolePermissions } from '@edgecloud/shared-kernel';
 import { UserPayload, UserRole } from '../types/fastify';
 import { env } from '../config/env';
 
@@ -29,12 +29,10 @@ export async function authenticate(
             email: result.user.email,
             role: result.user.role,
             tenantId: result.user.tenantId,
-            permissions: result.permissions || [],
+            permissions: result.permissions || RolePermissions[result.user.role] || [],
           };
 
-          if (result.user.tenantId) {
-            enterWithTenantContext(result.user.tenantId);
-          }
+          enterWithTenantContext(result.user.tenantId || undefined);
           return;
         }
       }
@@ -71,25 +69,41 @@ export async function authenticate(
       email: decoded.email,
       role: decoded.role,
       tenantId: decoded.tenantId,
-      permissions: decoded.permissions || [],
+      permissions: decoded.permissions || RolePermissions[decoded.role] || [],
     };
 
-    if (decoded.tenantId) {
-      enterWithTenantContext(decoded.tenantId);
-    }
+    enterWithTenantContext(decoded.tenantId || undefined);
   } catch (error: any) {
     console.error('--- AUTH ERROR ---', error.message);
     return reply.status(401).send({ error: 'Authentication failed' });
   }
 }
 
-export function requireRole(...roles: UserRole[]) {
+export function requireRole(...roles: (UserRole | string)[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     if (!request.user) {
       return reply.status(401).send({ error: 'Authentication required' });
     }
 
     if (!roles.includes(request.user.role)) {
+      return reply.status(403).send({ error: 'Insufficient permissions' });
+    }
+  };
+}
+
+export function requirePermission(permission: string) {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    if (!request.user) {
+      return reply.status(401).send({ error: 'Authentication required' });
+    }
+
+    // Admin role bypasses permission checks
+    if (request.user.role === 'ADMIN') {
+      return;
+    }
+
+    const permissions = request.user.permissions || [];
+    if (!permissions.includes(permission) && !permissions.includes('*')) {
       return reply.status(403).send({ error: 'Insufficient permissions' });
     }
   };

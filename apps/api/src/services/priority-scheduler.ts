@@ -120,7 +120,7 @@ export class PriorityScheduler extends EventEmitter {
 
     // Start aging process (every 5 seconds)
     this.agingInterval = setInterval(() => {
-      this.applyAging();
+      void this.applyAging();
     }, 5000);
 
     this.logger.info('Priority scheduler started');
@@ -141,6 +141,8 @@ export class PriorityScheduler extends EventEmitter {
       clearInterval(this.agingInterval);
       this.agingInterval = null;
     }
+
+    this.removeAllListeners();
 
     this.logger.info('Priority scheduler stopped');
   }

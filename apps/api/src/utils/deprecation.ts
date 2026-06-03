@@ -19,17 +19,17 @@ export function setDeprecationHeaders(
   options: DeprecationOptions
 ) {
   if (options.deprecationDate) {
-    reply.header('Deprecation', options.deprecationDate);
+    void reply.header('Deprecation', options.deprecationDate);
   } else {
-    reply.header('Deprecation', 'true');
+    void reply.header('Deprecation', 'true');
   }
 
   if (options.sunsetDate) {
-    reply.header('Sunset', options.sunsetDate);
+    void reply.header('Sunset', options.sunsetDate);
   }
 
   if (options.link) {
-    reply.header('Link', `<${options.link}>; rel="deprecation"; type="text/html"`);
+    void reply.header('Link', `<${options.link}>; rel="deprecation"; type="text/html"`);
   }
 }
 

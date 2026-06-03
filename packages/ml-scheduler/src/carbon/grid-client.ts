@@ -36,7 +36,12 @@ export class GridCarbonClient {
       }
 
       // 2. Fetch from Electricity Maps API
-      if (!this.apiKey || this.apiKey === 'placeholder') {
+      if (
+        !this.apiKey ||
+        this.apiKey === 'placeholder' ||
+        this.apiKey === 'your-api-key-here' ||
+        process.env.NODE_ENV === 'test'
+      ) {
         throw new Error('Electricity Maps API key not configured');
       }
 

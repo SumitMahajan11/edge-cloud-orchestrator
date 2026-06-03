@@ -155,7 +155,7 @@ class WebhookManager {
     if (this.deliveryCache.length > 100) {
       this.deliveryCache = this.deliveryCache.slice(0, 100)
     }
-    this.processQueue()
+    void this.processQueue()
   }
 
   private async processQueue(): Promise<void> {
@@ -302,7 +302,7 @@ class WebhookManager {
       delivery.errorMessage = undefined
       delivery.completedAt = undefined
       delivery.nextRetryAt = undefined
-      this.processQueue()
+      void this.processQueue()
     }
   }
 

@@ -1,5 +1,6 @@
 import { trace } from '@opentelemetry/api';
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import type { TenantId } from '../types/fastify.js';
 
 const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   const { AgentRegistrationService, CertificateAuthorityManager } =
@@ -571,20 +572,11 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         });
       });
 
-      const metrics = result.metrics as Record<string, number> | undefined;
       fastify.taskScheduler
         .recordTaskOutcome(
           taskId,
           (result.duration_ms as number) || 0,
           status as any,
-          metrics
-            ? {
-                cpuUsageAvg: metrics.cpu_usage_avg,
-                memoryUsageMax: metrics.memory_usage_max,
-                networkIngressBytes: metrics.network_ingress_bytes,
-                networkEgressBytes: metrics.network_egress_bytes,
-              }
-            : undefined,
         )
         .catch((err: Error) =>
           request.log.error({ err, taskId }, 'Failed to record task outcome'),
@@ -592,9 +584,9 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Broadcast update
       fastify.wsManager.broadcastToTenant(
+        node.tenantId as TenantId,
         'task:updated',
         { id: taskId, status },
-        node.tenantId,
       );
 
       return { status: 'OK' };

@@ -44,7 +44,8 @@ export function Logs() {
   const scrollRef = useRef<HTMLDivElement>(null)
   
   const { data: logs = [], isLoading } = useLogs(levelFilter !== 'all' ? { level: levelFilter } : undefined)
-  const { data: stats } = useLogStats()
+  const { data: statsData } = useLogStats()
+  const stats = statsData as { errors?: number; warnings?: number; info?: number } | undefined
   
   const filteredLogs = useMemo(() => {
     return logs.filter(log => {

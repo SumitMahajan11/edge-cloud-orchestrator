@@ -212,17 +212,27 @@ export async function shutdownServices(logger: Logger) {
   if (autoHealer) {
     try {
       await autoHealer.stop();
-    } catch (e) {}
+    } catch (e) {
+      logger.error(e, 'Error stopping autoHealer');
+    }
   }
   if (healthMonitor) {
     try {
       healthMonitor.stop();
-    } catch (e) {}
+    } catch (e) {
+      logger.error(e, 'Error stopping healthMonitor');
+    }
   }
   if (sagaOrchestrator) {
     try {
-      sagaOrchestrator.stopRecovery();
-    } catch (e) {}
+      if (typeof sagaOrchestrator.stop === 'function') {
+        sagaOrchestrator.stop();
+      } else {
+        sagaOrchestrator.stopRecovery();
+      }
+    } catch (e) {
+      logger.error(e, 'Error stopping sagaOrchestrator');
+    }
   }
 
   logger.info('Services shutdown complete');

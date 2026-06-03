@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { MLScheduler } from '../ml-scheduler';
 import { GridCarbonClient } from '../carbon/grid-client';
 import { EdgeNode, Task } from '@edgecloud/shared-kernel';
@@ -35,6 +34,7 @@ describe('Carbon-Aware Scheduling', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.spyOn(Math, 'random').mockReturnValue(0.5);
     carbonClient = new GridCarbonClient(mockRedis, 'placeholder');
     mlScheduler = new MLScheduler(
       mockPredictor, 

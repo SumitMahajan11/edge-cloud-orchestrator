@@ -95,7 +95,8 @@ ELSE:
 
 export function Policies() {
   const { data: policiesData, isLoading: policiesLoading } = usePolicies()
-  const { data: thresholds, isLoading: thresholdsLoading } = useThresholds()
+  const { data: thresholdsData, isLoading: thresholdsLoading } = useThresholds()
+  const thresholds = thresholdsData as { latency?: number; stale?: number } | undefined
   const updatePolicyMutation = useUpdatePolicy()
   const updateThresholdMutation = useUpdateThreshold()
 

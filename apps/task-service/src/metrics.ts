@@ -89,7 +89,7 @@ export function registerMetrics() {
 
 // Metrics endpoint handler
 export async function metricsEndpoint(request: FastifyRequest, reply: FastifyReply) {
-  reply.type('text/plain');
+  void reply.type('text/plain');
   return registry.metrics();
 }
 

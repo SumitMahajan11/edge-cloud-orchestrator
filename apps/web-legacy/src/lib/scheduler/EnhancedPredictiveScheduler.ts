@@ -97,7 +97,7 @@ export class EnhancedPredictiveScheduler {
     this.config = { ...DEFAULT_CONFIG, ...config }
     
     if (this.config.persistenceEnabled && this.config.databaseUrl) {
-      this.initializeDatabase()
+      void this.initializeDatabase()
     }
   }
 

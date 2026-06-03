@@ -14,9 +14,11 @@ export {
   type CircuitState,
 } from './circuit-breaker';
 export {
-  type RetryConfig,
+  RetryConfig,
   type RetryContext,
   RetryExhaustedError,
   RetryPolicy,
   withRetry,
 } from './retry';
+export { RedisCircuitBreakerSync } from './redis-sync';
+

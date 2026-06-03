@@ -1,16 +1,24 @@
 import { FastifyInstance } from 'fastify';
+import { configureForProductionTest, restoreTestEnvironment } from './helpers/production-env.js';
+import { mockLeaderElectionToAlwaysLead } from './helpers/mock-leader-election.js';
 
 describe('Security Configuration', () => {
   let apiApp: FastifyInstance;
+  let savedEnv: Record<string, string | undefined>;
+  let cleanupLeaderElection: () => void;
 
   beforeAll(async () => {
     // Set environment variables for production test
-    process.env.NODE_ENV = 'production';
+    savedEnv = configureForProductionTest();
+    
+    // Mock BEFORE init() so services don't try to acquire real Redis locks:
+    cleanupLeaderElection = await mockLeaderElectionToAlwaysLead();
     
     const mockSecretManager = {
       getSecret: async (key: string) => {
-        if (key === 'JWT_SECRET') return 'a_very_long_secret_that_is_at_least_32_chars_long';
-        if (key === 'ENCRYPTION_KEY') return 'another_very_long_secret_at_least_32_chars';
+        if (key === 'JWT_SECRET') return 'a'.repeat(32);
+        if (key === 'ENCRYPTION_KEY') return 'b'.repeat(32);
+        if (key === 'DATABASE_URL') return 'postgresql://localhost:5432/test?sslmode=require';
         if (key === 'ALLOWED_ORIGINS') return 'http://localhost:5173,http://localhost:3000';
         if (key === 'JWT_EXPIRES_IN') return '15m';
         if (key === 'RATE_LIMIT_WINDOW_MS') return '60000';
@@ -28,6 +36,10 @@ describe('Security Configuration', () => {
 
   afterAll(async () => {
     await apiApp.close();
+    if (cleanupLeaderElection) {
+      cleanupLeaderElection();
+    }
+    restoreTestEnvironment(savedEnv);
   });
 
   describe('GAP 1: CSP Header Completeness', () => {

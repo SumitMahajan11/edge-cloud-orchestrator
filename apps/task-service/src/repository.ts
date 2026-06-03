@@ -17,10 +17,10 @@ export class PostgresTaskRepository implements TaskRepository {
     const query = `
       INSERT INTO tasks (
         id, name, type, status, priority, target, "nodeId", policy, reason,
-        input, metadata, "maxRetries", "submittedAt"
+        input, metadata, "maxRetries", "submittedAt", runtime, affinity, "traceId"
       ) VALUES (
         gen_random_uuid(), $1, $2, 'PENDING', $3, $4, $5, 'auto', 'Task created',
-        $6, $7, $8, NOW()
+        $6, $7, $8, NOW(), $9, $10, $11
       ) RETURNING *
     `;
 
@@ -33,6 +33,9 @@ export class PostgresTaskRepository implements TaskRepository {
       JSON.stringify(command.input || {}),
       JSON.stringify(command.metadata || {}),
       command.maxRetries || 3,
+      command.runtime || 'DOCKER',
+      command.affinity || null,
+      command.traceId || null,
     ];
 
     const result = await this.pool.query(query, values);
@@ -121,6 +124,9 @@ export class PostgresTaskRepository implements TaskRepository {
       executionTimeMs: row.executionTimeMs,
       cost: row.cost,
       region: row.region || 'us-east',
+      runtime: row.runtime || 'DOCKER',
+      affinity: row.affinity || undefined,
+      traceId: row.traceId || undefined,
       createdAt: row.createdAt || row.submittedAt,
       updatedAt: row.updatedAt || row.submittedAt,
     };

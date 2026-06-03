@@ -507,11 +507,11 @@ export class CostOptimizationEngine {
    */
   startAnalysis(): void {
     this.analysisTimer = setInterval(() => {
-      this.analyze()
+      void this.analyze()
     }, this.config.analysisInterval)
     
     // Run initial analysis
-    this.analyze()
+    void this.analyze()
   }
 
   /**

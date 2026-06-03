@@ -1,4 +1,3 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { OutcomeCollector, TaskOutcome } from '../feedback/outcome-collector';
 import { IncrementalUpdater } from '../training/incremental-updater';
 import { MLScheduler } from '../ml-scheduler';
@@ -31,6 +30,7 @@ describe('ML Feedback Loop & Contextual Bandit', () => {
     recordSchedulingDecision: vi.fn(),
     updateMLDrift: vi.fn(),
     recordMetric: vi.fn(),
+    recordCarbonMetrics: vi.fn(),
   } as any;
 
   const mockPredictor = {

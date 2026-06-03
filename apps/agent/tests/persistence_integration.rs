@@ -18,6 +18,8 @@ async fn test_task_persistence_and_sync() -> Result<()> {
         memory_limit_mb: 128,
         cpu_fuel: None,
         timeout_seconds: 30,
+        trace_id: None,
+        span_id: None,
     };
 
     // 1. Save task
@@ -90,6 +92,8 @@ async fn test_crash_recovery() -> Result<()> {
             memory_limit_mb: 128,
             cpu_fuel: None,
             timeout_seconds: 30,
+        trace_id: None,
+        span_id: None,
         };
         db.save_task(&spec).await?;
         db.update_task_status("crashed-task", "RUNNING").await?;

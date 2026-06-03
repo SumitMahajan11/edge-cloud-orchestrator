@@ -71,4 +71,4 @@ async function verifyBackpressure() {
   }
 }
 
-verifyBackpressure();
+void verifyBackpressure();

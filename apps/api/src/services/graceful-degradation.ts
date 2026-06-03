@@ -110,7 +110,7 @@ export class GracefulDegradationService extends EventEmitter {
     }
 
     this.checkInterval = setInterval(() => {
-      this.checkAndDegrade();
+      void this.checkAndDegrade();
     }, this.config.checkIntervalMs);
 
     this.logger.info('Graceful degradation monitoring started');
@@ -124,6 +124,7 @@ export class GracefulDegradationService extends EventEmitter {
       clearInterval(this.checkInterval);
       this.checkInterval = null;
     }
+    this.removeAllListeners();
   }
 
   /**

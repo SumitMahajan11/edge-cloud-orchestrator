@@ -57,8 +57,8 @@ export function useCreateWebhook() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
-      queryClient.invalidateQueries({ queryKey: ['webhooks', 'stats'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
+      void queryClient.invalidateQueries({ queryKey: ['webhooks', 'stats'] })
     },
   })
 }
@@ -71,7 +71,7 @@ export function useUpdateWebhook() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
     },
   })
 }
@@ -84,8 +84,8 @@ export function useDeleteWebhook() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
-      queryClient.invalidateQueries({ queryKey: ['webhooks', 'stats'] })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
+      void queryClient.invalidateQueries({ queryKey: ['webhooks', 'stats'] })
     },
   })
 }
@@ -98,7 +98,7 @@ export function useToggleWebhook() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
     },
   })
 }
@@ -121,7 +121,7 @@ export function useRetryDelivery() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.webhooks.all })
     },
   })
 }

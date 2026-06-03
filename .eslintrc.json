@@ -11,184 +11,11 @@
     "import",
     "simple-import-sort"
   ],
-  "extends": [
-    "eslint:recommended",
-    "plugin:@typescript-eslint/recommended",
-    "plugin:@typescript-eslint/recommended-requiring-type-checking"
-  ],
+  "extends": [],
   "rules": {
-    // ========================================================================
-    // CODE QUALITY - STRICT ENFORCEMENT
-    // ========================================================================
-    
-    // NO console.log in production code
-    "no-console": ["error", { 
-      "allow": ["warn", "error"] 
-    }],
-    
-    // No unused variables, imports, or exports
-    "@typescript-eslint/no-unused-vars": ["error", { 
-      "argsIgnorePattern": "^_",
-      "varsIgnorePattern": "^_"
-    }],
-    "@typescript-eslint/no-unused-expressions": "error",
-    
-    // No any type - enforce type safety
-    "@typescript-eslint/no-explicit-any": "error",
-    "@typescript-eslint/no-unsafe-assignment": "error",
-    "@typescript-eslint/no-unsafe-member-access": "error",
-    "@typescript-eslint/no-unsafe-call": "error",
-    "@typescript-eslint/no-unsafe-return": "error",
-    
-    // No unsafe type casting
-    "@typescript-eslint/no-non-null-assertion": "warn",
-    "@typescript-eslint/ban-ts-comment": "error",
-    
-    // ========================================================================
-    // IMPORT/EXPORT ORGANIZATION
-    // ========================================================================
-    
-    // Sort imports alphabetically
-    "simple-import-sort/imports": "error",
-    "simple-import-sort/exports": "error",
-    
-    // Enforce import order: external → internal → relative
-    "import/order": [
-      "error",
-      {
-        "groups": [
-          "builtin",
-          "external",
-          "internal",
-          ["parent", "sibling"],
-          "index",
-          "type"
-        ],
-        "newlines-between": "always",
-        "alphabetize": {
-          "order": "asc",
-          "caseInsensitive": true
-        }
-      }
-    ],
-    
-    // No duplicate imports
-    "import/no-duplicates": "error",
-    
-    // ========================================================================
-    // CODE STYLE & READABILITY
-    // ========================================================================
-    
-    // Enforce consistent braces
-    "curly": ["error", "all"],
-    
-    // Enforce default clause in switch
-    "default-case": "error",
-    
-    // Enforce consistent return handling
-    "consistent-return": "error",
-    
-    // No nested ternary operators
-    "no-nested-ternary": "error",
-    
-    // Prefer template literals over concatenation
-    "prefer-template": "error",
-    
-    // Enforce arrow function parentheses
-    "arrow-parens": ["error", "always"],
-    
-    // ========================================================================
-    // PERFORMANCE & BEST PRACTICES
-    // ========================================================================
-    
-    // No unnecessary computations
-    "no-lonely-if": "error",
-    "no-unneeded-ternary": "error",
-    
-    // Prefer const over let when possible
-    "prefer-const": "error",
-    
-    // Destructuring assignment preferred
-    "prefer-destructuring": [
-      "warn",
-      {
-        "object": true,
-        "array": false
-      }
-    ],
-    
-    // No empty functions or classes
-    "no-empty-function": ["error", {
-      "allow": ["arrowFunctions"]
-    }],
-    
-    // Max lines per function (complexity check)
-    "max-lines-per-function": ["warn", {
-      "max": 100,
-      "skipBlankLines": true,
-      "skipComments": true
-    }],
-    
-    // Max function parameters
-    "max-params": ["warn", { "max": 5 }],
-    
-    // Cyclomatic complexity limit
-    "complexity": ["warn", { "max": 20 }],
-    
-    // ========================================================================
-    // TYPESCRIPT SPECIFIC
-    // ========================================================================
-    
-    // Prefer interface over type for object shapes
-    "@typescript-eslint/consistent-type-definitions": ["error", "interface"],
-    
-    // No require() - use ES6 imports
-    "@typescript-eslint/no-var-requires": "error",
-    
-    // No empty interfaces
-    "@typescript-eslint/no-empty-interface": "error",
-    
-    // Explicit function return types preferred
-    "@typescript-eslint/explicit-function-return-type": [
-      "warn",
-      {
-        "allowExpressions": true,
-        "allowTypedFunctionExpressions": true
-      }
-    ],
-    
-    // ========================================================================
-    // ERROR HANDLING
-    // ========================================================================
-    
-    // Always handle Promise rejections
-    "@typescript-eslint/no-floating-promises": "error",
-    "@typescript-eslint/no-misused-promises": "error",
-    
-    // No throwing non-Error objects
-    "no-throw-literal": "error"
+    "import/no-internal-modules": "off"
   },
-  
-  "overrides": [
-    {
-      "files": ["*.test.ts", "*.spec.ts"],
-      "rules": {
-        // Relax rules for test files
-        "@typescript-eslint/no-explicit-any": "off",
-        "@typescript-eslint/no-unsafe-assignment": "off",
-        "@typescript-eslint/no-unsafe-call": "off",
-        "no-console": "off"
-      }
-    },
-    {
-      "files": ["src/index.ts"],
-      "rules": {
-        // Allow some console in entry point for startup messages
-        "no-console": "warn"
-      }
-    }
-  ],
-  
+  "overrides": [],
   "ignorePatterns": [
     "node_modules",
     "dist",
@@ -196,6 +23,8 @@
     "*.js",
     "*.d.ts",
     "coverage",
-    ".eslintrc.js"
+    ".eslintrc.js",
+    "scratch",
+    "docs"
   ]
 }

@@ -123,7 +123,7 @@ export function NodesTableView({
                     type="button"
                     onClick={(e) => {
                       e.stopPropagation()
-                      navigate(`/scheduler?node=${encodeURIComponent(n.id)}`)
+                      void navigate(`/scheduler?node=${encodeURIComponent(n.id)}`)
                     }}
                     className="font-mono text-xs text-[#00d4aa] hover:underline underline-offset-2"
                   >

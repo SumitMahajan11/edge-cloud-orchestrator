@@ -275,7 +275,7 @@ function OverviewTab({
                       className="flex-1 bg-[#ef4444] hover:bg-[#ef4444]/80 text-white"
                       disabled={confirmText !== 'CONFIRM'}
                       onClick={() => {
-                        onForceOffline?.(node)
+                        void onForceOffline?.(node)
                         setConfirmOpen(false)
                         setConfirmText('')
                       }}
@@ -621,7 +621,7 @@ function CopyableCode({ text }: { text: string }) {
     <button
       type="button"
       onClick={() => {
-        navigator.clipboard?.writeText(text)
+        void navigator.clipboard?.writeText(text)
         setCopied(true)
         setTimeout(() => setCopied(false), 1200)
       }}

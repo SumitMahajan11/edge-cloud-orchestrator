@@ -12,6 +12,20 @@ import {
 } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 
+const isSqlite = process.env.DATABASE_URL?.startsWith('file:') || process.env.DATABASE_URL?.includes('.db');
+
+function formatWebhook(webhook: any) {
+  if (!webhook) return webhook;
+  if (isSqlite && typeof webhook.events === 'string') {
+    try {
+      webhook.events = JSON.parse(webhook.events);
+    } catch {
+      webhook.events = webhook.events ? webhook.events.split(',') : [];
+    }
+  }
+  return webhook;
+}
+
 export default async function webhookRoutes(fastify: FastifyInstance) {
   // List webhooks
   fastify.get(
@@ -33,7 +47,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       });
 
       return {
-        data: webhooks,
+        data: isSqlite ? webhooks.map(formatWebhook) : webhooks,
         pagination: {
           page: 1,
           limit: webhooks.length || 50,
@@ -121,14 +135,14 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         data: {
           name,
           url,
-          events,
+          events: isSqlite ? JSON.stringify(events) : events,
           secret: secret || crypto.randomBytes(32).toString('hex'),
           enabled,
           tenantId: request.user!.tenantId!,
         },
       });
 
-      return reply.status(201).send(webhook);
+      return reply.status(201).send(isSqlite ? formatWebhook(webhook) : webhook);
     },
   );
 
@@ -165,12 +179,17 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         }
       }
 
+      const updateData = { ...data };
+      if (isSqlite && updateData.events && Array.isArray(updateData.events)) {
+        updateData.events = JSON.stringify(updateData.events) as any;
+      }
+
       const webhook = await (fastify.prisma as any).webhook.update({
         where: { id, tenantId: request.user!.tenantId! },
-        data: data as any,
+        data: updateData as any,
       });
 
-      return webhook;
+      return isSqlite ? formatWebhook(webhook) : webhook;
     },
   );
 

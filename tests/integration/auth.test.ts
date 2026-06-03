@@ -17,11 +17,11 @@ describe('Authentication Integration', () => {
     await teardownTestApp(ctx)
   })
   
-  describe('POST /api/auth/login', () => {
+  describe('POST /v1/auth/login', () => {
     it('should reject login with invalid credentials', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/login',
+        url: '/v1/auth/login',
         payload: {
           email: 'invalid@example.com',
           password: 'wrongpassword',
@@ -36,7 +36,7 @@ describe('Authentication Integration', () => {
     it('should return tokens on successful login', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/login',
+        url: '/v1/auth/login',
         payload: {
           email: 'test-admin@edgecloud.io',
           password: 'testpassword123',
@@ -52,7 +52,7 @@ describe('Authentication Integration', () => {
     it('should reject invalid email format', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/login',
+        url: '/v1/auth/login',
         payload: {
           email: 'not-an-email',
           password: 'somepassword',
@@ -65,7 +65,7 @@ describe('Authentication Integration', () => {
     it('should reject empty password', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/login',
+        url: '/v1/auth/login',
         payload: {
           email: 'test-admin@edgecloud.io',
           password: '',
@@ -76,11 +76,11 @@ describe('Authentication Integration', () => {
     })
   })
   
-  describe('POST /api/auth/refresh', () => {
+  describe('POST /v1/auth/refresh', () => {
     it('should refresh access token with valid refresh token', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/refresh',
+        url: '/v1/auth/refresh',
         payload: {
           refreshToken: ctx.refreshToken,
         },
@@ -94,7 +94,7 @@ describe('Authentication Integration', () => {
     it('should reject invalid refresh token', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/refresh',
+        url: '/v1/auth/refresh',
         payload: {
           refreshToken: 'invalid-token',
         },
@@ -104,11 +104,11 @@ describe('Authentication Integration', () => {
     })
   })
   
-  describe('POST /api/auth/logout', () => {
+  describe('POST /v1/auth/logout', () => {
     it('should logout successfully', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/auth/logout',
+        url: '/v1/auth/logout',
         headers: {
           Authorization: `Bearer ${ctx.accessToken}`,
         },
@@ -122,7 +122,7 @@ describe('Authentication Integration', () => {
     it('should reject requests without token', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks',
+        url: '/v1/tasks',
       })
       
       expect(response.statusCode).toBe(401)
@@ -131,7 +131,7 @@ describe('Authentication Integration', () => {
     it('should reject requests with invalid token', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: {
           Authorization: 'Bearer invalid-token',
         },
@@ -143,7 +143,7 @@ describe('Authentication Integration', () => {
     it('should accept requests with valid token', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: {
           Authorization: `Bearer ${ctx.accessToken}`,
         },

@@ -53,7 +53,7 @@ export default function WorkflowDetailPage() {
   const [executing, setExecuting] = useState(false)
 
   useEffect(() => {
-    fetchWorkflow()
+    void fetchWorkflow()
   }, [id])
 
   const fetchWorkflow = async () => {
@@ -78,7 +78,7 @@ export default function WorkflowDetailPage() {
       })
       const data = await response.json()
       // router.push(`/workflows/${id}/executions/${data.executionId}`)
-      fetchWorkflow() // Refresh to show new execution
+      void fetchWorkflow() // Refresh to show new execution
     } catch (error) {
       console.error('Failed to execute workflow', error)
     } finally {

@@ -227,7 +227,7 @@ export class ResilientWebSocketClient extends EventEmitter {
     this.emit('reconnecting', { attempt: this.reconnectAttempts, delay });
 
     this.reconnectTimeout = setTimeout(() => {
-      this.connect();
+      void this.connect();
     }, delay);
   }
 

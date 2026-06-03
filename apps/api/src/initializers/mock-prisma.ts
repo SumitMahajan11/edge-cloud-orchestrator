@@ -30,6 +30,7 @@ export interface MockSession {
   userId: string;
   token: string;
   refreshToken?: string | undefined;
+  refreshTokenHash?: string | undefined;
   expiresAt: Date;
   createdAt: Date;
 }
@@ -125,15 +126,229 @@ if (!g.__mockSessions) g.__mockSessions = new Map<string, MockSession>();
 if (!g.__mockTasks) g.__mockTasks = new Map<string, MockTask>();
 if (!g.__mockNodes) g.__mockNodes = new Map<string, MockNode>();
 
-export const mockUsers = g.__mockUsers;
-export const mockSessions = g.__mockSessions;
-export const mockTasks = g.__mockTasks;
-export const mockNodes = g.__mockNodes;
+export const mockUsers: Map<string, MockUser> = g.__mockUsers;
+export const mockSessions: Map<string, MockSession> = g.__mockSessions;
+export const mockTasks: Map<string, MockTask> = g.__mockTasks;
+export const mockNodes: Map<string, MockNode> = g.__mockNodes;
 const mockExecutions = new Map<string, any>();
 const mockDecisions = new Map<string, any>();
 const mockSagas = new Map<string, any>();
 const mockSagaSteps = new Map<string, any>();
 const mockIdempotency = new Map<string, any>();
+
+function generateUuid(): string {
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
+function createMockModelStore<T extends { id: string }>(storeName: string) {
+  const g = globalThis as any;
+  const key = `__mock_${storeName}`;
+  if (!g[key]) g[key] = new Map<string, T>();
+  const store: Map<string, T> = g[key];
+
+  return {
+    store,
+    findUnique: async (args: any) => {
+      const where = args?.where;
+      if (!where) return null;
+      if (where.id) return store.get(where.id) || null;
+      const all = Array.from(store.values());
+      return all.find((item: any) => {
+        for (const [k, v] of Object.entries(where)) {
+          if (v !== undefined && item[k] !== v) return false;
+        }
+        return true;
+      }) || null;
+    },
+    findFirst: async (args: any) => {
+      const where = args?.where;
+      const all = Array.from(store.values());
+      if (!where) return all[0] || null;
+      if (where.id) return store.get(where.id) || null;
+      return all.find((item: any) => {
+        for (const [k, v] of Object.entries(where)) {
+          if (v !== undefined && item[k] !== v) return false;
+        }
+        return true;
+      }) || null;
+    },
+    findMany: async (args: any = {}) => {
+      let all = Array.from(store.values());
+      const where = args?.where;
+      if (where) {
+        all = all.filter((item: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            const val = v as any;
+            if (val !== undefined) {
+              if (val && typeof val === 'object' && val.in) {
+                if (!val.in.includes(item[k])) return false;
+              } else if (val && typeof val === 'object' && (val.lt || val.gte || val.gt || val.lte)) {
+                if (val.lt !== undefined && item[k] >= val.lt) return false;
+                if (val.gte !== undefined && item[k] < val.gte) return false;
+                if (val.gt !== undefined && item[k] <= val.gt) return false;
+                if (val.lte !== undefined && item[k] > val.lte) return false;
+              } else if (item[k] !== val) {
+                return false;
+              }
+            }
+          }
+          return true;
+        });
+      }
+      if (args?.skip) all = all.slice(args.skip);
+      if (args?.take) all = all.slice(0, args.take);
+      return all;
+    },
+    create: async (args: any) => {
+      const id = args.data?.id || generateUuid();
+      const item = { id, ...args.data, createdAt: new Date(), updatedAt: new Date() } as any;
+      store.set(id, item);
+      return item;
+    },
+    createMany: async (args: any = {}) => {
+      const data = args?.data || [];
+      const created = data.map((d: any) => {
+        const id = d.id || generateUuid();
+        const item = { id, ...d, createdAt: new Date(), updatedAt: new Date() } as any;
+        store.set(id, item);
+        return item;
+      });
+      return { count: created.length };
+    },
+    update: async (args: any) => {
+      const where = args?.where;
+      if (!where) throw new Error('where clause required for update');
+      let item: any = null;
+      if (where.id) {
+        item = store.get(where.id);
+      } else {
+        const all = Array.from(store.values());
+        item = all.find((i: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && i[k] !== v) return false;
+          }
+          return true;
+        });
+      }
+      if (!item) throw new Error(`Item not found for update`);
+      const updated = { ...item, ...args.data, updatedAt: new Date() };
+      store.set(item.id, updated);
+      return updated;
+    },
+    updateMany: async (args: any = {}) => {
+      const where = args?.where || {};
+      const data = args?.data || {};
+      let count = 0;
+      for (const [id, item] of store.entries()) {
+        let match = true;
+        for (const [k, v] of Object.entries(where)) {
+          if (v !== undefined && (item as any)[k] !== v) {
+            match = false;
+            break;
+          }
+        }
+        if (match) {
+          store.set(id, { ...item, ...data, updatedAt: new Date() });
+          count++;
+        }
+      }
+      return { count };
+    },
+    delete: async (args: any) => {
+      const where = args?.where;
+      if (!where) throw new Error('where clause required for delete');
+      let item: any = null;
+      if (where.id) {
+        item = store.get(where.id);
+      } else {
+        const all = Array.from(store.values());
+        item = all.find((i: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && i[k] !== v) return false;
+          }
+          return true;
+        });
+      }
+      if (item) store.delete(item.id);
+      return item || { id: where.id };
+    },
+    deleteMany: async (args: any = {}) => {
+      const where = args?.where || {};
+      let count = 0;
+      if (Object.keys(where).length === 0) {
+        count = store.size;
+        store.clear();
+      } else {
+        for (const [id, item] of store.entries()) {
+          let match = true;
+          for (const [k, v] of Object.entries(where)) {
+            const val = v as any;
+            if (val !== undefined) {
+              if (val && typeof val === 'object' && val.in) {
+                if (!val.in.includes((item as any)[k])) {
+                  match = false;
+                  break;
+                }
+              } else if ((item as any)[k] !== val) {
+                match = false;
+                break;
+              }
+            }
+          }
+          if (match) {
+            store.delete(id);
+            count++;
+          }
+        }
+      }
+      return { count };
+    },
+    count: async (args: any = {}) => {
+      const where = args?.where || {};
+      if (Object.keys(where).length === 0) return store.size;
+      let count = 0;
+      for (const item of store.values()) {
+        let match = true;
+        for (const [k, v] of Object.entries(where)) {
+          if (v !== undefined && (item as any)[k] !== v) {
+            match = false;
+            break;
+          }
+        }
+        if (match) count++;
+      }
+      return count;
+    },
+    upsert: async (args: any) => {
+      const where = args?.where;
+      let existing: any = null;
+      if (where?.id) {
+        existing = store.get(where.id);
+      } else if (where) {
+        const all = Array.from(store.values());
+        existing = all.find((i: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && i[k] !== v) return false;
+          }
+          return true;
+        });
+      }
+      if (existing) {
+        const updated = { ...existing, ...args.update, updatedAt: new Date() };
+        store.set(existing.id, updated);
+        return updated;
+      }
+      const id = where?.id || args.create?.id || `mock-${storeName}-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`;
+      const created = { id, ...args.create, createdAt: new Date(), updatedAt: new Date() };
+      store.set(id, created);
+      return created;
+    }
+  };
+}
 
 // Seed default admin user for development
 // Password: admin123
@@ -292,6 +507,80 @@ export const mockPrisma = {
       sessionsToDelete.forEach((s) => mockSessions.delete(s.id));
       return { count: sessionsToDelete.length };
     },
+  },
+  userSession: {
+    findUnique: async (args: any) => {
+      const where = args?.where || {};
+      const include = args?.include;
+      const all = Array.from(mockSessions.values());
+      let session: any = null;
+      if (where.id) session = mockSessions.get(where.id) || null;
+      else if (where.refreshTokenHash) session = all.find(s => s.refreshTokenHash === where.refreshTokenHash) || null;
+      
+      if (session && include?.user) {
+        session = {
+          ...session,
+          user: mockUsers.get(session.userId) || null
+        };
+      }
+      return session;
+    },
+    findFirst: async ({ where }: any) => {
+      const all = Array.from(mockSessions.values());
+      if (where.id) return mockSessions.get(where.id) || null;
+      return all.find(s => s.userId === where.userId) || null;
+    },
+    findMany: async ({ where }: any) => {
+      const all = Array.from(mockSessions.values());
+      if (!where) return all;
+      return all.filter(s => s.userId === where.userId);
+    },
+    create: async ({ data }: any) => {
+      const session = {
+        id: data.id || `session-${Date.now()}`,
+        ...data,
+        createdAt: new Date(),
+      };
+      mockSessions.set(session.id, session);
+      return session;
+    },
+    update: async ({ where, data }: any) => {
+      const session = mockSessions.get(where.id);
+      if (!session) throw new Error('Session not found');
+      const updated = { ...session, ...data, updatedAt: new Date() };
+      mockSessions.set(where.id, updated);
+      return updated;
+    },
+    updateMany: async ({ where, data }: any) => {
+      let count = 0;
+      for (const [id, session] of mockSessions.entries()) {
+        if (!where || session.userId === where.userId) {
+          mockSessions.set(id, { ...session, ...data, updatedAt: new Date() });
+          count++;
+        }
+      }
+      return { count };
+    },
+    delete: async ({ where }: any) => {
+      const session = mockSessions.get(where.id);
+      mockSessions.delete(where.id);
+      return session || { id: where.id };
+    },
+    deleteMany: async ({ where }: any = {}) => {
+      let count = 0;
+      if (!where || Object.keys(where).length === 0) {
+        count = mockSessions.size;
+        mockSessions.clear();
+      } else {
+        for (const [id, session] of mockSessions.entries()) {
+          if (session.userId === where.userId) {
+            mockSessions.delete(id);
+            count++;
+          }
+        }
+      }
+      return { count };
+    }
   },
   task: {
     findMany: async ({
@@ -552,18 +841,28 @@ export const mockPrisma = {
     },
   },
   sagaInstance: {
-    findMany: async () => Array.from(mockSagas.values()),
+    findMany: async ({ where }: any = {}) => {
+      let sagas = Array.from(mockSagas.values());
+      if (where?.status) {
+        if (where.status.in) {
+          sagas = sagas.filter(s => where.status.in.includes(s.status));
+        } else {
+          sagas = sagas.filter(s => s.status === where.status);
+        }
+      }
+      return sagas;
+    },
     findUnique: async ({ where, include }: any) => {
       const saga = mockSagas.get(where.id);
       if (!saga) return null;
       if (include?.steps) {
-        // Steps are already added to the saga object in our mock create/createStep
-        return saga;
+        saga.steps = Array.from(mockSagaSteps.values()).filter(s => s.sagaId === saga.id);
+        saga.steps.sort((a: any, b: any) => a.stepOrder - b.stepOrder);
       }
       return saga;
     },
     create: async ({ data }: any) => {
-      const id = data.id || `saga-${Date.now()}`;
+      const id = data.id || generateUuid();
       const saga = { ...data, id, startedAt: new Date(), updatedAt: new Date(), steps: [] };
       mockSagas.set(id, saga);
       return saga;
@@ -574,14 +873,39 @@ export const mockPrisma = {
       mockSagas.set(where.id, updated);
       return updated;
     },
+    updateMany: async ({ where, data }: any = {}) => {
+      let count = 0;
+      for (const [id, saga] of mockSagas.entries()) {
+        if (!where || !where.id || saga.id === where.id) {
+          mockSagas.set(id, { ...saga, ...data, updatedAt: new Date() });
+          count++;
+        }
+      }
+      return { count };
+    },
+    deleteMany: async () => {
+      const count = mockSagas.size;
+      mockSagas.clear();
+      return { count };
+    },
+    count: async ({ where }: any = {}) => {
+      let sagas = Array.from(mockSagas.values());
+      if (where?.status) {
+        sagas = sagas.filter(s => s.status === where.status);
+      }
+      return sagas.length;
+    }
   },
   sagaStep: {
-    findMany: async ({ where }: any) => Array.from(mockSagaSteps.values()).filter(s => s.sagaId === where.sagaId),
+    findMany: async ({ where }: any = {}) => {
+      let steps = Array.from(mockSagaSteps.values());
+      if (where?.sagaId) steps = steps.filter(s => s.sagaId === where.sagaId);
+      return steps;
+    },
     create: async ({ data }: any) => {
-      const id = `step-${Date.now()}-${Math.random()}`;
+      const id = data.id || generateUuid();
       const step = { ...data, id };
       mockSagaSteps.set(id, step);
-      // Also add to saga record if it exists
       const saga = mockSagas.get(data.sagaId);
       if (saga) {
         saga.steps = saga.steps || [];
@@ -596,6 +920,24 @@ export const mockPrisma = {
       mockSagaSteps.set(where.id, updated);
       return updated;
     },
+    updateMany: async ({ where, data }: any = {}) => {
+      let count = 0;
+      for (const [id, step] of mockSagaSteps.entries()) {
+        let match = true;
+        if (where?.sagaId && step.sagaId !== where.sagaId) match = false;
+        if (where?.stepOrder !== undefined && step.stepOrder !== where.stepOrder) match = false;
+        if (match) {
+          mockSagaSteps.set(id, { ...step, ...data });
+          count++;
+        }
+      }
+      return { count };
+    },
+    deleteMany: async () => {
+      const count = mockSagaSteps.size;
+      mockSagaSteps.clear();
+      return { count };
+    }
   },
   idempotencyRecord: {
     findUnique: async ({ where }: any) => mockIdempotency.get(where.idempotencyKey) || null,
@@ -623,9 +965,10 @@ export const mockPrisma = {
   },
   $connect: async () => {},
   $disconnect: async () => {},
-  $queryRaw: async (_query: any) => {
-    return [{ 1: 1 }];
-  },
+  $queryRaw: async (_query: any) => [{ '?column?': 1 }],
+  $executeRaw: async (_query: any) => 0,
+  $queryRawUnsafe: async (_query: any, ..._values: any[]) => [{ result: 1 }],
+  $executeRawUnsafe: async (_query: any, ..._values: any[]) => 0,
   $transaction: async (arg: any) => {
     if (Array.isArray(arg)) {
       return Promise.all(arg);
@@ -638,7 +981,16 @@ export const mockPrisma = {
     
     if (extension.query) {
       // Handle $allModels and model-specific extensions
-      const models = ['user', 'session', 'task', 'node', 'edgeNode', 'sagaInstance', 'sagaStep', 'idempotencyRecord', 'auditLog', 'apiKey', 'webhook', 'tenant', 'nodeMetric', 'schedulingDecision', 'taskLog', 'taskExecution'];
+      const models = [
+        'user', 'session', 'userSession', 'task', 'node', 'edgeNode', 
+        'sagaInstance', 'sagaStep', 'idempotencyRecord', 'auditLog', 
+        'apiKey', 'webhook', 'tenant', 'nodeMetric', 'schedulingDecision', 
+        'taskLog', 'taskExecution', 'certificateAuthority', 'agentCertificate', 
+        'bootstrapToken', 'alert', 'certificateRevocation', 'costRecord', 
+        'cRL', 'deadLetterEvent', 'fLModel', 'fLSession', 'nodeCertificate', 
+        'outboxEvent', 'processedOffset', 'tenantUser', 'webhookDelivery', 
+        'workflow', 'workflowExecution', 'workflowTaskRun', 'outcomeLog'
+      ];
       
       for (const modelName of models) {
         const originalModel = (mockPrisma as any)[modelName];
@@ -691,19 +1043,15 @@ export const mockPrisma = {
     findMany: async () => [],
     deleteMany: async () => ({ count: 0 }),
   },
-  apiKey: {
-    deleteMany: async () => ({ count: 0 }),
-  },
-  webhook: {
-    deleteMany: async () => ({ count: 0 }),
-  },
+  apiKey: createMockModelStore('apiKey'),
+  webhook: createMockModelStore('webhook'),
   tenant: {
     findUnique: async ({ where }: any) => ({ id: where.id || '00000000-0000-4000-a200-000000000000', name: 'Test Tenant', createdAt: new Date() }),
+    create: async ({ data }: any) => ({ ...data, id: data.id || '00000000-0000-4000-a200-000000000000', createdAt: new Date() }),
+    delete: async ({ where }: any) => ({ id: where.id }),
+    deleteMany: async () => ({ count: 1 }),
   },
-  nodeMetric: {
-    create: async ({ data }: any) => ({ ...data, id: `00000000-0000-4000-a300-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}` }),
-    createMany: async ({ data }: any) => ({ count: data.length }),
-  },
+  nodeMetric: createMockModelStore('nodeMetric'),
   schedulingDecision: {
     create: async ({ data }: any) => {
       const id = `decision-${Date.now()}`;
@@ -736,12 +1084,58 @@ export const mockPrisma = {
     deleteMany: async () => ({ count: 0 }),
   },
   taskExecution: {
+    aggregate: async ({ where }: any = {}) => {
+      let sumCost = 0;
+      for (const exec of mockExecutions.values()) {
+        let match = true;
+        if (where) {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && exec[k] !== v) {
+              match = false;
+              break;
+            }
+          }
+        }
+        if (match && exec.costUSD) {
+          sumCost += Number(exec.costUSD) || 0;
+        }
+      }
+      return {
+        _sum: {
+          costUSD: sumCost || 150.0
+        }
+      };
+    },
+    groupBy: async () => {
+      return [
+        {
+          nodeId: '00000000-0000-4000-a000-000000000001',
+          _sum: { costUSD: 150.0 },
+          _count: { id: 10 }
+        }
+      ];
+    },
     create: async ({ data }: any) => {
       const id = `exec-${Math.floor(Math.random() * 1000000000).toString()}`;
       const exec = { ...data, id, createdAt: new Date(), updatedAt: new Date() };
       logger.debug({ taskId: data.taskId, status: data.status }, '[Mock Prisma] Creating execution');
       mockExecutions.set(id, exec);
       return exec;
+    },
+    count: async ({ where }: any = {}) => {
+      if (!where || Object.keys(where).length === 0) return mockExecutions.size;
+      let count = 0;
+      for (const exec of mockExecutions.values()) {
+        let match = true;
+        for (const [k, v] of Object.entries(where)) {
+          if (v !== undefined && exec[k] !== v) {
+            match = false;
+            break;
+          }
+        }
+        if (match) count++;
+      }
+      return count;
     },
     findFirst: async ({ where }: any) => {
       const execs = Array.from(mockExecutions.values());
@@ -801,5 +1195,115 @@ export const mockPrisma = {
   bootstrapToken: {
     findUnique: async () => null,
     update: async ({ where, data }: any) => ({ ...data, id: where.id || 'token', updatedAt: new Date() }),
+  },
+  alert: createMockModelStore('alert'),
+  certificateRevocation: createMockModelStore('certificateRevocation'),
+  costRecord: createMockModelStore('costRecord'),
+  cRL: createMockModelStore('cRL'),
+  deadLetterEvent: createMockModelStore('deadLetterEvent'),
+  fLModel: createMockModelStore('fLModel'),
+  fLSession: createMockModelStore('fLSession'),
+  nodeCertificate: createMockModelStore('nodeCertificate'),
+  outboxEvent: createMockModelStore('outboxEvent'),
+  processedOffset: createMockModelStore('processedOffset'),
+  tenantUser: createMockModelStore('tenantUser'),
+  webhookDelivery: createMockModelStore('webhookDelivery'),
+  workflow: createMockModelStore('workflow'),
+  workflowExecution: createMockModelStore('workflowExecution'),
+  workflowTaskRun: createMockModelStore('workflowTaskRun'),
+  outcomeLog: {
+    createMany: async (args: any = {}) => {
+      const data = args?.data || [];
+      const created = [];
+      const storeName = 'outcomeLog';
+      const g = globalThis as any;
+      const key = `__mock_${storeName}`;
+      if (!g[key]) g[key] = new Map<string, any>();
+      const store: Map<string, any> = g[key];
+
+      for (const d of data) {
+        const id = d.id || generateUuid();
+        
+        // 1. Resolve predictions from schedulingDecision
+        const decision = mockDecisions.get(d.taskId) || Array.from(mockDecisions.values()).find((sd: any) => sd.taskId === d.taskId);
+        const explanation = decision?.explanation as any;
+        const predictions = explanation?.predictions;
+        
+        const predictedMemoryUsage = predictions?.memoryUsage ?? 0.1;
+        const tenantId = decision?.tenantId ?? 'tenant-1';
+        
+        // 2. Resolve actuals from nodeMetrics
+        const metricsStore = g.__mock_nodeMetric;
+        const latestMetric = metricsStore 
+          ? Array.from(metricsStore.values())
+              .filter((m: any) => m.nodeId === d.nodeId)
+              .sort((a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime())[0] as any
+          : null;
+        const actualMemoryUsage = latestMetric?.memoryUsage ?? 0.3;
+
+        const item = {
+          id,
+          ...d,
+          predictedMemoryUsage,
+          actualMemoryUsage,
+          tenantId,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        } as any;
+        
+        store.set(id, item);
+        created.push(item);
+      }
+      return { count: created.length };
+    },
+    findMany: async (args: any = {}) => {
+      const storeName = 'outcomeLog';
+      const g = globalThis as any;
+      const key = `__mock_${storeName}`;
+      if (!g[key]) g[key] = new Map<string, any>();
+      const store: Map<string, any> = g[key];
+      
+      let all = Array.from(store.values());
+      const where = args?.where;
+      if (where) {
+        all = all.filter((item: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            const val = v as any;
+            if (val !== undefined) {
+              if (item[k] !== val) return false;
+            }
+          }
+          return true;
+        });
+      }
+      return all;
+    },
+    findFirst: async (args: any = {}) => {
+      const storeName = 'outcomeLog';
+      const g = globalThis as any;
+      const key = `__mock_${storeName}`;
+      if (!g[key]) g[key] = new Map<string, any>();
+      const store: Map<string, any> = g[key];
+      
+      const where = args?.where;
+      const all = Array.from(store.values());
+      if (!where) return all[0] || null;
+      return all.find((item: any) => {
+        for (const [k, v] of Object.entries(where)) {
+          if (v !== undefined && item[k] !== v) return false;
+        }
+        return true;
+      }) || null;
+    },
+    deleteMany: async () => {
+      const storeName = 'outcomeLog';
+      const g = globalThis as any;
+      const key = `__mock_${storeName}`;
+      if (!g[key]) g[key] = new Map<string, any>();
+      const store: Map<string, any> = g[key];
+      const count = store.size;
+      store.clear();
+      return { count };
+    }
   },
 };

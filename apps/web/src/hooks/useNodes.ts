@@ -35,8 +35,8 @@ export function useDrainNode() {
       return data
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.nodes.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.detail(id) })
     },
   })
 }
@@ -49,8 +49,8 @@ export function useForceOfflineNode() {
       return data
     },
     onSuccess: (_, id) => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
-      queryClient.invalidateQueries({ queryKey: queryKeys.nodes.detail(id) })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.detail(id) })
     },
   })
 }
@@ -63,7 +63,7 @@ export function useRegisterNode() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all })
     },
   })
 }

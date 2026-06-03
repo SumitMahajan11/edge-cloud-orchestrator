@@ -12,6 +12,7 @@ import { z } from 'zod';
 
 import { createTaskSchema, idParamSchema, taskQuerySchema } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
+import type { TenantId } from '../types/fastify.js';
 
 // ============================================================================
 // Schema Definitions
@@ -139,15 +140,15 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const task = await request.tPrisma.task.create({
         data: {
           name: data.name,
-          type: data.type,
+          type: data.type as any,
           priority: data.priority,
           target: data.target,
           nodeId: data.nodeId ?? null,
           tenantId: request.user!.tenantId!,
           policy: data.nodeId ? 'manual' : 'auto',
           reason: 'User submitted',
-          input: (data.input ?? {}),
-          metadata: (data.metadata ?? {}),
+          input: (data.input ?? {}) as any,
+          metadata: (data.metadata ?? {}) as any,
           maxRetries: data.maxRetries ?? 3,
           executions: {
             create: {
@@ -185,7 +186,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcastToTenant('task:created', task, task.tenantId);
+      fastify.wsManager.broadcastToTenant(task.tenantId as TenantId, 'task:created', task);
 
       // Build HATEOAS links
       const taskWithLinks = {
@@ -564,11 +565,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcastToTenant('task:cancelled', {
+      fastify.wsManager.broadcastToTenant(task.tenantId as TenantId, 'task:cancelled', {
         id,
         reason,
         previousStatus,
-      }, task.tenantId);
+      });
 
       return {
         ...updatedTask,
@@ -708,7 +709,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             status: 'PENDING',
             nodeId: overrides.nodeId ?? null,
             priority: overrides.priority ?? originalTask.priority,
-            input: (overrides.input ?? originalTask.input) as Record<string, unknown>,
+            input: (overrides.input ?? originalTask.input) as any,
           },
         }),
         request.tPrisma.taskExecution.create({
@@ -751,7 +752,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcastToTenant('task:created', updatedTask, updatedTask?.tenantId ?? undefined);
+      if (updatedTask) {
+        fastify.wsManager.broadcastToTenant(updatedTask.tenantId as TenantId, 'task:created', updatedTask);
+      }
 
       return reply.status(201).send({
         _links: buildTaskLinks(id),

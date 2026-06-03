@@ -43,7 +43,7 @@ impl MTlsClient {
         cert_manager: CertificateManager,
         bootstrap_token: Option<String>,
     ) -> Result<Self> {
-        let mut slf = Self {
+        let slf = Self {
             client: Arc::new(RwLock::new(Client::new())),
             cert_manager,
             base_url,

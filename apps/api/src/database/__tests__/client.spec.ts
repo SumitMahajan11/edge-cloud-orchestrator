@@ -3,13 +3,17 @@ import { PrismaClient } from '@prisma/client';
 
 // Mock PrismaClient
 vi.mock('@prisma/client', () => ({
-  PrismaClient: vi.fn().mockImplementation((options) => ({
-    $connect: vi.fn().mockResolvedValue(undefined),
-    $disconnect: vi.fn().mockResolvedValue(undefined),
-    $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
-    $transaction: vi.fn((cb: any) => cb()),
-    ...options,
-  })),
+  PrismaClient: vi.fn().mockImplementation((options) => {
+    const client = {
+      $connect: vi.fn().mockResolvedValue(undefined),
+      $disconnect: vi.fn().mockResolvedValue(undefined),
+      $queryRaw: vi.fn().mockResolvedValue([{ 1: 1 }]),
+      $transaction: vi.fn((cb: any) => cb()),
+      $extends: vi.fn().mockImplementation(() => client),
+      ...options,
+    };
+    return client;
+  }),
 }));
 
 let mockEnv = {

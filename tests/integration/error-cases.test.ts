@@ -21,7 +21,7 @@ describe('Error Handling Integration', () => {
     it('should return 404 for non-existent task', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks/non-existent-id',
+        url: '/v1/tasks/00000000-0000-0000-0000-000000000000',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -33,7 +33,7 @@ describe('Error Handling Integration', () => {
     it('should return 404 for non-existent node', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/nodes/00000000-0000-0000-0000-000000000000',
+        url: '/v1/nodes/00000000-0000-0000-0000-000000000000',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -45,7 +45,7 @@ describe('Error Handling Integration', () => {
     it('should return 400 for invalid input', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
         payload: {
           // Missing required fields
@@ -61,7 +61,7 @@ describe('Error Handling Integration', () => {
     it('should return 400 for invalid UUID format', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks/not-a-uuid',
+        url: '/v1/tasks/not-a-uuid',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -71,7 +71,7 @@ describe('Error Handling Integration', () => {
     it('should return 400 for invalid pagination parameters', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks?page=-1&limit=0',
+        url: '/v1/tasks?page=-1&limit=0',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -83,7 +83,7 @@ describe('Error Handling Integration', () => {
     it('should return 401 without token', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks',
+        url: '/v1/tasks',
       })
       
       expect(response.statusCode).toBe(401)
@@ -92,7 +92,7 @@ describe('Error Handling Integration', () => {
     it('should return 401 with malformed token', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { Authorization: 'InvalidFormat' },
       })
       
@@ -105,7 +105,7 @@ describe('Error Handling Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { Authorization: `Bearer ${expiredToken}` },
       })
       
@@ -122,7 +122,7 @@ describe('Error Handling Integration', () => {
         requests.push(
           ctx.app.inject({
             method: 'POST',
-            url: '/api/auth/login',
+            url: '/v1/auth/login',
             payload: {
               email: 'test@example.com',
               password: 'wrongpassword',
@@ -142,7 +142,7 @@ describe('Error Handling Integration', () => {
     it('should return consistent error format', async () => {
       const response = await ctx.app.inject({
         method: 'GET',
-        url: '/api/tasks/invalid-uuid',
+        url: '/v1/tasks/invalid-uuid',
         headers: { Authorization: `Bearer ${ctx.accessToken}` },
       })
       
@@ -150,7 +150,7 @@ describe('Error Handling Integration', () => {
       
       // Error responses should have consistent structure
       expect(body).toHaveProperty('error')
-      expect(typeof body.error).toBe('string')
+      expect(typeof body.error).toBe('object')
     })
   })
   
@@ -164,7 +164,7 @@ describe('Error Handling Integration', () => {
       
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { 
           Authorization: `Bearer ${ctx.accessToken}`,
           'content-type': 'application/json',
@@ -179,7 +179,7 @@ describe('Error Handling Integration', () => {
     it('should reject invalid JSON', async () => {
       const response = await ctx.app.inject({
         method: 'POST',
-        url: '/api/tasks',
+        url: '/v1/tasks',
         headers: { 
           Authorization: `Bearer ${ctx.accessToken}`,
           'content-type': 'application/json',

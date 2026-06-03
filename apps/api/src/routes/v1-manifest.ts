@@ -19,10 +19,10 @@ import workflowRoutes from './workflows';
 const v1Routes: FastifyPluginAsync = async (fastify) => {
   // Add deprecation headers to all v1 routes
   fastify.addHook('onRequest', async (request, reply) => {
-    reply.header('Deprecation', 'true');
-    reply.header('Sunset', 'Sat, 31 Dec 2026 23:59:59 GMT');
+    void reply.header('Deprecation', 'true');
+    void reply.header('Sunset', 'Sat, 31 Dec 2026 23:59:59 GMT');
     const v2Path = request.url.replace(/^\/api\/v1/, '/api/v2');
-    reply.header('Link', `<${v2Path}>; rel="successor-version"`);
+    void reply.header('Link', `<${v2Path}>; rel="successor-version"`);
   });
 
   // Register each route module

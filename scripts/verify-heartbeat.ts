@@ -59,4 +59,4 @@ async function testHeartbeat() {
   }, 10000);
 }
 
-testHeartbeat();
+void testHeartbeat();

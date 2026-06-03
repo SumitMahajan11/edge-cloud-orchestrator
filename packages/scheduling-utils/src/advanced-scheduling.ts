@@ -73,7 +73,7 @@ export class ResourceReservationManager extends EventEmitter {
 
     // Auto-expire reservation
     const timer = setTimeout(() => {
-      this.releaseReservation(reservation.id);
+      void this.releaseReservation(reservation.id);
     }, ttlSeconds * 1000);
     this.reservationTimers.set(reservation.id, timer);
 

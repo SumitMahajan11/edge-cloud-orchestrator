@@ -631,7 +631,7 @@ export class SagaOrchestrator extends EventEmitter {
    */
   startRecovery(): void {
     this.recoveryInterval = setInterval(() => {
-      this.recoverIncompleteSagas();
+      void this.recoverIncompleteSagas();
     }, this.config.recoveryIntervalMs);
   }
 
@@ -714,5 +714,13 @@ export class SagaOrchestrator extends EventEmitter {
     ]);
 
     return { started, inProgress, completed, compensating, compensated, failed };
+  }
+
+  /**
+   * Stop the orchestrator, stopping recovery and removing all listeners
+   */
+  stop(): void {
+    this.stopRecovery();
+    this.removeAllListeners();
   }
 }

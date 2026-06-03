@@ -28,7 +28,7 @@ async fn main() -> Result<()> {
     let shared_mtls = Arc::new(mtls_client);
 
     // Bootstrap if needed
-    if let Err(_) = shared_mtls.refresh_client().await {
+    if shared_mtls.refresh_client().await.is_err() {
         println!("No valid certificate found. Attempting bootstrap...");
         let node_info = NodeRegistrationInfo {
             name: agent_id.clone(),

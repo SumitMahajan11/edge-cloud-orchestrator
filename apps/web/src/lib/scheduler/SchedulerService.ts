@@ -78,7 +78,7 @@ export class SchedulerService {
 
   private startPolling(): void {
     this.pollTimer = setInterval(() => {
-      this.processQueue()
+      void this.processQueue()
     }, this.config.pollInterval)
   }
 

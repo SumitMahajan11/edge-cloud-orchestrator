@@ -34,7 +34,7 @@ class LifecycleManager {
     // Browser environment - handle page unload
     if (typeof window !== 'undefined') {
       window.addEventListener('beforeunload', () => {
-        this.shutdown()
+        void this.shutdown()
       })
     }
   }

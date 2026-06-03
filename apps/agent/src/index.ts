@@ -80,7 +80,8 @@ app.use((req, res, next) => {
   if (req.method === 'POST' && req.path === '/run-task') {
     if (!verifySignature(req.body, signature, config.REQUEST_SIGNATURE_SECRET)) {
       logger.warn(`Invalid signature on /run-task from ${req.ip}`);
-      return res.status(401).json({ error: 'Invalid HMAC signature' });
+      res.status(401).json({ error: 'Invalid HMAC signature' });
+      return;
     }
   }
   next();
@@ -106,7 +107,8 @@ app.post('/run-task', async (req, res) => {
     
     const validation = validateTaskPayload(payload, config);
     if (!validation.valid) {
-      return res.status(400).json({ error: validation.error });
+      res.status(400).json({ error: validation.error });
+      return;
     }
 
     nodeStats.tasksRunning++;
@@ -144,7 +146,10 @@ let server: http.Server | https.Server;
 
 app.post('/admin/rotate-cert', async (req, res) => {
   const { cert, key, ca } = req.body;
-  if (!cert || !key) return res.status(400).json({ error: 'Missing cert or key' });
+  if (!cert || !key) {
+    res.status(400).json({ error: 'Missing cert or key' });
+    return;
+  }
 
   try {
     certManager.updateCerts(cert, key, ca);
@@ -163,7 +168,7 @@ app.post('/admin/rotate-cert', async (req, res) => {
   }
 });
 
-async function start() {
+export async function startAgent() {
   await initConfig();
 
   app.use(cors({ origin: config.CORS_ORIGINS, credentials: true }));
@@ -179,12 +184,19 @@ async function start() {
     logger.info(`Agent ${config.NODE_ID} starting HTTP server on port ${config.PORT}`);
   }
 
-  server.listen(config.PORT, '0.0.0.0', () => {
-    logger.info(`Agent ${config.NODE_ID} is ready using ${secretManager.constructor.name}`);
+  await new Promise<void>((resolve) => {
+    server.listen(config.PORT, '0.0.0.0', () => {
+      logger.info(`Agent ${config.NODE_ID} is ready`);
+      resolve();
+    });
   });
+
+  return { server, sandbox, config };
 }
 
-start().catch(err => {
-  logger.fatal('Failed to start agent:', err);
-  process.exit(1);
-});
+if (env.NODE_ENV !== 'test' && !env.VITEST) {
+  startAgent().catch(err => {
+    logger.fatal('Failed to start agent:', err);
+    process.exit(1);
+  });
+}

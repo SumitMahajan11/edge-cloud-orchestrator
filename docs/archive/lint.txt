@@ -1,5 +1,0 @@
-﻿
-> edge-cloud-orchestrator@2.0.0 lint D:\Projects\Cloud1\edge-cloud-orchestrator
-> eslint . --ext .ts
-
-ΓÇëELIFECYCLEΓÇë Command failed with exit code 2.

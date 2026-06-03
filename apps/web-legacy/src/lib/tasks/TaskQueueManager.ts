@@ -121,7 +121,7 @@ class MemoryQueueAdapter extends QueueAdapter {
     
     if (!this.isConsuming) {
       this.isConsuming = true
-      this.processQueue()
+      void this.processQueue()
     }
   }
 

@@ -12,6 +12,13 @@ if (process.env.OTEL_DEBUG === 'true') {
 }
 
 export function initTelemetry(serviceName: string) {
+  if (process.env.NODE_ENV === 'test' || process.env.VITEST) {
+    return {
+      start: () => {},
+      shutdown: async () => {},
+    } as any;
+  }
+
   const exporter = new JaegerExporter({
     endpoint: process.env.JAEGER_ENDPOINT || 'http://jaeger:6831',
   });

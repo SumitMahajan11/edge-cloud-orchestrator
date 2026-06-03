@@ -83,7 +83,7 @@ export class RetryPolicy extends EventEmitter {
       
       // Record success on circuit breaker
       if (this.config.circuitBreaker) {
-        this.config.circuitBreaker.execute(async () => result);
+        void this.config.circuitBreaker.execute(async () => result);
       }
       
       return result;

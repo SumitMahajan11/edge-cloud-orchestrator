@@ -2,9 +2,8 @@ use anyhow::{Context, Result};
 use chrono::{DateTime, Utc, Duration};
 use rcgen::{CertificateParams, DistinguishedName, KeyPair, SanType};
 use serde::{Deserialize, Serialize};
-use std::path::{Path, PathBuf};
-use tracing::{info, warn, error};
-use x509_parser::prelude::*;
+use std::path::PathBuf;
+use tracing::{info, warn};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct CertBundle {
@@ -40,11 +39,12 @@ impl CertificateManager {
             SanType::DnsName(format!("{}.edge.local", self.agent_id)),
         ];
 
-        // Generate keypair (P-256)
-        let key_pair = KeyPair::generate(&rcgen::PKCS_ECDSA_P256_SHA256)?;
+        params.alg = &rcgen::PKCS_ECDSA_P256_SHA256;
         
-        let csr = params.serialize_request(&key_pair)?;
-        let csr_pem = csr.pem()?;
+        let cert = rcgen::Certificate::from_params(params)?;
+        let csr_pem = cert.serialize_request_pem()?;
+        let key_pair_der = cert.serialize_private_key_der();
+        let key_pair = KeyPair::from_der(&key_pair_der)?;
 
         info!("Generated CSR for agent-{}", self.agent_id);
         Ok((csr_pem, key_pair))

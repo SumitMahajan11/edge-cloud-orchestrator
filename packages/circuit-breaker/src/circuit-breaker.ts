@@ -169,7 +169,7 @@ export class CircuitBreaker extends EventEmitter {
     return this.state;
   }
 
-  getMetrics(): CircuitBreakerMetrics & { nextRetryAt?: Date } {
+  getMetrics(): CircuitBreakerMetrics & { nextRetryAt?: Date | undefined } {
     return {
       state: this.state,
       failures: this.failures,
@@ -188,6 +188,33 @@ export class CircuitBreaker extends EventEmitter {
 
   forceClose(): void {
     this.closeCircuit();
+  }
+
+  forceState(state: CircuitState): void {
+    if (this.resetTimer) {
+      clearTimeout(this.resetTimer);
+      this.resetTimer = undefined;
+    }
+
+    this.state = state;
+    if (state === 'CLOSED') {
+      this.failures = 0;
+      this.nextRetryAt = undefined;
+      this.halfOpenCalls = 0;
+      this.consecutiveSuccesses = 0;
+      this.emit('close', { name: this.config.name });
+    } else if (state === 'OPEN') {
+      this.nextRetryAt = new Date(Date.now() + this.config.resetTimeout);
+      this.emit('open', { name: this.config.name });
+      this.resetTimer = setTimeout(() => {
+        this.halfOpenCircuit();
+      }, this.config.resetTimeout);
+    } else if (state === 'HALF_OPEN') {
+      this.nextRetryAt = undefined;
+      this.halfOpenCalls = 0;
+      this.consecutiveSuccesses = 0;
+      this.emit('halfOpen', { name: this.config.name });
+    }
   }
 }
 
@@ -265,5 +292,13 @@ export class CircuitBreakerRegistry {
    */
   remove(name: string): boolean {
     return this.breakers.delete(name);
+  }
+
+  /**
+   * Force a specific state on a circuit breaker
+   */
+  forceState(name: string, state: CircuitState): void {
+    const breaker = this.getOrCreate(name);
+    breaker.forceState(state);
   }
 }

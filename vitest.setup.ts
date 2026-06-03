@@ -39,19 +39,24 @@ vi.mock('pino-pretty', () => ({
 
 // Mock observability package to prevent deep transitive dependency failures
 vi.mock('@edgecloud/observability', () => ({
+  initTracing: vi.fn(),
   MetricsCollector: vi.fn().mockImplementation(() => ({
     recordMLFallback: vi.fn(),
     recordSchedulingDecision: vi.fn(),
     incrementCounter: vi.fn(),
     recordGauge: vi.fn(),
+    recordMetric: vi.fn(),
   })),
   createTracer: vi.fn().mockReturnValue({
     startActiveSpan: vi.fn((name, fn) => fn({ end: vi.fn() })),
   }),
 }))
 
-process.env.NODE_ENV = 'test'
-process.env.LOG_LEVEL = 'fatal'
-process.env.JWT_SECRET = 'test-secret-at-least-32-chars-long-!!!'
-process.env.ENCRYPTION_KEY = 'test-encryption-key-at-least-32-chars-long'
-process.env.DATABASE_URL = 'postgresql://test:test@localhost:5432/test_db'
+process.env.NODE_ENV = process.env.NODE_ENV || 'test'
+process.env.LOG_LEVEL = process.env.LOG_LEVEL || 'fatal'
+process.env.JWT_SECRET = process.env.JWT_SECRET || 'a'.repeat(32)
+process.env.ENCRYPTION_KEY = process.env.ENCRYPTION_KEY || 'b'.repeat(32)
+process.env.DATABASE_URL = process.env.DATABASE_URL || 'postgresql://test:test@localhost:5432/test_db?sslmode=require'
+process.env.FORCE_MOCK_REDIS = process.env.FORCE_MOCK_REDIS || 'true'
+process.env.FORCE_MOCK_DB = process.env.FORCE_MOCK_DB || 'true'
+process.env.ALLOW_PRIVATE_IPS = process.env.ALLOW_PRIVATE_IPS || 'true'

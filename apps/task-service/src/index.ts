@@ -133,7 +133,7 @@ app.post('/tasks', {
 }, async (request: FastifyRequest, reply: FastifyReply) => {
   const input = CreateTaskSchema.parse(request.body);
   const task = await taskService.createTask(input);
-  reply.status(201).send(task);
+  void reply.status(201).send(task);
 });
 
 app.get('/tasks', {
@@ -141,7 +141,7 @@ app.get('/tasks', {
 }, async (request: FastifyRequest, reply: FastifyReply) => {
   const query = TaskListQuerySchema.parse(request.query);
   const tasks = await taskService.listTasks(query);
-  reply.send(tasks);
+  void reply.send(tasks);
 });
 
 app.get('/tasks/stats', {
@@ -157,11 +157,11 @@ app.get('/tasks/:id', {
   const task = await taskService.getTask(id);
   
   if (!task) {
-    reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
+    void reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
     return;
   }
   
-  reply.send(task);
+  void reply.send(task);
 });
 
 app.post('/tasks/:id/cancel', {
@@ -173,18 +173,18 @@ app.post('/tasks/:id/cancel', {
   const task = await taskService.cancelTask(id, reason);
   
   if (!task) {
-    reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
+    void reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
     return;
   }
   
-  reply.send(task);
+  void reply.send(task);
 });
 
 // Internal API for scheduler (service-to-service auth required)
 app.post('/internal/tasks/:id/schedule', async (request: FastifyRequest, reply: FastifyReply) => {
   // Verify service-to-service auth
   if (!request.serviceAuth) {
-    reply.status(401).send({ error: 'Service authentication required', code: 'AUTH_REQUIRED' });
+    void reply.status(401).send({ error: 'Service authentication required', code: 'AUTH_REQUIRED' });
     return;
   }
 
@@ -194,16 +194,16 @@ app.post('/internal/tasks/:id/schedule', async (request: FastifyRequest, reply: 
   const task = await taskService.scheduleTask(id, nodeId, score);
   
   if (!task) {
-    reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
+    void reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
     return;
   }
   
-  reply.send(task);
+  void reply.send(task);
 });
 
 app.post('/internal/tasks/:id/complete', async (request: FastifyRequest, reply: FastifyReply) => {
   if (!request.serviceAuth) {
-    reply.status(401).send({ error: 'Service authentication required', code: 'AUTH_REQUIRED' });
+    void reply.status(401).send({ error: 'Service authentication required', code: 'AUTH_REQUIRED' });
     return;
   }
 
@@ -213,16 +213,16 @@ app.post('/internal/tasks/:id/complete', async (request: FastifyRequest, reply: 
   const task = await taskService.completeTask(id, executionTimeMs, cost, output);
   
   if (!task) {
-    reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
+    void reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
     return;
   }
   
-  reply.send(task);
+  void reply.send(task);
 });
 
 app.post('/internal/tasks/:id/fail', async (request: FastifyRequest, reply: FastifyReply) => {
   if (!request.serviceAuth) {
-    reply.status(401).send({ error: 'Service authentication required', code: 'AUTH_REQUIRED' });
+    void reply.status(401).send({ error: 'Service authentication required', code: 'AUTH_REQUIRED' });
     return;
   }
 
@@ -232,11 +232,11 @@ app.post('/internal/tasks/:id/fail', async (request: FastifyRequest, reply: Fast
   const task = await taskService.failTask(id, error, retryCount, willRetry);
   
   if (!task) {
-    reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
+    void reply.status(404).send({ error: 'Task not found', code: 'NOT_FOUND' });
     return;
   }
   
-  reply.send(task);
+  void reply.send(task);
 });
 
 // Start server

@@ -1,15 +1,15 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from 'vitest';
 import axios from 'axios';
 import Fastify from 'fastify';
+import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Set global timeouts and environment variables before imports
 vi.setConfig({ hookTimeout: 120000, testTimeout: 120000 });
 
-const SERVICE_TOKEN = 'test-service-token-at-least-32-chars-long';
-const ENCRYPTION_KEY = 'encryption-key-at-least-32-chars-long';
-const JWT_SECRET = 'jwt-secret-at-least-32-chars-long-security';
+const SERVICE_TOKEN = 'c'.repeat(32);
+const ENCRYPTION_KEY = 'b'.repeat(32);
+const JWT_SECRET = 'a'.repeat(32);
 
-process.env.DATABASE_URL = 'postgresql://mock:mock@localhost:5432/mock';
+process.env.DATABASE_URL = 'postgresql://mock:mock@localhost:5432/mock?sslmode=require';
 process.env.REDIS_URL = 'redis://localhost:6379';
 process.env.JWT_SECRET = JWT_SECRET;
 process.env.ENCRYPTION_KEY = ENCRYPTION_KEY;
@@ -17,6 +17,7 @@ process.env.SERVICE_TOKEN = SERVICE_TOKEN;
 process.env.NODE_ENV = 'test';
 process.env.LOG_LEVEL = 'debug';
 process.env.KAFKAJS_NO_PARTITIONER_WARNING = '1';
+process.env.ALLOW_PRIVATE_IPS = 'true';
 
 // Shared in-memory state
 const dbState = {
@@ -31,7 +32,11 @@ const dbState = {
   alertRules: new Map(),
   webhooks: new Map(),
   webhookDeliveries: new Map(),
-  schedulingDecisions: new Map()
+  schedulingDecisions: new Map(),
+  certificateAuthorities: new Map(),
+  nodeCertificates: new Map(),
+  certificateRevocations: new Map(),
+  bootstrapTokens: new Map()
 };
 
 // Ports for tests
@@ -49,7 +54,7 @@ vi.mock('jsonwebtoken', () => ({
       if (token === 'admin-token') {
         return { id: 'admin-id', email: 'admin@example.com', role: 'ADMIN', tenantId: 'default' };
       }
-      return require('jsonwebtoken').verify(token, 'jwt-secret-at-least-32-chars-long-security');
+      return require('jsonwebtoken').verify(token, 'a'.repeat(32));
     }),
     sign: vi.fn().mockReturnValue('mock-token'),
   }
@@ -63,17 +68,17 @@ vi.mock('pg', () => ({
         const id = params[params.length - 1];
         const task = dbState.tasks.get(id);
         if (task) {
-          if (text.includes('status = $1')) task.status = params[0];
+          if (text.includes('status = $1')) {task.status = params[0];}
           if (text.includes('"nodeId" =')) {
-            const nodeId = params.find(p => typeof p === 'string' && p.length > 30);
-            if (nodeId) task.nodeId = nodeId;
+            const nodeId = params.find((p) => typeof p === 'string' && p.length > 30);
+            if (nodeId) {task.nodeId = nodeId;}
           }
         }
         return { rowCount: 1, rows: [task] };
       }
       if (text.includes('SELECT COUNT(*) FROM tasks')) {
         const status = params[0];
-        const count = Array.from(dbState.tasks.values()).filter(t => t.status === status).length;
+        const count = Array.from(dbState.tasks.values()).filter((t) => t.status === status).length;
         return { rows: [{ count: count.toString() }] };
       }
       if (text.includes('SELECT * FROM tasks WHERE id =')) {
@@ -108,7 +113,7 @@ vi.mock('kafkajs', () => ({
     consumer: vi.fn().mockReturnValue({
       connect: vi.fn().mockResolvedValue(undefined),
       subscribe: vi.fn().mockImplementation(async ({ topic }) => {
-        if (!kafkaHandlers.has(topic)) kafkaHandlers.set(topic, []);
+        if (!kafkaHandlers.has(topic)) {kafkaHandlers.set(topic, []);}
       }),
       run: vi.fn().mockImplementation(async ({ eachMessage }) => {
         kafkaHandlers.forEach((handlers) => handlers.push(eachMessage));
@@ -138,6 +143,10 @@ const resetDbState = () => {
   dbState.webhooks.clear();
   dbState.webhookDeliveries.clear();
   dbState.schedulingDecisions.clear();
+  dbState.certificateAuthorities.clear();
+  dbState.nodeCertificates.clear();
+  dbState.certificateRevocations.clear();
+  dbState.bootstrapTokens.clear();
   dbState.users.set('admin', { id: 'admin', role: 'ADMIN', tenantId: 'default' });
   dbState.tenants.set('default', { id: 'default', name: 'Default Tenant', createdAt: new Date(), updatedAt: new Date() });
 };
@@ -145,7 +154,7 @@ const resetDbState = () => {
 // Helper to create a mock model
 const createMockModel = (stateKey: string) => ({
   create: async ({ data }: any) => {
-    const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).substr(2, 9));
+    const id = data.id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `id-${  Math.random().toString(36).substr(2, 9)}`);
     const now = new Date();
     const item = { 
       ...data, 
@@ -170,14 +179,14 @@ const createMockModel = (stateKey: string) => ({
   update: async ({ where, data }: any) => {
     const id = where.id || where.taskId;
     const item = (dbState as any)[stateKey].get(id);
-    if (item) Object.assign(item, data);
+    if (item) {Object.assign(item, data);}
     return item;
   },
   upsert: async ({ where, update, create }: any) => {
     const id = where.id || where.taskId;
     let item = (dbState as any)[stateKey].get(id);
     if (item) { Object.assign(item, update); return item; }
-    const newItemId = id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'id-' + Math.random().toString(36).substr(2, 9));
+    const newItemId = id || (typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `id-${  Math.random().toString(36).substr(2, 9)}`);
     item = { ...create, id: newItemId, createdAt: new Date(), updatedAt: new Date(), tenantId: create.tenantId || 'default' };
     (dbState as any)[stateKey].set(newItemId, item);
     return item;
@@ -193,13 +202,13 @@ const createMockModel = (stateKey: string) => ({
     if (args?.where) {
       results = results.filter((item: any) => {
         return Object.entries(args.where).every(([key, value]) => {
-          if (value === null || value === undefined) return true;
+          if (value === null || value === undefined) {return true;}
           if (typeof value === 'object' && value !== null) {
-            if ('lt' in value) return item[key] < (value as any).lt;
-            if ('lte' in value) return item[key] <= (value as any).lte;
-            if ('gt' in value) return item[key] > (value as any).gt;
-            if ('gte' in value) return item[key] >= (value as any).gte;
-            if ('in' in value) return (value as any).in.includes(item[key]);
+            if ('lt' in value) {return item[key] < (value as any).lt;}
+            if ('lte' in value) {return item[key] <= (value as any).lte;}
+            if ('gt' in value) {return item[key] > (value as any).gt;}
+            if ('gte' in value) {return item[key] >= (value as any).gte;}
+            if ('in' in value) {return (value as any).in.includes(item[key]);}
           }
           return item[key] === value;
         });
@@ -218,7 +227,7 @@ const createMockModel = (stateKey: string) => ({
 
 const mockPrismaInstance = {
   $connect: async () => {}, $disconnect: async () => {}, $extends: vi.fn().mockReturnThis(),
-  $transaction: async (calls: any[]) => { const res = []; for (const c of calls) res.push(await (typeof c === 'function' ? c(mockPrismaInstance) : c)); return res; },
+  $transaction: async (calls: any[]) => { const res = []; for (const c of calls) {res.push(await (typeof c === 'function' ? c(mockPrismaInstance) : c));} return res; },
   $queryRaw: async () => [{ 1: 1 }],
   $executeRawUnsafe: async () => ({}),
   edgeNode: createMockModel('edgeNodes'), 
@@ -233,7 +242,11 @@ const mockPrismaInstance = {
   alertRule: createMockModel('alertRules'),
   webhook: createMockModel('webhooks'),
   webhookDelivery: createMockModel('webhookDeliveries'),
-  schedulingDecision: createMockModel('schedulingDecisions')
+  schedulingDecision: createMockModel('schedulingDecisions'),
+  certificateAuthority: createMockModel('certificateAuthorities'),
+  nodeCertificate: createMockModel('nodeCertificates'),
+  certificateRevocation: createMockModel('certificateRevocations'),
+  bootstrapToken: createMockModel('bootstrapTokens')
 };
 
 // Mock dependencies at the top level
@@ -280,14 +293,14 @@ vi.mock('@edgecloud/shared-kernel', async (importOriginal) => {
       error: (m: any) => {
         const err = m.error || m;
         console.error(`[MOCK LOGGER ERROR] ${err.message || JSON.stringify(m)}`);
-        if (err.stack) console.error(err.stack);
+        if (err.stack) {console.error(err.stack);}
       }, 
       warn: vi.fn(), 
       debug: vi.fn(), 
       fatal: (m: any) => {
         const err = m.error || m;
         console.error(`[MOCK LOGGER FATAL] ${err.message || JSON.stringify(m)}`);
-        if (err.stack) console.error(err.stack);
+        if (err.stack) {console.error(err.stack);}
       }, 
       child: vi.fn().mockReturnThis()
     }),
@@ -308,18 +321,8 @@ vi.mock('@edgecloud/shared-kernel', async (importOriginal) => {
   };
 });
 
-// Import services
-import * as api from '../../apps/api/src/index';
-import * as taskService from '../../apps/task-service/src/index';
-
-// Manual decorations to fix Fastify startup
-(api.app as any).decorate('authenticate', async (request: any) => {
-  request.user = { id: 'admin', role: 'ADMIN', tenantId: 'default' };
-});
-(api.app as any).decorate('requireRole', () => async () => {});
-(api.app as any).decorate('authService', {});
-(api.app as any).decorate('rateLimitService', { checkLimit: async () => true });
-(api.app as any).decorate('prisma', mockPrismaInstance); 
+let api: any = {};
+let taskService: any = {}; 
 
 // Mock Prisma module
 vi.mock('@prisma/client', () => {
@@ -352,15 +355,15 @@ describe('Scheduling Flow E2E', () => {
 
       // 1. Start Mock Agent
       mockAgent = Fastify();
-      (mockAgent as any).shouldFail = false;
+      (mockAgent).shouldFail = false;
       mockAgent.post('/run-task', async (req: any) => {
         const { taskId, runtime, affinity } = req.body;
         console.log(`[MockAgent] Received task: ${taskId}, runtime: ${runtime}, affinity: ${affinity}`);
         
-        (mockAgent as any).lastReceivedTask = req.body;
+        (mockAgent).lastReceivedTask = req.body;
 
         setTimeout(() => {
-          if ((mockAgent as any).shouldFail) {
+          if ((mockAgent).shouldFail) {
             axios.post(`http://127.0.0.1:${TASK_SERVICE_PORT}/internal/tasks/${taskId}/fail`, 
               { error: 'Simulated failure', retryCount: 1, willRetry: true }, 
               { headers: { 'X-Service-Token': SERVICE_TOKEN } }
@@ -384,17 +387,33 @@ describe('Scheduling Flow E2E', () => {
       
       console.log('Starting Task Service...');
       process.env.PORT = TASK_SERVICE_PORT.toString();
+      taskService = await import('../../apps/task-service/src/index');
       await taskService.start();
       console.log('Task Service started.');
 
       console.log('Starting API Gateway...');
       process.env.PORT = API_PORT.toString();
+      api = await import('../../apps/api/src/index');
+      
+      const decorateSafely = (name: string, value: any) => {
+        if (api.app && !(api.app).hasDecorator(name)) {
+          (api.app).decorate(name, value);
+        }
+      };
+      decorateSafely('authenticate', async (request: any) => {
+        request.user = { id: 'admin', role: 'ADMIN', tenantId: 'default' };
+      });
+      decorateSafely('requireRole', () => async () => {});
+      decorateSafely('authService', {});
+      decorateSafely('rateLimitService', { checkLimit: async () => true });
+      decorateSafely('prisma', mockPrismaInstance);
+
       await api.start();
       console.log(`API Gateway started on port ${API_PORT}.`);
       
       process.env.PORT = originalPort;
 
-      await new Promise(r => setTimeout(r, 3000));
+      await new Promise((r) => setTimeout(r, 3000));
       console.log('Setup Complete.');
     } catch (err: any) {
       console.error('Setup Error:', err.stack);
@@ -408,9 +427,9 @@ describe('Scheduling Flow E2E', () => {
 
   afterAll(async () => {
     console.log('Shutting down services...');
-    if (api.app) await api.app.close();
-    if (taskService.app) await taskService.app.close();
-    if (mockAgent) await mockAgent.close();
+    if (api.app) {await api.app.close();}
+    if (taskService.app) {await taskService.app.close();}
+    if (mockAgent) {await mockAgent.close();}
     console.log('Shutdown complete.');
   });
 
@@ -431,12 +450,12 @@ describe('Scheduling Flow E2E', () => {
         });
         break;
       } catch (e: any) {
-        if (i === 4) throw e;
+        if (i === 4) {throw e;}
         console.log(`Retrying node registration (${i+1}/5)... error: ${e.message}`);
-        await new Promise(r => setTimeout(r, 2000));
+        await new Promise((r) => setTimeout(r, 2000));
       }
     }
-    const nodeId = nodeRes!.data.id;
+    const nodeId = nodeRes.data.id;
     console.log(`Node registered: ${nodeId}`);
 
     await safeAxios({
@@ -454,7 +473,9 @@ describe('Scheduling Flow E2E', () => {
         name: 'task-1', 
         type: 'DATA_PROCESSING', 
         priority: 'MEDIUM',
-        specs: { cpuCores: 2, memoryGB: 4 }
+        specs: { cpuCores: 2, memoryGB: 4 },
+        image: 'edgecloud/worker:latest',
+        runtime: 'DOCKER'
       },
       headers: { Authorization: 'Bearer admin-token' }
     });
@@ -477,7 +498,7 @@ describe('Scheduling Flow E2E', () => {
       // Manually trigger scheduling loop
       if (i % 2 === 0) {
         try { 
-          const scheduler = (api.app as any).taskScheduler;
+          const scheduler = (api.app).taskScheduler;
           if (scheduler) {
             console.log('[Scheduler] Triggering processQueue...');
             await scheduler.processQueue();
@@ -486,7 +507,7 @@ describe('Scheduling Flow E2E', () => {
           console.warn(`[Scheduler] manual trigger failed: ${e.message}`);
         }
       }
-      await new Promise(r => setTimeout(r, 2000));
+      await new Promise((r) => setTimeout(r, 2000));
     }
     expect(completed).toBe(true);
   }, 120000);
@@ -520,6 +541,7 @@ describe('Scheduling Flow E2E', () => {
         type: 'MODEL_INFERENCE', 
         priority: 'HIGH',
         runtime: 'WASM',
+        image: 'http://example.com/main.wasm',
         affinity: 'gpu=true',
         specs: { cpuCores: 2, memoryGB: 4 }
       },
@@ -530,11 +552,11 @@ describe('Scheduling Flow E2E', () => {
     expect(taskRes.data.affinity).toBe('gpu=true');
 
     console.log('Step 3: Triggering scheduler and verifying dispatch...');
-    const scheduler = (api.app as any).taskScheduler;
+    const scheduler = (api.app).taskScheduler;
     await scheduler.processQueue();
 
     // Verify mock agent received the correct payload
-    const lastTask = (mockAgent as any).lastReceivedTask;
+    const lastTask = (mockAgent).lastReceivedTask;
     expect(lastTask).toBeDefined();
     expect(lastTask.taskId).toBe(taskId);
     expect(lastTask.runtime).toBe('WASM');
@@ -542,21 +564,7 @@ describe('Scheduling Flow E2E', () => {
     
     console.log('Affinity and Runtime verified in dispatch payload.');
   }, 60000);
-// Mock jsonwebtoken
-vi.mock('jsonwebtoken', () => ({
-  default: {
-    verify: vi.fn().mockImplementation((token) => {
-      if (token === 'admin-token') {
-        return { id: 'admin-id', email: 'admin@example.com', role: 'ADMIN' };
-      }
-      return require('jsonwebtoken').verify(token, 'test-secret');
-    }),
-    sign: vi.fn().mockReturnValue('mock-token'),
-  }
-}));
 
-// Shared state for mocks
-const kafkaHandlers: Map<string, Function[]> = new Map();
 
   it('RETRY FLOW', async () => {
     console.log('Step 1: Registering Node...');
@@ -579,16 +587,18 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
       data: { 
         name: 'retry-task', type: 'DATA_PROCESSING', priority: 'HIGH',
         specs: { cpuCores: 1, memoryGB: 1 },
-        maxRetries: 5
+        maxRetries: 5,
+        image: 'edgecloud/worker:latest',
+        runtime: 'DOCKER'
       },
       headers: { Authorization: 'Bearer admin-token' }
     });
     const taskId = taskRes.data.id;
 
     console.log('Step 3: Triggering failure...');
-    (mockAgent as any).shouldFail = true;
+    (mockAgent).shouldFail = true;
 
-    const scheduler = (api.app as any).taskScheduler;
+    const scheduler = (api.app).taskScheduler;
     await scheduler.processQueue();
 
     console.log('Step 4: Verifying retry status...');
@@ -605,9 +615,9 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
         retried = true;
         break;
       }
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
     }
-    (mockAgent as any).shouldFail = false;
+    (mockAgent).shouldFail = false;
     expect(retried).toBe(true);
   }, 30000);
 
@@ -617,14 +627,16 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
       method: 'post', url: `http://127.0.0.1:${API_PORT}/v1/tasks`,
       data: { 
         name: 'impossible-task', type: 'DATA_PROCESSING', priority: 'LOW',
-        specs: { cpuCores: 100, memoryGB: 100 }
+        specs: { cpuCores: 100, memoryGB: 100 },
+        image: 'edgecloud/worker:latest',
+        runtime: 'DOCKER'
       },
       headers: { Authorization: 'Bearer admin-token' }
     });
     const taskId = taskRes.data.id;
 
     console.log('Step 2: Triggering scheduler...');
-    const scheduler = (api.app as any).taskScheduler;
+    const scheduler = (api.app).taskScheduler;
     await scheduler.processQueue();
 
     console.log('Step 3: Verifying task remains PENDING...');
@@ -638,7 +650,7 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
 
   it('ML FALLBACK', async () => {
     // 1. Setup ML Scheduler failure
-    const scheduler = (api.app as any).taskScheduler;
+    const scheduler = (api.app).taskScheduler;
     const originalMlSchedule = scheduler.mlScheduler.schedule;
     scheduler.mlScheduler.schedule = vi.fn().mockRejectedValue(new Error('ML Model Error'));
 
@@ -656,7 +668,7 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
 
     const taskRes = await safeAxios({
       method: 'post', url: `http://127.0.0.1:${API_PORT}/v1/tasks`,
-      data: { name: 'ml-task', type: 'MODEL_INFERENCE', specs: { cpuCores: 2, memoryGB: 4 } },
+      data: { name: 'ml-task', type: 'MODEL_INFERENCE', specs: { cpuCores: 2, memoryGB: 4 }, image: 'edgecloud/worker:latest', runtime: 'DOCKER' },
       headers: { Authorization: 'Bearer admin-token' }
     });
 
@@ -678,7 +690,7 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
 
   it('WEBSOCKET PROPAGATION', async () => {
     const WebSocket = (await import('ws')).default;
-    const ws = new WebSocket(`ws://127.0.0.1:${API_PORT}/v1/ws?token=admin-token`);
+    const ws = new WebSocket(`ws://127.0.0.1:${API_PORT}/ws?token=admin-token`);
     
     const events: any[] = [];
     ws.on('message', (data: any) => {
@@ -695,23 +707,23 @@ const kafkaHandlers: Map<string, Function[]> = new Map();
 
     // Subscribe to all channels
     ws.send(JSON.stringify({ type: 'subscribe', payload: { channels: ['*'] } }));
-    await new Promise(r => setTimeout(r, 500));
+    await new Promise((r) => setTimeout(r, 500));
 
     console.log('WS Connected and Subscribed. Submitting task...');
     await safeAxios({
       method: 'post', url: `http://127.0.0.1:${API_PORT}/v1/tasks`,
-      data: { name: 'ws-task', type: 'DATA_PROCESSING', specs: { cpuCores: 1, memoryGB: 1 } },
+      data: { name: 'ws-task', type: 'DATA_PROCESSING', specs: { cpuCores: 1, memoryGB: 1 }, image: 'edgecloud/worker:latest', runtime: 'DOCKER' },
       headers: { Authorization: 'Bearer admin-token' }
     });
 
     // Wait for events
     let received = false;
     for (let i = 0; i < 10; i++) {
-      if (events.some(e => e.type === 'task:created' || e.type === 'task:status_changed')) {
+      if (events.some((e) => e.type === 'task:created' || e.type === 'task:status_changed')) {
         received = true;
         break;
       }
-      await new Promise(r => setTimeout(r, 1000));
+      await new Promise((r) => setTimeout(r, 1000));
     }
     
     expect(received).toBe(true);

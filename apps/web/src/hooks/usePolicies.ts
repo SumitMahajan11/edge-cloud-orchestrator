@@ -53,7 +53,7 @@ export function useUpdatePolicy() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies'] })
+      void queryClient.invalidateQueries({ queryKey: ['policies'] })
     },
   })
 }
@@ -78,7 +78,7 @@ export function useUpdateThreshold() {
       return data
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['policies', 'thresholds'] })
+      void queryClient.invalidateQueries({ queryKey: ['policies', 'thresholds'] })
     },
   })
 }

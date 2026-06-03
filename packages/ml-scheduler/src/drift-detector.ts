@@ -1,4 +1,5 @@
 import { createLogger, IMetricsCollector } from '@edgecloud/shared-kernel';
+import { PrismaClient } from '@prisma/client';
 
 const logger = createLogger('ml-drift-detector');
 
@@ -21,7 +22,10 @@ export class DriftDetector {
 
   private onDriftCallback?: (mae: number) => void;
 
-  constructor(private metrics: IMetricsCollector) {}
+  constructor(
+    private metrics: IMetricsCollector,
+    private prisma?: PrismaClient
+  ) {}
 
   onDrift(callback: (mae: number) => void): void {
     this.onDriftCallback = callback;
@@ -69,12 +73,104 @@ export class DriftDetector {
     return this.mlSuppressed;
   }
 
-  getState() {
-    return {
-      driftScore: this.rollingMAE,
-      isDrifting: this.mlSuppressed,
-      lastCheckedAt: new Date().toISOString(),
-      featureDrift: {} // Placeholder for per-feature drift
-    };
+  async getState() {
+    if (!this.prisma) {
+      return {
+        driftScore: this.rollingMAE,
+        isDrifting: this.mlSuppressed,
+        lastCheckedAt: new Date().toISOString(),
+        featureDrift: {
+          latency: 0,
+          cpuUsage: 0,
+          memoryUsage: 0
+        },
+        recommendation: this.rollingMAE >= this.FATAL_THRESHOLD ? 'RETRAIN' : 'STABLE'
+      };
+    }
+
+    try {
+      const baseline = await this.prisma.outcomeLog.findMany({
+        take: 100,
+        orderBy: { timestamp: 'asc' }
+      });
+
+      const current = await this.prisma.outcomeLog.findMany({
+        take: 50,
+        orderBy: { timestamp: 'desc' }
+      });
+
+      if (!baseline || baseline.length < 100 || !current || current.length === 0) {
+        return {
+          driftScore: 0,
+          isDrifting: false,
+          lastCheckedAt: new Date().toISOString(),
+          featureDrift: {
+            latency: 0,
+            cpuUsage: 0,
+            memoryUsage: 0
+          },
+          recommendation: 'INSUFFICIENT_DATA'
+        };
+      }
+
+      const getMean = (data: any[], field1: string, field2: string): number => {
+        let sum = 0;
+        let count = 0;
+        for (const item of data) {
+          const val = item[field1] !== undefined ? item[field1] : item[field2];
+          if (typeof val === 'number') {
+            sum += val;
+            count++;
+          }
+        }
+        return count > 0 ? sum / count : 0;
+      };
+
+      const baselineCpu = getMean(baseline, 'actualCpuUsage', 'predictedCpuUsage');
+      const currentCpu = getMean(current, 'actualCpuUsage', 'predictedCpuUsage');
+      const cpuDrift = Math.abs(currentCpu - baselineCpu);
+
+      const baselineMem = getMean(baseline, 'actualMemoryUsage', 'predictedMemoryUsage');
+      const currentMem = getMean(current, 'actualMemoryUsage', 'predictedMemoryUsage');
+      const memDrift = Math.abs(currentMem - baselineMem);
+
+      const baselineLat = getMean(baseline, 'actualLatencyMs', 'actualLatency');
+      const currentLat = getMean(current, 'actualLatencyMs', 'actualLatency');
+      const latencyDrift = Math.abs(currentLat - baselineLat) / 100;
+
+      const driftScore = Math.max(cpuDrift, memDrift, latencyDrift);
+      const isDrifting = driftScore >= 0.25;
+      
+      let recommendation = 'STABLE';
+      if (driftScore >= 0.25) {
+        recommendation = 'RETRAIN';
+      } else if (driftScore >= 0.1) {
+        recommendation = 'WARNING';
+      }
+
+      return {
+        driftScore,
+        isDrifting,
+        lastCheckedAt: new Date().toISOString(),
+        featureDrift: {
+          latency: latencyDrift,
+          cpuUsage: cpuDrift,
+          memoryUsage: memDrift
+        },
+        recommendation
+      };
+    } catch (err) {
+      return {
+        driftScore: this.rollingMAE,
+        isDrifting: this.mlSuppressed,
+        lastCheckedAt: new Date().toISOString(),
+        featureDrift: {
+          latency: 0,
+          cpuUsage: 0,
+          memoryUsage: 0
+        },
+        recommendation: 'STABLE'
+      };
+    }
   }
 }

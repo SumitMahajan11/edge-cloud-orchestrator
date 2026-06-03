@@ -1,6 +1,7 @@
 use crate::types::{TaskSpec, ExecutionResult};
 use anyhow::Result;
 
+#[derive(Default)]
 pub struct DockerExecutor;
 
 impl DockerExecutor {

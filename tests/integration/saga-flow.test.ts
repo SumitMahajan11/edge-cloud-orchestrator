@@ -64,8 +64,8 @@ describe('Saga Flow Integration', () => {
         taskId: task.id,
         taskName: task.name,
         taskType: task.type,
-        tenantId: ctx.userId
-      }, ctx.userId)
+        tenantId: ctx.tenantId
+      }, ctx.tenantId)
       const internalSagaId = sagaInstance.id
 
       // Wait for the Task status to be reverted to PENDING by compensation
@@ -111,8 +111,8 @@ describe('Saga Flow Integration', () => {
         taskId: task.id,
         taskName: task.name,
         taskType: task.type,
-        tenantId: ctx.userId
-      }, ctx.userId)
+        tenantId: ctx.tenantId
+      }, ctx.tenantId)
       const internalSagaId = sagaInstance.id
 
       await waitFor(async () => {

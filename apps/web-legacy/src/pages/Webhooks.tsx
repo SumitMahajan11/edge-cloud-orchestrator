@@ -46,7 +46,8 @@ const EVENT_OPTIONS: { value: WebhookEventType; label: string }[] = [
 
 export function Webhooks() {
   const { data: webhooks = [], isLoading: webhooksLoading } = useWebhooks()
-  const { data: stats } = useWebhookStats()
+  const { data: statsData } = useWebhookStats()
+  const stats = statsData as any
   const createWebhook = useCreateWebhook()
   const updateWebhook = useUpdateWebhook()
   const deleteWebhook = useDeleteWebhook()
@@ -169,7 +170,7 @@ export function Webhooks() {
           <div className="text-sm text-muted-foreground">Total Webhooks</div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-2xl font-bold text-success">{stats?.enabled ?? 0}</div>
+          <div className="text-2xl font-bold text-success">{stats?.active ?? 0}</div>
           <div className="text-sm text-muted-foreground">Active</div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
@@ -177,7 +178,7 @@ export function Webhooks() {
           <div className="text-sm text-muted-foreground">24h Deliveries</div>
         </div>
         <div className="rounded-lg border border-border bg-card p-4">
-          <div className="text-2xl font-bold text-destructive">{stats?.failedDeliveries ?? 0}</div>
+          <div className="text-2xl font-bold text-destructive">{stats?.failedLast24h ?? 0}</div>
           <div className="text-sm text-muted-foreground">Failed</div>
         </div>
       </div>

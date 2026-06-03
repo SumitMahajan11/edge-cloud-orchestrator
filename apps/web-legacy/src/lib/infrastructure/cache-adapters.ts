@@ -307,7 +307,7 @@ class CacheManager {
   destroy(): void {
     this.l1.destroy()
     if (this.l2) {
-      this.l2.clear()
+      void this.l2.clear()
     }
   }
 }
