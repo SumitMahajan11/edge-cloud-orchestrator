@@ -103,3 +103,7 @@ dist/
 *.tmp
 docs/archive/
 target_clippy/
+target/
+query_engine-*.node
+query_engine-*.node.tmp*
+
