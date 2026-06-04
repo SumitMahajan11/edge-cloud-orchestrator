@@ -139,6 +139,8 @@ model EdgeNode {
   name      String     @unique
   location  String
   region    String
+  latitude  Float?
+  longitude Float?
   status    NodeStatus @default(ONLINE)
   ipAddress String
   port      Int
