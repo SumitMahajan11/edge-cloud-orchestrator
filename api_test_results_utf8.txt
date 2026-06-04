@@ -1,0 +1,84 @@
+﻿
+[7m[1m[36m RUN [39m[22m[27m [36mv1.6.0[39m [90mD:/Projects/Cloud1/edge-cloud-orchestrator[39m
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mHealth Checks[2m > [22m[2mshould have healthy edge agent[22m[39m
+Edge agent not available, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mAuthentication Flow[2m > [22m[2mshould refresh token[22m[39m
+No refresh token, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mAuthentication Flow[2m > [22m[2mshould get current user[22m[39m
+No auth token, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mNode Management[2m > [22m[2mshould get node by ID[22m[39m
+No test node ID, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mNode Management[2m > [22m[2mshould update node[22m[39m
+No test node ID, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mNode Management[2m > [22m[2mshould get node metrics[22m[39m
+No test node ID, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mTask Management[2m > [22m[2mshould get task by ID[22m[39m
+No test task ID, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mTask Management[2m > [22m[2mshould cancel a task[22m[39m
+No test task ID, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mWebhook Management[2m > [22m[2mshould delete a webhook[22m[39m
+No webhook ID, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mError Handling[2m > [22m[2mshould return 400 for invalid input[22m[39m
+No auth token, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mEdge Agent Communication[2m > [22m[2mshould get edge agent metrics[22m[39m
+Edge agent not available, skipping
+
+[90mstdout[2m | api.test.ts[2m > [22m[2mIntegration Tests[2m > [22m[2mEdge Agent Communication[2m > [22m[2mshould ping edge agent[22m[39m
+Edge agent not available, skipping
+
+ [33mΓ¥»[39m [32m|integration|[39m api.test.ts [2m ([22m[2m33 tests[22m [2m|[22m [31m19 failed[39m[2m)[22m[33m 378[2mms[22m[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mHealth Checks[2m > [22mshould have healthy API server[39m
+[31m     ΓåÆ expected 'ok' to be 'healthy' // Object.is equality[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mAuthentication Flow[2m > [22mshould register a new user[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mAuthentication Flow[2m > [22mshould login with valid credentials[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mNode Management[2m > [22mshould list nodes[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mNode Management[2m > [22mshould create a node[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mTask Management[2m > [22mshould list tasks[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mTask Management[2m > [22mshould create a task[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mTask Management[2m > [22mshould get task stats[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mMetrics & Monitoring[2m > [22mshould get system metrics[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mMetrics & Monitoring[2m > [22mshould get request metrics[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mMetrics & Monitoring[2m > [22mshould get node metrics summary[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mCost & Carbon Tracking[2m > [22mshould get cost summary[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mCost & Carbon Tracking[2m > [22mshould get cost by node[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mCost & Carbon Tracking[2m > [22mshould get carbon summary[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mCost & Carbon Tracking[2m > [22mshould get carbon by region[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mWebhook Management[2m > [22mshould list webhooks[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mWebhook Management[2m > [22mshould create a webhook[39m
+[31m     ΓåÆ Request failed with status code 401[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mRate Limiting[2m > [22mshould enforce rate limits[39m
+[31m     ΓåÆ expected 0 to be greater than 0[39m
+[31m   [33mΓ¥»[31m api.test.ts[2m > [22mIntegration Tests[2m > [22mError Handling[2m > [22mshould return 404 for non-existent node[39m
+[31m     ΓåÆ expected 401 to be 404 // Object.is equality[39m
+
+[2m Test Files [22m [1m[31m1 failed[39m[22m[90m (1)[39m
+[2m      Tests [22m [1m[31m19 failed[39m[22m[2m | [22m[1m[32m14 passed[39m[22m[90m (33)[39m
+[2m   Start at [22m 17:27:18
+[2m   Duration [22m 1.12s[2m (transform 53ms, setup 45ms, collect 145ms, tests 378ms, environment 0ms, prepare 194ms)[22m
+

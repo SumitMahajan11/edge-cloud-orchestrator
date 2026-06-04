@@ -1,0 +1,17 @@
+# Generated files — never lint these
+packages/api-client/src/client/client.gen.ts
+packages/api-client/src/types.gen.ts
+packages/api-client/src/**/*.gen.ts
+packages/api-client/src/**/*.gen.js
+
+# Mock/test infrastructure — relaxed rules
+apps/api/src/initializers/mock-prisma.ts
+
+# Build outputs
+**/dist/**
+**/.next/**
+**/coverage/**
+**/node_modules/**
+**/prisma/migrations/**
+**/*.gen.ts
+

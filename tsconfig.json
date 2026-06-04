@@ -1,0 +1,31 @@
+{
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+
+    "paths": {
+      "@edgecloud/shared-kernel": ["./packages/shared-kernel/src/index.ts"],
+      "@edgecloud/api-client": ["./packages/api-client/src/index.ts"],
+      "@edgecloud/saga": ["./packages/saga/src/index.ts"],
+      "@edgecloud/event-bus": ["./packages/event-bus/src/index.ts"],
+      "@edgecloud/ml-scheduler": ["./packages/ml-scheduler/src/index.ts"],
+      "@edgecloud/circuit-breaker": ["./packages/circuit-breaker/src/index.ts"],
+      "@edgecloud/observability": ["./packages/observability/src/index.ts"]
+    },
+    "types": ["node", "vitest/globals"]
+  },
+  "include": [
+    "apps/**/*.ts",
+    "apps/**/*.tsx",
+    "packages/**/*.ts",
+    "tests/**/*.ts",
+    "*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.gen.ts",
+    "**/prisma/migrations/**",
+    "apps/api/src/initializers/mock-prisma.ts"
+  ]
+}

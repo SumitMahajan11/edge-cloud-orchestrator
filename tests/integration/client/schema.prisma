@@ -1,0 +1,440 @@
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../client"
+}
+
+model User {
+  id            String        @id @default(uuid())
+  email         String        @unique
+  passwordHash  String
+  name          String
+  role          String        @default("VIEWER")
+  isActive      Boolean       @default(true)
+  emailVerified Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  lastLoginAt   DateTime?
+  tenantUsers   TenantUser[]
+  auditLogs     AuditLog[]
+  userSessions  UserSession[]
+  apiKeys       ApiKey[]
+
+  @@map("users")
+}
+
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  config    String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks               Task[]
+  nodes               EdgeNode[]           @relation("TenantNodes")
+  taskExecutions      TaskExecution[]
+  tenantUsers         TenantUser[]
+  webhooks            Webhook[]
+  webhookDeliveries   WebhookDelivery[]
+  auditLogs           AuditLog[]
+  sagaInstances       SagaInstance[]
+  sagaSteps           SagaStep[]
+  schedulingDecisions SchedulingDecision[]
+  costRecords         CostRecord[]
+  carbonMetrics       CarbonMetric[]
+  taskLogs            TaskLog[]
+
+  @@map("tenants")
+}
+
+model TenantUser {
+  id        String   @id @default(uuid())
+  tenantId  String
+  userId    String
+  role      String
+  createdAt DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId])
+  @@map("tenant_users")
+}
+
+model UserSession {
+  id               String   @id @default(uuid())
+  userId           String
+  refreshTokenHash String   @unique
+  accessTokenJti   String   @unique
+  ipAddress        String
+  userAgent        String
+  revoked          Boolean  @default(false)
+  createdAt        DateTime @default(now())
+  lastUsedAt       DateTime @default(now())
+  expiresAt        DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_sessions")
+}
+
+model ApiKey {
+  id          String    @id @default(uuid())
+  userId      String
+  name        String
+  keyPrefix   String
+  hashedKey   String    @unique
+  permissions String
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  lastUsedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([name, userId])
+  @@map("api_keys")
+}
+
+model Webhook {
+  id        String   @id @default(uuid())
+  name      String
+  url       String
+  events    String // String[] in Postgres
+  secret    String?
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  deliveries WebhookDelivery[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("webhooks")
+}
+
+model WebhookDelivery {
+  id          String    @id @default(uuid())
+  webhookId   String
+  event       String
+  payload     String
+  statusCode  Int?
+  response    String?
+  deliveredAt DateTime?
+  retryCount  Int       @default(0)
+  status      String    @default("PENDING")
+  nextRetryAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  webhook  Webhook @relation(fields: [webhookId], references: [id], onDelete: Cascade)
+  tenantId String
+  tenant   Tenant  @relation(fields: [tenantId], references: [id])
+
+  @@map("webhook_deliveries")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid())
+  userId     String?
+  action     String
+  entityType String
+  entityId   String?
+  details    String?
+  ipAddress  String?
+  userAgent  String?
+  createdAt  DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+
+  tenantId String
+
+  @@map("audit_logs")
+}
+
+model EdgeNode {
+  id        String @id @default(uuid())
+  name      String @unique
+  location  String
+  region    String
+  status    String @default("ONLINE")
+  ipAddress String
+  port      Int
+  url       String
+
+  cpuCores  Int
+  memoryGB  Int
+  storageGB Int
+
+  cpuUsage     Float @default(0)
+  memoryUsage  Float @default(0)
+  storageUsage Float @default(0)
+  latency      Float @default(0)
+
+  tasksRunning Int    @default(0)
+  maxTasks     Int    @default(10)
+  latitude     Float?
+  longitude    Float?
+
+  costPerHour       Float    @default(0.05)
+  bandwidthInMbps   Int      @default(100)
+  bandwidthOutMbps  Int      @default(100)
+  isMaintenanceMode Boolean  @default(false)
+  lastHeartbeat     DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks          Task[]
+  taskExecutions TaskExecution[]
+  metrics        NodeMetric[]
+  version        Int             @default(0)
+
+  tenantId String
+  tenant   Tenant @relation("TenantNodes", fields: [tenantId], references: [id])
+
+  @@map("edge_nodes")
+}
+
+model Task {
+  id       String @id @default(uuid())
+  name     String
+  type     String
+  status   String @default("PENDING")
+  priority String @default("MEDIUM")
+  target   String
+
+  nodeId   String?
+  policy   String
+  reason   String
+  runtime  String  @default("DOCKER")
+  image    String?
+  affinity String?
+  traceId  String?
+
+  maxDurationSeconds Int @default(3600)
+  maxRetries         Int @default(3)
+
+  input    String?
+  metadata String?
+
+  submittedAt DateTime @default(now())
+
+  node EdgeNode? @relation(fields: [nodeId], references: [id])
+
+  logs       TaskLog[]
+  executions TaskExecution[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("tasks")
+}
+
+model TaskExecution {
+  id     String @id @default(uuid())
+  taskId String
+
+  attemptNumber Int @default(1)
+
+  nodeId      String?
+  node        EdgeNode? @relation(fields: [nodeId], references: [id])
+  scheduledAt DateTime  @default(now())
+  startedAt   DateTime?
+  completedAt DateTime?
+  durationMs  Int?
+
+  status      String  @default("PENDING")
+  exitCode    Int?
+  error       String?
+  costUSD     Float?  @default(0)
+  retryOf     String?
+  retryReason String?
+
+  task     Task   @relation(fields: [taskId], references: [id])
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("task_executions")
+}
+
+model TaskLog {
+  id        String   @id @default(uuid())
+  taskId    String
+  level     String
+  message   String
+  timestamp DateTime @default(now())
+
+  task     Task   @relation(fields: [taskId], references: [id])
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@map("task_logs")
+}
+
+model CertificateAuthority {
+  id             String   @id @default(uuid())
+  serialNumber   String   @unique
+  certificatePem String
+  privateKeyPem  String
+  publicKeyPem   String
+  issuedAt       DateTime @default(now())
+  expiresAt      DateTime
+  isActive       Boolean  @default(true)
+
+  @@map("certificate_authorities")
+}
+
+model NodeMetric {
+  id        String   @id @default(uuid())
+  nodeId    String
+  timestamp DateTime @default(now())
+
+  cpuUsage     Float
+  memoryUsage  Float
+  storageUsage Float
+  latency      Float
+  tasksRunning Int
+  networkIn    Float
+  networkOut   Float
+
+  node EdgeNode @relation(fields: [nodeId], references: [id])
+
+  @@map("node_metrics")
+}
+
+model SagaInstance {
+  id            String    @id @default(uuid())
+  sagaType      String
+  correlationId String
+  status        String    @default("STARTED") // Enum in Postgres
+  currentStep   Int       @default(0)
+  totalSteps    Int
+  context       String
+  error         String?
+  startedAt     DateTime  @default(now())
+  completedAt   DateTime?
+  updatedAt     DateTime  @updatedAt
+
+  steps    SagaStep[]
+  tenantId String
+  tenant   Tenant     @relation(fields: [tenantId], references: [id])
+
+  @@index([correlationId])
+  @@index([status])
+  @@index([tenantId])
+  @@map("saga_instances")
+}
+
+model SagaStep {
+  id          String    @id @default(uuid())
+  sagaId      String
+  stepName    String
+  stepOrder   Int
+  status      String    @default("PENDING") // Enum in Postgres
+  input       String?
+  output      String?
+  error       String?
+  attempts    Int       @default(0)
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  saga     SagaInstance @relation(fields: [sagaId], references: [id], onDelete: Cascade)
+  tenantId String
+  tenant   Tenant       @relation(fields: [tenantId], references: [id])
+
+  @@index([sagaId])
+  @@index([tenantId])
+  @@map("saga_steps")
+}
+
+model SchedulingDecision {
+  id             String   @id @default(uuid())
+  taskId         String   @unique
+  timestamp      DateTime @default(now())
+  selectedNodeId String
+  policy         String // "ml" | "latency" | "cost" | "round-robin" | "load-balanced"
+  score          Float
+  explanation    String
+  candidateNodes String
+  mlModelVersion String?
+  fallbackUsed   Boolean  @default(false)
+  tenantId       String
+  tenant         Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@map("scheduling_decisions")
+}
+
+model OutcomeLog {
+  id                 String   @id @default(uuid())
+  taskId             String
+  nodeId             String
+  schedulingDecision String
+  predictedLatency   Float
+  actualLatency      Float
+  predictedCpuUsage  Float
+  actualCpuUsage     Float
+  outcome            String // 'SUCCESS' | 'FAILED' | 'TIMEOUT' | 'OOM'
+  timestamp          DateTime @default(now())
+
+  @@map("ml_outcome_logs")
+}
+
+model IdempotencyRecord {
+  id             String   @id @default(uuid())
+  idempotencyKey String   @unique
+  resourceType   String
+  resourceId     String
+  requestHash    String?
+  result         String?
+  status         String   @default("PROCESSING") // Enum in Postgres
+  createdAt      DateTime @default(now())
+  expiresAt      DateTime
+
+  @@index([idempotencyKey])
+  @@index([resourceType, resourceId])
+  @@index([expiresAt])
+  @@map("idempotency_records")
+}
+
+model CostRecord {
+  id           String   @id @default(uuid())
+  nodeId       String?
+  resourceType String
+  amount       Float
+  unit         String
+  cost         Float
+  currency     String   @default("USD")
+  recordedAt   DateTime @default(now())
+  tenantId     String
+  tenant       Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([recordedAt])
+  @@index([nodeId])
+  @@index([tenantId])
+  @@map("cost_records")
+}
+
+model CarbonMetric {
+  id               String   @id @default(uuid())
+  nodeId           String?
+  region           String
+  energyKwh        Float
+  carbonKg         Float
+  renewablePercent Float
+  recordedAt       DateTime @default(now())
+  tenantId         String
+  tenant           Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([recordedAt])
+  @@index([tenantId])
+  @@map("carbon_metrics")
+}

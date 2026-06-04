@@ -1,0 +1,194 @@
+PAYLOAD: {"code":"RATE_LIMIT_EXCEEDED","message":"Too many requests. Please try again later.","requestId":"req-7","timestamp":"2026-06-01T03:39:12.097Z","stack":"Error: Rate limit exceeded\n    at Object.<anonymous> (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\__tests__\\error-handler.test.ts:51:24)\n    at preHandlerCallback (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\handleRequest.js:139:37)\n    at validationCompleted (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\handleRequest.js:123:5)\n    at preValidationCallback (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\handleRequest.js:100:5)\n    at handler (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\handleRequest.js:77:7)\n    at handleRequest (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\handleRequest.js:24:5)\n    at runPreParsing (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\route.js:613:5)\n    at Object.routeHandler [as handler] (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\fastify@4.29.1\\node_modules\\fastify\\lib\\route.js:534:7)\n    at Router.callHandler (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\find-my-way@8.2.2\\node_modules\\find-my-way\\index.js:552:14)\n    at Router.lookup (D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\node_modules\\.pnpm\\find-my-way@8.2.2\\node_modules\\find-my-way\\index.js:530:17)"}
+
+ [32mΓ£ô[39m src/__tests__/error-handler.test.ts [2m ([22m[2m9 tests[22m[2m)[22m[90m 177[2mms[22m[39m
+{"level":30,"time":1780285152917,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","serialNumber":"71587cb365ac01f3fbeef6e12b93c8bb","expiresAt":"2036-05-29T03:39:12.639Z","msg":"Created new Certificate Authority"}
+ [33mΓ¥»[39m src/services/__tests__/websocket-tenant-isolation.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m5 failed[39m[2m)[22m[90m 107[2mms[22m[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/websocket-tenant-isolation.test.ts[2m > [22mWebSocket Manager Tenant Isolation[2m > [22mshould automatically subscribe user to their tenant-scoped channels locally[39m
+[31m     ΓåÆ expected "spy" to be called with arguments: [ '*:*:*' ][90m
+
+Received: 
+
+[31m[90m
+
+Number of calls: [1m0[22m
+[31m[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/websocket-tenant-isolation.test.ts[2m > [22mWebSocket Manager Tenant Isolation[2m > [22mshould allow SUPER_ADMIN to have wildcard local subscription[39m
+[31m     ΓåÆ expected false to be true // Object.is equality[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/websocket-tenant-isolation.test.ts[2m > [22mWebSocket Manager Tenant Isolation[2m > [22mshould prevent Tenant A from subscribing to Tenant B channels[39m
+[31m     ΓåÆ expected true to be false // Object.is equality[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/websocket-tenant-isolation.test.ts[2m > [22mWebSocket Manager Tenant Isolation[2m > [22mshould broadcast messages only to the correct Redis channel[39m
+[31m     ΓåÆ expected "spy" to be called with arguments: [ 'task:created:tenant-a', ΓÇª(1) ][90m
+
+Received: 
+
+[1m  1st spy call:
+
+[22m[2m  Array [[22m
+[32m-   "task:created:tenant-a",[90m
+[32m-   StringContaining "\"tenantId\":\"tenant-a\"",[90m
+[31m+   "ws:broadcast",[90m
+[31m+   "{\"instanceId\":\"ws-1780285153119-to0vl\",\"channel\":\"task:created\",\"payload\":{\"id\":\"task-1\"},\"excludeSender\":\"tenant-a\"}",[90m
+[2m  ][22m
+[31m[90m
+
+Number of calls: [1m1[22m
+[31m[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/websocket-tenant-isolation.test.ts[2m > [22mWebSocket Manager Tenant Isolation[2m > [22mshould reject connections without tenantId (unless SUPER_ADMIN)[39m
+[31m     ΓåÆ expected "spy" to be called with arguments: [ 4001, ΓÇª(1) ][90m
+
+Received: 
+
+[31m[90m
+
+Number of calls: [1m0[22m
+[31m[39m
+ [32mΓ£ô[39m src/jobs/__tests__/webhook-retry.spec.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 341[2mms[22m[39m
+{"level":30,"time":1780285154016,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","count":0,"msg":"Refreshed CRL cache"}
+{"level":40,"time":1780285154059,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","msg":"No valid CA found, creating new Certificate Authority"}
+[90mstdout[2m | src/__tests__/carbon-endpoints.test.ts[2m > [22m[2mCarbon Endpoints Integration[2m > [22m[2mTest 1 ΓÇö GET /api/v2/carbon/intensity returns regions array[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/admin-republish.test.ts[2m > [22m[2mAdmin Republish Integration[2m > [22m[2mTest 1 ΓÇö Republish valid task event[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/workflows.test.ts[2m > [22m[2mWorkflow Engine Integration[2m > [22m[2mTest 1 ΓÇö Create workflow with valid DAG[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+{"level":30,"time":1780285155306,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","serialNumber":"053626179cf8eabb05493d36ec05201c","expiresAt":"2036-05-29T03:39:15.010Z","msg":"Created new Certificate Authority"}
+[90mstdout[2m | src/__tests__/ml-endpoints.test.ts[2m > [22m[2mML Endpoints Integration[2m > [22m[2mTest 1 ΓÇö Fetch current drift[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/utils/__tests__/reliableCall.spec.ts [2m ([22m[2m17 tests[22m[2m)[22m[33m 4611[2mms[22m[39m
+[90mstdout[2m | src/__tests__/carbon-endpoints.test.ts[2m > [22m[2mCarbon Endpoints Integration[2m > [22m[2mTest 2 ΓÇö GET /api/v2/carbon/savings returns data[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/admin-republish.test.ts[2m > [22m[2mAdmin Republish Integration[2m > [22m[2mTest 2 ΓÇö Super admin can republish event[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mVIEWER Role[2m > [22m[2mshould ALLOW reading tasks[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mVIEWER Role[2m > [22m[2mshould DENY creating tasks[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/workflows.test.ts[2m > [22m[2mWorkflow Engine Integration[2m > [22m[2mTest 2 ΓÇö Reject workflow with cycle[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/ml-endpoints.test.ts[2m > [22m[2mML Endpoints Integration[2m > [22m[2mTest 2 ΓÇö Fetch outcome statistics[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/carbon-endpoints.test.ts[2m > [22m[2mCarbon Endpoints Integration[2m > [22m[2mTest 3 ΓÇö GET /api/v2/carbon/policy returns data[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/workflows.test.ts[2m > [22m[2mWorkflow Engine Integration[2m > [22m[2mTest 3 ΓÇö Workflow execution gating[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/admin-republish.test.ts[2m > [22m[2mAdmin Republish Integration[2m > [22m[2mTest 3 ΓÇö Rejects non-existent entity[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mUSER Role[2m > [22m[2mshould ALLOW creating tasks[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+{"level":30,"time":1780285157372,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","nodeId":"valid-node","serialNumber":"abcdef12","expiresAt":"2027-06-01T03:39:17.371Z","msg":"Issued agent certificate via Vault PKI"}
+{"level":30,"time":1780285157374,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","count":0,"msg":"Refreshed CRL cache"}
+[90mstdout[2m | src/__tests__/ml-endpoints.test.ts[2m > [22m[2mML Endpoints Integration[2m > [22m[2mTest 3 ΓÇö Retrain model (Permission Gate)[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [33mΓ¥»[39m src/services/__tests__/mtls-forgery.test.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m2 failed[39m[2m)[22m[33m 5350[2mms[22m[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/mtls-forgery.test.ts[2m > [22mmTLS Forgery Protection[2m > [22mrejects a certificate signed by a different CA even if serial is in DB[39m
+[31m     ΓåÆ expected true to be false // Object.is equality[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/mtls-forgery.test.ts[2m > [22mmTLS Forgery Protection[2m > [22maccepts a valid certificate signed by the system CA[39m
+[31m     ΓåÆ expected 'valid-node\nO=EdgeCloud' to be 'valid-node' // Object.is equality[39m
+[90mstdout[2m | src/__tests__/carbon-endpoints.test.ts[2m > [22m[2mCarbon Endpoints Integration[2m > [22m[2mTest 4 ΓÇö PATCH /api/v2/carbon/policy validates carbonWeight range (0-1)[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/workflows.test.ts[2m > [22m[2mWorkflow Engine Integration[2m > [22m[2mTest 4 ΓÇö Get workflow status[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/admin-republish.test.ts[2m > [22m[2mAdmin Republish Integration[2m > [22m[2mTest 4 ΓÇö Rejects tenant-scoped tokens[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/__tests__/admin-republish.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 3931[2mms[22m[39m
+[90mstdout[2m | src/__tests__/ml-endpoints.test.ts[2m > [22m[2mML Endpoints Integration[2m > [22m[2mTest 4 ΓÇö Reject retrain for standard USER[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/__tests__/ml-endpoints.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 4015[2mms[22m[39m
+[90mstdout[2m | src/__tests__/carbon-endpoints.test.ts[2m > [22m[2mCarbon Endpoints Integration[2m > [22m[2mTest 3 ΓÇö Carbon policy requires CARBON_POLICY_WRITE permission[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/__tests__/carbon-endpoints.test.ts [2m ([22m[2m5 tests[22m[2m)[22m[33m 4640[2mms[22m[39m
+[90mstdout[2m | src/__tests__/workflows.test.ts[2m > [22m[2mWorkflow Engine Integration[2m > [22m[2mTest 5 ΓÇö Workflow tenant isolation on read[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mUSER Role[2m > [22m[2mshould DENY triggering ML retraining (Admin permission)[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mTENANT_ADMIN Role[2m > [22m[2mshould ALLOW reading audit logs[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mTENANT_ADMIN Role[2m > [22m[2mshould DENY system-wide actions (even with Admin role if tenant-scoped)[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+[90mstdout[2m | src/__tests__/workflows.test.ts[2m > [22m[2mWorkflow Engine Integration[2m > [22m[2mTest 6 ΓÇö Workflow tenant isolation on execution[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/__tests__/workflows.test.ts [2m ([22m[2m6 tests[22m[2m)[22m[33m 5427[2mms[22m[39m
+[90mstdout[2m | src/routes/__tests__/authorization.spec.ts[2m > [22m[2mGranular RBAC Authorization Suite[2m > [22m[2mSUPER_ADMIN Role[2m > [22m[2mshould ALLOW system-wide actions with SYSTEM tenantId[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [33mΓ¥»[39m src/routes/__tests__/authorization.spec.ts [2m ([22m[2m7 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 5950[2mms[22m[39m
+[31m   [33mΓ¥»[31m src/routes/__tests__/authorization.spec.ts[2m > [22mGranular RBAC Authorization Suite[2m > [22mTENANT_ADMIN Role[2m > [22mshould ALLOW reading audit logs[39m
+[31m     ΓåÆ expected 500 to be 200 // Object.is equality[39m
+ [32mΓ£ô[39m src/jobs/__tests__/consistency-checker.spec.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 88[2mms[22m[39m
+ [32mΓ£ô[39m src/services/__tests__/websocket-auth.spec.ts [2m ([22m[2m4 tests[22m[2m)[22m[90m 93[2mms[22m[39m
+ [2m[90mΓåô[39m[22m tests/versioning.test.ts [2m ([22m[2m6 tests[22m [2m|[22m [33m6 skipped[39m[2m)[22m
+{"level":30,"time":1780285161793,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","reqId":"req-1","req":{"method":"GET","url":"/health/ready","hostname":"localhost:80","remoteAddress":"127.0.0.1"},"msg":"incoming request"}
+{"level":30,"time":1780285161810,"pid":32884,"hostname":"LAPTOP-9MMIVMLG","reqId":"req-1","res":{"statusCode":503},"responseTime":11.03209999203682,"msg":"request completed"}
+ [33mΓ¥»[39m src/database/__tests__/client.spec.ts [2m ([22m[2m6 tests[22m [2m|[22m [31m6 failed[39m[2m)[22m[33m 1375[2mms[22m[39m
+[31m   [33mΓ¥»[31m src/database/__tests__/client.spec.ts[2m > [22mPrismaClientWithReplicas[2m > [22mshould create primary client when no read replica configured[39m
+[31m     ΓåÆ basePrimary.$extends is not a function[39m
+[31m   [33mΓ¥»[31m src/database/__tests__/client.spec.ts[2m > [22mPrismaClientWithReplicas[2m > [22mshould create separate read replica when configured[39m
+[31m     ΓåÆ basePrimary.$extends is not a function[39m
+[31m   [33mΓ¥»[31m src/database/__tests__/client.spec.ts[2m > [22mPrismaClientWithReplicas[2m > [22mshould connect to both primary and replica[39m
+[31m     ΓåÆ basePrimary.$extends is not a function[39m
+[31m   [33mΓ¥»[31m src/database/__tests__/client.spec.ts[2m > [22mPrismaClientWithReplicas[2m > [22mshould disconnect from both clients[39m
+[31m     ΓåÆ basePrimary.$extends is not a function[39m
+[31m   [33mΓ¥»[31m src/database/__tests__/client.spec.ts[2m > [22mPrismaClientWithReplicas[2m > [22mshould pass health check when both connections work[39m
+[31m     ΓåÆ basePrimary.$extends is not a function[39m
+[31m   [33mΓ¥»[31m src/database/__tests__/client.spec.ts[2m > [22mPrismaClientWithReplicas[2m > [22mshould expose $transaction on primary client[39m
+[31m     ΓåÆ basePrimary.$extends is not a function[39m
+ [32mΓ£ô[39m src/__tests__/db-resilience.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 388[2mms[22m[39m
+ [32mΓ£ô[39m src/services/__tests__/task-scheduler.spec.ts [2m ([22m[2m7 tests[22m[2m)[22m[90m 80[2mms[22m[39m
+ [32mΓ£ô[39m src/services/__tests__/task-scheduler.audit.spec.ts [2m ([22m[2m1 test[22m[2m)[22m[90m 47[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/contract.test.ts [2m ([22m[2m1 test[22m[2m)[22m[90m 28[2mms[22m[39m
+ [32mΓ£ô[39m src/__tests__/openapi.spec.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 438[2mms[22m[39m
+ [32mΓ£ô[39m src/openapi.test.ts [2m ([22m[2m1 test[22m[2m)[22m[90m 8[2mms[22m[39m
+[90mstdout[2m | src/routes/__tests__/agents.spec.ts[2m > [22m[2mAgent Registration Routes[2m > [22m[2mshould sign a valid CSR with a valid bootstrap token[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/services/__tests__/revocation-cache.spec.ts [2m ([22m[2m5 tests[22m[2m)[22m[90m 36[2mms[22m[39m
+ [32mΓ£ô[39m src/services/__tests__/alerting-ssrf.test.ts [2m ([22m[2m2 tests[22m[2m)[22m[90m 29[2mms[22m[39m
+[90mstdout[2m | src/routes/__tests__/agents.spec.ts[2m > [22m[2mAgent Registration Routes[2m > [22m[2mshould reject an expired bootstrap token[22m[39m
+DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists: [33mtrue[39m hasDecorator(prisma): [33mtrue[39m
+
+ [32mΓ£ô[39m src/services/__tests__/auto-healer.spec.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 32[2mms[22m[39m
+ [32mΓ£ô[39m src/services/__tests__/tenant-isolation.spec.ts [2m ([22m[2m3 tests[22m[2m)[22m[90m 22[2mms[22m[39m
+ [33mΓ¥»[39m src/routes/__tests__/agents.spec.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 3519[2mms[22m[39m
+[31m   [33mΓ¥»[31m src/routes/__tests__/agents.spec.ts[2m > [22mAgent Registration Routes[2m > [22mshould reject an expired bootstrap token[39m
+[31m     ΓåÆ expected 500 to be 400 // Object.is equality[39m
+ [33mΓ¥»[39m src/services/__tests__/mtls.spec.ts [2m ([22m[2m2 tests[22m [2m|[22m [31m1 failed[39m[2m)[22m[33m 2884[2mms[22m[39m
+[31m   [33mΓ¥»[31m src/services/__tests__/mtls.spec.ts[2m > [22mmTLS Certificate Authority[2m > [22mshould issue and sign an agent certificate[39m
+[31m     ΓåÆ this.prisma.$transaction is not a function[39m
+ [33mΓ¥»[39m src/__tests__/security.test.ts [2m ([22m[2m4 tests[22m[2m)[22m[33m 10125[2mms[22m[39m
+
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Unhandled Errors [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+[31m[1m
+Vitest caught 2 unhandled errors during the test run.
+This might cause false positive tests. Resolve unhandled errors to make sure your tests are not affected.[22m[39m
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+[2m Test Files [22m [1m[31m9 failed[39m[22m[2m | [22m[1m[32m20 passed[39m[22m[2m | [22m[33m2 skipped[39m[90m (31)[39m
+[2m      Tests [22m [1m[31m21 failed[39m[22m[2m | [22m[1m[32m103 passed[39m[22m[2m | [22m[33m39 skipped[39m[90m (167)[39m
+[2m     Errors [22m [1m[31m2 errors[39m[22m
+[2m   Start at [22m 09:09:04
+[2m   Duration [22m 24.51s[2m (transform 7.77s, setup 14ms, collect 130.81s, tests 53.92s, environment 28ms, prepare 20.64s)[22m
+

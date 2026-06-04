@@ -1,0 +1,22 @@
+[
+  {
+    "file": "apps\\api\\src\\config\\validate.ts",
+    "line": 127,
+    "method": "logger.info",
+    "args": [
+      "`✅ Configuration validation passed using ${secretManager.constructor.name}`",
+      ""
+    ],
+    "rawCall": "logger.info(\r\n    `✅ Configuration validation passed using ${secretManager.constructor.name}`,\r\n  )"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "line": 245,
+    "method": "logger.warn",
+    "args": [
+      "'ALLOWED_ORIGINS not set in production - CORS will block all cross-origin requests'",
+      ""
+    ],
+    "rawCall": "logger.warn(\r\n      'ALLOWED_ORIGINS not set in production - CORS will block all cross-origin requests',\r\n    )"
+  }
+]

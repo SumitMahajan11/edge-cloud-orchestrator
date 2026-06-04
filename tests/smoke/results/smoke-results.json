@@ -1,0 +1,56 @@
+{
+  "timestamp": "2026-05-25T13:50:27.532Z",
+  "baseUrl": "http://localhost:3000",
+  "total": 8,
+  "passed": 1,
+  "failed": 7,
+  "results": [
+    {
+      "name": "health:api",
+      "passed": false,
+      "durationMs": 25,
+      "error": "fetch failed"
+    },
+    {
+      "name": "health:api-gateway",
+      "passed": false,
+      "durationMs": 2,
+      "error": "fetch failed"
+    },
+    {
+      "name": "health:websocket-gateway",
+      "passed": false,
+      "durationMs": 3,
+      "error": "fetch failed"
+    },
+    {
+      "name": "auth:reject-unauthenticated",
+      "passed": false,
+      "durationMs": 3,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "name": "auth:valid-credentials",
+      "passed": false,
+      "durationMs": 3,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "name": "nodes:heartbeat-freshness",
+      "passed": false,
+      "durationMs": 16,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "name": "tasks:submit",
+      "passed": false,
+      "durationMs": 17,
+      "error": "TypeError: fetch failed"
+    },
+    {
+      "name": "ws:gateway-alive",
+      "passed": true,
+      "durationMs": 1
+    }
+  ]
+}
