@@ -1,0 +1,10 @@
+{
+  "test": "rejects_forgery",
+  "result": {
+    "valid": false,
+    "nodeId": "rogue-node",
+    "serialNumber": "12345678",
+    "error": "Certificate signature or chain verification failed"
+  },
+  "verifyResult": false
+}

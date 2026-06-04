@@ -1,0 +1,82 @@
+[
+  {
+    "file": "apps\\api\\src\\jobs\\__tests__\\consistency-checker.spec.ts",
+    "line": 55,
+    "content": "expect(metrics.consistencyViolationsTotal.labels).toHaveBeenCalledWith('TASK_EXECUTION_SYNC');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\__tests__\\consistency-checker.spec.ts",
+    "line": 86,
+    "content": "expect(metrics.consistencyAutoFixesTotal.labels).toHaveBeenCalledWith('STUCK_SCHEDULING', 'success');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\__tests__\\alerting-ssrf.test.ts",
+    "line": 77,
+    "content": "expect(redis.lpush).toHaveBeenCalledWith('alerts:webhook:failures', expect.stringContaining('SSRF_BLOCKED'));"
+  },
+  {
+    "file": "apps\\api\\src\\services\\__tests__\\auto-healer.spec.ts",
+    "line": 65,
+    "content": "expect(mockRedis.zadd).toHaveBeenCalledWith('task:queue', expect.any(Number), 'task-1');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\__tests__\\task-scheduler.spec.ts",
+    "line": 139,
+    "content": "expect(mockRedis.expire).toHaveBeenCalledWith('task:queue', 86400);"
+  },
+  {
+    "file": "apps\\api\\src\\services\\__tests__\\task-scheduler.spec.ts",
+    "line": 145,
+    "content": "expect(mockRedis.zrem).toHaveBeenCalledWith('task:queue', 'task-1');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\__tests__\\websocket-tenant-isolation.test.ts",
+    "line": 65,
+    "content": "expect(mockRedis.psubscribe).toHaveBeenCalledWith('*:*:*');"
+  },
+  {
+    "file": "apps\\api\\tests\\integration\\zombie-task-recovery.test.ts",
+    "line": 269,
+    "content": "expect(mockRedis.zadd).toHaveBeenCalledWith('task:queue', expect.any(Number), 'zombie-1');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\feedback-loop.spec.ts",
+    "line": 70,
+    "content": "expect(mockRedis.set).toHaveBeenCalledWith(`ml:node:${nodeId}:reward`, '0.55');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\ml-scheduler.spec.ts",
+    "line": 67,
+    "content": "expect(mockMetrics.recordMLFallback).toHaveBeenCalledWith('timeout', 'load-balanced');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\ml-scheduler.spec.ts",
+    "line": 83,
+    "content": "expect(mockMetrics.recordMLFallback).toHaveBeenCalledWith('error', 'load-balanced');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\ml-scheduler.spec.ts",
+    "line": 94,
+    "content": "expect(mockMetrics.recordMLFallback).toHaveBeenCalledWith('drift', 'load-balanced');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\model-registry.spec.ts",
+    "line": 47,
+    "content": "expect(redis.set).toHaveBeenCalledWith('ml:active_model_version', 'v1.0.0');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\model-registry.spec.ts",
+    "line": 48,
+    "content": "expect(redis.publish).toHaveBeenCalledWith('ml:model_updated', 'v1.0.0');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\model-registry.spec.ts",
+    "line": 59,
+    "content": "expect(redis.lpush).toHaveBeenCalledWith('ml:model_version_history', 'v1.0.0');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\__tests__\\model-registry.spec.ts",
+    "line": 60,
+    "content": "expect(redis.set).toHaveBeenCalledWith('ml:active_model_version', 'v1.1.0');"
+  }
+]

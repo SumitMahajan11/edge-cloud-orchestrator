@@ -1,0 +1,5645 @@
+[
+  {
+    "file": "apps\\web\\src\\hooks\\useCircuitBreakers.ts",
+    "line": 53,
+    "objectChain": "toast",
+    "method": "error",
+    "args": [
+      "`Circuit Breaker Tripped: ${payload.name}`",
+      "{\r\n          description: 'Service is now in protective isolation.',\r\n        }"
+    ],
+    "rawCall": "toast.error(`Circuit Breaker Tripped: ${payload.name}`, {\r\n          description: 'Service is now in protective isolation.',\r\n        })"
+  },
+  {
+    "file": "apps\\web\\src\\hooks\\useCircuitBreakers.ts",
+    "line": 80,
+    "objectChain": "toast",
+    "method": "error",
+    "args": [
+      "'Reset failed'",
+      "{\r\n        description: error.message || 'An unexpected error occurred',\r\n      }"
+    ],
+    "rawCall": "toast.error('Reset failed', {\r\n        description: error.message || 'An unexpected error occurred',\r\n      })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\anomaly\\AIAnomalyDetector.ts",
+    "line": 170,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Anomaly detected'",
+      "{\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      }"
+    ],
+    "rawCall": "logger.warn('Anomaly detected', {\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\anomaly\\AIAnomalyDetector.ts",
+    "line": 357,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Anomaly model trained'",
+      "{ modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Anomaly model trained', { modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\auth\\AgentAuth.ts",
+    "line": 112,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'API key generated'",
+      "{ agentId, keyId: id, permissions }"
+    ],
+    "rawCall": "logger.info('API key generated', { agentId, keyId: id, permissions })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\auth\\AgentAuth.ts",
+    "line": 323,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Token revoked'",
+      "{ tokenPrefix: token.substring(0, 20) }"
+    ],
+    "rawCall": "logger.warn('Token revoked', { tokenPrefix: token.substring(0, 20) })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\auth\\AgentAuth.ts",
+    "line": 333,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'API key disabled'",
+      "{ agentId, keyId: id }"
+    ],
+    "rawCall": "logger.warn('API key disabled', { agentId, keyId: id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Critical threshold breached'",
+      "{ metric, value, threshold: threshold.criticalThreshold }"
+    ],
+    "rawCall": "logger.warn('Critical threshold breached', { metric, value, threshold: threshold.criticalThreshold })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Warning threshold breached'",
+      "{ metric, value, threshold: threshold.warningThreshold }"
+    ],
+    "rawCall": "logger.info('Warning threshold breached', { metric, value, threshold: threshold.warningThreshold })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 228,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Auto-scaling triggered'",
+      "{\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    }"
+    ],
+    "rawCall": "logger.info('Auto-scaling triggered', {\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 263,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity plan generated'",
+      "{\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.info('Capacity plan generated', {\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 419,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Action not approved'",
+      "{ actionId: action.id }"
+    ],
+    "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 430,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity action executed'",
+      "{ actionId: action.id, type: action.type }"
+    ],
+    "rawCall": "logger.info('Capacity action executed', { actionId: action.id, type: action.type })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 105,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Leader election already running'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Leader election already running', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 116,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Connected to Redis for leader election'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Connected to Redis for leader election', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Redis connection failed, using in-memory leader election'",
+      "{ error: (error as Error).message }"
+    ],
+    "rawCall": "logger.warn('Redis connection failed, using in-memory leader election', { error: (error as Error).message })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 126,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election started'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 155,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election stopped'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 221,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Became leader'",
+      "{ nodeId: this.config.nodeId, term: this.state.term }"
+    ],
+    "rawCall": "logger.info('Became leader', { nodeId: this.config.nodeId, term: this.state.term })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 245,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Lost leadership'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 290,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Released leadership voluntarily'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Released leadership voluntarily', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 467,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator started'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 475,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator stopped'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 94,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Execution layer registered with control plane'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Execution layer registered with control plane', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 123,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Control plane at capacity, rejecting decision'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('Control plane at capacity, rejecting decision', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes available for scheduling'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 137,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes match constraints'",
+      "{ taskId: task.id, constraints }"
+    ],
+    "rawCall": "logger.warn('No nodes match constraints', { taskId: task.id, constraints })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 166,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling decision created'",
+      "{\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    }"
+    ],
+    "rawCall": "logger.info('Scheduling decision created', {\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision not found for dispatch'",
+      "{ decisionId }"
+    ],
+    "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Decision cancelled'",
+      "{ decisionId, reason }"
+    ],
+    "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision expired'",
+      "{ decisionId: id, taskId: decision.taskId }"
+    ],
+    "rawCall": "logger.warn('Decision expired', { decisionId: id, taskId: decision.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 114,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered to shard'",
+      "{ nodeId: node.id, shardId }"
+    ],
+    "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 190,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No available shards for task'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 214,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queued (no nodes available)'",
+      "{ taskId: task.id, shardId }"
+    ],
+    "rawCall": "logger.info('Task queued (no nodes available)', { taskId: task.id, shardId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 240,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task scheduled on shard'",
+      "{ taskId: task.id, nodeId: selectedNodeId, shardId }"
+    ],
+    "rawCall": "logger.info('Task scheduled on shard', { taskId: task.id, nodeId: selectedNodeId, shardId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Shards rebalanced'",
+      "{ moved, overloaded, underloaded }"
+    ],
+    "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cost\\CostOptimizationEngine.ts",
+    "line": 253,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost analysis completed'",
+      "{ analysisId, totalCost: analysis.totalCost.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Cost analysis completed', { analysisId, totalCost: analysis.totalCost.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cost\\CostOptimizationEngine.ts",
+    "line": 427,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost recommendation generated'",
+      "{ \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    }"
+    ],
+    "rawCall": "logger.info('Cost recommendation generated', { \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\cost\\CostOptimizationEngine.ts",
+    "line": 459,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recommendation applied'",
+      "{ id: recommendationId, savings: recommendation.projectedSavings }"
+    ],
+    "rawCall": "logger.info('Recommendation applied', { id: recommendationId, savings: recommendation.projectedSavings })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment started'",
+      "{ deploymentId, version: config.version, targetSlot }"
+    ],
+    "rawCall": "logger.info('Deployment started', { deploymentId, version: config.version, targetSlot })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 218,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment completed'",
+      "{ deploymentId: deployment.id, version: deployment.config.version }"
+    ],
+    "rawCall": "logger.info('Deployment completed', { deploymentId: deployment.id, version: deployment.config.version })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 246,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Deployed to node'",
+      "{ nodeId: node.id, version: config.version }"
+    ],
+    "rawCall": "logger.debug('Deployed to node', { nodeId: node.id, version: config.version })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 248,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Failed to deploy to node'",
+      "{ nodeId: node.id }"
+    ],
+    "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 295,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Traffic shifted'",
+      "{ targetSlot, percentage }"
+    ],
+    "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 319,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Error rate exceeded threshold, triggering rollback'",
+      "{ errorRate, threshold: deployment.config.rollbackThreshold }"
+    ],
+    "rawCall": "logger.warn('Error rate exceeded threshold, triggering rollback', { errorRate, threshold: deployment.config.rollbackThreshold })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 341,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Rollback completed'",
+      "{ deploymentId: deployment.id, revertedTo: previousSlot }"
+    ],
+    "rawCall": "logger.warn('Rollback completed', { deploymentId: deployment.id, revertedTo: previousSlot })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 75,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry started'",
+      "{ \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registry started', { \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry stopped'",
+      "{ registeredNodes: this.nodes.size }"
+    ],
+    "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 110,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node re-registered'",
+      "{ nodeId: registration.nodeId, ip: registration.ip }"
+    ],
+    "rawCall": "logger.info('Node re-registered', { nodeId: registration.nodeId, ip: registration.ip })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered'",
+      "{ \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registered', { \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 147,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Heartbeat from unknown node'",
+      "{ nodeId: data.nodeId }"
+    ],
+    "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 176,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node deregistered'",
+      "{ nodeId }"
+    ],
+    "rawCall": "logger.info('Node deregistered', { nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Node marked offline'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 329,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node removed due to timeout'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\events\\EventStore.ts",
+    "line": 127,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Event appended'",
+      "{ eventId: event.id, type, aggregateId, version: newVersion }"
+    ],
+    "rawCall": "logger.debug('Event appended', { eventId: event.id, type, aggregateId, version: newVersion })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 133,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL model registered'",
+      "{ modelId: model.id, name: model.name }"
+    ],
+    "rawCall": "logger.info('FL model registered', { modelId: model.id, name: model.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 211,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training session started'",
+      "{ sessionId, modelId, clientCount, totalRounds }"
+    ],
+    "rawCall": "logger.info('FL training session started', { sessionId, modelId, clientCount, totalRounds })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 244,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training converged early'",
+      "{ sessionId: session.id, round }"
+    ],
+    "rawCall": "logger.info('FL training converged early', { sessionId: session.id, round })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 253,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training completed'",
+      "{ sessionId: session.id, rounds: session.currentRound }"
+    ],
+    "rawCall": "logger.info('FL training completed', { sessionId: session.id, rounds: session.currentRound })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster registered to federation'",
+      "{\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    }"
+    ],
+    "rawCall": "logger.info('Cluster registered to federation', {\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 143,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster unregistered from federation'",
+      "{ clusterId }"
+    ],
+    "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 206,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to remote cluster'",
+      "{\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to remote cluster', {\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 307,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Resources shared with cluster'",
+      "{\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    }"
+    ],
+    "rawCall": "logger.info('Resources shared with cluster', {\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 390,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Failover completed'",
+      "{\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    }"
+    ],
+    "rawCall": "logger.info('Failover completed', {\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\infrastructure\\database-adapters.ts",
+    "line": 128,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Query executed: ${sql.substring(0, 50)}...`",
+      "{ rowCount: result.rows.length }"
+    ],
+    "rawCall": "logger.debug(`Query executed: ${sql.substring(0, 50)}...`, { rowCount: result.rows.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\infrastructure\\database-adapters.ts",
+    "line": 140,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Execute: ${sql.substring(0, 50)}...`",
+      "{ rowsAffected: result.rowCount }"
+    ],
+    "rawCall": "logger.debug(`Execute: ${sql.substring(0, 50)}...`, { rowsAffected: result.rowCount })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\marketplace\\EdgeFunctionMarketplace.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function published'",
+      "{ functionId: id, name: fn.name }"
+    ],
+    "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\marketplace\\EdgeFunctionMarketplace.ts",
+    "line": 297,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function deployed'",
+      "{ functionId, nodes: nodes.length }"
+    ],
+    "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\metrics\\exporter.ts",
+    "line": 320,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Metrics collector started'",
+      "{ interval }"
+    ],
+    "rawCall": "logger.info('Metrics collector started', { interval })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\metrics\\exporter.ts",
+    "line": 485,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`Alert triggered: ${rule.name}`",
+      "{ \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          }"
+    ],
+    "rawCall": "logger.warn(`Alert triggered: ${rule.name}`, { \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\metrics\\exporter.ts",
+    "line": 494,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "`Alert resolved: ${rule.name}`",
+      "{ metric: rule.metric }"
+    ],
+    "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\ml\\MLModelManager.ts",
+    "line": 323,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Not enough samples for training'",
+      "{ taskType, samples: samples?.length || 0 }"
+    ],
+    "rawCall": "logger.warn('Not enough samples for training', { taskType, samples: samples?.length || 0 })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\ml\\MLModelManager.ts",
+    "line": 351,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model trained'",
+      "{ taskType, mse, r2Score, samples: samples.length }"
+    ],
+    "rawCall": "logger.info('Model trained', { taskType, mse, r2Score, samples: samples.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\ml\\MLModelManager.ts",
+    "line": 474,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model imported'",
+      "{ taskType: model.taskType, samples: model.trainingSamples }"
+    ],
+    "rawCall": "logger.info('Model imported', { taskType: model.taskType, samples: model.trainingSamples })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 104,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region registered'",
+      "{\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    }"
+    ],
+    "rawCall": "logger.info('Region registered', {\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 278,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to region'",
+      "{\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to region', {\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 324,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task failed over'",
+      "{ taskId: task.taskId, toRegion: target.id }"
+    ],
+    "rawCall": "logger.info('Task failed over', { taskId: task.taskId, toRegion: target.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 347,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region policy set'",
+      "{ taskType, policy: policy.name }"
+    ],
+    "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\database-adapters.ts",
+    "line": 127,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Query executed: ${sql.substring(0, 50)}...`",
+      "{ rowCount: result.rows.length }"
+    ],
+    "rawCall": "logger.debug(`Query executed: ${sql.substring(0, 50)}...`, { rowCount: result.rows.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\database-adapters.ts",
+    "line": 139,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Execute: ${sql.substring(0, 50)}...`",
+      "{ rowsAffected: result.rowCount }"
+    ],
+    "rawCall": "logger.debug(`Execute: ${sql.substring(0, 50)}...`, { rowsAffected: result.rowCount })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 105,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Leader election already running'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Leader election already running', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 116,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Connected to Redis for leader election'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Connected to Redis for leader election', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Redis connection failed, using in-memory leader election'",
+      "{ error: (error as Error).message }"
+    ],
+    "rawCall": "logger.warn('Redis connection failed, using in-memory leader election', { error: (error as Error).message })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 126,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election started'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 155,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election stopped'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 221,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Became leader'",
+      "{ nodeId: this.config.nodeId, term: this.state.term }"
+    ],
+    "rawCall": "logger.info('Became leader', { nodeId: this.config.nodeId, term: this.state.term })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 245,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Lost leadership'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 290,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Released leadership voluntarily'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Released leadership voluntarily', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 467,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator started'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 475,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator stopped'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 104,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region registered'",
+      "{\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    }"
+    ],
+    "rawCall": "logger.info('Region registered', {\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 272,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to region'",
+      "{\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to region', {\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 318,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task failed over'",
+      "{ taskId: task.taskId, toRegion: target.id }"
+    ],
+    "rawCall": "logger.info('Task failed over', { taskId: task.taskId, toRegion: target.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 341,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region policy set'",
+      "{ taskType, policy: policy.name }"
+    ],
+    "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 75,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry started'",
+      "{ \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registry started', { \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry stopped'",
+      "{ registeredNodes: this.nodes.size }"
+    ],
+    "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 110,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node re-registered'",
+      "{ nodeId: registration.nodeId, ip: registration.ip }"
+    ],
+    "rawCall": "logger.info('Node re-registered', { nodeId: registration.nodeId, ip: registration.ip })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered'",
+      "{ \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registered', { \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 147,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Heartbeat from unknown node'",
+      "{ nodeId: data.nodeId }"
+    ],
+    "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 176,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node deregistered'",
+      "{ nodeId }"
+    ],
+    "rawCall": "logger.info('Node deregistered', { nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Node marked offline'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 329,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node removed due to timeout'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\observability\\logger.ts",
+    "line": 234,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Trace started: ${name}`",
+      "{ traceId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\observability\\logger.ts",
+    "line": 243,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Span started: ${name}`",
+      "{ spanId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 243,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Kafka adapter connected'",
+      "{ brokers: this.config.brokers }"
+    ],
+    "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'RabbitMQ adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 505,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Redis Streams adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 671,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queue initialized'",
+      "{ type: this.config.type }"
+    ],
+    "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 178,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Recovery in cooldown'",
+      "{ failureId: failure.id }"
+    ],
+    "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 205,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery initiated'",
+      "{ planId: plan.id, strategy, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery initiated', { planId: plan.id, strategy, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 363,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery completed'",
+      "{ planId: plan.id, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery completed', { planId: plan.id, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 375,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Retrying task'",
+      "{ taskId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 397,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Restarting node'",
+      "{ nodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 409,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Transferring tasks'",
+      "{ fromNodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 134,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too soon'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too far in future'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too far in future', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 142,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation duration too long'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 149,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No suitable node for reservation'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('No suitable node for reservation', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation created'",
+      "{\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    }"
+    ],
+    "rawCall": "logger.info('Reservation created', {\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 288,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation cancelled'",
+      "{ reservationId, reason }"
+    ],
+    "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 306,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation preempted'",
+      "{ reservationId, higherPriorityTaskId }"
+    ],
+    "rawCall": "logger.warn('Reservation preempted', { reservationId, higherPriorityTaskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation activated'",
+      "{ reservationId: reservation.id }"
+    ],
+    "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 407,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation completed'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.info('Reservation completed', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 414,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation expired'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\retry.ts",
+    "line": 78,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed with non-retryable error`",
+      "{ error: lastError.message }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed with non-retryable error`, { error: lastError.message })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\retry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`",
+      "{\r\n          error: lastError.message,\r\n        }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`, {\r\n          error: lastError.message,\r\n        })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\routing\\geoRouter.ts",
+    "line": 72,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node geo info registered'",
+      "{ nodeId, region: geoInfo.region, zone: geoInfo.zone }"
+    ],
+    "rawCall": "logger.info('Node geo info registered', { nodeId, region: geoInfo.region, zone: geoInfo.zone })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 157,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox created'",
+      "{\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    }"
+    ],
+    "rawCall": "logger.info('Sandbox created', {\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 207,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox stopped'",
+      "{ sandboxId, reason, violations: sandbox.violations.length }"
+    ],
+    "rawCall": "logger.info('Sandbox stopped', { sandboxId, reason, violations: sandbox.violations.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox killed'",
+      "{ sandboxId, reason }"
+    ],
+    "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 287,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox violation'",
+      "{\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    }"
+    ],
+    "rawCall": "logger.warn('Sandbox violation', {\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolation policy added'",
+      "{ name: policy.name }"
+    ],
+    "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 444,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolated network created'",
+      "{ networkId, nodes: nodeIds.length }"
+    ],
+    "rawCall": "logger.info('Isolated network created', { networkId, nodes: nodeIds.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\scheduler\\EnhancedPredictiveScheduler.ts",
+    "line": 192,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Loaded historical data'",
+      "{ count: this.history.length }"
+    ],
+    "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 63,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduler service started'",
+      "{ policy: this.config.policy }"
+    ],
+    "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task submitted'",
+      "{ taskId: task.id, name, type, priority }"
+    ],
+    "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 286,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task assigned to node'",
+      "{ taskId: task.id, nodeId: node.id, reason }"
+    ],
+    "rawCall": "logger.info('Task assigned to node', { taskId: task.id, nodeId: node.id, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task routed to cloud'",
+      "{ taskId: task.id, reason }"
+    ],
+    "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 333,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling policy changed'",
+      "{ policy }"
+    ],
+    "rawCall": "logger.info('Scheduling policy changed', { policy })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sustainability\\CarbonTracker.ts",
+    "line": 159,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Carbon metrics recorded'",
+      "{\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.debug('Carbon metrics recorded', {\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\sustainability\\CarbonTracker.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Carbon report generated'",
+      "{\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    }"
+    ],
+    "rawCall": "logger.info('Carbon report generated', {\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\EnhancedPredictiveScheduler.ts",
+    "line": 192,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Loaded historical data'",
+      "{ count: this.history.length }"
+    ],
+    "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\MLModelManager.ts",
+    "line": 316,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Not enough samples for training'",
+      "{ taskType, samples: samples?.length || 0 }"
+    ],
+    "rawCall": "logger.warn('Not enough samples for training', { taskType, samples: samples?.length || 0 })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\MLModelManager.ts",
+    "line": 344,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model trained'",
+      "{ taskType, mse, r2Score, samples: samples.length }"
+    ],
+    "rawCall": "logger.info('Model trained', { taskType, mse, r2Score, samples: samples.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\MLModelManager.ts",
+    "line": 467,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model imported'",
+      "{ taskType: model.taskType, samples: model.trainingSamples }"
+    ],
+    "rawCall": "logger.info('Model imported', { taskType: model.taskType, samples: model.trainingSamples })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 63,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduler service started'",
+      "{ policy: this.config.policy }"
+    ],
+    "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task submitted'",
+      "{ taskId: task.id, name, type, priority }"
+    ],
+    "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 286,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task assigned to node'",
+      "{ taskId: task.id, nodeId: node.id, reason }"
+    ],
+    "rawCall": "logger.info('Task assigned to node', { taskId: task.id, nodeId: node.id, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task routed to cloud'",
+      "{ taskId: task.id, reason }"
+    ],
+    "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 333,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling policy changed'",
+      "{ policy }"
+    ],
+    "rawCall": "logger.info('Scheduling policy changed', { policy })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 243,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Kafka adapter connected'",
+      "{ brokers: this.config.brokers }"
+    ],
+    "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'RabbitMQ adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 505,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Redis Streams adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 671,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queue initialized'",
+      "{ type: this.config.type }"
+    ],
+    "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 100,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow registered'",
+      "{ workflowId: definition.id, name: definition.name }"
+    ],
+    "rawCall": "logger.info('Workflow registered', { workflowId: definition.id, name: definition.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 196,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow started'",
+      "{ executionId, workflowId }"
+    ],
+    "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow completed'",
+      "{ executionId: execution.id }"
+    ],
+    "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 275,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node started'",
+      "{ executionId: execution.id, nodeId: node.id, type: node.type }"
+    ],
+    "rawCall": "logger.debug('Node started', { executionId: execution.id, nodeId: node.id, type: node.type })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 310,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node completed'",
+      "{ executionId: execution.id, nodeId: node.id }"
+    ],
+    "rawCall": "logger.debug('Node completed', { executionId: execution.id, nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 431,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow notification'",
+      "{ executionId: execution.id, message }"
+    ],
+    "rawCall": "logger.info('Workflow notification', { executionId: execution.id, message })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 442,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Starting subworkflow'",
+      "{ subWorkflowId }"
+    ],
+    "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 487,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow cancelled'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow cancelled', { executionId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 499,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow paused'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow paused', { executionId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\AIAnomalyDetector.ts",
+    "line": 170,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Anomaly detected'",
+      "{\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      }"
+    ],
+    "rawCall": "logger.warn('Anomaly detected', {\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\AIAnomalyDetector.ts",
+    "line": 356,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Anomaly model trained'",
+      "{ modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Anomaly model trained', { modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment started'",
+      "{ deploymentId, version: config.version, targetSlot }"
+    ],
+    "rawCall": "logger.info('Deployment started', { deploymentId, version: config.version, targetSlot })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 217,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment completed'",
+      "{ deploymentId: deployment.id, version: deployment.config.version }"
+    ],
+    "rawCall": "logger.info('Deployment completed', { deploymentId: deployment.id, version: deployment.config.version })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 245,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Deployed to node'",
+      "{ nodeId: node.id, version: config.version }"
+    ],
+    "rawCall": "logger.debug('Deployed to node', { nodeId: node.id, version: config.version })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 247,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Failed to deploy to node'",
+      "{ nodeId: node.id }"
+    ],
+    "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 294,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Traffic shifted'",
+      "{ targetSlot, percentage }"
+    ],
+    "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 318,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Error rate exceeded threshold, triggering rollback'",
+      "{ errorRate, threshold: deployment.config.rollbackThreshold }"
+    ],
+    "rawCall": "logger.warn('Error rate exceeded threshold, triggering rollback', { errorRate, threshold: deployment.config.rollbackThreshold })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 340,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Rollback completed'",
+      "{ deploymentId: deployment.id, revertedTo: previousSlot }"
+    ],
+    "rawCall": "logger.warn('Rollback completed', { deploymentId: deployment.id, revertedTo: previousSlot })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Critical threshold breached'",
+      "{ metric, value, threshold: threshold.criticalThreshold }"
+    ],
+    "rawCall": "logger.warn('Critical threshold breached', { metric, value, threshold: threshold.criticalThreshold })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Warning threshold breached'",
+      "{ metric, value, threshold: threshold.warningThreshold }"
+    ],
+    "rawCall": "logger.info('Warning threshold breached', { metric, value, threshold: threshold.warningThreshold })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 228,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Auto-scaling triggered'",
+      "{\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    }"
+    ],
+    "rawCall": "logger.info('Auto-scaling triggered', {\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 263,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity plan generated'",
+      "{\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.info('Capacity plan generated', {\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 419,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Action not approved'",
+      "{ actionId: action.id }"
+    ],
+    "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 430,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity action executed'",
+      "{ actionId: action.id, type: action.type }"
+    ],
+    "rawCall": "logger.info('Capacity action executed', { actionId: action.id, type: action.type })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CarbonTracker.ts",
+    "line": 159,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Carbon metrics recorded'",
+      "{\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.debug('Carbon metrics recorded', {\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CarbonTracker.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Carbon report generated'",
+      "{\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    }"
+    ],
+    "rawCall": "logger.info('Carbon report generated', {\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 94,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Execution layer registered with control plane'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Execution layer registered with control plane', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 123,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Control plane at capacity, rejecting decision'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('Control plane at capacity, rejecting decision', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes available for scheduling'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 137,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes match constraints'",
+      "{ taskId: task.id, constraints }"
+    ],
+    "rawCall": "logger.warn('No nodes match constraints', { taskId: task.id, constraints })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 166,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling decision created'",
+      "{\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    }"
+    ],
+    "rawCall": "logger.info('Scheduling decision created', {\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision not found for dispatch'",
+      "{ decisionId }"
+    ],
+    "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Decision cancelled'",
+      "{ decisionId, reason }"
+    ],
+    "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision expired'",
+      "{ decisionId: id, taskId: decision.taskId }"
+    ],
+    "rawCall": "logger.warn('Decision expired', { decisionId: id, taskId: decision.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CostOptimizationEngine.ts",
+    "line": 252,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost analysis completed'",
+      "{ analysisId, totalCost: analysis.totalCost.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Cost analysis completed', { analysisId, totalCost: analysis.totalCost.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CostOptimizationEngine.ts",
+    "line": 426,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost recommendation generated'",
+      "{ \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    }"
+    ],
+    "rawCall": "logger.info('Cost recommendation generated', { \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\CostOptimizationEngine.ts",
+    "line": 458,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recommendation applied'",
+      "{ id: recommendationId, savings: recommendation.projectedSavings }"
+    ],
+    "rawCall": "logger.info('Recommendation applied', { id: recommendationId, savings: recommendation.projectedSavings })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 114,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered to shard'",
+      "{ nodeId: node.id, shardId }"
+    ],
+    "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 190,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No available shards for task'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 214,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queued (no nodes available)'",
+      "{ taskId: task.id, shardId }"
+    ],
+    "rawCall": "logger.info('Task queued (no nodes available)', { taskId: task.id, shardId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 240,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task scheduled on shard'",
+      "{ taskId: task.id, nodeId: selectedNodeId, shardId }"
+    ],
+    "rawCall": "logger.info('Task scheduled on shard', { taskId: task.id, nodeId: selectedNodeId, shardId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 302,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Shards rebalanced'",
+      "{ moved, overloaded, underloaded }"
+    ],
+    "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\EdgeFunctionMarketplace.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function published'",
+      "{ functionId: id, name: fn.name }"
+    ],
+    "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\EdgeFunctionMarketplace.ts",
+    "line": 297,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function deployed'",
+      "{ functionId, nodes: nodes.length }"
+    ],
+    "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\EventStore.ts",
+    "line": 127,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Event appended'",
+      "{ eventId: event.id, type, aggregateId, version: newVersion }"
+    ],
+    "rawCall": "logger.debug('Event appended', { eventId: event.id, type, aggregateId, version: newVersion })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\exporter.ts",
+    "line": 320,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Metrics collector started'",
+      "{ interval }"
+    ],
+    "rawCall": "logger.info('Metrics collector started', { interval })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\exporter.ts",
+    "line": 485,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`Alert triggered: ${rule.name}`",
+      "{ \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          }"
+    ],
+    "rawCall": "logger.warn(`Alert triggered: ${rule.name}`, { \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\exporter.ts",
+    "line": 494,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "`Alert resolved: ${rule.name}`",
+      "{ metric: rule.metric }"
+    ],
+    "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 178,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Recovery in cooldown'",
+      "{ failureId: failure.id }"
+    ],
+    "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 205,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery initiated'",
+      "{ planId: plan.id, strategy, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery initiated', { planId: plan.id, strategy, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 363,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery completed'",
+      "{ planId: plan.id, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery completed', { planId: plan.id, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 375,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Retrying task'",
+      "{ taskId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 397,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Restarting node'",
+      "{ nodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 409,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Transferring tasks'",
+      "{ fromNodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 133,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL model registered'",
+      "{ modelId: model.id, name: model.name }"
+    ],
+    "rawCall": "logger.info('FL model registered', { modelId: model.id, name: model.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 208,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training session started'",
+      "{ sessionId, modelId, clientCount, totalRounds }"
+    ],
+    "rawCall": "logger.info('FL training session started', { sessionId, modelId, clientCount, totalRounds })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training converged early'",
+      "{ sessionId: session.id, round }"
+    ],
+    "rawCall": "logger.info('FL training converged early', { sessionId: session.id, round })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 250,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training completed'",
+      "{ sessionId: session.id, rounds: session.currentRound }"
+    ],
+    "rawCall": "logger.info('FL training completed', { sessionId: session.id, rounds: session.currentRound })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\geoRouter.ts",
+    "line": 72,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node geo info registered'",
+      "{ nodeId, region: geoInfo.region, zone: geoInfo.zone }"
+    ],
+    "rawCall": "logger.info('Node geo info registered', { nodeId, region: geoInfo.region, zone: geoInfo.zone })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\logger.ts",
+    "line": 234,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Trace started: ${name}`",
+      "{ traceId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\logger.ts",
+    "line": 243,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Span started: ${name}`",
+      "{ spanId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster registered to federation'",
+      "{\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    }"
+    ],
+    "rawCall": "logger.info('Cluster registered to federation', {\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 143,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster unregistered from federation'",
+      "{ clusterId }"
+    ],
+    "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 206,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to remote cluster'",
+      "{\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to remote cluster', {\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 307,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Resources shared with cluster'",
+      "{\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    }"
+    ],
+    "rawCall": "logger.info('Resources shared with cluster', {\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 390,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Failover completed'",
+      "{\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    }"
+    ],
+    "rawCall": "logger.info('Failover completed', {\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 134,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too soon'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too far in future'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too far in future', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 142,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation duration too long'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 149,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No suitable node for reservation'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('No suitable node for reservation', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation created'",
+      "{\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    }"
+    ],
+    "rawCall": "logger.info('Reservation created', {\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 288,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation cancelled'",
+      "{ reservationId, reason }"
+    ],
+    "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 306,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation preempted'",
+      "{ reservationId, higherPriorityTaskId }"
+    ],
+    "rawCall": "logger.warn('Reservation preempted', { reservationId, higherPriorityTaskId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation activated'",
+      "{ reservationId: reservation.id }"
+    ],
+    "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 407,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation completed'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.info('Reservation completed', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 414,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation expired'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\retry.ts",
+    "line": 78,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed with non-retryable error`",
+      "{ error: lastError.message }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed with non-retryable error`, { error: lastError.message })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\retry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`",
+      "{\r\n          error: lastError.message,\r\n        }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`, {\r\n          error: lastError.message,\r\n        })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 157,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox created'",
+      "{\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    }"
+    ],
+    "rawCall": "logger.info('Sandbox created', {\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 207,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox stopped'",
+      "{ sandboxId, reason, violations: sandbox.violations.length }"
+    ],
+    "rawCall": "logger.info('Sandbox stopped', { sandboxId, reason, violations: sandbox.violations.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox killed'",
+      "{ sandboxId, reason }"
+    ],
+    "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 287,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox violation'",
+      "{\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    }"
+    ],
+    "rawCall": "logger.warn('Sandbox violation', {\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolation policy added'",
+      "{ name: policy.name }"
+    ],
+    "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 444,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolated network created'",
+      "{ networkId, nodes: nodeIds.length }"
+    ],
+    "rawCall": "logger.info('Isolated network created', { networkId, nodes: nodeIds.length })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\validation.ts",
+    "line": 209,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Validation failed'",
+      "{ errors, data }"
+    ],
+    "rawCall": "logger.warn('Validation failed', { errors, data })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 100,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow registered'",
+      "{ workflowId: definition.id, name: definition.name }"
+    ],
+    "rawCall": "logger.info('Workflow registered', { workflowId: definition.id, name: definition.name })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 196,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow started'",
+      "{ executionId, workflowId }"
+    ],
+    "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow completed'",
+      "{ executionId: execution.id }"
+    ],
+    "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 275,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node started'",
+      "{ executionId: execution.id, nodeId: node.id, type: node.type }"
+    ],
+    "rawCall": "logger.debug('Node started', { executionId: execution.id, nodeId: node.id, type: node.type })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 310,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node completed'",
+      "{ executionId: execution.id, nodeId: node.id }"
+    ],
+    "rawCall": "logger.debug('Node completed', { executionId: execution.id, nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 431,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow notification'",
+      "{ executionId: execution.id, message }"
+    ],
+    "rawCall": "logger.info('Workflow notification', { executionId: execution.id, message })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 442,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Starting subworkflow'",
+      "{ subWorkflowId }"
+    ],
+    "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 487,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow cancelled'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow cancelled', { executionId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 499,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow paused'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow paused', { executionId })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\__tests__\\logger.test.ts",
+    "line": 23,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'test message'",
+      "{ key: 'value', count: 42 }"
+    ],
+    "rawCall": "logger.info('test message', { key: 'value', count: 42 })"
+  },
+  {
+    "file": "apps\\web\\src\\lib\\__tests__\\logger.test.ts",
+    "line": 104,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'message 1'",
+      "{ key: 'value' }"
+    ],
+    "rawCall": "logger.info('message 1', { key: 'value' })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\anomaly\\AIAnomalyDetector.ts",
+    "line": 170,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Anomaly detected'",
+      "{\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      }"
+    ],
+    "rawCall": "logger.warn('Anomaly detected', {\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\anomaly\\AIAnomalyDetector.ts",
+    "line": 357,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Anomaly model trained'",
+      "{ modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Anomaly model trained', { modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\auth\\AgentAuth.ts",
+    "line": 112,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'API key generated'",
+      "{ agentId, keyId: id, permissions }"
+    ],
+    "rawCall": "logger.info('API key generated', { agentId, keyId: id, permissions })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\auth\\AgentAuth.ts",
+    "line": 323,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Token revoked'",
+      "{ tokenPrefix: token.substring(0, 20) }"
+    ],
+    "rawCall": "logger.warn('Token revoked', { tokenPrefix: token.substring(0, 20) })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\auth\\AgentAuth.ts",
+    "line": 333,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'API key disabled'",
+      "{ agentId, keyId: id }"
+    ],
+    "rawCall": "logger.warn('API key disabled', { agentId, keyId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Critical threshold breached'",
+      "{ metric, value, threshold: threshold.criticalThreshold }"
+    ],
+    "rawCall": "logger.warn('Critical threshold breached', { metric, value, threshold: threshold.criticalThreshold })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Warning threshold breached'",
+      "{ metric, value, threshold: threshold.warningThreshold }"
+    ],
+    "rawCall": "logger.info('Warning threshold breached', { metric, value, threshold: threshold.warningThreshold })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 228,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Auto-scaling triggered'",
+      "{\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    }"
+    ],
+    "rawCall": "logger.info('Auto-scaling triggered', {\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 263,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity plan generated'",
+      "{\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.info('Capacity plan generated', {\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 419,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Action not approved'",
+      "{ actionId: action.id }"
+    ],
+    "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\capacity\\CapacityPlanner.ts",
+    "line": 430,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity action executed'",
+      "{ actionId: action.id, type: action.type }"
+    ],
+    "rawCall": "logger.info('Capacity action executed', { actionId: action.id, type: action.type })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 105,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Leader election already running'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Leader election already running', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 116,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Connected to Redis for leader election'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Connected to Redis for leader election', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Redis connection failed, using in-memory leader election'",
+      "{ error: (error as Error).message }"
+    ],
+    "rawCall": "logger.warn('Redis connection failed, using in-memory leader election', { error: (error as Error).message })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 126,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election started'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 155,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election stopped'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 221,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Became leader'",
+      "{ nodeId: this.config.nodeId, term: this.state.term }"
+    ],
+    "rawCall": "logger.info('Became leader', { nodeId: this.config.nodeId, term: this.state.term })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 245,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Lost leadership'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 290,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Released leadership voluntarily'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Released leadership voluntarily', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 467,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator started'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cluster\\leaderElection.ts",
+    "line": 475,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator stopped'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 94,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Execution layer registered with control plane'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Execution layer registered with control plane', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 123,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Control plane at capacity, rejecting decision'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('Control plane at capacity, rejecting decision', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes available for scheduling'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 137,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes match constraints'",
+      "{ taskId: task.id, constraints }"
+    ],
+    "rawCall": "logger.warn('No nodes match constraints', { taskId: task.id, constraints })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 166,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling decision created'",
+      "{\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    }"
+    ],
+    "rawCall": "logger.info('Scheduling decision created', {\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision not found for dispatch'",
+      "{ decisionId }"
+    ],
+    "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Decision cancelled'",
+      "{ decisionId, reason }"
+    ],
+    "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\ControlPlaneManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision expired'",
+      "{ decisionId: id, taskId: decision.taskId }"
+    ],
+    "rawCall": "logger.warn('Decision expired', { decisionId: id, taskId: decision.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 114,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered to shard'",
+      "{ nodeId: node.id, shardId }"
+    ],
+    "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 190,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No available shards for task'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 214,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queued (no nodes available)'",
+      "{ taskId: task.id, shardId }"
+    ],
+    "rawCall": "logger.info('Task queued (no nodes available)', { taskId: task.id, shardId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 240,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task scheduled on shard'",
+      "{ taskId: task.id, nodeId: selectedNodeId, shardId }"
+    ],
+    "rawCall": "logger.info('Task scheduled on shard', { taskId: task.id, nodeId: selectedNodeId, shardId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\control-plane\\DistributedScheduler.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Shards rebalanced'",
+      "{ moved, overloaded, underloaded }"
+    ],
+    "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cost\\CostOptimizationEngine.ts",
+    "line": 253,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost analysis completed'",
+      "{ analysisId, totalCost: analysis.totalCost.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Cost analysis completed', { analysisId, totalCost: analysis.totalCost.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cost\\CostOptimizationEngine.ts",
+    "line": 427,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost recommendation generated'",
+      "{ \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    }"
+    ],
+    "rawCall": "logger.info('Cost recommendation generated', { \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\cost\\CostOptimizationEngine.ts",
+    "line": 459,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recommendation applied'",
+      "{ id: recommendationId, savings: recommendation.projectedSavings }"
+    ],
+    "rawCall": "logger.info('Recommendation applied', { id: recommendationId, savings: recommendation.projectedSavings })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment started'",
+      "{ deploymentId, version: config.version, targetSlot }"
+    ],
+    "rawCall": "logger.info('Deployment started', { deploymentId, version: config.version, targetSlot })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 218,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment completed'",
+      "{ deploymentId: deployment.id, version: deployment.config.version }"
+    ],
+    "rawCall": "logger.info('Deployment completed', { deploymentId: deployment.id, version: deployment.config.version })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 246,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Deployed to node'",
+      "{ nodeId: node.id, version: config.version }"
+    ],
+    "rawCall": "logger.debug('Deployed to node', { nodeId: node.id, version: config.version })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 248,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Failed to deploy to node'",
+      "{ nodeId: node.id }"
+    ],
+    "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 295,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Traffic shifted'",
+      "{ targetSlot, percentage }"
+    ],
+    "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 319,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Error rate exceeded threshold, triggering rollback'",
+      "{ errorRate, threshold: deployment.config.rollbackThreshold }"
+    ],
+    "rawCall": "logger.warn('Error rate exceeded threshold, triggering rollback', { errorRate, threshold: deployment.config.rollbackThreshold })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\deployment\\BlueGreenDeploymentManager.ts",
+    "line": 341,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Rollback completed'",
+      "{ deploymentId: deployment.id, revertedTo: previousSlot }"
+    ],
+    "rawCall": "logger.warn('Rollback completed', { deploymentId: deployment.id, revertedTo: previousSlot })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 75,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry started'",
+      "{ \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registry started', { \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry stopped'",
+      "{ registeredNodes: this.nodes.size }"
+    ],
+    "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 110,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node re-registered'",
+      "{ nodeId: registration.nodeId, ip: registration.ip }"
+    ],
+    "rawCall": "logger.info('Node re-registered', { nodeId: registration.nodeId, ip: registration.ip })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered'",
+      "{ \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registered', { \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 147,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Heartbeat from unknown node'",
+      "{ nodeId: data.nodeId }"
+    ],
+    "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 176,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node deregistered'",
+      "{ nodeId }"
+    ],
+    "rawCall": "logger.info('Node deregistered', { nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Node marked offline'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\discovery\\nodeRegistry.ts",
+    "line": 329,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node removed due to timeout'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\events\\EventStore.ts",
+    "line": 127,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Event appended'",
+      "{ eventId: event.id, type, aggregateId, version: newVersion }"
+    ],
+    "rawCall": "logger.debug('Event appended', { eventId: event.id, type, aggregateId, version: newVersion })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 133,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL model registered'",
+      "{ modelId: model.id, name: model.name }"
+    ],
+    "rawCall": "logger.info('FL model registered', { modelId: model.id, name: model.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 211,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training session started'",
+      "{ sessionId, modelId, clientCount, totalRounds }"
+    ],
+    "rawCall": "logger.info('FL training session started', { sessionId, modelId, clientCount, totalRounds })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 244,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training converged early'",
+      "{ sessionId: session.id, round }"
+    ],
+    "rawCall": "logger.info('FL training converged early', { sessionId: session.id, round })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federated\\FederatedLearningCoordinator.ts",
+    "line": 253,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training completed'",
+      "{ sessionId: session.id, rounds: session.currentRound }"
+    ],
+    "rawCall": "logger.info('FL training completed', { sessionId: session.id, rounds: session.currentRound })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster registered to federation'",
+      "{\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    }"
+    ],
+    "rawCall": "logger.info('Cluster registered to federation', {\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 143,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster unregistered from federation'",
+      "{ clusterId }"
+    ],
+    "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 206,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to remote cluster'",
+      "{\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to remote cluster', {\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 307,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Resources shared with cluster'",
+      "{\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    }"
+    ],
+    "rawCall": "logger.info('Resources shared with cluster', {\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\federation\\MultiClusterFederation.ts",
+    "line": 390,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Failover completed'",
+      "{\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    }"
+    ],
+    "rawCall": "logger.info('Failover completed', {\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\infrastructure\\database-adapters.ts",
+    "line": 128,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Query executed: ${sql.substring(0, 50)}...`",
+      "{ rowCount: result.rows.length }"
+    ],
+    "rawCall": "logger.debug(`Query executed: ${sql.substring(0, 50)}...`, { rowCount: result.rows.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\infrastructure\\database-adapters.ts",
+    "line": 140,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Execute: ${sql.substring(0, 50)}...`",
+      "{ rowsAffected: result.rowCount }"
+    ],
+    "rawCall": "logger.debug(`Execute: ${sql.substring(0, 50)}...`, { rowsAffected: result.rowCount })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\marketplace\\EdgeFunctionMarketplace.ts",
+    "line": 242,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function published'",
+      "{ functionId: id, name: fn.name }"
+    ],
+    "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\marketplace\\EdgeFunctionMarketplace.ts",
+    "line": 298,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function deployed'",
+      "{ functionId, nodes: nodes.length }"
+    ],
+    "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\metrics\\exporter.ts",
+    "line": 320,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Metrics collector started'",
+      "{ interval }"
+    ],
+    "rawCall": "logger.info('Metrics collector started', { interval })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\metrics\\exporter.ts",
+    "line": 485,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`Alert triggered: ${rule.name}`",
+      "{ \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          }"
+    ],
+    "rawCall": "logger.warn(`Alert triggered: ${rule.name}`, { \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\metrics\\exporter.ts",
+    "line": 494,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "`Alert resolved: ${rule.name}`",
+      "{ metric: rule.metric }"
+    ],
+    "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\ml\\MLModelManager.ts",
+    "line": 323,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Not enough samples for training'",
+      "{ taskType, samples: samples?.length || 0 }"
+    ],
+    "rawCall": "logger.warn('Not enough samples for training', { taskType, samples: samples?.length || 0 })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\ml\\MLModelManager.ts",
+    "line": 351,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model trained'",
+      "{ taskType, mse, r2Score, samples: samples.length }"
+    ],
+    "rawCall": "logger.info('Model trained', { taskType, mse, r2Score, samples: samples.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\ml\\MLModelManager.ts",
+    "line": 474,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model imported'",
+      "{ taskType: model.taskType, samples: model.trainingSamples }"
+    ],
+    "rawCall": "logger.info('Model imported', { taskType: model.taskType, samples: model.trainingSamples })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 104,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region registered'",
+      "{\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    }"
+    ],
+    "rawCall": "logger.info('Region registered', {\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 278,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to region'",
+      "{\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to region', {\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 324,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task failed over'",
+      "{ taskId: task.taskId, toRegion: target.id }"
+    ],
+    "rawCall": "logger.info('Task failed over', { taskId: task.taskId, toRegion: target.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\multi-region\\MultiRegionCoordinator.ts",
+    "line": 347,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region policy set'",
+      "{ taskType, policy: policy.name }"
+    ],
+    "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\database-adapters.ts",
+    "line": 128,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Query executed: ${sql.substring(0, 50)}...`",
+      "{ rowCount: result.rows.length }"
+    ],
+    "rawCall": "logger.debug(`Query executed: ${sql.substring(0, 50)}...`, { rowCount: result.rows.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\database-adapters.ts",
+    "line": 140,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "`Execute: ${sql.substring(0, 50)}...`",
+      "{ rowsAffected: result.rowCount }"
+    ],
+    "rawCall": "logger.debug(`Execute: ${sql.substring(0, 50)}...`, { rowsAffected: result.rowCount })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 105,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Leader election already running'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Leader election already running', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 116,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Connected to Redis for leader election'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Connected to Redis for leader election', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Redis connection failed, using in-memory leader election'",
+      "{ error: (error as Error).message }"
+    ],
+    "rawCall": "logger.warn('Redis connection failed, using in-memory leader election', { error: (error as Error).message })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 126,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election started'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 155,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Leader election stopped'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 221,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Became leader'",
+      "{ nodeId: this.config.nodeId, term: this.state.term }"
+    ],
+    "rawCall": "logger.info('Became leader', { nodeId: this.config.nodeId, term: this.state.term })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 245,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Lost leadership'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 290,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Released leadership voluntarily'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Released leadership voluntarily', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 467,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator started'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\leaderElection.ts",
+    "line": 475,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster coordinator stopped'",
+      "{ nodeId: this.nodeId }"
+    ],
+    "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 104,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region registered'",
+      "{\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    }"
+    ],
+    "rawCall": "logger.info('Region registered', {\r\n      regionId: region.id,\r\n      name: region.name,\r\n      location: region.location,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 272,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to region'",
+      "{\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to region', {\r\n      taskId: task.id,\r\n      targetRegion: targetRegionId,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 318,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task failed over'",
+      "{ taskId: task.taskId, toRegion: target.id }"
+    ],
+    "rawCall": "logger.info('Task failed over', { taskId: task.taskId, toRegion: target.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\MultiRegionCoordinator.ts",
+    "line": 341,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Region policy set'",
+      "{ taskType, policy: policy.name }"
+    ],
+    "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 75,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry started'",
+      "{ \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registry started', { \r\n      heartbeatTimeout: this.config.heartbeatTimeout,\r\n      maxNodes: this.config.maxNodes \r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registry stopped'",
+      "{ registeredNodes: this.nodes.size }"
+    ],
+    "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 110,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node re-registered'",
+      "{ nodeId: registration.nodeId, ip: registration.ip }"
+    ],
+    "rawCall": "logger.info('Node re-registered', { nodeId: registration.nodeId, ip: registration.ip })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered'",
+      "{ \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    }"
+    ],
+    "rawCall": "logger.info('Node registered', { \r\n      nodeId: registration.nodeId, \r\n      ip: registration.ip, \r\n      location: registration.location,\r\n      region: registration.region \r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 147,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Heartbeat from unknown node'",
+      "{ nodeId: data.nodeId }"
+    ],
+    "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 176,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node deregistered'",
+      "{ nodeId }"
+    ],
+    "rawCall": "logger.info('Node deregistered', { nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Node marked offline'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\nodes\\nodeRegistry.ts",
+    "line": 329,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node removed due to timeout'",
+      "{ nodeId, timeSinceHeartbeat }"
+    ],
+    "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\observability\\logger.ts",
+    "line": 234,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Trace started: ${name}`",
+      "{ traceId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\observability\\logger.ts",
+    "line": 243,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Span started: ${name}`",
+      "{ spanId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 243,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Kafka adapter connected'",
+      "{ brokers: this.config.brokers }"
+    ],
+    "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'RabbitMQ adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 505,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Redis Streams adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\queue\\TaskQueueManager.ts",
+    "line": 671,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queue initialized'",
+      "{ type: this.config.type }"
+    ],
+    "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 178,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Recovery in cooldown'",
+      "{ failureId: failure.id }"
+    ],
+    "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 205,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery initiated'",
+      "{ planId: plan.id, strategy, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery initiated', { planId: plan.id, strategy, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 363,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery completed'",
+      "{ planId: plan.id, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery completed', { planId: plan.id, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 375,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Retrying task'",
+      "{ taskId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 397,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Restarting node'",
+      "{ nodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\recovery\\FailureRecoveryManager.ts",
+    "line": 409,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Transferring tasks'",
+      "{ fromNodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 134,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too soon'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too far in future'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too far in future', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 142,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation duration too long'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 149,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No suitable node for reservation'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('No suitable node for reservation', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation created'",
+      "{\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    }"
+    ],
+    "rawCall": "logger.info('Reservation created', {\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 288,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation cancelled'",
+      "{ reservationId, reason }"
+    ],
+    "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 306,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation preempted'",
+      "{ reservationId, higherPriorityTaskId }"
+    ],
+    "rawCall": "logger.warn('Reservation preempted', { reservationId, higherPriorityTaskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation activated'",
+      "{ reservationId: reservation.id }"
+    ],
+    "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 407,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation completed'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.info('Reservation completed', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\reservation\\ResourceReservationManager.ts",
+    "line": 414,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation expired'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\retry.ts",
+    "line": 78,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed with non-retryable error`",
+      "{ error: lastError.message }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed with non-retryable error`, { error: lastError.message })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\retry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`",
+      "{\r\n          error: lastError.message,\r\n        }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`, {\r\n          error: lastError.message,\r\n        })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\routing\\geoRouter.ts",
+    "line": 72,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node geo info registered'",
+      "{ nodeId, region: geoInfo.region, zone: geoInfo.zone }"
+    ],
+    "rawCall": "logger.info('Node geo info registered', { nodeId, region: geoInfo.region, zone: geoInfo.zone })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 157,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox created'",
+      "{\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    }"
+    ],
+    "rawCall": "logger.info('Sandbox created', {\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 207,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox stopped'",
+      "{ sandboxId, reason, violations: sandbox.violations.length }"
+    ],
+    "rawCall": "logger.info('Sandbox stopped', { sandboxId, reason, violations: sandbox.violations.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox killed'",
+      "{ sandboxId, reason }"
+    ],
+    "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 287,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox violation'",
+      "{\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    }"
+    ],
+    "rawCall": "logger.warn('Sandbox violation', {\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolation policy added'",
+      "{ name: policy.name }"
+    ],
+    "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sandbox\\SandboxManager.ts",
+    "line": 444,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolated network created'",
+      "{ networkId, nodes: nodeIds.length }"
+    ],
+    "rawCall": "logger.info('Isolated network created', { networkId, nodes: nodeIds.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\scheduler\\EnhancedPredictiveScheduler.ts",
+    "line": 192,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Loaded historical data'",
+      "{ count: this.history.length }"
+    ],
+    "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 63,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduler service started'",
+      "{ policy: this.config.policy }"
+    ],
+    "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task submitted'",
+      "{ taskId: task.id, name, type, priority }"
+    ],
+    "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 286,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task assigned to node'",
+      "{ taskId: task.id, nodeId: node.id, reason }"
+    ],
+    "rawCall": "logger.info('Task assigned to node', { taskId: task.id, nodeId: node.id, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task routed to cloud'",
+      "{ taskId: task.id, reason }"
+    ],
+    "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\scheduler\\SchedulerService.ts",
+    "line": 333,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling policy changed'",
+      "{ policy }"
+    ],
+    "rawCall": "logger.info('Scheduling policy changed', { policy })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sustainability\\CarbonTracker.ts",
+    "line": 159,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Carbon metrics recorded'",
+      "{\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.debug('Carbon metrics recorded', {\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\sustainability\\CarbonTracker.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Carbon report generated'",
+      "{\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    }"
+    ],
+    "rawCall": "logger.info('Carbon report generated', {\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\EnhancedPredictiveScheduler.ts",
+    "line": 192,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Loaded historical data'",
+      "{ count: this.history.length }"
+    ],
+    "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\MLModelManager.ts",
+    "line": 316,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Not enough samples for training'",
+      "{ taskType, samples: samples?.length || 0 }"
+    ],
+    "rawCall": "logger.warn('Not enough samples for training', { taskType, samples: samples?.length || 0 })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\MLModelManager.ts",
+    "line": 344,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model trained'",
+      "{ taskType, mse, r2Score, samples: samples.length }"
+    ],
+    "rawCall": "logger.info('Model trained', { taskType, mse, r2Score, samples: samples.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\MLModelManager.ts",
+    "line": 467,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Model imported'",
+      "{ taskType: model.taskType, samples: model.trainingSamples }"
+    ],
+    "rawCall": "logger.info('Model imported', { taskType: model.taskType, samples: model.trainingSamples })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 63,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduler service started'",
+      "{ policy: this.config.policy }"
+    ],
+    "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 129,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task submitted'",
+      "{ taskId: task.id, name, type, priority }"
+    ],
+    "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 285,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task assigned to node'",
+      "{ taskId: task.id, nodeId: node.id, reason }"
+    ],
+    "rawCall": "logger.info('Task assigned to node', { taskId: task.id, nodeId: node.id, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task routed to cloud'",
+      "{ taskId: task.id, reason }"
+    ],
+    "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\SchedulerService.ts",
+    "line": 332,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling policy changed'",
+      "{ policy }"
+    ],
+    "rawCall": "logger.info('Scheduling policy changed', { policy })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 243,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Kafka adapter connected'",
+      "{ brokers: this.config.brokers }"
+    ],
+    "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'RabbitMQ adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 505,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Redis Streams adapter connected'",
+      "{ url: this.config.url }"
+    ],
+    "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\TaskQueueManager.ts",
+    "line": 671,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queue initialized'",
+      "{ type: this.config.type }"
+    ],
+    "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 100,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow registered'",
+      "{ workflowId: definition.id, name: definition.name }"
+    ],
+    "rawCall": "logger.info('Workflow registered', { workflowId: definition.id, name: definition.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 196,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow started'",
+      "{ executionId, workflowId }"
+    ],
+    "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow completed'",
+      "{ executionId: execution.id }"
+    ],
+    "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 275,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node started'",
+      "{ executionId: execution.id, nodeId: node.id, type: node.type }"
+    ],
+    "rawCall": "logger.debug('Node started', { executionId: execution.id, nodeId: node.id, type: node.type })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 310,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node completed'",
+      "{ executionId: execution.id, nodeId: node.id }"
+    ],
+    "rawCall": "logger.debug('Node completed', { executionId: execution.id, nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 430,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow notification'",
+      "{ executionId: execution.id, message }"
+    ],
+    "rawCall": "logger.info('Workflow notification', { executionId: execution.id, message })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 441,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Starting subworkflow'",
+      "{ subWorkflowId }"
+    ],
+    "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 486,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow cancelled'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow cancelled', { executionId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\tasks\\WorkflowEngine.ts",
+    "line": 498,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow paused'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow paused', { executionId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\AIAnomalyDetector.ts",
+    "line": 170,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Anomaly detected'",
+      "{\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      }"
+    ],
+    "rawCall": "logger.warn('Anomaly detected', {\r\n        anomalyId: anomaly.id,\r\n        type: anomalyType,\r\n        metric,\r\n        entityId,\r\n        value,\r\n        expectedValue: baseline.mean,\r\n        deviation: deviation.toFixed(2),\r\n      })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\AIAnomalyDetector.ts",
+    "line": 356,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Anomaly model trained'",
+      "{ modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Anomaly model trained', { modelId, metric, entityId, algorithm, accuracy: model.accuracy.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment started'",
+      "{ deploymentId, version: config.version, targetSlot }"
+    ],
+    "rawCall": "logger.info('Deployment started', { deploymentId, version: config.version, targetSlot })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 217,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Deployment completed'",
+      "{ deploymentId: deployment.id, version: deployment.config.version }"
+    ],
+    "rawCall": "logger.info('Deployment completed', { deploymentId: deployment.id, version: deployment.config.version })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 245,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Deployed to node'",
+      "{ nodeId: node.id, version: config.version }"
+    ],
+    "rawCall": "logger.debug('Deployed to node', { nodeId: node.id, version: config.version })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 247,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Failed to deploy to node'",
+      "{ nodeId: node.id }"
+    ],
+    "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 294,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Traffic shifted'",
+      "{ targetSlot, percentage }"
+    ],
+    "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 318,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Error rate exceeded threshold, triggering rollback'",
+      "{ errorRate, threshold: deployment.config.rollbackThreshold }"
+    ],
+    "rawCall": "logger.warn('Error rate exceeded threshold, triggering rollback', { errorRate, threshold: deployment.config.rollbackThreshold })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\BlueGreenDeploymentManager.ts",
+    "line": 340,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Rollback completed'",
+      "{ deploymentId: deployment.id, revertedTo: previousSlot }"
+    ],
+    "rawCall": "logger.warn('Rollback completed', { deploymentId: deployment.id, revertedTo: previousSlot })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Critical threshold breached'",
+      "{ metric, value, threshold: threshold.criticalThreshold }"
+    ],
+    "rawCall": "logger.warn('Critical threshold breached', { metric, value, threshold: threshold.criticalThreshold })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Warning threshold breached'",
+      "{ metric, value, threshold: threshold.warningThreshold }"
+    ],
+    "rawCall": "logger.info('Warning threshold breached', { metric, value, threshold: threshold.warningThreshold })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 228,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Auto-scaling triggered'",
+      "{\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    }"
+    ],
+    "rawCall": "logger.info('Auto-scaling triggered', {\r\n      metric,\r\n      level,\r\n      action: action.type,\r\n      targetAmount: action.targetAmount,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 263,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity plan generated'",
+      "{\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.info('Capacity plan generated', {\r\n      planId: plan.id,\r\n      region,\r\n      projections: projections.length,\r\n      actions: actions.length,\r\n      estimatedCost: plan.estimatedCost.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 419,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Action not approved'",
+      "{ actionId: action.id }"
+    ],
+    "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CapacityPlanner.ts",
+    "line": 430,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Capacity action executed'",
+      "{ actionId: action.id, type: action.type }"
+    ],
+    "rawCall": "logger.info('Capacity action executed', { actionId: action.id, type: action.type })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CarbonTracker.ts",
+    "line": 159,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Carbon metrics recorded'",
+      "{\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    }"
+    ],
+    "rawCall": "logger.debug('Carbon metrics recorded', {\r\n      region: metrics.region,\r\n      energy: metrics.energyKwh.toFixed(2),\r\n      carbon: metrics.carbonKg.toFixed(2),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CarbonTracker.ts",
+    "line": 304,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Carbon report generated'",
+      "{\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    }"
+    ],
+    "rawCall": "logger.info('Carbon report generated', {\r\n      period,\r\n      totalCarbon: totalCarbon.toFixed(2),\r\n      renewablePercent: avgRenewable.toFixed(1),\r\n      changePercent: changePercent.toFixed(1),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 94,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Execution layer registered with control plane'",
+      "{ nodeId: this.config.nodeId }"
+    ],
+    "rawCall": "logger.info('Execution layer registered with control plane', { nodeId: this.config.nodeId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 123,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Control plane at capacity, rejecting decision'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('Control plane at capacity, rejecting decision', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 130,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes available for scheduling'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 137,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No nodes match constraints'",
+      "{ taskId: task.id, constraints }"
+    ],
+    "rawCall": "logger.warn('No nodes match constraints', { taskId: task.id, constraints })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 166,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Scheduling decision created'",
+      "{\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    }"
+    ],
+    "rawCall": "logger.info('Scheduling decision created', {\r\n      decisionId: decision.id,\r\n      taskId: task.id,\r\n      nodeId: selectedNodeId,\r\n      policy,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 182,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision not found for dispatch'",
+      "{ decisionId }"
+    ],
+    "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Decision cancelled'",
+      "{ decisionId, reason }"
+    ],
+    "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ControlPlaneManager.ts",
+    "line": 364,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Decision expired'",
+      "{ decisionId: id, taskId: decision.taskId }"
+    ],
+    "rawCall": "logger.warn('Decision expired', { decisionId: id, taskId: decision.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CostOptimizationEngine.ts",
+    "line": 252,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost analysis completed'",
+      "{ analysisId, totalCost: analysis.totalCost.toFixed(2) }"
+    ],
+    "rawCall": "logger.info('Cost analysis completed', { analysisId, totalCost: analysis.totalCost.toFixed(2) })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CostOptimizationEngine.ts",
+    "line": 426,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cost recommendation generated'",
+      "{ \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    }"
+    ],
+    "rawCall": "logger.info('Cost recommendation generated', { \r\n      id: recommendation.id, \r\n      type: recommendation.type, \r\n      savings: recommendation.projectedSavings.toFixed(2) \r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\CostOptimizationEngine.ts",
+    "line": 458,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recommendation applied'",
+      "{ id: recommendationId, savings: recommendation.projectedSavings }"
+    ],
+    "rawCall": "logger.info('Recommendation applied', { id: recommendationId, savings: recommendation.projectedSavings })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 114,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node registered to shard'",
+      "{ nodeId: node.id, shardId }"
+    ],
+    "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 190,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No available shards for task'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 214,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task queued (no nodes available)'",
+      "{ taskId: task.id, shardId }"
+    ],
+    "rawCall": "logger.info('Task queued (no nodes available)', { taskId: task.id, shardId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 240,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task scheduled on shard'",
+      "{ taskId: task.id, nodeId: selectedNodeId, shardId }"
+    ],
+    "rawCall": "logger.info('Task scheduled on shard', { taskId: task.id, nodeId: selectedNodeId, shardId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\DistributedScheduler.ts",
+    "line": 302,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Shards rebalanced'",
+      "{ moved, overloaded, underloaded }"
+    ],
+    "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\EdgeFunctionMarketplace.ts",
+    "line": 242,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function published'",
+      "{ functionId: id, name: fn.name }"
+    ],
+    "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\EdgeFunctionMarketplace.ts",
+    "line": 298,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Function deployed'",
+      "{ functionId, nodes: nodes.length }"
+    ],
+    "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\EventStore.ts",
+    "line": 127,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Event appended'",
+      "{ eventId: event.id, type, aggregateId, version: newVersion }"
+    ],
+    "rawCall": "logger.debug('Event appended', { eventId: event.id, type, aggregateId, version: newVersion })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\exporter.ts",
+    "line": 320,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Metrics collector started'",
+      "{ interval }"
+    ],
+    "rawCall": "logger.info('Metrics collector started', { interval })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\exporter.ts",
+    "line": 485,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`Alert triggered: ${rule.name}`",
+      "{ \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          }"
+    ],
+    "rawCall": "logger.warn(`Alert triggered: ${rule.name}`, { \r\n            metric: rule.metric, \r\n            value, \r\n            threshold: rule.threshold,\r\n            severity: rule.severity \r\n          })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\exporter.ts",
+    "line": 494,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "`Alert resolved: ${rule.name}`",
+      "{ metric: rule.metric }"
+    ],
+    "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 178,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Recovery in cooldown'",
+      "{ failureId: failure.id }"
+    ],
+    "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 205,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery initiated'",
+      "{ planId: plan.id, strategy, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery initiated', { planId: plan.id, strategy, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 363,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Recovery completed'",
+      "{ planId: plan.id, failureId: failure.id }"
+    ],
+    "rawCall": "logger.info('Recovery completed', { planId: plan.id, failureId: failure.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 375,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Retrying task'",
+      "{ taskId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 397,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Restarting node'",
+      "{ nodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FailureRecoveryManager.ts",
+    "line": 409,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Transferring tasks'",
+      "{ fromNodeId: failure.entityId }"
+    ],
+    "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 133,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL model registered'",
+      "{ modelId: model.id, name: model.name }"
+    ],
+    "rawCall": "logger.info('FL model registered', { modelId: model.id, name: model.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 208,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training session started'",
+      "{ sessionId, modelId, clientCount, totalRounds }"
+    ],
+    "rawCall": "logger.info('FL training session started', { sessionId, modelId, clientCount, totalRounds })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 241,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training converged early'",
+      "{ sessionId: session.id, round }"
+    ],
+    "rawCall": "logger.info('FL training converged early', { sessionId: session.id, round })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\FederatedLearningCoordinator.ts",
+    "line": 250,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'FL training completed'",
+      "{ sessionId: session.id, rounds: session.currentRound }"
+    ],
+    "rawCall": "logger.info('FL training completed', { sessionId: session.id, rounds: session.currentRound })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\geoRouter.ts",
+    "line": 72,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Node geo info registered'",
+      "{ nodeId, region: geoInfo.region, zone: geoInfo.zone }"
+    ],
+    "rawCall": "logger.info('Node geo info registered', { nodeId, region: geoInfo.region, zone: geoInfo.zone })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\logger.ts",
+    "line": 234,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Trace started: ${name}`",
+      "{ traceId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\logger.ts",
+    "line": 243,
+    "objectChain": "this",
+    "method": "debug",
+    "args": [
+      "`Span started: ${name}`",
+      "{ spanId, operation: name }"
+    ],
+    "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 118,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster registered to federation'",
+      "{\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    }"
+    ],
+    "rawCall": "logger.info('Cluster registered to federation', {\r\n      clusterId: cluster.id,\r\n      name: cluster.name,\r\n      organization: cluster.organization,\r\n      region: cluster.region,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 143,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Cluster unregistered from federation'",
+      "{ clusterId }"
+    ],
+    "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 206,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task dispatched to remote cluster'",
+      "{\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    }"
+    ],
+    "rawCall": "logger.info('Task dispatched to remote cluster', {\r\n      taskId,\r\n      targetCluster: targetClusterId,\r\n      taskType,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 307,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Resources shared with cluster'",
+      "{\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    }"
+    ],
+    "rawCall": "logger.info('Resources shared with cluster', {\r\n      shareId,\r\n      consumerCluster: consumerClusterId,\r\n      resourceType,\r\n      amount,\r\n      duration,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\MultiClusterFederation.ts",
+    "line": 390,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Failover completed'",
+      "{\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    }"
+    ],
+    "rawCall": "logger.info('Failover completed', {\r\n      failedCluster: failedClusterId,\r\n      targetCluster: failoverTarget.id,\r\n      migratedTasks: affectedTasks.length,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 134,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too soon'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 138,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation start time too far in future'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation start time too far in future', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 142,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation duration too long'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 149,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No suitable node for reservation'",
+      "{ taskId: request.taskId }"
+    ],
+    "rawCall": "logger.warn('No suitable node for reservation', { taskId: request.taskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 175,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation created'",
+      "{\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    }"
+    ],
+    "rawCall": "logger.info('Reservation created', {\r\n      reservationId,\r\n      taskId: request.taskId,\r\n      nodeId,\r\n      resources: request.resources,\r\n      startTime: new Date(request.startTime).toISOString(),\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 288,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation cancelled'",
+      "{ reservationId, reason }"
+    ],
+    "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 306,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation preempted'",
+      "{ reservationId, higherPriorityTaskId }"
+    ],
+    "rawCall": "logger.warn('Reservation preempted', { reservationId, higherPriorityTaskId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 321,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation activated'",
+      "{ reservationId: reservation.id }"
+    ],
+    "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 407,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Reservation completed'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.info('Reservation completed', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\ResourceReservationManager.ts",
+    "line": 414,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Reservation expired'",
+      "{ reservationId: id }"
+    ],
+    "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\retry.ts",
+    "line": 78,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed with non-retryable error`",
+      "{ error: lastError.message }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed with non-retryable error`, { error: lastError.message })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\retry.ts",
+    "line": 90,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`",
+      "{\r\n          error: lastError.message,\r\n        }"
+    ],
+    "rawCall": "logger.warn(`${operationName} failed (attempt ${attempt}/${this.config.maxAttempts}), retrying in ${delayMs}ms`, {\r\n          error: lastError.message,\r\n        })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 157,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox created'",
+      "{\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    }"
+    ],
+    "rawCall": "logger.info('Sandbox created', {\r\n      sandboxId,\r\n      taskId: task.id,\r\n      nodeId: node.id,\r\n      policy: policy.name,\r\n      config: sandbox.config,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 207,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Sandbox stopped'",
+      "{ sandboxId, reason, violations: sandbox.violations.length }"
+    ],
+    "rawCall": "logger.info('Sandbox stopped', { sandboxId, reason, violations: sandbox.violations.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox killed'",
+      "{ sandboxId, reason }"
+    ],
+    "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 287,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Sandbox violation'",
+      "{\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    }"
+    ],
+    "rawCall": "logger.warn('Sandbox violation', {\r\n      sandboxId,\r\n      type: violation.type,\r\n      action: violation.action,\r\n      details: violation.details,\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 305,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolation policy added'",
+      "{ name: policy.name }"
+    ],
+    "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\utils\\SandboxManager.ts",
+    "line": 444,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Isolated network created'",
+      "{ networkId, nodes: nodeIds.length }"
+    ],
+    "rawCall": "logger.info('Isolated network created', { networkId, nodes: nodeIds.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\validation.ts",
+    "line": 209,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Validation failed'",
+      "{ errors, data }"
+    ],
+    "rawCall": "logger.warn('Validation failed', { errors, data })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 100,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow registered'",
+      "{ workflowId: definition.id, name: definition.name }"
+    ],
+    "rawCall": "logger.info('Workflow registered', { workflowId: definition.id, name: definition.name })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 196,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow started'",
+      "{ executionId, workflowId }"
+    ],
+    "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 227,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow completed'",
+      "{ executionId: execution.id }"
+    ],
+    "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 275,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node started'",
+      "{ executionId: execution.id, nodeId: node.id, type: node.type }"
+    ],
+    "rawCall": "logger.debug('Node started', { executionId: execution.id, nodeId: node.id, type: node.type })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 310,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Node completed'",
+      "{ executionId: execution.id, nodeId: node.id }"
+    ],
+    "rawCall": "logger.debug('Node completed', { executionId: execution.id, nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 431,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow notification'",
+      "{ executionId: execution.id, message }"
+    ],
+    "rawCall": "logger.info('Workflow notification', { executionId: execution.id, message })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 442,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Starting subworkflow'",
+      "{ subWorkflowId }"
+    ],
+    "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 487,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow cancelled'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow cancelled', { executionId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\workflow\\WorkflowEngine.ts",
+    "line": 499,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Workflow paused'",
+      "{ executionId }"
+    ],
+    "rawCall": "logger.info('Workflow paused', { executionId })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\__tests__\\logger.test.ts",
+    "line": 23,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'test message'",
+      "{ key: 'value', count: 42 }"
+    ],
+    "rawCall": "logger.info('test message', { key: 'value', count: 42 })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\lib\\__tests__\\logger.test.ts",
+    "line": 104,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'message 1'",
+      "{ key: 'value' }"
+    ],
+    "rawCall": "logger.info('message 1', { key: 'value' })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 95,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'Worker already running'",
+      "{ workerId: this.config.id }"
+    ],
+    "rawCall": "logger.warn('Worker already running', { workerId: this.config.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 110,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task worker started'",
+      "{ workerId: this.config.id, concurrency: this.config.concurrency }"
+    ],
+    "rawCall": "logger.info('Task worker started', { workerId: this.config.id, concurrency: this.config.concurrency })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 133,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Waiting for running tasks to complete'",
+      "{ workerId: this.config.id, count: runningCount }"
+    ],
+    "rawCall": "logger.info('Waiting for running tasks to complete', { workerId: this.config.id, count: runningCount })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 145,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task worker stopped'",
+      "{ workerId: this.config.id }"
+    ],
+    "rawCall": "logger.info('Task worker stopped', { workerId: this.config.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 154,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Task enqueued'",
+      "{ taskId: task.id, priority, queueSize: this.taskQueue.length }"
+    ],
+    "rawCall": "logger.debug('Task enqueued', { taskId: task.id, priority, queueSize: this.taskQueue.length })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 179,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No suitable node found for task'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No suitable node found for task', { taskId: task.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 195,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task execution started'",
+      "{ taskId: task.id, nodeId: node.id }"
+    ],
+    "rawCall": "logger.info('Task execution started', { taskId: task.id, nodeId: node.id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 209,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task completed'",
+      "{ taskId: task.id, nodeId: node.id, duration: Date.now() - execution.startTime }"
+    ],
+    "rawCall": "logger.info('Task completed', { taskId: task.id, nodeId: node.id, duration: Date.now() - execution.startTime })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 279,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Task retry scheduled'",
+      "{ taskId: task.id, retryCount: task.retryCount, delay }"
+    ],
+    "rawCall": "logger.info('Task retry scheduled', { taskId: task.id, retryCount: task.retryCount, delay })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 301,
+    "objectChain": "logger",
+    "method": "debug",
+    "args": [
+      "'Worker heartbeat'",
+      "{ \r\n      workerId: this.config.id, \r\n      status: this.status,\r\n      queueSize: this.taskQueue.length,\r\n      runningTasks: this.runningTasks.size,\r\n      load: this.stats.currentLoad.toFixed(2)\r\n    }"
+    ],
+    "rawCall": "logger.debug('Worker heartbeat', { \r\n      workerId: this.config.id, \r\n      status: this.status,\r\n      queueSize: this.taskQueue.length,\r\n      runningTasks: this.runningTasks.size,\r\n      load: this.stats.currentLoad.toFixed(2)\r\n    })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 393,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Worker added to pool'",
+      "{ workerId: id }"
+    ],
+    "rawCall": "logger.info('Worker added to pool', { workerId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 406,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'Worker removed from pool'",
+      "{ workerId: id }"
+    ],
+    "rawCall": "logger.info('Worker removed from pool', { workerId: id })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 416,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'All workers started'",
+      "{ count: this.workers.size }"
+    ],
+    "rawCall": "logger.info('All workers started', { count: this.workers.size })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 425,
+    "objectChain": "logger",
+    "method": "info",
+    "args": [
+      "'All workers stopped'",
+      "{ count: this.workers.size }"
+    ],
+    "rawCall": "logger.info('All workers stopped', { count: this.workers.size })"
+  },
+  {
+    "file": "apps\\web-legacy\\src\\workers\\taskWorker.ts",
+    "line": 449,
+    "objectChain": "logger",
+    "method": "warn",
+    "args": [
+      "'No available worker for task'",
+      "{ taskId: task.id }"
+    ],
+    "rawCall": "logger.warn('No available worker for task', { taskId: task.id })"
+  }
+]

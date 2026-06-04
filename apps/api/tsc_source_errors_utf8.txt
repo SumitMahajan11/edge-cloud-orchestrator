@@ -1,0 +1,486 @@
+﻿
+src/database/seed.ts(1,24): error TS2305: Module '"@prisma/client"' has no exported member 'Role'.
+src/database/seed.ts(1,30): error TS2305: Module '"@prisma/client"' has no exported member 'TaskStatus'.
+src/database/seed.ts(1,42): error TS2305: Module '"@prisma/client"' has no exported member 'NodeStatus'.
+src/database/seed.ts(1,54): error TS2305: Module '"@prisma/client"' has no exported member 'ExecutionTarget'.
+src/database/seed.ts(1,71): error TS2305: Module '"@prisma/client"' has no exported member 'Runtime'.
+src/database/seed.ts(1,80): error TS2305: Module '"@prisma/client"' has no exported member 'TaskType'.
+src/database/seed.ts(35,9): error TS2322: Type '{}' is not assignable to type 'string'.
+src/database/seed.ts(149,16): error TS2339: Property 'webhook' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/index.ts(63,10): error TS6133: 'errorHandler' is declared but its value is never read.
+src/jobs/consistency-checker.ts(108,31): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/jobs/webhook-retry.ts(57,50): error TS2339: Property 'webhookDelivery' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/jobs/webhook-retry.ts(108,25): error TS2339: Property 'webhookDelivery' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/jobs/webhook-retry.ts(130,25): error TS2339: Property 'webhookDelivery' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/jobs/webhook-retry.ts(150,23): error TS2339: Property 'webhookDelivery' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/jobs/webhook-retry.ts(159,23): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/jobs/webhook-retry.ts(183,27): error TS2339: Property 'webhookDelivery' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(30,16): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(52,16): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(85,16): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(112,17): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(135,35): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(147,40): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(150,6): error TS7006: Parameter 'acc' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(150,11): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(158,14): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(159,11): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(162,27): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(162,30): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(165,36): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(165,58): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(167,38): error TS7006: Parameter 'a' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(167,41): error TS7006: Parameter 'b' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(186,17): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(261,12): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(279,39): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(279,44): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(280,35): error TS7006: Parameter 'sum' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(280,40): error TS7006: Parameter 'e' implicitly has an 'any' type.
+src/queries/task-execution-queries.ts(370,17): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(411,17): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(425,17): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/queries/task-execution-queries.ts(522,38): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(67,24): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(77,24): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(119,11): error TS2559: Type '{ tenantUsers: { some: { tenantId: string; }; }; }' has no properties 
+in common with type 'UserWhereInput'.
+src/routes/admin.ts(133,37): error TS2559: Type '{ tenantUsers: { some: { tenantId: string; }; }; }' has no properties 
+in common with type 'UserWhereInput'.
+src/routes/admin.ts(181,47): error TS2339: Property 'tenantUser' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(204,28): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(250,47): error TS2339: Property 'tenantUser' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(273,28): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(332,52): error TS2339: Property 'nodeMetric' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(339,18): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/admin.ts(354,58): error TS2339: Property 'webhookDelivery' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(361,18): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/admin.ts(365,50): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(372,18): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/admin.ts(604,28): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(760,28): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(796,44): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(801,44): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(870,43): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(877,42): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(908,42): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(933,28): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(954,30): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/admin.ts(964,30): error TS2339: Property 'deadLetterEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/agents.ts(242,21): error TS2339: Property 'input' does not exist on type '{ type: string; status: string; 
+id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/agents.ts(405,46): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/agents.ts(416,53): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/agents.ts(437,24): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/agents.ts(537,36): error TS2339: Property 'taskExecution' does not exist on type 
+'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | 
+"$transaction" | "$extends">'.
+src/routes/agents.ts(547,20): error TS2339: Property 'taskExecution' does not exist on type 
+'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | 
+"$transaction" | "$extends">'.
+src/routes/analytics.ts(61,53): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/analytics.ts(72,48): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/analytics.ts(86,44): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/routes/analytics.ts(86,68): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/routes/analytics.ts(93,48): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/analytics.ts(103,27): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/analytics.ts(122,37): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/routes/cost.ts(29,25): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/cost.ts(36,25): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/cost.ts(43,25): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/cost.ts(60,41): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/routes/cost.ts(90,45): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/cost.ts(127,44): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/cost.ts(135,35): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/routes/cost.ts(135,59): error TS7006: Parameter 'id' implicitly has an 'any' type.
+src/routes/cost.ts(146,26): error TS7006: Parameter 'n' implicitly has an 'any' type.
+src/routes/cost.ts(175,49): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/metrics.ts(32,45): error TS2339: Property 'costRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/metrics.ts(158,24): error TS2339: Property 'fLModel' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/metrics.ts(159,24): error TS2339: Property 'fLSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(35,27): error TS2339: Property 'lastHeartbeat' does not exist on type '{ url: string; location: 
+string; status: string; id: string; name: string; region: string; port: number; tenantId: string; ipAddress: string; 
+cpuCores: number; memoryGB: number; storageGB: number; ... 7 more ...; updatedAt: Date; } & { ...; }'.
+src/routes/nodes.ts(236,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(296,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(364,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(450,29): error TS2339: Property 'nodeMetric' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(500,45): error TS2339: Property 'nodeMetric' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(558,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(612,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(663,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/nodes.ts(704,45): error TS2339: Property 'schedulingDecision' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks-lifecycle.ts(128,55): error TS2339: Property 'isMaintenanceMode' does not exist on type '{ url: 
+string; location: string; status: string; id: string; name: string; region: string; port: number; tenantId: string; 
+ipAddress: string; cpuCores: number; memoryGB: number; storageGB: number; cpuUsage: number; ... 6 more ...; updatedAt: 
+Date; }'.
+src/routes/tasks-lifecycle.ts(171,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks-lifecycle.ts(395,37): error TS2339: Property 'executions' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(506,16): error TS2339: Property 'executions' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(508,27): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks-lifecycle.ts(509,31): error TS2339: Property 'executions' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(554,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks-lifecycle.ts(684,51): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks-lifecycle.ts(688,41): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(695,40): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(702,46): error TS2339: Property 'executions' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(712,53): error TS2339: Property 'input' does not exist on type '{ type: string; status: 
+string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: 
+string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks-lifecycle.ts(715,25): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks-lifecycle.ts(738,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks.ts(2,16): error TS2305: Module '"@prisma/client"' has no exported member 'TaskExecution'.
+src/routes/tasks.ts(16,33): error TS2339: Property 'metadata' does not exist on type '{ type: string; status: string; 
+id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; } & { ...; }'.
+src/routes/tasks.ts(17,24): error TS2339: Property 'metadata' does not exist on type '{ type: string; status: string; 
+id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; } & { ...; }'.
+src/routes/tasks.ts(18,14): error TS2339: Property 'metadata' does not exist on type '{ type: string; status: string; 
+id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; } & { ...; }'.
+src/routes/tasks.ts(27,18): error TS2339: Property 'image' does not exist on type '{ type: string; status: string; id: 
+string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; } & { ...; }'.
+src/routes/tasks.ts(30,21): error TS2339: Property 'affinity' does not exist on type '{ type: string; status: string; 
+id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; } & { ...; }'.
+src/routes/tasks.ts(31,20): error TS2339: Property 'traceId' does not exist on type '{ type: string; status: string; 
+id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; 
+policy: string; runtime: string; submittedAt: Date; } & { ...; }'.
+src/routes/tasks.ts(191,46): error TS2339: Property 'schedulingDecision' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks.ts(265,26): error TS2339: Property 'metrics' does not exist on type '{ url: string; location: string; 
+status: string; id: string; name: string; region: string; port: number; tenantId: string; ipAddress: string; cpuCores: 
+number; memoryGB: number; storageGB: number; cpuUsage: number; ... 6 more ...; updatedAt: Date; }'.
+src/routes/tasks.ts(265,42): error TS2339: Property 'metrics' does not exist on type '{ url: string; location: string; 
+status: string; id: string; name: string; region: string; port: number; tenantId: string; ipAddress: string; cpuCores: 
+number; memoryGB: number; storageGB: number; cpuUsage: number; ... 6 more ...; updatedAt: Date; }'.
+src/routes/tasks.ts(267,46): error TS2339: Property 'metrics' does not exist on type '{ url: string; location: string; 
+status: string; id: string; name: string; region: string; port: number; tenantId: string; ipAddress: string; cpuCores: 
+number; memoryGB: number; storageGB: number; cpuUsage: number; ... 6 more ...; updatedAt: Date; }'.
+src/routes/tasks.ts(270,55): error TS2339: Property 'isMaintenanceMode' does not exist on type '{ url: string; 
+location: string; status: string; id: string; name: string; region: string; port: number; tenantId: string; ipAddress: 
+string; cpuCores: number; memoryGB: number; storageGB: number; cpuUsage: number; ... 6 more ...; updatedAt: Date; }'.
+src/routes/tasks.ts(320,43): error TS2345: Argument of type '{ type: string; status: string; id: string; name: string; 
+target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; policy: string; runtime: 
+string; submittedAt: Date; }' is not assignable to parameter of type 'Task'.
+src/routes/tasks.ts(326,29): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks.ts(436,52): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/tasks.ts(439,34): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; status: 
+string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: 
+string; policy: string; runtime: string; submittedAt: Date; }'.
+src/routes/tasks.ts(463,25): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/workflows.ts(24,47): error TS2339: Property 'workflow' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/workflows.ts(58,46): error TS2339: Property 'workflow' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/workflows.ts(130,46): error TS2339: Property 'workflow' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/workflows.ts(168,46): error TS2339: Property 'workflow' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/routes/workflows.ts(209,47): error TS2339: Property 'workflowExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(229,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(255,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(280,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(328,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(412,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(431,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/sagas/task-lifecycle-saga.ts(479,20): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/api-key.service.ts(22,23): error TS2339: Property 'apiKey' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/api-key.service.ts(42,39): error TS2339: Property 'apiKey' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/api-key.service.ts(56,27): error TS2339: Property 'apiKey' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/api-key.service.ts(75,23): error TS2339: Property 'apiKey' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(77,23): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(105,39): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(119,25): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(125,25): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(147,25): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(163,23): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(186,39): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(191,25): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(211,46): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(216,23): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(239,39): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(244,25): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auth.service.ts(264,24): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auto-healer.ts(683,48): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/auto-healer.ts(687,33): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/services/auto-healer.ts(688,78): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/services/auto-healer.ts(696,77): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/services/compliance-manager.ts(220,45): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/compliance-manager.ts(366,19): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/compliance-manager.ts(390,42): error TS2339: Property 'userSession' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/compliance-manager.ts(392,14): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/compliance-manager.ts(393,41): error TS2339: Property 'apiKey' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/compliance-manager.ts(395,14): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/compliance-manager.ts(396,43): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/compliance-manager.ts(401,14): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/health-monitor.ts(477,44): error TS2339: Property 'sagaInstance' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/health-monitor.ts(480,40): error TS2339: Property 'sagaInstance' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/health-monitor.ts(483,46): error TS2339: Property 'sagaInstance' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/health-monitor.ts(528,41): error TS2339: Property 'outboxEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/health-monitor.ts(531,40): error TS2339: Property 'outboxEvent' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/heartbeat-monitor.ts(1,10): error TS2305: Module '"@prisma/client"' has no exported member 'NodeStatus'.
+src/services/heartbeat-monitor.ts(82,29): error TS2339: Property 'alert' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/heartbeat-monitor.ts(173,51): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/heartbeat-monitor.ts(187,27): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/heartbeat-monitor.ts(200,48): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/heartbeat-monitor.ts(203,33): error TS2339: Property 'maxRetries' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/services/heartbeat-monitor.ts(204,27): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/heartbeat-monitor.ts(223,44): error TS2345: Argument of type '{ type: string; status: string; id: string; 
+name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; policy: 
+string; runtime: string; submittedAt: Date; }' is not assignable to parameter of type 'Task'.
+src/services/idempotency-service.ts(115,42): error TS2339: Property 'idempotencyRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/idempotency-service.ts(136,40): error TS2339: Property 'idempotencyRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/idempotency-service.ts(172,23): error TS2339: Property 'idempotencyRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/idempotency-service.ts(196,23): error TS2339: Property 'idempotencyRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/idempotency-service.ts(290,38): error TS2339: Property 'idempotencyRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/idempotency-service.ts(300,38): error TS2339: Property 'idempotencyRecord' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/kafka-exactly-once.ts(168,40): error TS2339: Property 'processedOffset' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/kafka-exactly-once.ts(256,25): error TS2339: Property 'processedOffset' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/kafka-exactly-once.ts(360,38): error TS2339: Property 'processedOffset' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(88,42): error TS2339: Property 'certificateAuthority' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(163,23): error TS2339: Property 'certificateAuthority' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(241,23): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(270,36): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(280,23): error TS2339: Property 'certificateRevocation' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(290,23): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(345,28): error TS2339: Property 'bootstrapToken' does not exist on type 
+'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | 
+"$transaction" | "$extends">'.
+src/services/mtls-authentication.ts(362,25): error TS2339: Property 'bootstrapToken' does not exist on type 
+'Omit<PrismaClient<PrismaClientOptions, never, DefaultArgs>, "$on" | "$connect" | "$disconnect" | "$use" | 
+"$transaction" | "$extends">'.
+src/services/mtls-authentication.ts(548,40): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(622,39): error TS2339: Property 'certificateRevocation' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(644,41): error TS2339: Property 'certificateRevocation' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(645,24): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/mtls-authentication.ts(693,23): error TS2339: Property 'bootstrapToken' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(757,37): error TS2339: Property 'bootstrapToken' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(785,23): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(845,36): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(919,43): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(943,23): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(986,45): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(1009,23): error TS2339: Property 'nodeCertificate' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/mtls-authentication.ts(1014,23): error TS2339: Property 'certificateRevocation' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(499,95): error TS2339: Property 'isMaintenanceMode' does not exist on type '{ url: 
+string; location: string; status: string; id: string; name: string; region: string; port: number; tenantId: string; 
+ipAddress: string; cpuCores: number; memoryGB: number; storageGB: number; cpuUsage: number; ... 6 more ...; updatedAt: 
+Date; }'.
+src/services/task-scheduler.ts(570,44): error TS2345: Argument of type '{ type: string; status: string; id: string; 
+name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; policy: 
+string; runtime: string; submittedAt: Date; }' is not assignable to parameter of type 'Task'.
+src/services/task-scheduler.ts(582,33): error TS2345: Argument of type '{ type: string; status: string; id: string; 
+name: string; target: string; reason: string; tenantId: string; nodeId: string | null; priority: string; policy: 
+string; runtime: string; submittedAt: Date; }' is not assignable to parameter of type 'Task'.
+src/services/task-scheduler.ts(745,29): error TS2339: Property 'metadata' does not exist on type '{ type: string; 
+status: string; id: string; name: string; target: string; reason: string; tenantId: string; nodeId: string | null; 
+priority: string; policy: string; runtime: string; submittedAt: Date; }'.
+src/services/task-scheduler.ts(798,39): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(804,37): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(841,25): error TS2339: Property 'auditLog' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(869,19): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(960,21): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(1010,21): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(1023,27): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(1068,41): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(1082,25): error TS2339: Property 'taskExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/task-scheduler.ts(1127,48): error TS2339: Property 'nodeMetric' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(43,40): error TS2339: Property 'workflow' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(65,41): error TS2339: Property 'workflowExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(87,25): error TS2339: Property 'workflowExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(105,39): error TS2339: Property 'workflowTaskRun' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(115,23): error TS2339: Property 'workflowTaskRun' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(128,25): error TS2339: Property 'workflowExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(142,39): error TS2339: Property 'workflowTaskRun' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(148,17): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/workflow-engine.ts(149,14): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/workflow-engine.ts(156,62): error TS2345: Argument of type 'Set<unknown>' is not assignable to parameter 
+of type 'Set<string>'.
+src/services/workflow-engine.ts(161,17): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/workflow-engine.ts(162,14): error TS7006: Parameter 'r' implicitly has an 'any' type.
+src/services/workflow-engine.ts(177,27): error TS2339: Property 'workflowExecution' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+src/services/workflow-engine.ts(249,23): error TS2339: Property 'workflowTaskRun' does not exist on type 
+'PrismaClient<PrismaClientOptions, never, DefaultArgs>'.
+
+

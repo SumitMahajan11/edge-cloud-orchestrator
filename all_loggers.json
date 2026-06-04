@@ -1,0 +1,1972 @@
+[
+  {
+    "file": "apps\\api\\src\\architecture\\core-vs-plugins.ts",
+    "lineNum": 596,
+    "content": "this.context.logger.info({ plugin: pluginName }, 'Plugin enabled');"
+  },
+  {
+    "file": "apps\\api\\src\\architecture\\core-vs-plugins.ts",
+    "lineNum": 628,
+    "content": "this.context.logger.info({ plugin: pluginName }, 'Plugin disabled');"
+  },
+  {
+    "file": "apps\\api\\src\\config\\validate.ts",
+    "lineNum": 120,
+    "content": "logger.fatal(`FATAL CONFIG ERROR: ${error}`);"
+  },
+  {
+    "file": "apps\\api\\src\\config\\validate.ts",
+    "lineNum": 127,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 72,
+    "content": "logger.info('Starting production seed...');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 92,
+    "content": "logger.info({ email: admin.email }, 'Admin user created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 112,
+    "content": "logger.info({ email: operator.email }, 'Operator user created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 132,
+    "content": "logger.info({ email: viewer.email }, 'Viewer user created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 236,
+    "content": "logger.info({ node: node.name }, 'Edge node created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 296,
+    "content": "logger.info({ task: task.name }, 'Task created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 312,
+    "content": "logger.info({ apiKey: apiKey.name }, 'API key created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 327,
+    "content": "logger.info({ webhook: webhook.name }, 'Webhook created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 344,
+    "content": "logger.info('Audit log entry created');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 346,
+    "content": "logger.info('Production seed completed successfully!');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 347,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed-production.ts",
+    "lineNum": 361,
+    "content": "logger.error({ err: e }, 'Seed failed');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 12,
+    "content": "logger.info('Seeding database with idempotent logic...');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 39,
+    "content": "logger.info({ slug: t.slug }, 'Tenant verified');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 86,
+    "content": "logger.info('Users verified for all tenants');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 113,
+    "content": "logger.info('10 Edge nodes verified');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 146,
+    "content": "logger.info('5 Sample tasks verified');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 161,
+    "content": "logger.info('Sample webhook verified');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 178,
+    "content": "logger.info({ path: modelPath }, 'Created dummy ML model for scheduler');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 181,
+    "content": "logger.info('Seeding complete successfully');"
+  },
+  {
+    "file": "apps\\api\\src\\database\\seed.ts",
+    "lineNum": 186,
+    "content": "logger.error({ err: e }, 'Seeding failed');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 31,
+    "content": "logger.fatal({ port: env.PORT }, 'Port already in use. Please ensure no other instances of the API are running.');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 37,
+    "content": "logger.fatal({ err }, 'Uncaught exception detected - crashing process to ensure integrity');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 43,
+    "content": "logger.fatal({ reason }, 'Unhandled rejection detected - crashing process to ensure integrity');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 153,
+    "content": "request.log.error({ err, url }, 'Global authentication hook failed');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 245,
+    "content": "logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 429,
+    "content": "logger.info('Registering errorHandler...');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 481,
+    "content": "logger.info('Generating OpenAPI Spec (v2 Only)...');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 503,
+    "content": "logger.info({ path: targetPath }, 'OpenAPI Spec (v2 Only) generated successfully');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 506,
+    "content": "logger.info({ path: targetPath, size: yamlOutput.length }, 'Spec written successfully');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 701,
+    "content": "logger.info('API init() called');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 711,
+    "content": "logger.fatal('JWT_SECRET must be at least 32 characters long for cryptographic security');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 718,
+    "content": "logger.fatal('JWT_SECRET contains a weak pattern and is forbidden in production');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 721,
+    "content": "logger.warn('JWT_SECRET contains a weak pattern - acceptable ONLY for local development');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 727,
+    "content": "logger.fatal('DATABASE_URL must use SSL in production (e.g., sslmode=require)');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 737,
+    "content": "logger.info('Using mock database for development (no PostgreSQL required)');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 754,
+    "content": "logger.info({ redisUrl, redisSentinels, forceMockRedis, forceMock }, 'Redis/DB configuration detection');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 769,
+    "content": "logger.warn('Redis health check failing');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 776,
+    "content": "logger.info('Using mock Redis for development');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 798,
+    "content": "logger.debug({ key, start, stop, count: result.length }, '[Redis Mock] zrange');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 804,
+    "content": "logger.info({ key, start, stop, count: result.length, first: result[0] }, '[Redis Mock] zrevrange');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 822,
+    "content": "logger.debug({ key, count, popped: popped.length }, '[Redis Mock] zpopmin');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 829,
+    "content": "logger.info({ key, score, member }, '[Redis Mock] zadd');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 900,
+    "content": "logger.debug({ prop }, '[Redis Proxy] Accessing property');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 904,
+    "content": "logger.warn({ command: prop }, 'Redis command called on mock but not implemented - returning undefined stub');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 968,
+    "content": "logger.info({ count: mockNodes.size }, '[Debug] mockNodes size');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 1002,
+    "content": "logger.info(`🚀 API Gateway running on http://${host}:${port}`);"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 1004,
+    "content": "logger.error(err, 'Failed to start API Gateway');"
+  },
+  {
+    "file": "apps\\api\\src\\index.ts",
+    "lineNum": 1015,
+    "content": "logger.error(err, 'Failed to start API Gateway');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-prisma.ts",
+    "lineNum": 391,
+    "content": "logger.info({ totalNodes: nodes.length, onlineNodes: nodes.filter(n => n.status === 'ONLINE').length, where }, '[MockPrisma] findMany nodes');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-prisma.ts",
+    "lineNum": 406,
+    "content": "logger.info({ initialCount, statusCount, tenantCount, finalCount }, '[MockPrisma] Filtered nodes');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-prisma.ts",
+    "lineNum": 410,
+    "content": "logger.debug({ initialCount, statusCount, tenantCount }, '[MockPrisma] findMany returned 0 nodes');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-prisma.ts",
+    "lineNum": 411,
+    "content": "logger.debug({ where }, '[MockPrisma] Filter details');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-prisma.ts",
+    "lineNum": 483,
+    "content": "logger.info({ nodeId: node.id, total: mockNodes.size }, '[MockPrisma] Node created in batch');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-prisma.ts",
+    "lineNum": 742,
+    "content": "logger.debug({ taskId: data.taskId, status: data.status }, '[Mock Prisma] Creating execution');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-redis.ts",
+    "lineNum": 52,
+    "content": "logger.debug({ key, start, stop, count: result.length }, '[Redis Mock] zrange');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-redis.ts",
+    "lineNum": 61,
+    "content": "logger.info({ key, start, stop, count: result.length, first: result[0] }, '[Redis Mock] zrevrange');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-redis.ts",
+    "lineNum": 79,
+    "content": "logger.debug({ key, count, popped: popped.length }, '[Redis Mock] zpopmin');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\mock-redis.ts",
+    "lineNum": 86,
+    "content": "logger.info({ key, score, member }, '[Redis Mock] zadd');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 36,
+    "content": "logger.info('Initializing advanced services...');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 52,
+    "content": "logger.info('✅ Alerting Service initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 54,
+    "content": "logger.warn({ err: error.message }, '⚠️ Alerting Service not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 63,
+    "content": "logger.info('✅ Auto-Healer initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 65,
+    "content": "logger.warn({ err: error.message }, '⚠️ Auto-Healer not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 74,
+    "content": "logger.info('✅ Health Monitor initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 76,
+    "content": "logger.warn({ err: error.message }, '⚠️ Health Monitor not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 84,
+    "content": "logger.info('✅ SLA Monitor initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 86,
+    "content": "logger.warn({ err: error.message }, '⚠️ SLA Monitor not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 94,
+    "content": "logger.info('✅ Cost Optimizer initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 96,
+    "content": "logger.warn({ err: error.message }, '⚠️ Cost Optimizer not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 122,
+    "content": "logger.info('✅ Saga Orchestrator initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 124,
+    "content": "logger.warn({ err: error.message }, '⚠️ Saga Orchestrator not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 135,
+    "content": "logger.info('✅ Kubernetes Operator initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 137,
+    "content": "logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 149,
+    "content": "logger.info('✅ Model Storage Service initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 151,
+    "content": "logger.warn({ err: error.message }, '⚠️ Model Storage Service not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 163,
+    "content": "logger.info('✅ Cold Start Handler integrated with TaskScheduler');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 166,
+    "content": "logger.info('✅ Cold Start Handler initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 168,
+    "content": "logger.warn({ err: error.message }, '⚠️ Cold Start Handler not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 180,
+    "content": "logger.info('✅ Workflow Engine initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 182,
+    "content": "logger.warn('⚠️ Workflow Engine requires TaskScheduler and WebSocketManager');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 185,
+    "content": "logger.warn({ err: error.message }, '⚠️ Workflow Engine not initialized');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 188,
+    "content": "logger.info('Service initialization complete');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 210,
+    "content": "logger.info('Shutting down services...');"
+  },
+  {
+    "file": "apps\\api\\src\\initializers\\services.ts",
+    "lineNum": 228,
+    "content": "logger.info('Services shutdown complete');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 43,
+    "content": "this.logger.info({ scheduleHour: this.scheduleHour }, 'Consistency checker job scheduled');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 52,
+    "content": "this.logger.info({ hour: currentHour, day: currentDay }, 'Triggering scheduled consistency check');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 54,
+    "content": "this.logger.error({ err }, 'Error in ConsistencyCheckerJob run');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 64,
+    "content": "this.logger.info('Consistency checker job stopped');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 87,
+    "content": "this.logger.info('Starting system consistency check...');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 104,
+    "content": "this.logger.warn({ invariant: invariant.name, count: violationCount }, 'Consistency violation detected');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 123,
+    "content": "this.logger.error({ err, invariant: invariant.name }, 'Failed to run invariant check');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 133,
+    "content": "this.logger.info({ fix: fix.name, count: ids.length }, 'Applying auto-fix');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 145,
+    "content": "this.logger.error({ err: fixErr, fix: fix.name }, 'Failed to apply auto-fix');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 155,
+    "content": "this.logger.error({ err, fix: fix.name }, 'Failed to run auto-fix check');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 164,
+    "content": "this.logger.info(results.summary, 'Consistency check completed');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 167,
+    "content": "this.logger.error({ error }, 'Fatal error during consistency check');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 186,
+    "content": "this.logger.info({ key }, 'Consistency report uploaded to S3');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\consistency-checker.ts",
+    "lineNum": 188,
+    "content": "this.logger.error({ err }, 'Failed to upload consistency report to S3');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 27,
+    "content": "this.logger.error({ err }, 'Unhandled error in WebhookRetryJob');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 31,
+    "content": "this.logger.info({ intervalMs: this.intervalMs }, 'Webhook retry job started');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 41,
+    "content": "this.logger.info('Webhook retry job stopped');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 73,
+    "content": "this.logger.info({ count: failedDeliveries.length }, 'Processing failed webhook deliveries');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 80,
+    "content": "this.logger.error({ error }, 'Error querying failed webhook deliveries');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 93,
+    "content": "this.logger.warn({ deliveryId: delivery.id, webhookId: delivery.webhookId }, 'Webhook disabled or missing, skipping retry');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 107,
+    "content": "this.logger.error({ deliveryId: delivery.id, url: webhook.url }, 'Blocked unsafe webhook URL (SSRF Protection)');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 140,
+    "content": "this.logger.info({ deliveryId: delivery.id, webhookId: webhook.id }, 'Webhook delivery successful on retry');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 176,
+    "content": "this.logger.error({ deliveryId: delivery.id, webhookId: webhook.id }, 'Webhook delivery exhausted all retries');"
+  },
+  {
+    "file": "apps\\api\\src\\jobs\\webhook-retry.ts",
+    "lineNum": 193,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\lib\\logger.ts",
+    "lineNum": 86,
+    "content": "logger.error(logData, 'Request failed');"
+  },
+  {
+    "file": "apps\\api\\src\\lib\\logger.ts",
+    "lineNum": 88,
+    "content": "logger.warn(logData, 'Request error');"
+  },
+  {
+    "file": "apps\\api\\src\\lib\\logger.ts",
+    "lineNum": 90,
+    "content": "logger.info(logData, 'Request completed');"
+  },
+  {
+    "file": "apps\\api\\src\\lib\\logger.ts",
+    "lineNum": 100,
+    "content": "logger.error("
+  },
+  {
+    "file": "apps\\api\\src\\lib\\logger.ts",
+    "lineNum": 122,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\lib\\logger.ts",
+    "lineNum": 142,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\lib\\tracing.ts",
+    "lineNum": 64,
+    "content": "logger.info('OpenTelemetry tracing disabled');"
+  },
+  {
+    "file": "apps\\api\\src\\lib\\tracing.ts",
+    "lineNum": 101,
+    "content": "logger.info({ serviceName, endpoint }, 'OpenTelemetry tracing enabled with advanced sampling');"
+  },
+  {
+    "file": "apps\\api\\src\\middleware\\request-id-middleware.ts",
+    "lineNum": 103,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\middleware\\request-id-middleware.ts",
+    "lineNum": 118,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\cost-optimization.ts",
+    "lineNum": 133,
+    "content": "this.context.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\cost-optimization.ts",
+    "lineNum": 195,
+    "content": "context.logger.info('Loading cost optimization plugin');"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\error-handler.ts",
+    "lineNum": 113,
+    "content": "request.log.error({"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\request-logger.ts",
+    "lineNum": 7,
+    "content": "request.log.info({"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\request-logger.ts",
+    "lineNum": 21,
+    "content": "request.log.info({"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\version-negotiation.ts",
+    "lineNum": 32,
+    "content": "request.log.debug({ url: request.url, header: headerVersion, urlVersion, default: defaultVersion, requested: requestedVersion }, 'Version negotiation details');"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\version-negotiation.ts",
+    "lineNum": 36,
+    "content": "request.log.warn({ requestedVersion, supportedVersions }, 'Unsupported API version requested');"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\version-negotiation.ts",
+    "lineNum": 47,
+    "content": "request.log.warn({ headerVersion, urlVersion }, 'API version mismatch between header and URL');"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\version-negotiation.ts",
+    "lineNum": 57,
+    "content": "request.log.debug({ apiVersion: request.apiVersion }, 'Set request.apiVersion');"
+  },
+  {
+    "file": "apps\\api\\src\\plugins\\version-negotiation.ts",
+    "lineNum": 64,
+    "content": "request.log.info({ url: request.url }, 'Adding deprecation headers to v1 request');"
+  },
+  {
+    "file": "apps\\api\\src\\routes\\agents.ts",
+    "lineNum": 92,
+    "content": "request.log.error({ err }, 'Agent registration failed');"
+  },
+  {
+    "file": "apps\\api\\src\\routes\\agents.ts",
+    "lineNum": 422,
+    "content": "request.log.warn("
+  },
+  {
+    "file": "apps\\api\\src\\routes\\agents.ts",
+    "lineNum": 542,
+    "content": "request.log.info("
+  },
+  {
+    "file": "apps\\api\\src\\routes\\agents.ts",
+    "lineNum": 557,
+    "content": "request.log.warn("
+  },
+  {
+    "file": "apps\\api\\src\\routes\\agents.ts",
+    "lineNum": 581,
+    "content": "request.log.error({ err, taskId }, 'Failed to record task outcome'),"
+  },
+  {
+    "file": "apps\\api\\src\\routes\\tasks-lifecycle.ts",
+    "lineNum": 540,
+    "content": "request.log.warn("
+  },
+  {
+    "file": "apps\\api\\src\\routes\\workflows.ts",
+    "lineNum": 120,
+    "content": "request.log.error({ err: err.message, stack: err.stack }, 'DAG Validation failed with error');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 85,
+    "content": "logger.debug({ taskId: context.taskId }, 'Validating task');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 107,
+    "content": "logger.info({ taskId: context.taskId }, 'Task validated successfully');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 120,
+    "content": "logger.debug({ taskId: context.taskId }, 'Validation step compensation (no-op)');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 130,
+    "content": "logger.debug({ taskId: context.taskId }, 'Reserving node resources');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 168,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 188,
+    "content": "logger.debug({ taskId: context.taskId }, 'ReserveNodeResources compensation already executed');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 197,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 252,
+    "content": "logger.info({ taskId: context.taskId }, 'Cancelling TaskExecution record');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 297,
+    "content": "logger.info({ taskId: context.taskId }, 'Reverting task status to PENDING');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 390,
+    "content": "logger.info({ taskId: context.taskId }, 'Sending cancellation to agent');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 407,
+    "content": "logger.warn({ taskId: context.taskId, error }, 'Failed to cancel task on node agent during compensation');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 453,
+    "content": "logger.info({ taskId: context.taskId }, 'Cancelling heartbeat monitor');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 468,
+    "content": "logger.debug({ taskId: context.taskId }, 'Completing task');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 491,
+    "content": "logger.error({ taskId: context.taskId, err }, 'Failed to report outcome to drift detector')"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 498,
+    "content": "logger.info({ taskId: context.taskId }, '[Saga] Compensating CompleteTask');"
+  },
+  {
+    "file": "apps\\api\\src\\sagas\\task-lifecycle-saga.ts",
+    "lineNum": 508,
+    "content": "logger.debug('Completion step compensation (no-op)');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\alerting-service.ts",
+    "lineNum": 115,
+    "content": "this.logger.fatal(logData, `🚨 [${alert.tenantId}] CRITICAL ALERT: ${alert.title}`);"
+  },
+  {
+    "file": "apps\\api\\src\\services\\alerting-service.ts",
+    "lineNum": 118,
+    "content": "this.logger.warn(logData, `⚠️ [${alert.tenantId}] WARNING: ${alert.title}`);"
+  },
+  {
+    "file": "apps\\api\\src\\services\\alerting-service.ts",
+    "lineNum": 121,
+    "content": "this.logger.info(logData, `ℹ️ [${alert.tenantId}] INFO: ${alert.title}`);"
+  },
+  {
+    "file": "apps\\api\\src\\services\\alerting-service.ts",
+    "lineNum": 158,
+    "content": "this.logger.error({ url, reason, error }, 'Alert webhook delivery failed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\alerting-service.ts",
+    "lineNum": 197,
+    "content": "this.logger.error("
+  },
+  {
+    "file": "apps\\api\\src\\services\\alerting-service.ts",
+    "lineNum": 208,
+    "content": "this.logger.error("
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 138,
+    "content": "this.logger.info({ instanceId: this.instanceId }, 'Auto-healer started');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 153,
+    "content": "this.logger.info('Auto-healer stopped');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 169,
+    "content": "this.logger.error({ error, channel }, 'Failed to parse alert message');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 217,
+    "content": "this.logger.info({ type, target }, 'Healing action on cooldown');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 223,
+    "content": "this.logger.warn('Max concurrent healing actions reached');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 246,
+    "content": "this.logger.info({ actionId, type, target }, 'Initiating healing action');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 300,
+    "content": "this.logger.info({ nodeId }, 'Rescheduling tasks from failed node');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 310,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 345,
+    "content": "this.logger.warn('Kubernetes actions disabled, skipping restart');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 349,
+    "content": "this.logger.info({ serviceName }, 'Restarting service');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 370,
+    "content": "this.logger.error({ error, serviceName }, 'Failed to restart service');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 383,
+    "content": "this.logger.warn('Kubernetes actions disabled, skipping scale');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 387,
+    "content": "this.logger.info({ serviceName, delta }, 'Scaling service');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 423,
+    "content": "this.logger.error({ error, serviceName }, 'Failed to scale service');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 454,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 462,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 581,
+    "content": "this.logger.error({ error }, 'Error during health checks');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 601,
+    "content": "this.logger.warn({ nodeId: node.id }, 'Detected stale node');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 633,
+    "content": "this.logger.warn({ serviceName, pod: pod.metadata.name }, 'Detected CrashLoopBackOff');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 646,
+    "content": "this.logger.error({ error }, 'Failed to check service health via Kubernetes');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 657,
+    "content": "this.logger.warn({ queueLength }, 'High queue depth detected');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 674,
+    "content": "this.logger.debug('Checking for failed tasks to retry');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 688,
+    "content": "this.logger.info({ taskId: task.id, executionCount, maxRetries: task.maxRetries }, 'Retrying failed task');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 704,
+    "content": "this.logger.warn({ taskId: task.id, executionCount }, 'Task reached max retries, marking as FAILED_PERMANENT');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 773,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 790,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\auto-healer.ts",
+    "lineNum": 805,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\backpressure-controller.ts",
+    "lineNum": 93,
+    "content": "this.logger.info('Backpressure Controller started');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\backpressure-controller.ts",
+    "lineNum": 119,
+    "content": "this.logger.warn(fullDecision, 'Backpressure triggered');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\backpressure-controller.ts",
+    "lineNum": 215,
+    "content": "this.logger.debug({ config: this.config }, 'Backpressure config refreshed from Redis');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\backpressure-controller.ts",
+    "lineNum": 218,
+    "content": "this.logger.error({ error }, 'Failed to refresh backpressure config');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\backpressure-controller.ts",
+    "lineNum": 228,
+    "content": "this.logger.info({ config: this.config }, 'Backpressure config persisted to Redis');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\backpressure-controller.ts",
+    "lineNum": 258,
+    "content": "this.logger.error({ error }, 'Failed to fetch node loads from Redis');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\backup-manager.ts",
+    "lineNum": 239,
+    "content": "logger.info({ cronExpression }, 'Automatic backups scheduled');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 107,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 112,
+    "content": "this.logger.warn('No valid intermediate CA found, generating new one');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 149,
+    "content": "this.logger.info({ serialNumber, expiresAt }, 'Generated intermediate CA');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 219,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 287,
+    "content": "this.logger.error({ error }, 'Certificate verification failed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 326,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 452,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\certificate-manager.ts",
+    "lineNum": 495,
+    "content": "this.logger.info({ count: this.crl.size }, 'Loaded CRL');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\cold-start-handler.ts",
+    "lineNum": 106,
+    "content": "this.logger.info({ nodeId }, 'Node initialized for cold start');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\cold-start-handler.ts",
+    "lineNum": 128,
+    "content": "this.logger.info({ nodeCount: nodes.length }, 'Cold start sync complete');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\cold-start-handler.ts",
+    "lineNum": 376,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\graceful-degradation.ts",
+    "lineNum": 116,
+    "content": "this.logger.info('Graceful degradation monitoring started');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\graceful-degradation.ts",
+    "lineNum": 139,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\graceful-degradation.ts",
+    "lineNum": 194,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\graceful-degradation.ts",
+    "lineNum": 278,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\health-monitor.ts",
+    "lineNum": 136,
+    "content": "this.logger.info('Health monitor started');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\health-monitor.ts",
+    "lineNum": 149,
+    "content": "this.logger.info('Health monitor stopped');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\health-monitor.ts",
+    "lineNum": 158,
+    "content": "this.logger.info({ check: name }, 'Registered custom health check');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\heartbeat-monitor.ts",
+    "lineNum": 150,
+    "content": "this.logger.error({ error: err }, 'Error in heartbeat monitor');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\heartbeat-monitor.ts",
+    "lineNum": 167,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\idempotency-service.ts",
+    "lineNum": 92,
+    "content": "this.logger.debug({ idempotencyKey }, 'Idempotency cache hit');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\idempotency-service.ts",
+    "lineNum": 147,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\idempotency-service.ts",
+    "lineNum": 189,
+    "content": "this.logger.debug({ idempotencyKey }, 'Marked idempotency as completed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\idempotency-service.ts",
+    "lineNum": 204,
+    "content": "this.logger.debug({ idempotencyKey }, 'Marked idempotency as failed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\idempotency-service.ts",
+    "lineNum": 306,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 117,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 160,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 182,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 269,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 279,
+    "content": "this.logger.error("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 327,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kafka-exactly-once.ts",
+    "lineNum": 366,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\kubernetes-operator.ts",
+    "lineNum": 139,
+    "content": "logger.info('EdgeNode CRD installed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\kubernetes-operator.ts",
+    "lineNum": 275,
+    "content": "logger.error({ err }, 'Watch error');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 107,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 115,
+    "content": "this.logger.warn('No valid CA found, creating new Certificate Authority');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 183,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 253,
+    "content": "this.logger.info({ nodeId, serialNumber, expiresAt }, 'Issued agent certificate via Vault PKI');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 295,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 578,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 590,
+    "content": "this.logger.error({ error }, 'Certificate validation failed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 640,
+    "content": "this.logger.info({ count: revoked.length }, 'Refreshed CRL cache');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 694,
+    "content": "this.logger.info({ adminUserId, expiresAt }, 'Generated bootstrap token');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 791,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 954,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 986,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\mtls-authentication.ts",
+    "lineNum": 1014,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\priority-scheduler.ts",
+    "lineNum": 126,
+    "content": "this.logger.info('Priority scheduler started');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\priority-scheduler.ts",
+    "lineNum": 145,
+    "content": "this.logger.info('Priority scheduler stopped');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\priority-scheduler.ts",
+    "lineNum": 186,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\priority-scheduler.ts",
+    "lineNum": 501,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\priority-scheduler.ts",
+    "lineNum": 526,
+    "content": "this.logger.info({ taskId }, 'Task cancelled');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\rate-limit.service.ts",
+    "lineNum": 96,
+    "content": "logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\scheduler-rate-limiter.ts",
+    "lineNum": 218,
+    "content": "this.logger.debug({ userId, nodeId }, 'Recorded task scheduling');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\scheduler-rate-limiter.ts",
+    "lineNum": 306,
+    "content": "this.logger.info({ config: this.config }, 'Rate limit config updated');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 144,
+    "content": "this.logger.warn({ mae }, 'ML Drift detected. Triggering automated retraining workflow.');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 151,
+    "content": "this.logger.error('GITHUB_TOKEN not configured. Cannot trigger automated retraining.');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 174,
+    "content": "this.logger.info('Successfully triggered GitHub ml-retrain workflow.');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 176,
+    "content": "this.logger.error({ error: error.message }, 'Failed to trigger GitHub ml-retrain workflow.');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 245,
+    "content": "this.logger.info({ instanceId: this.instanceId }, 'Not currently leader, skipping processQueue');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 276,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 289,
+    "content": "this.logger.error({ error }, 'Failed to check/update active ML model');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 313,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 329,
+    "content": "this.logger.error({ error }, 'Task count reconciliation failed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 353,
+    "content": "this.logger.info({ instanceId: this.instanceId }, 'Task scheduler stopped');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 369,
+    "content": "this.logger.info({ taskId: task.id, priority }, 'Task enqueued');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 375,
+    "content": "this.logger.info({ taskId }, 'Task dequeued');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 411,
+    "content": "this.logger.debug({ nodeId, state, distributedState }, 'Circuit is open for node');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 443,
+    "content": "this.logger.debug({ instanceId: this.instanceId }, '[Scheduler] Not leader, skipping');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 447,
+    "content": "this.logger.debug({ instanceId: this.instanceId }, '[Scheduler] processQueue batch started');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 470,
+    "content": "this.logger.debug('[Scheduler] Queue empty');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 496,
+    "content": "this.logger.warn({ taskId: task.id }, '[Scheduler] No suitable node found for task');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 520,
+    "content": "this.logger.error({ err }, 'Error processing task in batch');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 531,
+    "content": "this.logger.info({"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 540,
+    "content": "this.logger.debug({ instanceId: this.instanceId }, '[Scheduler] Queue empty');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 575,
+    "content": "this.logger.info({ nodeCount: nodes.length, taskId: task.id }, 'Nodes found for task');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 594,
+    "content": "this.logger.warn('All nodes have open circuit breakers');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 645,
+    "content": "this.logger.info({ count: deleted.count }, 'Cleaned up old scheduling decisions');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 650,
+    "content": "this.logger.info('Executed partition maintenance for node_metrics');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 653,
+    "content": "this.logger.error({ error }, 'Failed to run retention cleanup');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 691,
+    "content": "this.logger.debug({ taskId, predicted: metadata.predictedScore, actual: actualScore }, 'Task outcome recorded for ML drift detection');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 693,
+    "content": "this.logger.error({ taskId, error }, 'Failed to record task outcome for ML');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 702,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 716,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 780,
+    "content": "this.logger.error({ taskId: task.id, err }, 'Failed to persist scheduling decision or audit log');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 908,
+    "content": "if (wsTime > 10) this.logger.warn({ wsTime, taskId: task.id }, 'Slow WebSocket broadcast');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 921,
+    "content": "this.logger.error({"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 984,
+    "content": "this.logger.warn({ taskId }, 'Task not found for completion');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1057,
+    "content": "this.logger.debug({ taskId }, 'Recorded ML outcome for drift detection');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1060,
+    "content": "this.logger.warn({ taskId, err }, 'Failed to record ML outcome');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1144,
+    "content": "this.logger.info('Manual ML retraining triggered via API');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1153,
+    "content": "this.logger.info({ status }, 'ML Retraining progress update');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1168,
+    "content": "this.logger.warn('Insufficient real data for actual retraining, completing simulation');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1241,
+    "content": "this.logger.info({ carbonWeight }, 'Updated carbon policy weight');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\task-scheduler.ts",
+    "lineNum": 1254,
+    "content": "this.logger.info({ priority, tenantId }, 'Task submission recorded');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 101,
+    "content": "this.logger.error({ error }, 'Failed to parse cluster message');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 105,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 126,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 150,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 164,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 186,
+    "content": "this.logger.warn({ clientId }, 'WebSocket connection rejected: No token provided');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 213,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 239,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 251,
+    "content": "this.logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 258,
+    "content": "this.logger.error({ clientId, error }, 'WebSocket error');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 262,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 298,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 317,
+    "content": "this.logger.debug("
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 379,
+    "content": "this.logger.debug({ channel, clients: sent }, 'Local broadcast');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 401,
+    "content": "this.logger.error({ error }, 'Failed to publish cluster message');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\websocket-manager.ts",
+    "lineNum": 452,
+    "content": "this.logger.info('WebSocket manager closed');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\workflow-engine.ts",
+    "lineNum": 31,
+    "content": "this.logger.error({ error, taskId }, 'Error handling task outcome in workflow engine');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\workflow-engine.ts",
+    "lineNum": 40,
+    "content": "this.logger.info({ workflowId, tenantId }, 'Starting workflow execution');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\workflow-engine.ts",
+    "lineNum": 111,
+    "content": "this.logger.debug({ taskId, status, executionId: taskRun.executionId }, 'Processing task outcome for workflow');"
+  },
+  {
+    "file": "apps\\api\\src\\services\\workflow-engine.ts",
+    "lineNum": 218,
+    "content": "this.logger.info({ executionId, step: node.stepName }, 'Submitting task for workflow step');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\circuit-breakers.ts",
+    "lineNum": 82,
+    "content": "logger.warn({ breaker: config.name }, 'Circuit breaker opened');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\circuit-breakers.ts",
+    "lineNum": 87,
+    "content": "logger.info({ breaker: config.name }, 'Circuit breaker closed (healthy)');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\circuit-breakers.ts",
+    "lineNum": 92,
+    "content": "logger.info("
+  },
+  {
+    "file": "apps\\api\\src\\utils\\deprecation.ts",
+    "lineNum": 45,
+    "content": "request.log.warn("
+  },
+  {
+    "file": "apps\\api\\src\\utils\\globalErrorHandler.ts",
+    "lineNum": 26,
+    "content": "logger.error("
+  },
+  {
+    "file": "apps\\api\\src\\utils\\globalErrorHandler.ts",
+    "lineNum": 41,
+    "content": "logger.fatal({ error }, 'UNCAUGHT EXCEPTION');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\globalErrorHandler.ts",
+    "lineNum": 46,
+    "content": "logger.warn('Process continuing after uncaught exception');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\globalErrorHandler.ts",
+    "lineNum": 53,
+    "content": "logger.warn("
+  },
+  {
+    "file": "apps\\api\\src\\utils\\globalErrorHandler.ts",
+    "lineNum": 58,
+    "content": "logger.info({ code }, 'Process exiting normally');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\globalErrorHandler.ts",
+    "lineNum": 62,
+    "content": "logger.info('✅ Global error handlers registered');"
+  },
+  {
+    "file": "apps\\api\\src\\utils\\retry.util.ts",
+    "lineNum": 19,
+    "content": "logger.warn({ attempt: i + 1, retries, backoff }, 'Retry attempt');"
+  },
+  {
+    "file": "packages\\circuit-breaker\\src\\redis-sync.ts",
+    "lineNum": 49,
+    "content": "logger.info({ breakerName, state }, 'Synced circuit breaker state from Redis');"
+  },
+  {
+    "file": "packages\\circuit-breaker\\src\\redis-sync.ts",
+    "lineNum": 51,
+    "content": "logger.error({ err, key }, 'Failed to parse circuit breaker state from Redis');"
+  },
+  {
+    "file": "packages\\circuit-breaker\\src\\redis-sync.ts",
+    "lineNum": 55,
+    "content": "logger.error({ err }, 'Failed to sync circuit breaker states from Redis');"
+  },
+  {
+    "file": "packages\\circuit-breaker\\src\\redis-sync.ts",
+    "lineNum": 74,
+    "content": "logger.info("
+  },
+  {
+    "file": "packages\\circuit-breaker\\src\\redis-sync.ts",
+    "lineNum": 80,
+    "content": "logger.error({ err, message }, 'Failed to parse circuit breaker state change message');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\carbon\\grid-client.ts",
+    "lineNum": 61,
+    "content": "logger.debug({ zone, intensity }, 'Fetched carbon intensity from API');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\carbon\\grid-client.ts",
+    "lineNum": 65,
+    "content": "logger.warn({ zone, error: error.message, fallback }, 'Failed to fetch carbon intensity, using fallback');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\drift-detector.ts",
+    "lineNum": 41,
+    "content": "logger.error({ mae: this.rollingMAE, threshold: this.FATAL_THRESHOLD }, 'CRITICAL DRIFT: ML model performance degraded above fatal threshold. Disabling ML scheduler.');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\drift-detector.ts",
+    "lineNum": 46,
+    "content": "logger.warn({ mae: this.rollingMAE, threshold: this.WARN_THRESHOLD }, 'Model drift warning: Performance degrading. Triggering retraining.');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\feedback\\outcome-collector.ts",
+    "lineNum": 35,
+    "content": "logger.info('OutcomeCollector started with 60s flush interval');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\feedback\\outcome-collector.ts",
+    "lineNum": 43,
+    "content": "logger.info('OutcomeCollector stopped');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\feedback\\outcome-collector.ts",
+    "lineNum": 84,
+    "content": "logger.info(`Flushing ${outcomes.length} outcomes to PostgreSQL`);"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\feedback\\outcome-collector.ts",
+    "lineNum": 106,
+    "content": "logger.info('Successfully flushed outcomes to PostgreSQL');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\feedback\\outcome-collector.ts",
+    "lineNum": 108,
+    "content": "logger.error({ error }, 'Failed to flush outcomes to PostgreSQL');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\ml-scheduler.ts",
+    "lineNum": 44,
+    "content": "logger.warn('ML scheduling suppressed due to model drift');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\ml-scheduler.ts",
+    "lineNum": 73,
+    "content": "logger.info('Carbon vs Latency trade-off: Capping carbon weight at 0.2');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\ml-scheduler.ts",
+    "lineNum": 102,
+    "content": "logger.info('Bandit: Exploring (picking random node)');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\ml-scheduler.ts",
+    "lineNum": 195,
+    "content": "logger.warn({ reason, error: error.message }, 'ML scheduling failed, falling back to rule-based');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\ml-scheduler.ts",
+    "lineNum": 261,
+    "content": "logger.info({ newVersion: activeVersion.version }, 'Hot-swapping ML model');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\predictor.ts",
+    "lineNum": 43,
+    "content": "logger.warn('Mock predictor: training simulated');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\predictor.ts",
+    "lineNum": 130,
+    "content": "logger.info(`Mock model version ${meta.version} active`);"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\predictor.ts",
+    "lineNum": 135,
+    "content": "logger.info(`XGBoost model version ${meta.version} detected. Loading artifact from ${meta.artifact_path}`);"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\predictor.ts",
+    "lineNum": 143,
+    "content": "logger.info(`Model version ${meta.version} loaded and active`);"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 39,
+    "content": "logger.warn({ file }, 'Failed to parse model metadata');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 68,
+    "content": "logger.info({ version }, 'Model promoted to active');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 77,
+    "content": "logger.warn('No version history available for rollback');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 84,
+    "content": "logger.info({ version: previousVersion }, 'Model rolled back to previous version');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 96,
+    "content": "logger.error({ error, version }, 'Failed to read model metadata');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 118,
+    "content": "logger.info({ version: model.version }, 'Pruned old model artifact');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\registry.ts",
+    "lineNum": 120,
+    "content": "logger.error({ error: e, version: model.version }, 'Failed to prune model');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\feature-extractor.ts",
+    "lineNum": 33,
+    "content": "logger.info(`Extracting training data for the last ${lookbackDays} days...`);"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\feature-extractor.ts",
+    "lineNum": 67,
+    "content": "logger.error({ error }, 'Failed to extract training data');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 34,
+    "content": "logger.info('Starting incremental model update...');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 44,
+    "content": "logger.warn('Insufficient data for incremental update. Need at least 500 outcomes.');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 61,
+    "content": "logger.error('No active model found for incremental update');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 73,
+    "content": "logger.info('Incremental update successful, hot-swap should happen via ModelRegistry');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 76,
+    "content": "logger.warn('Incremental update validation failed or script errored');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 82,
+    "content": "logger.error({ error }, 'Incremental update failed');"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 90,
+    "content": "py.stdout.on('data', (data) => logger.debug(`Python: ${data}`));"
+  },
+  {
+    "file": "packages\\ml-scheduler\\src\\training\\incremental-updater.ts",
+    "lineNum": 91,
+    "content": "py.stderr.on('data', (data) => logger.error(`Python Error: ${data}`));"
+  },
+  {
+    "file": "packages\\security\\src\\tls.ts",
+    "lineNum": 87,
+    "content": "logger.error(`Unauthorized client certificate CN: ${cn}. Expected pattern: ${expectedPattern}`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\config\\validate-env.ts",
+    "lineNum": 38,
+    "content": "logger.error('FATAL: Environment validation failed. Missing or invalid required variables:');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\config\\validate-env.ts",
+    "lineNum": 39,
+    "content": "missingKeys.forEach(key => logger.error(`  - ${key}`));"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\config\\validate-env.ts",
+    "lineNum": 45,
+    "content": "logger.warn('WARNING: Continuing in non-production mode despite validation failures.');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\event-versioning.ts",
+    "lineNum": 226,
+    "content": "this.logger.warn({ eventType }, 'Unknown event type, using v1');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\event-versioning.ts",
+    "lineNum": 260,
+    "content": "this.logger.warn("
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 45,
+    "content": "this.logger.error({ error }, 'Redlock error');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 65,
+    "content": "this.logger.debug('Failed to initialize leader gauge, metrics may be disabled');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 91,
+    "content": "this.logger.info({ lockKey: this.config.lockKey, serviceId: this.serviceId }, 'Leadership acquired');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 101,
+    "content": "this.logger.warn({ lockKey: this.config.lockKey, serviceId: this.serviceId }, 'Leadership lost');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 124,
+    "content": "this.logger.debug({ lockKey: this.config.lockKey }, 'Leadership lease renewed');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 126,
+    "content": "this.logger.warn({ error: e, lockKey: this.config.lockKey }, 'Failed to renew leadership lease');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 152,
+    "content": "this.logger.debug({ attempt, nextRetry: delay, serviceId }, 'Leadership acquisition failed, retrying...');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 157,
+    "content": "this.logger.error({ attempts: maxAttempts, serviceId }, 'Failed to acquire leadership after maximum attempts');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\leader-election\\index.ts",
+    "lineNum": 174,
+    "content": "this.logger.error({ error: e }, 'Failed to release lock on stop');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 22,
+    "content": "logger.debug(`[Shutdown] Registered handler: ${name}`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 32,
+    "content": "logger.info('[Shutdown] Initialized signal listeners (SIGTERM, SIGINT)');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 37,
+    "content": "logger.warn(`[Shutdown] Received ${signal} while already shutting down. Ignoring.`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 42,
+    "content": "logger.info(`[Shutdown] Received ${signal}. Starting graceful termination...`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 50,
+    "content": "logger.info(`[Shutdown] Executing handler: ${handler.name}...`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 59,
+    "content": "logger.info(`[Shutdown] Handler completed: ${handler.name}`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 61,
+    "content": "logger.error({ error: err }, `[Shutdown] Handler failed or timed out: ${handler.name}`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 65,
+    "content": "logger.error('[Shutdown] Total shutdown budget exceeded! Forcing exit.');"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\lifecycle\\shutdown.ts",
+    "lineNum": 71,
+    "content": "logger.info(`[Shutdown] All handlers completed cleanly in ${duration}ms. Goodbye.`);"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\logger\\express-middleware.ts",
+    "lineNum": 34,
+    "content": "logger.info({"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\logger\\express-middleware.ts",
+    "lineNum": 45,
+    "content": "logger.info({"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\logger\\fastify-plugin.ts",
+    "lineNum": 55,
+    "content": "logger.info({"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\logger\\fastify-plugin.ts",
+    "lineNum": 85,
+    "content": "logger.info({"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\logger\\fastify-plugin.ts",
+    "lineNum": 102,
+    "content": "logger.error({"
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\utils\\redis-factory.ts",
+    "lineNum": 52,
+    "content": "logger.info("
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\utils\\redis-factory.ts",
+    "lineNum": 67,
+    "content": "logger.info("
+  },
+  {
+    "file": "packages\\shared-kernel\\src\\utils\\redis-factory.ts",
+    "lineNum": 75,
+    "content": "logger.warn('No Redis configuration found, falling back to localhost:6379');"
+  }
+]
