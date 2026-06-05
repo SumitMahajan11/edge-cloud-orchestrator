@@ -48,10 +48,7 @@
     "line": 112,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'API key generated'",
-      "{ agentId, keyId: id, permissions }"
-    ],
+    "args": ["'API key generated'", "{ agentId, keyId: id, permissions }"],
     "rawCall": "logger.info('API key generated', { agentId, keyId: id, permissions })"
   },
   {
@@ -59,10 +56,7 @@
     "line": 323,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Token revoked'",
-      "{ tokenPrefix: token.substring(0, 20) }"
-    ],
+    "args": ["'Token revoked'", "{ tokenPrefix: token.substring(0, 20) }"],
     "rawCall": "logger.warn('Token revoked', { tokenPrefix: token.substring(0, 20) })"
   },
   {
@@ -70,10 +64,7 @@
     "line": 333,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'API key disabled'",
-      "{ agentId, keyId: id }"
-    ],
+    "args": ["'API key disabled'", "{ agentId, keyId: id }"],
     "rawCall": "logger.warn('API key disabled', { agentId, keyId: id })"
   },
   {
@@ -125,10 +116,7 @@
     "line": 419,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Action not approved'",
-      "{ actionId: action.id }"
-    ],
+    "args": ["'Action not approved'", "{ actionId: action.id }"],
     "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
   },
   {
@@ -180,10 +168,7 @@
     "line": 126,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election started'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election started'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
   },
   {
@@ -191,10 +176,7 @@
     "line": 155,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election stopped'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election stopped'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
   },
   {
@@ -213,10 +195,7 @@
     "line": 245,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Lost leadership'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Lost leadership'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
   },
   {
@@ -235,10 +214,7 @@
     "line": 467,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator started'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator started'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
   },
   {
@@ -246,10 +222,7 @@
     "line": 475,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator stopped'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator stopped'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
   },
   {
@@ -279,10 +252,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No nodes available for scheduling'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No nodes available for scheduling'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
   },
   {
@@ -312,10 +282,7 @@
     "line": 182,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Decision not found for dispatch'",
-      "{ decisionId }"
-    ],
+    "args": ["'Decision not found for dispatch'", "{ decisionId }"],
     "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
   },
   {
@@ -323,10 +290,7 @@
     "line": 241,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Decision cancelled'",
-      "{ decisionId, reason }"
-    ],
+    "args": ["'Decision cancelled'", "{ decisionId, reason }"],
     "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
   },
   {
@@ -345,10 +309,7 @@
     "line": 114,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registered to shard'",
-      "{ nodeId: node.id, shardId }"
-    ],
+    "args": ["'Node registered to shard'", "{ nodeId: node.id, shardId }"],
     "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
   },
   {
@@ -356,10 +317,7 @@
     "line": 190,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No available shards for task'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No available shards for task'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
   },
   {
@@ -389,10 +347,7 @@
     "line": 304,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Shards rebalanced'",
-      "{ moved, overloaded, underloaded }"
-    ],
+    "args": ["'Shards rebalanced'", "{ moved, overloaded, underloaded }"],
     "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
   },
   {
@@ -466,10 +421,7 @@
     "line": 248,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Failed to deploy to node'",
-      "{ nodeId: node.id }"
-    ],
+    "args": ["'Failed to deploy to node'", "{ nodeId: node.id }"],
     "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
   },
   {
@@ -477,10 +429,7 @@
     "line": 295,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Traffic shifted'",
-      "{ targetSlot, percentage }"
-    ],
+    "args": ["'Traffic shifted'", "{ targetSlot, percentage }"],
     "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
   },
   {
@@ -521,10 +470,7 @@
     "line": 90,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registry stopped'",
-      "{ registeredNodes: this.nodes.size }"
-    ],
+    "args": ["'Node registry stopped'", "{ registeredNodes: this.nodes.size }"],
     "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
   },
   {
@@ -554,10 +500,7 @@
     "line": 147,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Heartbeat from unknown node'",
-      "{ nodeId: data.nodeId }"
-    ],
+    "args": ["'Heartbeat from unknown node'", "{ nodeId: data.nodeId }"],
     "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
   },
   {
@@ -565,10 +508,7 @@
     "line": 176,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node deregistered'",
-      "{ nodeId }"
-    ],
+    "args": ["'Node deregistered'", "{ nodeId }"],
     "rawCall": "logger.info('Node deregistered', { nodeId })"
   },
   {
@@ -576,10 +516,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Node marked offline'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node marked offline'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -587,10 +524,7 @@
     "line": 329,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node removed due to timeout'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node removed due to timeout'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -664,10 +598,7 @@
     "line": 143,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster unregistered from federation'",
-      "{ clusterId }"
-    ],
+    "args": ["'Cluster unregistered from federation'", "{ clusterId }"],
     "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
   },
   {
@@ -730,10 +661,7 @@
     "line": 241,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function published'",
-      "{ functionId: id, name: fn.name }"
-    ],
+    "args": ["'Function published'", "{ functionId: id, name: fn.name }"],
     "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
   },
   {
@@ -741,10 +669,7 @@
     "line": 297,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function deployed'",
-      "{ functionId, nodes: nodes.length }"
-    ],
+    "args": ["'Function deployed'", "{ functionId, nodes: nodes.length }"],
     "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
   },
   {
@@ -752,10 +677,7 @@
     "line": 320,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Metrics collector started'",
-      "{ interval }"
-    ],
+    "args": ["'Metrics collector started'", "{ interval }"],
     "rawCall": "logger.info('Metrics collector started', { interval })"
   },
   {
@@ -774,10 +696,7 @@
     "line": 494,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "`Alert resolved: ${rule.name}`",
-      "{ metric: rule.metric }"
-    ],
+    "args": ["`Alert resolved: ${rule.name}`", "{ metric: rule.metric }"],
     "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
   },
   {
@@ -851,10 +770,7 @@
     "line": 347,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Region policy set'",
-      "{ taskType, policy: policy.name }"
-    ],
+    "args": ["'Region policy set'", "{ taskType, policy: policy.name }"],
     "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
   },
   {
@@ -917,10 +833,7 @@
     "line": 126,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election started'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election started'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
   },
   {
@@ -928,10 +841,7 @@
     "line": 155,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election stopped'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election stopped'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
   },
   {
@@ -950,10 +860,7 @@
     "line": 245,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Lost leadership'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Lost leadership'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
   },
   {
@@ -972,10 +879,7 @@
     "line": 467,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator started'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator started'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
   },
   {
@@ -983,10 +887,7 @@
     "line": 475,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator stopped'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator stopped'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
   },
   {
@@ -1027,10 +928,7 @@
     "line": 341,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Region policy set'",
-      "{ taskType, policy: policy.name }"
-    ],
+    "args": ["'Region policy set'", "{ taskType, policy: policy.name }"],
     "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
   },
   {
@@ -1049,10 +947,7 @@
     "line": 90,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registry stopped'",
-      "{ registeredNodes: this.nodes.size }"
-    ],
+    "args": ["'Node registry stopped'", "{ registeredNodes: this.nodes.size }"],
     "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
   },
   {
@@ -1082,10 +977,7 @@
     "line": 147,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Heartbeat from unknown node'",
-      "{ nodeId: data.nodeId }"
-    ],
+    "args": ["'Heartbeat from unknown node'", "{ nodeId: data.nodeId }"],
     "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
   },
   {
@@ -1093,10 +985,7 @@
     "line": 176,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node deregistered'",
-      "{ nodeId }"
-    ],
+    "args": ["'Node deregistered'", "{ nodeId }"],
     "rawCall": "logger.info('Node deregistered', { nodeId })"
   },
   {
@@ -1104,10 +993,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Node marked offline'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node marked offline'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -1115,10 +1001,7 @@
     "line": 329,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node removed due to timeout'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node removed due to timeout'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -1126,10 +1009,7 @@
     "line": 234,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Trace started: ${name}`",
-      "{ traceId, operation: name }"
-    ],
+    "args": ["`Trace started: ${name}`", "{ traceId, operation: name }"],
     "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
   },
   {
@@ -1137,10 +1017,7 @@
     "line": 243,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Span started: ${name}`",
-      "{ spanId, operation: name }"
-    ],
+    "args": ["`Span started: ${name}`", "{ spanId, operation: name }"],
     "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
   },
   {
@@ -1148,10 +1025,7 @@
     "line": 243,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Kafka adapter connected'",
-      "{ brokers: this.config.brokers }"
-    ],
+    "args": ["'Kafka adapter connected'", "{ brokers: this.config.brokers }"],
     "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
   },
   {
@@ -1159,10 +1033,7 @@
     "line": 364,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'RabbitMQ adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'RabbitMQ adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
   },
   {
@@ -1170,10 +1041,7 @@
     "line": 505,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Redis Streams adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'Redis Streams adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
   },
   {
@@ -1181,10 +1049,7 @@
     "line": 671,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task queue initialized'",
-      "{ type: this.config.type }"
-    ],
+    "args": ["'Task queue initialized'", "{ type: this.config.type }"],
     "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
   },
   {
@@ -1192,10 +1057,7 @@
     "line": 178,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Recovery in cooldown'",
-      "{ failureId: failure.id }"
-    ],
+    "args": ["'Recovery in cooldown'", "{ failureId: failure.id }"],
     "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
   },
   {
@@ -1225,10 +1087,7 @@
     "line": 375,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Retrying task'",
-      "{ taskId: failure.entityId }"
-    ],
+    "args": ["'Retrying task'", "{ taskId: failure.entityId }"],
     "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
   },
   {
@@ -1236,10 +1095,7 @@
     "line": 397,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Restarting node'",
-      "{ nodeId: failure.entityId }"
-    ],
+    "args": ["'Restarting node'", "{ nodeId: failure.entityId }"],
     "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
   },
   {
@@ -1247,10 +1103,7 @@
     "line": 409,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Transferring tasks'",
-      "{ fromNodeId: failure.entityId }"
-    ],
+    "args": ["'Transferring tasks'", "{ fromNodeId: failure.entityId }"],
     "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
   },
   {
@@ -1258,10 +1111,7 @@
     "line": 134,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation start time too soon'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation start time too soon'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
   },
   {
@@ -1280,10 +1130,7 @@
     "line": 142,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation duration too long'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation duration too long'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
   },
   {
@@ -1313,10 +1160,7 @@
     "line": 288,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation cancelled'",
-      "{ reservationId, reason }"
-    ],
+    "args": ["'Reservation cancelled'", "{ reservationId, reason }"],
     "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
   },
   {
@@ -1335,10 +1179,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation activated'",
-      "{ reservationId: reservation.id }"
-    ],
+    "args": ["'Reservation activated'", "{ reservationId: reservation.id }"],
     "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
   },
   {
@@ -1346,10 +1187,7 @@
     "line": 407,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation completed'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation completed'", "{ reservationId: id }"],
     "rawCall": "logger.info('Reservation completed', { reservationId: id })"
   },
   {
@@ -1357,10 +1195,7 @@
     "line": 414,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation expired'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation expired'", "{ reservationId: id }"],
     "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
   },
   {
@@ -1423,10 +1258,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Sandbox killed'",
-      "{ sandboxId, reason }"
-    ],
+    "args": ["'Sandbox killed'", "{ sandboxId, reason }"],
     "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
   },
   {
@@ -1445,10 +1277,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Isolation policy added'",
-      "{ name: policy.name }"
-    ],
+    "args": ["'Isolation policy added'", "{ name: policy.name }"],
     "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
   },
   {
@@ -1467,10 +1296,7 @@
     "line": 192,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Loaded historical data'",
-      "{ count: this.history.length }"
-    ],
+    "args": ["'Loaded historical data'", "{ count: this.history.length }"],
     "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
   },
   {
@@ -1478,10 +1304,7 @@
     "line": 63,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduler service started'",
-      "{ policy: this.config.policy }"
-    ],
+    "args": ["'Scheduler service started'", "{ policy: this.config.policy }"],
     "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
   },
   {
@@ -1489,10 +1312,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task submitted'",
-      "{ taskId: task.id, name, type, priority }"
-    ],
+    "args": ["'Task submitted'", "{ taskId: task.id, name, type, priority }"],
     "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
   },
   {
@@ -1511,10 +1331,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task routed to cloud'",
-      "{ taskId: task.id, reason }"
-    ],
+    "args": ["'Task routed to cloud'", "{ taskId: task.id, reason }"],
     "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
   },
   {
@@ -1522,10 +1339,7 @@
     "line": 333,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduling policy changed'",
-      "{ policy }"
-    ],
+    "args": ["'Scheduling policy changed'", "{ policy }"],
     "rawCall": "logger.info('Scheduling policy changed', { policy })"
   },
   {
@@ -1555,10 +1369,7 @@
     "line": 192,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Loaded historical data'",
-      "{ count: this.history.length }"
-    ],
+    "args": ["'Loaded historical data'", "{ count: this.history.length }"],
     "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
   },
   {
@@ -1599,10 +1410,7 @@
     "line": 63,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduler service started'",
-      "{ policy: this.config.policy }"
-    ],
+    "args": ["'Scheduler service started'", "{ policy: this.config.policy }"],
     "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
   },
   {
@@ -1610,10 +1418,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task submitted'",
-      "{ taskId: task.id, name, type, priority }"
-    ],
+    "args": ["'Task submitted'", "{ taskId: task.id, name, type, priority }"],
     "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
   },
   {
@@ -1632,10 +1437,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task routed to cloud'",
-      "{ taskId: task.id, reason }"
-    ],
+    "args": ["'Task routed to cloud'", "{ taskId: task.id, reason }"],
     "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
   },
   {
@@ -1643,10 +1445,7 @@
     "line": 333,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduling policy changed'",
-      "{ policy }"
-    ],
+    "args": ["'Scheduling policy changed'", "{ policy }"],
     "rawCall": "logger.info('Scheduling policy changed', { policy })"
   },
   {
@@ -1654,10 +1453,7 @@
     "line": 243,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Kafka adapter connected'",
-      "{ brokers: this.config.brokers }"
-    ],
+    "args": ["'Kafka adapter connected'", "{ brokers: this.config.brokers }"],
     "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
   },
   {
@@ -1665,10 +1461,7 @@
     "line": 364,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'RabbitMQ adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'RabbitMQ adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
   },
   {
@@ -1676,10 +1469,7 @@
     "line": 505,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Redis Streams adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'Redis Streams adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
   },
   {
@@ -1687,10 +1477,7 @@
     "line": 671,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task queue initialized'",
-      "{ type: this.config.type }"
-    ],
+    "args": ["'Task queue initialized'", "{ type: this.config.type }"],
     "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
   },
   {
@@ -1709,10 +1496,7 @@
     "line": 196,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow started'",
-      "{ executionId, workflowId }"
-    ],
+    "args": ["'Workflow started'", "{ executionId, workflowId }"],
     "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
   },
   {
@@ -1720,10 +1504,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow completed'",
-      "{ executionId: execution.id }"
-    ],
+    "args": ["'Workflow completed'", "{ executionId: execution.id }"],
     "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
   },
   {
@@ -1764,10 +1545,7 @@
     "line": 442,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Starting subworkflow'",
-      "{ subWorkflowId }"
-    ],
+    "args": ["'Starting subworkflow'", "{ subWorkflowId }"],
     "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
   },
   {
@@ -1775,10 +1553,7 @@
     "line": 487,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow cancelled'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow cancelled'", "{ executionId }"],
     "rawCall": "logger.info('Workflow cancelled', { executionId })"
   },
   {
@@ -1786,10 +1561,7 @@
     "line": 499,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow paused'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow paused'", "{ executionId }"],
     "rawCall": "logger.info('Workflow paused', { executionId })"
   },
   {
@@ -1852,10 +1624,7 @@
     "line": 247,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Failed to deploy to node'",
-      "{ nodeId: node.id }"
-    ],
+    "args": ["'Failed to deploy to node'", "{ nodeId: node.id }"],
     "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
   },
   {
@@ -1863,10 +1632,7 @@
     "line": 294,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Traffic shifted'",
-      "{ targetSlot, percentage }"
-    ],
+    "args": ["'Traffic shifted'", "{ targetSlot, percentage }"],
     "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
   },
   {
@@ -1940,10 +1706,7 @@
     "line": 419,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Action not approved'",
-      "{ actionId: action.id }"
-    ],
+    "args": ["'Action not approved'", "{ actionId: action.id }"],
     "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
   },
   {
@@ -2006,10 +1769,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No nodes available for scheduling'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No nodes available for scheduling'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
   },
   {
@@ -2039,10 +1799,7 @@
     "line": 182,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Decision not found for dispatch'",
-      "{ decisionId }"
-    ],
+    "args": ["'Decision not found for dispatch'", "{ decisionId }"],
     "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
   },
   {
@@ -2050,10 +1807,7 @@
     "line": 241,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Decision cancelled'",
-      "{ decisionId, reason }"
-    ],
+    "args": ["'Decision cancelled'", "{ decisionId, reason }"],
     "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
   },
   {
@@ -2105,10 +1859,7 @@
     "line": 114,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registered to shard'",
-      "{ nodeId: node.id, shardId }"
-    ],
+    "args": ["'Node registered to shard'", "{ nodeId: node.id, shardId }"],
     "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
   },
   {
@@ -2116,10 +1867,7 @@
     "line": 190,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No available shards for task'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No available shards for task'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
   },
   {
@@ -2149,10 +1897,7 @@
     "line": 302,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Shards rebalanced'",
-      "{ moved, overloaded, underloaded }"
-    ],
+    "args": ["'Shards rebalanced'", "{ moved, overloaded, underloaded }"],
     "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
   },
   {
@@ -2160,10 +1905,7 @@
     "line": 241,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function published'",
-      "{ functionId: id, name: fn.name }"
-    ],
+    "args": ["'Function published'", "{ functionId: id, name: fn.name }"],
     "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
   },
   {
@@ -2171,10 +1913,7 @@
     "line": 297,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function deployed'",
-      "{ functionId, nodes: nodes.length }"
-    ],
+    "args": ["'Function deployed'", "{ functionId, nodes: nodes.length }"],
     "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
   },
   {
@@ -2193,10 +1932,7 @@
     "line": 320,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Metrics collector started'",
-      "{ interval }"
-    ],
+    "args": ["'Metrics collector started'", "{ interval }"],
     "rawCall": "logger.info('Metrics collector started', { interval })"
   },
   {
@@ -2215,10 +1951,7 @@
     "line": 494,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "`Alert resolved: ${rule.name}`",
-      "{ metric: rule.metric }"
-    ],
+    "args": ["`Alert resolved: ${rule.name}`", "{ metric: rule.metric }"],
     "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
   },
   {
@@ -2226,10 +1959,7 @@
     "line": 178,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Recovery in cooldown'",
-      "{ failureId: failure.id }"
-    ],
+    "args": ["'Recovery in cooldown'", "{ failureId: failure.id }"],
     "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
   },
   {
@@ -2259,10 +1989,7 @@
     "line": 375,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Retrying task'",
-      "{ taskId: failure.entityId }"
-    ],
+    "args": ["'Retrying task'", "{ taskId: failure.entityId }"],
     "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
   },
   {
@@ -2270,10 +1997,7 @@
     "line": 397,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Restarting node'",
-      "{ nodeId: failure.entityId }"
-    ],
+    "args": ["'Restarting node'", "{ nodeId: failure.entityId }"],
     "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
   },
   {
@@ -2281,10 +2005,7 @@
     "line": 409,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Transferring tasks'",
-      "{ fromNodeId: failure.entityId }"
-    ],
+    "args": ["'Transferring tasks'", "{ fromNodeId: failure.entityId }"],
     "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
   },
   {
@@ -2347,10 +2068,7 @@
     "line": 234,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Trace started: ${name}`",
-      "{ traceId, operation: name }"
-    ],
+    "args": ["`Trace started: ${name}`", "{ traceId, operation: name }"],
     "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
   },
   {
@@ -2358,10 +2076,7 @@
     "line": 243,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Span started: ${name}`",
-      "{ spanId, operation: name }"
-    ],
+    "args": ["`Span started: ${name}`", "{ spanId, operation: name }"],
     "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
   },
   {
@@ -2380,10 +2095,7 @@
     "line": 143,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster unregistered from federation'",
-      "{ clusterId }"
-    ],
+    "args": ["'Cluster unregistered from federation'", "{ clusterId }"],
     "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
   },
   {
@@ -2424,10 +2136,7 @@
     "line": 134,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation start time too soon'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation start time too soon'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
   },
   {
@@ -2446,10 +2155,7 @@
     "line": 142,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation duration too long'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation duration too long'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
   },
   {
@@ -2479,10 +2185,7 @@
     "line": 288,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation cancelled'",
-      "{ reservationId, reason }"
-    ],
+    "args": ["'Reservation cancelled'", "{ reservationId, reason }"],
     "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
   },
   {
@@ -2501,10 +2204,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation activated'",
-      "{ reservationId: reservation.id }"
-    ],
+    "args": ["'Reservation activated'", "{ reservationId: reservation.id }"],
     "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
   },
   {
@@ -2512,10 +2212,7 @@
     "line": 407,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation completed'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation completed'", "{ reservationId: id }"],
     "rawCall": "logger.info('Reservation completed', { reservationId: id })"
   },
   {
@@ -2523,10 +2220,7 @@
     "line": 414,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation expired'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation expired'", "{ reservationId: id }"],
     "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
   },
   {
@@ -2578,10 +2272,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Sandbox killed'",
-      "{ sandboxId, reason }"
-    ],
+    "args": ["'Sandbox killed'", "{ sandboxId, reason }"],
     "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
   },
   {
@@ -2600,10 +2291,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Isolation policy added'",
-      "{ name: policy.name }"
-    ],
+    "args": ["'Isolation policy added'", "{ name: policy.name }"],
     "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
   },
   {
@@ -2622,10 +2310,7 @@
     "line": 209,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Validation failed'",
-      "{ errors, data }"
-    ],
+    "args": ["'Validation failed'", "{ errors, data }"],
     "rawCall": "logger.warn('Validation failed', { errors, data })"
   },
   {
@@ -2644,10 +2329,7 @@
     "line": 196,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow started'",
-      "{ executionId, workflowId }"
-    ],
+    "args": ["'Workflow started'", "{ executionId, workflowId }"],
     "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
   },
   {
@@ -2655,10 +2337,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow completed'",
-      "{ executionId: execution.id }"
-    ],
+    "args": ["'Workflow completed'", "{ executionId: execution.id }"],
     "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
   },
   {
@@ -2699,10 +2378,7 @@
     "line": 442,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Starting subworkflow'",
-      "{ subWorkflowId }"
-    ],
+    "args": ["'Starting subworkflow'", "{ subWorkflowId }"],
     "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
   },
   {
@@ -2710,10 +2386,7 @@
     "line": 487,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow cancelled'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow cancelled'", "{ executionId }"],
     "rawCall": "logger.info('Workflow cancelled', { executionId })"
   },
   {
@@ -2721,10 +2394,7 @@
     "line": 499,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow paused'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow paused'", "{ executionId }"],
     "rawCall": "logger.info('Workflow paused', { executionId })"
   },
   {
@@ -2732,10 +2402,7 @@
     "line": 23,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'test message'",
-      "{ key: 'value', count: 42 }"
-    ],
+    "args": ["'test message'", "{ key: 'value', count: 42 }"],
     "rawCall": "logger.info('test message', { key: 'value', count: 42 })"
   },
   {
@@ -2743,10 +2410,7 @@
     "line": 104,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'message 1'",
-      "{ key: 'value' }"
-    ],
+    "args": ["'message 1'", "{ key: 'value' }"],
     "rawCall": "logger.info('message 1', { key: 'value' })"
   },
   {
@@ -2776,10 +2440,7 @@
     "line": 112,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'API key generated'",
-      "{ agentId, keyId: id, permissions }"
-    ],
+    "args": ["'API key generated'", "{ agentId, keyId: id, permissions }"],
     "rawCall": "logger.info('API key generated', { agentId, keyId: id, permissions })"
   },
   {
@@ -2787,10 +2448,7 @@
     "line": 323,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Token revoked'",
-      "{ tokenPrefix: token.substring(0, 20) }"
-    ],
+    "args": ["'Token revoked'", "{ tokenPrefix: token.substring(0, 20) }"],
     "rawCall": "logger.warn('Token revoked', { tokenPrefix: token.substring(0, 20) })"
   },
   {
@@ -2798,10 +2456,7 @@
     "line": 333,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'API key disabled'",
-      "{ agentId, keyId: id }"
-    ],
+    "args": ["'API key disabled'", "{ agentId, keyId: id }"],
     "rawCall": "logger.warn('API key disabled', { agentId, keyId: id })"
   },
   {
@@ -2853,10 +2508,7 @@
     "line": 419,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Action not approved'",
-      "{ actionId: action.id }"
-    ],
+    "args": ["'Action not approved'", "{ actionId: action.id }"],
     "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
   },
   {
@@ -2908,10 +2560,7 @@
     "line": 126,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election started'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election started'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
   },
   {
@@ -2919,10 +2568,7 @@
     "line": 155,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election stopped'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election stopped'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
   },
   {
@@ -2941,10 +2587,7 @@
     "line": 245,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Lost leadership'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Lost leadership'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
   },
   {
@@ -2963,10 +2606,7 @@
     "line": 467,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator started'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator started'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
   },
   {
@@ -2974,10 +2614,7 @@
     "line": 475,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator stopped'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator stopped'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
   },
   {
@@ -3007,10 +2644,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No nodes available for scheduling'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No nodes available for scheduling'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
   },
   {
@@ -3040,10 +2674,7 @@
     "line": 182,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Decision not found for dispatch'",
-      "{ decisionId }"
-    ],
+    "args": ["'Decision not found for dispatch'", "{ decisionId }"],
     "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
   },
   {
@@ -3051,10 +2682,7 @@
     "line": 241,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Decision cancelled'",
-      "{ decisionId, reason }"
-    ],
+    "args": ["'Decision cancelled'", "{ decisionId, reason }"],
     "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
   },
   {
@@ -3073,10 +2701,7 @@
     "line": 114,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registered to shard'",
-      "{ nodeId: node.id, shardId }"
-    ],
+    "args": ["'Node registered to shard'", "{ nodeId: node.id, shardId }"],
     "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
   },
   {
@@ -3084,10 +2709,7 @@
     "line": 190,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No available shards for task'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No available shards for task'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
   },
   {
@@ -3117,10 +2739,7 @@
     "line": 304,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Shards rebalanced'",
-      "{ moved, overloaded, underloaded }"
-    ],
+    "args": ["'Shards rebalanced'", "{ moved, overloaded, underloaded }"],
     "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
   },
   {
@@ -3194,10 +2813,7 @@
     "line": 248,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Failed to deploy to node'",
-      "{ nodeId: node.id }"
-    ],
+    "args": ["'Failed to deploy to node'", "{ nodeId: node.id }"],
     "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
   },
   {
@@ -3205,10 +2821,7 @@
     "line": 295,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Traffic shifted'",
-      "{ targetSlot, percentage }"
-    ],
+    "args": ["'Traffic shifted'", "{ targetSlot, percentage }"],
     "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
   },
   {
@@ -3249,10 +2862,7 @@
     "line": 90,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registry stopped'",
-      "{ registeredNodes: this.nodes.size }"
-    ],
+    "args": ["'Node registry stopped'", "{ registeredNodes: this.nodes.size }"],
     "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
   },
   {
@@ -3282,10 +2892,7 @@
     "line": 147,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Heartbeat from unknown node'",
-      "{ nodeId: data.nodeId }"
-    ],
+    "args": ["'Heartbeat from unknown node'", "{ nodeId: data.nodeId }"],
     "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
   },
   {
@@ -3293,10 +2900,7 @@
     "line": 176,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node deregistered'",
-      "{ nodeId }"
-    ],
+    "args": ["'Node deregistered'", "{ nodeId }"],
     "rawCall": "logger.info('Node deregistered', { nodeId })"
   },
   {
@@ -3304,10 +2908,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Node marked offline'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node marked offline'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -3315,10 +2916,7 @@
     "line": 329,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node removed due to timeout'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node removed due to timeout'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -3392,10 +2990,7 @@
     "line": 143,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster unregistered from federation'",
-      "{ clusterId }"
-    ],
+    "args": ["'Cluster unregistered from federation'", "{ clusterId }"],
     "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
   },
   {
@@ -3458,10 +3053,7 @@
     "line": 242,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function published'",
-      "{ functionId: id, name: fn.name }"
-    ],
+    "args": ["'Function published'", "{ functionId: id, name: fn.name }"],
     "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
   },
   {
@@ -3469,10 +3061,7 @@
     "line": 298,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function deployed'",
-      "{ functionId, nodes: nodes.length }"
-    ],
+    "args": ["'Function deployed'", "{ functionId, nodes: nodes.length }"],
     "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
   },
   {
@@ -3480,10 +3069,7 @@
     "line": 320,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Metrics collector started'",
-      "{ interval }"
-    ],
+    "args": ["'Metrics collector started'", "{ interval }"],
     "rawCall": "logger.info('Metrics collector started', { interval })"
   },
   {
@@ -3502,10 +3088,7 @@
     "line": 494,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "`Alert resolved: ${rule.name}`",
-      "{ metric: rule.metric }"
-    ],
+    "args": ["`Alert resolved: ${rule.name}`", "{ metric: rule.metric }"],
     "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
   },
   {
@@ -3579,10 +3162,7 @@
     "line": 347,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Region policy set'",
-      "{ taskType, policy: policy.name }"
-    ],
+    "args": ["'Region policy set'", "{ taskType, policy: policy.name }"],
     "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
   },
   {
@@ -3645,10 +3225,7 @@
     "line": 126,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election started'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election started'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election started', { nodeId: this.config.nodeId })"
   },
   {
@@ -3656,10 +3233,7 @@
     "line": 155,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Leader election stopped'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Leader election stopped'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.info('Leader election stopped', { nodeId: this.config.nodeId })"
   },
   {
@@ -3678,10 +3252,7 @@
     "line": 245,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Lost leadership'",
-      "{ nodeId: this.config.nodeId }"
-    ],
+    "args": ["'Lost leadership'", "{ nodeId: this.config.nodeId }"],
     "rawCall": "logger.warn('Lost leadership', { nodeId: this.config.nodeId })"
   },
   {
@@ -3700,10 +3271,7 @@
     "line": 467,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator started'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator started'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator started', { nodeId: this.nodeId })"
   },
   {
@@ -3711,10 +3279,7 @@
     "line": 475,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster coordinator stopped'",
-      "{ nodeId: this.nodeId }"
-    ],
+    "args": ["'Cluster coordinator stopped'", "{ nodeId: this.nodeId }"],
     "rawCall": "logger.info('Cluster coordinator stopped', { nodeId: this.nodeId })"
   },
   {
@@ -3755,10 +3320,7 @@
     "line": 341,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Region policy set'",
-      "{ taskType, policy: policy.name }"
-    ],
+    "args": ["'Region policy set'", "{ taskType, policy: policy.name }"],
     "rawCall": "logger.info('Region policy set', { taskType, policy: policy.name })"
   },
   {
@@ -3777,10 +3339,7 @@
     "line": 90,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registry stopped'",
-      "{ registeredNodes: this.nodes.size }"
-    ],
+    "args": ["'Node registry stopped'", "{ registeredNodes: this.nodes.size }"],
     "rawCall": "logger.info('Node registry stopped', { registeredNodes: this.nodes.size })"
   },
   {
@@ -3810,10 +3369,7 @@
     "line": 147,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Heartbeat from unknown node'",
-      "{ nodeId: data.nodeId }"
-    ],
+    "args": ["'Heartbeat from unknown node'", "{ nodeId: data.nodeId }"],
     "rawCall": "logger.warn('Heartbeat from unknown node', { nodeId: data.nodeId })"
   },
   {
@@ -3821,10 +3377,7 @@
     "line": 176,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node deregistered'",
-      "{ nodeId }"
-    ],
+    "args": ["'Node deregistered'", "{ nodeId }"],
     "rawCall": "logger.info('Node deregistered', { nodeId })"
   },
   {
@@ -3832,10 +3385,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Node marked offline'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node marked offline'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.warn('Node marked offline', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -3843,10 +3393,7 @@
     "line": 329,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node removed due to timeout'",
-      "{ nodeId, timeSinceHeartbeat }"
-    ],
+    "args": ["'Node removed due to timeout'", "{ nodeId, timeSinceHeartbeat }"],
     "rawCall": "logger.info('Node removed due to timeout', { nodeId, timeSinceHeartbeat })"
   },
   {
@@ -3854,10 +3401,7 @@
     "line": 234,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Trace started: ${name}`",
-      "{ traceId, operation: name }"
-    ],
+    "args": ["`Trace started: ${name}`", "{ traceId, operation: name }"],
     "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
   },
   {
@@ -3865,10 +3409,7 @@
     "line": 243,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Span started: ${name}`",
-      "{ spanId, operation: name }"
-    ],
+    "args": ["`Span started: ${name}`", "{ spanId, operation: name }"],
     "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
   },
   {
@@ -3876,10 +3417,7 @@
     "line": 243,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Kafka adapter connected'",
-      "{ brokers: this.config.brokers }"
-    ],
+    "args": ["'Kafka adapter connected'", "{ brokers: this.config.brokers }"],
     "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
   },
   {
@@ -3887,10 +3425,7 @@
     "line": 364,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'RabbitMQ adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'RabbitMQ adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
   },
   {
@@ -3898,10 +3433,7 @@
     "line": 505,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Redis Streams adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'Redis Streams adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
   },
   {
@@ -3909,10 +3441,7 @@
     "line": 671,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task queue initialized'",
-      "{ type: this.config.type }"
-    ],
+    "args": ["'Task queue initialized'", "{ type: this.config.type }"],
     "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
   },
   {
@@ -3920,10 +3449,7 @@
     "line": 178,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Recovery in cooldown'",
-      "{ failureId: failure.id }"
-    ],
+    "args": ["'Recovery in cooldown'", "{ failureId: failure.id }"],
     "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
   },
   {
@@ -3953,10 +3479,7 @@
     "line": 375,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Retrying task'",
-      "{ taskId: failure.entityId }"
-    ],
+    "args": ["'Retrying task'", "{ taskId: failure.entityId }"],
     "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
   },
   {
@@ -3964,10 +3487,7 @@
     "line": 397,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Restarting node'",
-      "{ nodeId: failure.entityId }"
-    ],
+    "args": ["'Restarting node'", "{ nodeId: failure.entityId }"],
     "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
   },
   {
@@ -3975,10 +3495,7 @@
     "line": 409,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Transferring tasks'",
-      "{ fromNodeId: failure.entityId }"
-    ],
+    "args": ["'Transferring tasks'", "{ fromNodeId: failure.entityId }"],
     "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
   },
   {
@@ -3986,10 +3503,7 @@
     "line": 134,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation start time too soon'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation start time too soon'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
   },
   {
@@ -4008,10 +3522,7 @@
     "line": 142,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation duration too long'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation duration too long'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
   },
   {
@@ -4041,10 +3552,7 @@
     "line": 288,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation cancelled'",
-      "{ reservationId, reason }"
-    ],
+    "args": ["'Reservation cancelled'", "{ reservationId, reason }"],
     "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
   },
   {
@@ -4063,10 +3571,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation activated'",
-      "{ reservationId: reservation.id }"
-    ],
+    "args": ["'Reservation activated'", "{ reservationId: reservation.id }"],
     "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
   },
   {
@@ -4074,10 +3579,7 @@
     "line": 407,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation completed'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation completed'", "{ reservationId: id }"],
     "rawCall": "logger.info('Reservation completed', { reservationId: id })"
   },
   {
@@ -4085,10 +3587,7 @@
     "line": 414,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation expired'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation expired'", "{ reservationId: id }"],
     "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
   },
   {
@@ -4151,10 +3650,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Sandbox killed'",
-      "{ sandboxId, reason }"
-    ],
+    "args": ["'Sandbox killed'", "{ sandboxId, reason }"],
     "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
   },
   {
@@ -4173,10 +3669,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Isolation policy added'",
-      "{ name: policy.name }"
-    ],
+    "args": ["'Isolation policy added'", "{ name: policy.name }"],
     "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
   },
   {
@@ -4195,10 +3688,7 @@
     "line": 192,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Loaded historical data'",
-      "{ count: this.history.length }"
-    ],
+    "args": ["'Loaded historical data'", "{ count: this.history.length }"],
     "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
   },
   {
@@ -4206,10 +3696,7 @@
     "line": 63,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduler service started'",
-      "{ policy: this.config.policy }"
-    ],
+    "args": ["'Scheduler service started'", "{ policy: this.config.policy }"],
     "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
   },
   {
@@ -4217,10 +3704,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task submitted'",
-      "{ taskId: task.id, name, type, priority }"
-    ],
+    "args": ["'Task submitted'", "{ taskId: task.id, name, type, priority }"],
     "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
   },
   {
@@ -4239,10 +3723,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task routed to cloud'",
-      "{ taskId: task.id, reason }"
-    ],
+    "args": ["'Task routed to cloud'", "{ taskId: task.id, reason }"],
     "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
   },
   {
@@ -4250,10 +3731,7 @@
     "line": 333,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduling policy changed'",
-      "{ policy }"
-    ],
+    "args": ["'Scheduling policy changed'", "{ policy }"],
     "rawCall": "logger.info('Scheduling policy changed', { policy })"
   },
   {
@@ -4283,10 +3761,7 @@
     "line": 192,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Loaded historical data'",
-      "{ count: this.history.length }"
-    ],
+    "args": ["'Loaded historical data'", "{ count: this.history.length }"],
     "rawCall": "logger.info('Loaded historical data', { count: this.history.length })"
   },
   {
@@ -4327,10 +3802,7 @@
     "line": 63,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduler service started'",
-      "{ policy: this.config.policy }"
-    ],
+    "args": ["'Scheduler service started'", "{ policy: this.config.policy }"],
     "rawCall": "logger.info('Scheduler service started', { policy: this.config.policy })"
   },
   {
@@ -4338,10 +3810,7 @@
     "line": 129,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task submitted'",
-      "{ taskId: task.id, name, type, priority }"
-    ],
+    "args": ["'Task submitted'", "{ taskId: task.id, name, type, priority }"],
     "rawCall": "logger.info('Task submitted', { taskId: task.id, name, type, priority })"
   },
   {
@@ -4360,10 +3829,7 @@
     "line": 304,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task routed to cloud'",
-      "{ taskId: task.id, reason }"
-    ],
+    "args": ["'Task routed to cloud'", "{ taskId: task.id, reason }"],
     "rawCall": "logger.info('Task routed to cloud', { taskId: task.id, reason })"
   },
   {
@@ -4371,10 +3837,7 @@
     "line": 332,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Scheduling policy changed'",
-      "{ policy }"
-    ],
+    "args": ["'Scheduling policy changed'", "{ policy }"],
     "rawCall": "logger.info('Scheduling policy changed', { policy })"
   },
   {
@@ -4382,10 +3845,7 @@
     "line": 243,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Kafka adapter connected'",
-      "{ brokers: this.config.brokers }"
-    ],
+    "args": ["'Kafka adapter connected'", "{ brokers: this.config.brokers }"],
     "rawCall": "logger.info('Kafka adapter connected', { brokers: this.config.brokers })"
   },
   {
@@ -4393,10 +3853,7 @@
     "line": 364,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'RabbitMQ adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'RabbitMQ adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('RabbitMQ adapter connected', { url: this.config.url })"
   },
   {
@@ -4404,10 +3861,7 @@
     "line": 505,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Redis Streams adapter connected'",
-      "{ url: this.config.url }"
-    ],
+    "args": ["'Redis Streams adapter connected'", "{ url: this.config.url }"],
     "rawCall": "logger.info('Redis Streams adapter connected', { url: this.config.url })"
   },
   {
@@ -4415,10 +3869,7 @@
     "line": 671,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task queue initialized'",
-      "{ type: this.config.type }"
-    ],
+    "args": ["'Task queue initialized'", "{ type: this.config.type }"],
     "rawCall": "logger.info('Task queue initialized', { type: this.config.type })"
   },
   {
@@ -4437,10 +3888,7 @@
     "line": 196,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow started'",
-      "{ executionId, workflowId }"
-    ],
+    "args": ["'Workflow started'", "{ executionId, workflowId }"],
     "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
   },
   {
@@ -4448,10 +3896,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow completed'",
-      "{ executionId: execution.id }"
-    ],
+    "args": ["'Workflow completed'", "{ executionId: execution.id }"],
     "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
   },
   {
@@ -4492,10 +3937,7 @@
     "line": 441,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Starting subworkflow'",
-      "{ subWorkflowId }"
-    ],
+    "args": ["'Starting subworkflow'", "{ subWorkflowId }"],
     "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
   },
   {
@@ -4503,10 +3945,7 @@
     "line": 486,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow cancelled'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow cancelled'", "{ executionId }"],
     "rawCall": "logger.info('Workflow cancelled', { executionId })"
   },
   {
@@ -4514,10 +3953,7 @@
     "line": 498,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow paused'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow paused'", "{ executionId }"],
     "rawCall": "logger.info('Workflow paused', { executionId })"
   },
   {
@@ -4580,10 +4016,7 @@
     "line": 247,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Failed to deploy to node'",
-      "{ nodeId: node.id }"
-    ],
+    "args": ["'Failed to deploy to node'", "{ nodeId: node.id }"],
     "rawCall": "logger.warn('Failed to deploy to node', { nodeId: node.id })"
   },
   {
@@ -4591,10 +4024,7 @@
     "line": 294,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Traffic shifted'",
-      "{ targetSlot, percentage }"
-    ],
+    "args": ["'Traffic shifted'", "{ targetSlot, percentage }"],
     "rawCall": "logger.info('Traffic shifted', { targetSlot, percentage })"
   },
   {
@@ -4668,10 +4098,7 @@
     "line": 419,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Action not approved'",
-      "{ actionId: action.id }"
-    ],
+    "args": ["'Action not approved'", "{ actionId: action.id }"],
     "rawCall": "logger.warn('Action not approved', { actionId: action.id })"
   },
   {
@@ -4734,10 +4161,7 @@
     "line": 130,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No nodes available for scheduling'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No nodes available for scheduling'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No nodes available for scheduling', { taskId: task.id })"
   },
   {
@@ -4767,10 +4191,7 @@
     "line": 182,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Decision not found for dispatch'",
-      "{ decisionId }"
-    ],
+    "args": ["'Decision not found for dispatch'", "{ decisionId }"],
     "rawCall": "logger.warn('Decision not found for dispatch', { decisionId })"
   },
   {
@@ -4778,10 +4199,7 @@
     "line": 241,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Decision cancelled'",
-      "{ decisionId, reason }"
-    ],
+    "args": ["'Decision cancelled'", "{ decisionId, reason }"],
     "rawCall": "logger.info('Decision cancelled', { decisionId, reason })"
   },
   {
@@ -4833,10 +4251,7 @@
     "line": 114,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Node registered to shard'",
-      "{ nodeId: node.id, shardId }"
-    ],
+    "args": ["'Node registered to shard'", "{ nodeId: node.id, shardId }"],
     "rawCall": "logger.info('Node registered to shard', { nodeId: node.id, shardId })"
   },
   {
@@ -4844,10 +4259,7 @@
     "line": 190,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No available shards for task'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No available shards for task'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No available shards for task', { taskId: task.id })"
   },
   {
@@ -4877,10 +4289,7 @@
     "line": 302,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Shards rebalanced'",
-      "{ moved, overloaded, underloaded }"
-    ],
+    "args": ["'Shards rebalanced'", "{ moved, overloaded, underloaded }"],
     "rawCall": "logger.info('Shards rebalanced', { moved, overloaded, underloaded })"
   },
   {
@@ -4888,10 +4297,7 @@
     "line": 242,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function published'",
-      "{ functionId: id, name: fn.name }"
-    ],
+    "args": ["'Function published'", "{ functionId: id, name: fn.name }"],
     "rawCall": "logger.info('Function published', { functionId: id, name: fn.name })"
   },
   {
@@ -4899,10 +4305,7 @@
     "line": 298,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Function deployed'",
-      "{ functionId, nodes: nodes.length }"
-    ],
+    "args": ["'Function deployed'", "{ functionId, nodes: nodes.length }"],
     "rawCall": "logger.info('Function deployed', { functionId, nodes: nodes.length })"
   },
   {
@@ -4921,10 +4324,7 @@
     "line": 320,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Metrics collector started'",
-      "{ interval }"
-    ],
+    "args": ["'Metrics collector started'", "{ interval }"],
     "rawCall": "logger.info('Metrics collector started', { interval })"
   },
   {
@@ -4943,10 +4343,7 @@
     "line": 494,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "`Alert resolved: ${rule.name}`",
-      "{ metric: rule.metric }"
-    ],
+    "args": ["`Alert resolved: ${rule.name}`", "{ metric: rule.metric }"],
     "rawCall": "logger.info(`Alert resolved: ${rule.name}`, { metric: rule.metric })"
   },
   {
@@ -4954,10 +4351,7 @@
     "line": 178,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Recovery in cooldown'",
-      "{ failureId: failure.id }"
-    ],
+    "args": ["'Recovery in cooldown'", "{ failureId: failure.id }"],
     "rawCall": "logger.warn('Recovery in cooldown', { failureId: failure.id })"
   },
   {
@@ -4987,10 +4381,7 @@
     "line": 375,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Retrying task'",
-      "{ taskId: failure.entityId }"
-    ],
+    "args": ["'Retrying task'", "{ taskId: failure.entityId }"],
     "rawCall": "logger.info('Retrying task', { taskId: failure.entityId })"
   },
   {
@@ -4998,10 +4389,7 @@
     "line": 397,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Restarting node'",
-      "{ nodeId: failure.entityId }"
-    ],
+    "args": ["'Restarting node'", "{ nodeId: failure.entityId }"],
     "rawCall": "logger.info('Restarting node', { nodeId: failure.entityId })"
   },
   {
@@ -5009,10 +4397,7 @@
     "line": 409,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Transferring tasks'",
-      "{ fromNodeId: failure.entityId }"
-    ],
+    "args": ["'Transferring tasks'", "{ fromNodeId: failure.entityId }"],
     "rawCall": "logger.info('Transferring tasks', { fromNodeId: failure.entityId })"
   },
   {
@@ -5075,10 +4460,7 @@
     "line": 234,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Trace started: ${name}`",
-      "{ traceId, operation: name }"
-    ],
+    "args": ["`Trace started: ${name}`", "{ traceId, operation: name }"],
     "rawCall": "this.debug(`Trace started: ${name}`, { traceId, operation: name })"
   },
   {
@@ -5086,10 +4468,7 @@
     "line": 243,
     "objectChain": "this",
     "method": "debug",
-    "args": [
-      "`Span started: ${name}`",
-      "{ spanId, operation: name }"
-    ],
+    "args": ["`Span started: ${name}`", "{ spanId, operation: name }"],
     "rawCall": "this.debug(`Span started: ${name}`, { spanId, operation: name })"
   },
   {
@@ -5108,10 +4487,7 @@
     "line": 143,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Cluster unregistered from federation'",
-      "{ clusterId }"
-    ],
+    "args": ["'Cluster unregistered from federation'", "{ clusterId }"],
     "rawCall": "logger.info('Cluster unregistered from federation', { clusterId })"
   },
   {
@@ -5152,10 +4528,7 @@
     "line": 134,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation start time too soon'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation start time too soon'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation start time too soon', { taskId: request.taskId })"
   },
   {
@@ -5174,10 +4547,7 @@
     "line": 142,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation duration too long'",
-      "{ taskId: request.taskId }"
-    ],
+    "args": ["'Reservation duration too long'", "{ taskId: request.taskId }"],
     "rawCall": "logger.warn('Reservation duration too long', { taskId: request.taskId })"
   },
   {
@@ -5207,10 +4577,7 @@
     "line": 288,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation cancelled'",
-      "{ reservationId, reason }"
-    ],
+    "args": ["'Reservation cancelled'", "{ reservationId, reason }"],
     "rawCall": "logger.info('Reservation cancelled', { reservationId, reason })"
   },
   {
@@ -5229,10 +4596,7 @@
     "line": 321,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation activated'",
-      "{ reservationId: reservation.id }"
-    ],
+    "args": ["'Reservation activated'", "{ reservationId: reservation.id }"],
     "rawCall": "logger.info('Reservation activated', { reservationId: reservation.id })"
   },
   {
@@ -5240,10 +4604,7 @@
     "line": 407,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Reservation completed'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation completed'", "{ reservationId: id }"],
     "rawCall": "logger.info('Reservation completed', { reservationId: id })"
   },
   {
@@ -5251,10 +4612,7 @@
     "line": 414,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Reservation expired'",
-      "{ reservationId: id }"
-    ],
+    "args": ["'Reservation expired'", "{ reservationId: id }"],
     "rawCall": "logger.warn('Reservation expired', { reservationId: id })"
   },
   {
@@ -5306,10 +4664,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Sandbox killed'",
-      "{ sandboxId, reason }"
-    ],
+    "args": ["'Sandbox killed'", "{ sandboxId, reason }"],
     "rawCall": "logger.warn('Sandbox killed', { sandboxId, reason })"
   },
   {
@@ -5328,10 +4683,7 @@
     "line": 305,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Isolation policy added'",
-      "{ name: policy.name }"
-    ],
+    "args": ["'Isolation policy added'", "{ name: policy.name }"],
     "rawCall": "logger.info('Isolation policy added', { name: policy.name })"
   },
   {
@@ -5350,10 +4702,7 @@
     "line": 209,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Validation failed'",
-      "{ errors, data }"
-    ],
+    "args": ["'Validation failed'", "{ errors, data }"],
     "rawCall": "logger.warn('Validation failed', { errors, data })"
   },
   {
@@ -5372,10 +4721,7 @@
     "line": 196,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow started'",
-      "{ executionId, workflowId }"
-    ],
+    "args": ["'Workflow started'", "{ executionId, workflowId }"],
     "rawCall": "logger.info('Workflow started', { executionId, workflowId })"
   },
   {
@@ -5383,10 +4729,7 @@
     "line": 227,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow completed'",
-      "{ executionId: execution.id }"
-    ],
+    "args": ["'Workflow completed'", "{ executionId: execution.id }"],
     "rawCall": "logger.info('Workflow completed', { executionId: execution.id })"
   },
   {
@@ -5427,10 +4770,7 @@
     "line": 442,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Starting subworkflow'",
-      "{ subWorkflowId }"
-    ],
+    "args": ["'Starting subworkflow'", "{ subWorkflowId }"],
     "rawCall": "logger.info('Starting subworkflow', { subWorkflowId })"
   },
   {
@@ -5438,10 +4778,7 @@
     "line": 487,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow cancelled'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow cancelled'", "{ executionId }"],
     "rawCall": "logger.info('Workflow cancelled', { executionId })"
   },
   {
@@ -5449,10 +4786,7 @@
     "line": 499,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Workflow paused'",
-      "{ executionId }"
-    ],
+    "args": ["'Workflow paused'", "{ executionId }"],
     "rawCall": "logger.info('Workflow paused', { executionId })"
   },
   {
@@ -5460,10 +4794,7 @@
     "line": 23,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'test message'",
-      "{ key: 'value', count: 42 }"
-    ],
+    "args": ["'test message'", "{ key: 'value', count: 42 }"],
     "rawCall": "logger.info('test message', { key: 'value', count: 42 })"
   },
   {
@@ -5471,10 +4802,7 @@
     "line": 104,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'message 1'",
-      "{ key: 'value' }"
-    ],
+    "args": ["'message 1'", "{ key: 'value' }"],
     "rawCall": "logger.info('message 1', { key: 'value' })"
   },
   {
@@ -5482,10 +4810,7 @@
     "line": 95,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'Worker already running'",
-      "{ workerId: this.config.id }"
-    ],
+    "args": ["'Worker already running'", "{ workerId: this.config.id }"],
     "rawCall": "logger.warn('Worker already running', { workerId: this.config.id })"
   },
   {
@@ -5515,10 +4840,7 @@
     "line": 145,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Task worker stopped'",
-      "{ workerId: this.config.id }"
-    ],
+    "args": ["'Task worker stopped'", "{ workerId: this.config.id }"],
     "rawCall": "logger.info('Task worker stopped', { workerId: this.config.id })"
   },
   {
@@ -5537,10 +4859,7 @@
     "line": 179,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No suitable node found for task'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No suitable node found for task'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No suitable node found for task', { taskId: task.id })"
   },
   {
@@ -5592,10 +4911,7 @@
     "line": 393,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Worker added to pool'",
-      "{ workerId: id }"
-    ],
+    "args": ["'Worker added to pool'", "{ workerId: id }"],
     "rawCall": "logger.info('Worker added to pool', { workerId: id })"
   },
   {
@@ -5603,10 +4919,7 @@
     "line": 406,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'Worker removed from pool'",
-      "{ workerId: id }"
-    ],
+    "args": ["'Worker removed from pool'", "{ workerId: id }"],
     "rawCall": "logger.info('Worker removed from pool', { workerId: id })"
   },
   {
@@ -5614,10 +4927,7 @@
     "line": 416,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'All workers started'",
-      "{ count: this.workers.size }"
-    ],
+    "args": ["'All workers started'", "{ count: this.workers.size }"],
     "rawCall": "logger.info('All workers started', { count: this.workers.size })"
   },
   {
@@ -5625,10 +4935,7 @@
     "line": 425,
     "objectChain": "logger",
     "method": "info",
-    "args": [
-      "'All workers stopped'",
-      "{ count: this.workers.size }"
-    ],
+    "args": ["'All workers stopped'", "{ count: this.workers.size }"],
     "rawCall": "logger.info('All workers stopped', { count: this.workers.size })"
   },
   {
@@ -5636,10 +4943,7 @@
     "line": 449,
     "objectChain": "logger",
     "method": "warn",
-    "args": [
-      "'No available worker for task'",
-      "{ taskId: task.id }"
-    ],
+    "args": ["'No available worker for task'", "{ taskId: task.id }"],
     "rawCall": "logger.warn('No available worker for task', { taskId: task.id })"
   }
 ]

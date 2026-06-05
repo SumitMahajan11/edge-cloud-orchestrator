@@ -44,114 +44,123 @@ export class HeartbeatMonitor {
   }
 
   private async checkNodes(): Promise<void> {
-    await tracer.startActiveSpan('orchestrator:heartbeat_check', async (span) => {
-      try {
-        const now = new Date();
-        const timeoutThreshold = new Date(now.getTime() - HEARTBEAT_TIMEOUT);
+    await tracer.startActiveSpan(
+      'orchestrator:heartbeat_check',
+      async (span) => {
+        try {
+          const now = new Date();
+          const timeoutThreshold = new Date(now.getTime() - HEARTBEAT_TIMEOUT);
 
-        // Find nodes that haven't sent heartbeat recently
-        const staleNodes = await this.prisma.edgeNode.findMany({
-          where: {
-            status: NodeStatus.ONLINE,
-            lastHeartbeat: { lt: timeoutThreshold },
-            isMaintenanceMode: false,
-          },
-        });
-
-        span.setAttribute('monitor.stale_nodes_count', staleNodes.length);
-
-        for (const node of staleNodes) {
-          // Update node status
-          await this.prisma.edgeNode.update({
-            where: { id: node.id },
-            data: { status: NodeStatus.OFFLINE },
-          });
-
-          // Handle running tasks on this node
-          await this.handleNodeFailure(node.id);
-
-          // Broadcast status change
-          this.wsManager.broadcast('node:status_changed', {
-            nodeId: node.id,
-            status: 'OFFLINE',
-            reason: 'heartbeat_timeout',
-            timestamp: now.toISOString(),
-          });
-
-          // Create alert
-          await this.prisma.alert.create({
-            data: {
-              ruleId: 'heartbeat-timeout',
-              entityId: node.id,
-              entityType: 'node',
-              severity: 'high',
-              message: `Node ${node.name} went offline due to heartbeat timeout`,
-              tenantId: node.tenantId,
+          // Find nodes that haven't sent heartbeat recently
+          const staleNodes = await this.prisma.edgeNode.findMany({
+            where: {
+              status: NodeStatus.ONLINE,
+              lastHeartbeat: { lt: timeoutThreshold },
+              isMaintenanceMode: false,
             },
           });
+
+          span.setAttribute('monitor.stale_nodes_count', staleNodes.length);
+
+          for (const node of staleNodes) {
+            // Update node status
+            await this.prisma.edgeNode.update({
+              where: { id: node.id },
+              data: { status: NodeStatus.OFFLINE },
+            });
+
+            // Handle running tasks on this node
+            await this.handleNodeFailure(node.id);
+
+            // Broadcast status change
+            this.wsManager.broadcast('node:status_changed', {
+              nodeId: node.id,
+              status: 'OFFLINE',
+              reason: 'heartbeat_timeout',
+              timestamp: now.toISOString(),
+            });
+
+            // Create alert
+            await this.prisma.alert.create({
+              data: {
+                ruleId: 'heartbeat-timeout',
+                entityId: node.id,
+                entityType: 'node',
+                severity: 'high',
+                message: `Node ${node.name} went offline due to heartbeat timeout`,
+                tenantId: node.tenantId,
+              },
+            });
+          }
+
+          // Check for degraded nodes
+          const degradedNodes = await this.prisma.edgeNode.findMany({
+            where: {
+              status: NodeStatus.ONLINE,
+              OR: [{ cpuUsage: { gt: 90 } }, { memoryUsage: { gt: 90 } }],
+            },
+          });
+
+          span.setAttribute(
+            'monitor.degraded_nodes_count',
+            degradedNodes.length,
+          );
+
+          for (const node of degradedNodes) {
+            await this.prisma.edgeNode.update({
+              where: { id: node.id },
+              data: { status: NodeStatus.DEGRADED },
+            });
+
+            this.wsManager.broadcast('node:status_changed', {
+              nodeId: node.id,
+              status: 'DEGRADED',
+              reason: 'high_resource_usage',
+              cpuUsage: node.cpuUsage,
+              memoryUsage: node.memoryUsage,
+              timestamp: now.toISOString(),
+            });
+          }
+
+          // Check for recovered nodes (degraded -> online)
+          const recoveredNodes = await this.prisma.edgeNode.findMany({
+            where: {
+              status: NodeStatus.DEGRADED,
+              cpuUsage: { lt: 80 },
+              memoryUsage: { lt: 80 },
+              lastHeartbeat: { gte: timeoutThreshold },
+            },
+          });
+
+          span.setAttribute(
+            'monitor.recovered_nodes_count',
+            recoveredNodes.length,
+          );
+
+          for (const node of recoveredNodes) {
+            await this.prisma.edgeNode.update({
+              where: { id: node.id },
+              data: { status: NodeStatus.ONLINE },
+            });
+
+            this.wsManager.broadcast('node:status_changed', {
+              nodeId: node.id,
+              status: 'ONLINE',
+              reason: 'recovered',
+              timestamp: now.toISOString(),
+            });
+          }
+          span.setStatus({ code: SpanStatusCode.OK });
+        } catch (error: unknown) {
+          const err = error as Error;
+          span.recordException(err);
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          this.logger.error({ error: err }, 'Error in heartbeat monitor');
+        } finally {
+          span.end();
         }
-
-        // Check for degraded nodes
-        const degradedNodes = await this.prisma.edgeNode.findMany({
-          where: {
-            status: NodeStatus.ONLINE,
-            OR: [{ cpuUsage: { gt: 90 } }, { memoryUsage: { gt: 90 } }],
-          },
-        });
-
-        span.setAttribute('monitor.degraded_nodes_count', degradedNodes.length);
-
-        for (const node of degradedNodes) {
-          await this.prisma.edgeNode.update({
-            where: { id: node.id },
-            data: { status: NodeStatus.DEGRADED },
-          });
-
-          this.wsManager.broadcast('node:status_changed', {
-            nodeId: node.id,
-            status: 'DEGRADED',
-            reason: 'high_resource_usage',
-            cpuUsage: node.cpuUsage,
-            memoryUsage: node.memoryUsage,
-            timestamp: now.toISOString(),
-          });
-        }
-
-        // Check for recovered nodes (degraded -> online)
-        const recoveredNodes = await this.prisma.edgeNode.findMany({
-          where: {
-            status: NodeStatus.DEGRADED,
-            cpuUsage: { lt: 80 },
-            memoryUsage: { lt: 80 },
-            lastHeartbeat: { gte: timeoutThreshold },
-          },
-        });
-
-        span.setAttribute('monitor.recovered_nodes_count', recoveredNodes.length);
-
-        for (const node of recoveredNodes) {
-          await this.prisma.edgeNode.update({
-            where: { id: node.id },
-            data: { status: NodeStatus.ONLINE },
-          });
-
-          this.wsManager.broadcast('node:status_changed', {
-            nodeId: node.id,
-            status: 'ONLINE',
-            reason: 'recovered',
-            timestamp: now.toISOString(),
-          });
-        }
-        span.setStatus({ code: SpanStatusCode.OK });
-      } catch (error: unknown) {
-        const err = error as Error;
-        span.recordException(err);
-        span.setStatus({ code: SpanStatusCode.ERROR });
-        this.logger.error({ error: err }, 'Error in heartbeat monitor');
-      } finally {
-        span.end();
-      }
-    });
+      },
+    );
   }
 
   private async handleNodeFailure(nodeId: string): Promise<void> {

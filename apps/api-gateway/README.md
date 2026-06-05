@@ -6,28 +6,29 @@ Nginx reverse proxy and TLS termination layer. Routes all external traffic to in
 
 ## Port
 
-| Variable | Default | Description              |
-|----------|---------|--------------------------|
-| —        | 80      | HTTP (redirects to HTTPS)|
-| —        | 443     | HTTPS / mTLS             |
+| Variable | Default | Description               |
+| -------- | ------- | ------------------------- |
+| —        | 80      | HTTP (redirects to HTTPS) |
+| —        | 443     | HTTPS / mTLS              |
 
 ## Upstream services routed
 
-| Path prefix           | Upstream service      |
-|-----------------------|-----------------------|
-| `/api/`               | api:3090              |
-| `/ws`                 | websocket-gateway:3002|
-| `/scheduler/`         | scheduler-service:3003|
-| `/nodes/`             | node-service:3004     |
-| `/tasks/`             | task-service:3005     |
-| `/metrics/`           | metrics-service:3006  |
-| `/` (static)          | apps/web/dist/        |
+| Path prefix   | Upstream service       |
+| ------------- | ---------------------- |
+| `/api/`       | api:3090               |
+| `/ws`         | websocket-gateway:3002 |
+| `/scheduler/` | scheduler-service:3003 |
+| `/nodes/`     | node-service:3004      |
+| `/tasks/`     | task-service:3005      |
+| `/metrics/`   | metrics-service:3006   |
+| `/` (static)  | apps/web/dist/         |
 
 ## Configuration
 
 Edit `nginx.conf` to change upstream addresses or TLS certificate paths.
 
 TLS certificates are expected at:
+
 - `/etc/nginx/certs/server.crt`
 - `/etc/nginx/certs/server.key`
 - `/etc/nginx/certs/ca.crt` (for mTLS client verification)

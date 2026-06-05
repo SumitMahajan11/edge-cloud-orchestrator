@@ -6,8 +6,8 @@ const logger = pino({
   level: env.LOG_LEVEL,
   transport: {
     target: 'pino-pretty',
-    options: { colorize: true }
-  }
+    options: { colorize: true },
+  },
 });
 
 export interface MockUser {
@@ -157,24 +157,28 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
       if (!where) return null;
       if (where.id) return store.get(where.id) || null;
       const all = Array.from(store.values());
-      return all.find((item: any) => {
-        for (const [k, v] of Object.entries(where)) {
-          if (v !== undefined && item[k] !== v) return false;
-        }
-        return true;
-      }) || null;
+      return (
+        all.find((item: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && item[k] !== v) return false;
+          }
+          return true;
+        }) || null
+      );
     },
     findFirst: async (args: any) => {
       const where = args?.where;
       const all = Array.from(store.values());
       if (!where) return all[0] || null;
       if (where.id) return store.get(where.id) || null;
-      return all.find((item: any) => {
-        for (const [k, v] of Object.entries(where)) {
-          if (v !== undefined && item[k] !== v) return false;
-        }
-        return true;
-      }) || null;
+      return (
+        all.find((item: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && item[k] !== v) return false;
+          }
+          return true;
+        }) || null
+      );
     },
     findMany: async (args: any = {}) => {
       let all = Array.from(store.values());
@@ -186,7 +190,11 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
             if (val !== undefined) {
               if (val && typeof val === 'object' && val.in) {
                 if (!val.in.includes(item[k])) return false;
-              } else if (val && typeof val === 'object' && (val.lt || val.gte || val.gt || val.lte)) {
+              } else if (
+                val &&
+                typeof val === 'object' &&
+                (val.lt || val.gte || val.gt || val.lte)
+              ) {
                 if (val.lt !== undefined && item[k] >= val.lt) return false;
                 if (val.gte !== undefined && item[k] < val.gte) return false;
                 if (val.gt !== undefined && item[k] <= val.gt) return false;
@@ -205,7 +213,12 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
     },
     create: async (args: any) => {
       const id = args.data?.id || generateUuid();
-      const item = { id, ...args.data, createdAt: new Date(), updatedAt: new Date() } as any;
+      const item = {
+        id,
+        ...args.data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      } as any;
       store.set(id, item);
       return item;
     },
@@ -213,7 +226,12 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
       const data = args?.data || [];
       const created = data.map((d: any) => {
         const id = d.id || generateUuid();
-        const item = { id, ...d, createdAt: new Date(), updatedAt: new Date() } as any;
+        const item = {
+          id,
+          ...d,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        } as any;
         store.set(id, item);
         return item;
       });
@@ -342,11 +360,106 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
         store.set(existing.id, updated);
         return updated;
       }
-      const id = where?.id || args.create?.id || `mock-${storeName}-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`;
-      const created = { id, ...args.create, createdAt: new Date(), updatedAt: new Date() };
+      const id =
+        where?.id ||
+        args.create?.id ||
+        `mock-${storeName}-${Math.floor(Math.random() * 1000000000000)
+          .toString()
+          .padStart(12, '0')}`;
+      const created = {
+        id,
+        ...args.create,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       store.set(id, created);
       return created;
-    }
+    },
+    aggregate: async (args: any = {}) => {
+      const where = args?.where || {};
+      let items = Array.from(store.values());
+
+      if (where) {
+        items = items.filter((item: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            const val = v as any;
+            if (val !== undefined) {
+              if (val && typeof val === 'object' && val.in) {
+                if (!val.in.includes(item[k])) return false;
+              } else if (
+                val &&
+                typeof val === 'object' &&
+                (val.lt || val.gte || val.gt || val.lte)
+              ) {
+                if (val.lt !== undefined && item[k] >= val.lt) return false;
+                if (val.gte !== undefined && item[k] < val.gte) return false;
+                if (val.gt !== undefined && item[k] <= val.gt) return false;
+                if (val.lte !== undefined && item[k] > val.lte) return false;
+              } else if (item[k] !== val) {
+                return false;
+              }
+            }
+          }
+          return true;
+        });
+      }
+
+      const result: any = {};
+
+      if (args._sum) {
+        result._sum = {};
+        for (const key of Object.keys(args._sum)) {
+          let total = 0;
+          for (const item of items) {
+            total += Number((item as any)[key]) || 0;
+          }
+          result._sum[key] = total;
+        }
+      }
+
+      if (args._avg) {
+        result._avg = {};
+        for (const key of Object.keys(args._avg)) {
+          let total = 0;
+          for (const item of items) {
+            total += Number((item as any)[key]) || 0;
+          }
+          result._avg[key] = items.length > 0 ? total / items.length : 0;
+        }
+      }
+
+      if (args._min) {
+        result._min = {};
+        for (const key of Object.keys(args._min)) {
+          let minVal =
+            items.length > 0 ? Number((items[0] as any)[key]) || 0 : 0;
+          for (const item of items) {
+            const v = Number((item as any)[key]) || 0;
+            if (v < minVal) minVal = v;
+          }
+          result._min[key] = minVal;
+        }
+      }
+
+      if (args._max) {
+        result._max = {};
+        for (const key of Object.keys(args._max)) {
+          let maxVal =
+            items.length > 0 ? Number((items[0] as any)[key]) || 0 : 0;
+          for (const item of items) {
+            const v = Number((item as any)[key]) || 0;
+            if (v > maxVal) maxVal = v;
+          }
+          result._max[key] = maxVal;
+        }
+      }
+
+      if (args._count) {
+        result._count = items.length;
+      }
+
+      return result;
+    },
   };
 }
 
@@ -401,7 +514,11 @@ export const mockPrisma = {
     },
     create: async ({ data }: any): Promise<MockUser> => {
       const user: MockUser = {
-        id: data.id || `00000000-0000-4000-b000-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`,
+        id:
+          data.id ||
+          `00000000-0000-4000-b000-${Math.floor(Math.random() * 1000000000000)
+            .toString()
+            .padStart(12, '0')}`,
         email: data.email!,
         passwordHash: data.passwordHash || '',
         name: data.name || '',
@@ -432,8 +549,11 @@ export const mockPrisma = {
     upsert: async ({ where, create, update }: any): Promise<MockUser> => {
       let user = null;
       if (where.id) user = mockUsers.get(where.id);
-      else if (where.email) user = Array.from(mockUsers.values()).find(u => u.email === where.email);
-      
+      else if (where.email)
+        user = Array.from(mockUsers.values()).find(
+          (u) => u.email === where.email,
+        );
+
       if (user) {
         const updated = { ...user, ...update, updatedAt: new Date() };
         mockUsers.set(user.id, updated);
@@ -482,7 +602,11 @@ export const mockPrisma = {
       data: PrismaSessionCreate;
     }): Promise<MockSession> => {
       const session: MockSession = {
-        id: data.id || `00000000-0000-4000-c000-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`,
+        id:
+          data.id ||
+          `00000000-0000-4000-c000-${Math.floor(Math.random() * 1000000000000)
+            .toString()
+            .padStart(12, '0')}`,
         userId: data.userId,
         token: data.token,
         refreshToken: data.refreshToken,
@@ -515,12 +639,15 @@ export const mockPrisma = {
       const all = Array.from(mockSessions.values());
       let session: any = null;
       if (where.id) session = mockSessions.get(where.id) || null;
-      else if (where.refreshTokenHash) session = all.find(s => s.refreshTokenHash === where.refreshTokenHash) || null;
-      
+      else if (where.refreshTokenHash)
+        session =
+          all.find((s) => s.refreshTokenHash === where.refreshTokenHash) ||
+          null;
+
       if (session && include?.user) {
         session = {
           ...session,
-          user: mockUsers.get(session.userId) || null
+          user: mockUsers.get(session.userId) || null,
         };
       }
       return session;
@@ -528,12 +655,12 @@ export const mockPrisma = {
     findFirst: async ({ where }: any) => {
       const all = Array.from(mockSessions.values());
       if (where.id) return mockSessions.get(where.id) || null;
-      return all.find(s => s.userId === where.userId) || null;
+      return all.find((s) => s.userId === where.userId) || null;
     },
     findMany: async ({ where }: any) => {
       const all = Array.from(mockSessions.values());
       if (!where) return all;
-      return all.filter(s => s.userId === where.userId);
+      return all.filter((s) => s.userId === where.userId);
     },
     create: async ({ data }: any) => {
       const session = {
@@ -580,20 +707,18 @@ export const mockPrisma = {
         }
       }
       return { count };
-    }
+    },
   },
   task: {
-    findMany: async ({
-      where,
-    }: {
-      where?: any;
-    }): Promise<MockTask[]> => {
+    findMany: async ({ where }: { where?: any }): Promise<MockTask[]> => {
       let tasks = Array.from(mockTasks.values());
       if (where?.status) tasks = tasks.filter((t) => t.status === where.status);
       if (where?.userId) tasks = tasks.filter((t) => t.userId === where.userId);
-      if (where?.nodeId) tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
+      if (where?.nodeId)
+        tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
       if (where?.type) tasks = tasks.filter((t) => t.type === where.type);
-      if (where?.priority) tasks = tasks.filter((t) => t.priority === where.priority);
+      if (where?.priority)
+        tasks = tasks.filter((t) => t.priority === where.priority);
       return tasks;
     },
     findFirst: async (args: any): Promise<MockTask | null> => {
@@ -602,12 +727,17 @@ export const mockPrisma = {
       if (where?.id) tasks = tasks.filter((t) => t.id === where.id);
       if (where?.status) tasks = tasks.filter((t) => t.status === where.status);
       if (where?.userId) tasks = tasks.filter((t) => t.userId === where.userId);
-      if (where?.nodeId) tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
+      if (where?.nodeId)
+        tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
       return tasks[0] || null;
     },
     create: async ({ data }: { data: PrismaTaskCreate }): Promise<MockTask> => {
       const task: MockTask = {
-        id: data.id || `00000000-0000-4000-d000-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`,
+        id:
+          data.id ||
+          `00000000-0000-4000-d000-${Math.floor(Math.random() * 1000000000000)
+            .toString()
+            .padStart(12, '0')}`,
         userId: data.userId,
         type: data.type,
         status: data.status || 'PENDING',
@@ -616,7 +746,7 @@ export const mockPrisma = {
         submittedAt: new Date(),
         createdAt: new Date(),
         updatedAt: new Date(),
-        ...(data as any)
+        ...(data as any),
       };
       mockTasks.set(task.id, task);
       return task;
@@ -631,10 +761,21 @@ export const mockPrisma = {
       mockTasks.set(where.id, updated);
       return updated;
     },
-    count: async ({ where }: any): Promise<number> => {
+    count: async ({ where }: any = {}): Promise<number> => {
       let tasks = Array.from(mockTasks.values());
-      if (where?.nodeId) tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
-      if (where?.status?.in) tasks = tasks.filter((t) => where.status.in.includes(t.status));
+      if (where?.tenantId) {
+        tasks = tasks.filter((t) => (t as any).tenantId === where.tenantId);
+      }
+      if (where?.nodeId) {
+        tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
+      }
+      if (where?.status) {
+        if (typeof where.status === 'string') {
+          tasks = tasks.filter((t) => t.status === where.status);
+        } else if (where.status.in) {
+          tasks = tasks.filter((t) => where.status.in.includes(t.status));
+        }
+      }
       return tasks.length;
     },
     deleteMany: async ({ where }: any = {}): Promise<any> => {
@@ -669,61 +810,112 @@ export const mockPrisma = {
       if (where?.id) nodes = nodes.filter((n) => n.id === where.id);
       if (where?.name) nodes = nodes.filter((n) => n.name === where.name);
       if (where?.status) nodes = nodes.filter((n) => n.status === where.status);
-      if (where?.tenantId) nodes = nodes.filter((n) => n.tenantId === where.tenantId);
+      if (where?.tenantId)
+        nodes = nodes.filter((n) => n.tenantId === where.tenantId);
       return nodes[0] || null;
     },
   },
   // edgeNode is the Prisma model name for nodes (PascalCase → camelCase)
   edgeNode: {
-    findMany: async ({ where, orderBy, skip, take, include }: any = {}): Promise<any[]> => {
+    findMany: async ({
+      where,
+      orderBy,
+      skip,
+      take,
+      include,
+    }: any = {}): Promise<any[]> => {
       let nodes = Array.from(mockNodes.values()) as any[];
-      logger.info({ totalNodes: nodes.length, onlineNodes: nodes.filter(n => n.status === 'ONLINE').length, where }, '[MockPrisma] findMany nodes');
+      logger.info(
+        {
+          totalNodes: nodes.length,
+          onlineNodes: nodes.filter((n) => n.status === 'ONLINE').length,
+          where,
+        },
+        '[MockPrisma] findMany nodes',
+      );
       const initialCount = nodes.length;
       if (where?.status) nodes = nodes.filter((n) => n.status === where.status);
       const statusCount = nodes.length;
-      if (where?.tenantId) nodes = nodes.filter((n) => n.tenantId === where.tenantId);
+      if (where?.tenantId)
+        nodes = nodes.filter((n) => n.tenantId === where.tenantId);
       const tenantCount = nodes.length;
-      if (where?.isMaintenanceMode !== undefined) nodes = nodes.filter((n) => (n.isMaintenanceMode ?? false) === where.isMaintenanceMode);
-      if (where?.tasksRunning?.lt !== undefined) nodes = nodes.filter((n) => (n.tasksRunning ?? 0) < where.tasksRunning.lt);
-      if (where?.cpuCores?.gte !== undefined) nodes = nodes.filter((n) => (n.cpuCores || 0) >= where.cpuCores.gte);
-      if (where?.memoryGB?.gte !== undefined) nodes = nodes.filter((n) => (n.memoryGB || 0) >= where.memoryGB.gte);
-      if (where?.lastHeartbeat?.lt instanceof Date) nodes = nodes.filter((n) => new Date(n.lastHeartbeat) < (where.lastHeartbeat.lt as Date));
-      if (where?.lastHeartbeat?.gte instanceof Date) nodes = nodes.filter((n) => new Date(n.lastHeartbeat) >= (where.lastHeartbeat.gte as Date));
-      
+      if (where?.isMaintenanceMode !== undefined)
+        nodes = nodes.filter(
+          (n) => (n.isMaintenanceMode ?? false) === where.isMaintenanceMode,
+        );
+      if (where?.tasksRunning?.lt !== undefined)
+        nodes = nodes.filter(
+          (n) => (n.tasksRunning ?? 0) < where.tasksRunning.lt,
+        );
+      if (where?.cpuCores?.gte !== undefined)
+        nodes = nodes.filter((n) => (n.cpuCores || 0) >= where.cpuCores.gte);
+      if (where?.memoryGB?.gte !== undefined)
+        nodes = nodes.filter((n) => (n.memoryGB || 0) >= where.memoryGB.gte);
+      if (where?.lastHeartbeat?.lt instanceof Date)
+        nodes = nodes.filter(
+          (n) => new Date(n.lastHeartbeat) < (where.lastHeartbeat.lt as Date),
+        );
+      if (where?.lastHeartbeat?.gte instanceof Date)
+        nodes = nodes.filter(
+          (n) => new Date(n.lastHeartbeat) >= (where.lastHeartbeat.gte as Date),
+        );
+
       const finalCount = nodes.length;
       if (finalCount < initialCount) {
-        logger.info({ initialCount, statusCount, tenantCount, finalCount }, '[MockPrisma] Filtered nodes');
+        logger.info(
+          { initialCount, statusCount, tenantCount, finalCount },
+          '[MockPrisma] Filtered nodes',
+        );
       }
-      
+
       if (finalCount === 0 && initialCount > 0) {
-        logger.debug({ initialCount, statusCount, tenantCount }, '[MockPrisma] findMany returned 0 nodes');
+        logger.debug(
+          { initialCount, statusCount, tenantCount },
+          '[MockPrisma] findMany returned 0 nodes',
+        );
         logger.debug({ where }, '[MockPrisma] Filter details');
       }
       if (where?.region) nodes = nodes.filter((n) => n.region === where.region);
       if (orderBy) {
         const [field, dir] = Object.entries(orderBy)[0] as [string, string];
-        nodes.sort((a, b) => dir === 'asc' ? (a[field] > b[field] ? 1 : -1) : (a[field] < b[field] ? 1 : -1));
+        nodes.sort((a, b) =>
+          dir === 'asc'
+            ? a[field] > b[field]
+              ? 1
+              : -1
+            : a[field] < b[field]
+              ? 1
+              : -1,
+        );
       }
       if (skip) nodes = nodes.slice(skip);
       if (take) nodes = nodes.slice(0, take);
-      if (include?._count) nodes = nodes.map(n => ({ ...n, _count: { tasks: 0 } }));
+      if (include?._count)
+        nodes = nodes.map((n) => ({ ...n, _count: { tasks: 0 } }));
       return nodes;
     },
     findFirst: async (args: any): Promise<any | null> => {
       const where = args?.where;
       let nodes = Array.from(mockNodes.values());
       if (where?.id) nodes = nodes.filter((n) => (n as any).id === where.id);
-      if (where?.name) nodes = nodes.filter((n) => (n as any).name === where.name);
-      if (where?.status) nodes = nodes.filter((n) => (n as any).status === where.status);
-      if (where?.tenantId) nodes = nodes.filter((n) => (n as any).tenantId === where.tenantId);
+      if (where?.name)
+        nodes = nodes.filter((n) => (n as any).name === where.name);
+      if (where?.status)
+        nodes = nodes.filter((n) => (n as any).status === where.status);
+      if (where?.tenantId)
+        nodes = nodes.filter((n) => (n as any).tenantId === where.tenantId);
       return nodes[0] || null;
     },
     findUnique: async ({ where }: any): Promise<any | null> => {
       return mockNodes.get(where.id) || null;
     },
     create: async ({ data }: any): Promise<any> => {
-      const id = data.id || `00000000-0000-4000-a000-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`;
-      const node = { 
+      const id =
+        data.id ||
+        `00000000-0000-4000-a000-${Math.floor(Math.random() * 1000000000000)
+          .toString()
+          .padStart(12, '0')}`;
+      const node = {
         id,
         name: data.name || 'Mock Node',
         location: data.location || 'Unknown',
@@ -737,9 +929,9 @@ export const mockPrisma = {
         isMaintenanceMode: false,
         tasksRunning: 0,
         tenantId: data.tenantId || 'test-tenant',
-        ...data, 
-        createdAt: new Date(), 
-        updatedAt: new Date() 
+        ...data,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
       if (data.status === 'OFFLINE' || !data.status) node.status = 'ONLINE';
       mockNodes.set(node.id, node);
@@ -748,9 +940,13 @@ export const mockPrisma = {
     createMany: async ({ data }: any): Promise<any> => {
       const results = [];
       for (const item of data) {
-        const id = item.id || `00000000-0000-4000-a000-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`;
-        const node = { 
-          id, 
+        const id =
+          item.id ||
+          `00000000-0000-4000-a000-${Math.floor(Math.random() * 1000000000000)
+            .toString()
+            .padStart(12, '0')}`;
+        const node = {
+          id,
           name: item.name || 'Mock Node',
           location: item.location || 'Unknown',
           ipAddress: item.ipAddress || '127.0.0.1',
@@ -763,13 +959,16 @@ export const mockPrisma = {
           isMaintenanceMode: false,
           tasksRunning: 0,
           tenantId: item.tenantId || 'test-tenant',
-          ...item, 
-          createdAt: new Date(), 
-          updatedAt: new Date() 
+          ...item,
+          createdAt: new Date(),
+          updatedAt: new Date(),
         };
         if (item.status === 'OFFLINE' || !item.status) node.status = 'ONLINE';
         mockNodes.set(node.id, node);
-        logger.info({ nodeId: node.id, total: mockNodes.size }, '[MockPrisma] Node created in batch');
+        logger.info(
+          { nodeId: node.id, total: mockNodes.size },
+          '[MockPrisma] Node created in batch',
+        );
         results.push(node);
       }
       return { count: results.length };
@@ -777,7 +976,11 @@ export const mockPrisma = {
     updateMany: async ({ where, data }: any): Promise<any> => {
       let count = 0;
       for (const [id, node] of mockNodes.entries()) {
-        if (!where || !where.tenantId || (node as any).tenantId === where.tenantId) {
+        if (
+          !where ||
+          !where.tenantId ||
+          (node as any).tenantId === where.tenantId
+        ) {
           mockNodes.set(id, { ...node, ...data, updatedAt: new Date() });
           count++;
         }
@@ -787,16 +990,24 @@ export const mockPrisma = {
     update: async ({ where, data }: any): Promise<any> => {
       const node = mockNodes.get(where.id);
       if (!node) throw new Error(`Node ${where.id} not found`);
-      
+
       const updatedData = { ...data };
       for (const [key, value] of Object.entries(data)) {
-        if (value && typeof value === 'object' && (value as any).increment !== undefined) {
+        if (
+          value &&
+          typeof value === 'object' &&
+          (value as any).increment !== undefined
+        ) {
           updatedData[key] = (node as any)[key] + (value as any).increment;
-        } else if (value && typeof value === 'object' && (value as any).decrement !== undefined) {
+        } else if (
+          value &&
+          typeof value === 'object' &&
+          (value as any).decrement !== undefined
+        ) {
           updatedData[key] = (node as any)[key] - (value as any).decrement;
         }
       }
-      
+
       const updated = { ...node, ...updatedData, updatedAt: new Date() };
       mockNodes.set(where.id, updated);
       return updated;
@@ -804,8 +1015,44 @@ export const mockPrisma = {
     count: async ({ where }: any = {}): Promise<number> => {
       let nodes = Array.from(mockNodes.values());
       if (where?.status) nodes = nodes.filter((n) => n.status === where.status);
-      if (where?.tenantId) nodes = nodes.filter((n) => n.tenantId === where.tenantId);
+      if (where?.tenantId)
+        nodes = nodes.filter((n) => n.tenantId === where.tenantId);
       return nodes.length;
+    },
+    aggregate: async (args: any = {}): Promise<any> => {
+      const where = args?.where;
+      let nodes = Array.from(mockNodes.values());
+      if (where) {
+        if (where.status)
+          nodes = nodes.filter((n) => n.status === where.status);
+        if (where.tenantId)
+          nodes = nodes.filter((n) => n.tenantId === where.tenantId);
+      }
+
+      const result: any = {};
+      if (args._sum) {
+        result._sum = {};
+        for (const key of Object.keys(args._sum)) {
+          result._sum[key] = nodes.reduce(
+            (sum, n) => sum + (Number((n as any)[key]) || 0),
+            0,
+          );
+        }
+      }
+      if (args._avg) {
+        result._avg = {};
+        for (const key of Object.keys(args._avg)) {
+          const total = nodes.reduce(
+            (sum, n) => sum + (Number((n as any)[key]) || 0),
+            0,
+          );
+          result._avg[key] = nodes.length > 0 ? total / nodes.length : 0;
+        }
+      }
+      if (args._count) {
+        result._count = nodes.length;
+      }
+      return result;
     },
     delete: async ({ where }: any): Promise<any> => {
       const node = mockNodes.get(where.id);
@@ -820,10 +1067,10 @@ export const mockPrisma = {
       } else {
         // Implement specific filters if needed
         for (const [id, _node] of mockNodes.entries()) {
-           if (where.id && where.id.in && where.id.in.includes(id)) {
-             mockNodes.delete(id);
-             count++;
-           }
+          if (where.id && where.id.in && where.id.in.includes(id)) {
+            mockNodes.delete(id);
+            count++;
+          }
         }
       }
       return { count };
@@ -835,7 +1082,12 @@ export const mockPrisma = {
         mockNodes.set(where.id, updated);
         return updated;
       }
-      const node = { id: where.id || `node-${Date.now()}`, ...create, createdAt: new Date(), updatedAt: new Date() };
+      const node = {
+        id: where.id || `node-${Date.now()}`,
+        ...create,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
       mockNodes.set(node.id, node);
       return node;
     },
@@ -845,9 +1097,9 @@ export const mockPrisma = {
       let sagas = Array.from(mockSagas.values());
       if (where?.status) {
         if (where.status.in) {
-          sagas = sagas.filter(s => where.status.in.includes(s.status));
+          sagas = sagas.filter((s) => where.status.in.includes(s.status));
         } else {
-          sagas = sagas.filter(s => s.status === where.status);
+          sagas = sagas.filter((s) => s.status === where.status);
         }
       }
       return sagas;
@@ -856,14 +1108,22 @@ export const mockPrisma = {
       const saga = mockSagas.get(where.id);
       if (!saga) return null;
       if (include?.steps) {
-        saga.steps = Array.from(mockSagaSteps.values()).filter(s => s.sagaId === saga.id);
+        saga.steps = Array.from(mockSagaSteps.values()).filter(
+          (s) => s.sagaId === saga.id,
+        );
         saga.steps.sort((a: any, b: any) => a.stepOrder - b.stepOrder);
       }
       return saga;
     },
     create: async ({ data }: any) => {
       const id = data.id || generateUuid();
-      const saga = { ...data, id, startedAt: new Date(), updatedAt: new Date(), steps: [] };
+      const saga = {
+        ...data,
+        id,
+        startedAt: new Date(),
+        updatedAt: new Date(),
+        steps: [],
+      };
       mockSagas.set(id, saga);
       return saga;
     },
@@ -891,15 +1151,15 @@ export const mockPrisma = {
     count: async ({ where }: any = {}) => {
       let sagas = Array.from(mockSagas.values());
       if (where?.status) {
-        sagas = sagas.filter(s => s.status === where.status);
+        sagas = sagas.filter((s) => s.status === where.status);
       }
       return sagas.length;
-    }
+    },
   },
   sagaStep: {
     findMany: async ({ where }: any = {}) => {
       let steps = Array.from(mockSagaSteps.values());
-      if (where?.sagaId) steps = steps.filter(s => s.sagaId === where.sagaId);
+      if (where?.sagaId) steps = steps.filter((s) => s.sagaId === where.sagaId);
       return steps;
     },
     create: async ({ data }: any) => {
@@ -925,7 +1185,11 @@ export const mockPrisma = {
       for (const [id, step] of mockSagaSteps.entries()) {
         let match = true;
         if (where?.sagaId && step.sagaId !== where.sagaId) match = false;
-        if (where?.stepOrder !== undefined && step.stepOrder !== where.stepOrder) match = false;
+        if (
+          where?.stepOrder !== undefined &&
+          step.stepOrder !== where.stepOrder
+        )
+          match = false;
         if (match) {
           mockSagaSteps.set(id, { ...step, ...data });
           count++;
@@ -937,14 +1201,17 @@ export const mockPrisma = {
       const count = mockSagaSteps.size;
       mockSagaSteps.clear();
       return { count };
-    }
+    },
   },
   idempotencyRecord: {
-    findUnique: async ({ where }: any) => mockIdempotency.get(where.idempotencyKey) || null,
+    findUnique: async ({ where }: any) =>
+      mockIdempotency.get(where.idempotencyKey) || null,
     findMany: async ({ where }: any) => {
       const all = Array.from(mockIdempotency.values());
-      if (!where) {return all;}
-      return all.filter(r => r.idempotencyKey === where.idempotencyKey);
+      if (!where) {
+        return all;
+      }
+      return all.filter((r) => r.idempotencyKey === where.idempotencyKey);
     },
     deleteMany: async () => {
       const count = mockIdempotency.size;
@@ -952,7 +1219,11 @@ export const mockPrisma = {
       return { count };
     },
     create: async ({ data }: any) => {
-      const record = { ...data, id: `idem-${Date.now()}`, createdAt: new Date() };
+      const record = {
+        ...data,
+        id: `idem-${Date.now()}`,
+        createdAt: new Date(),
+      };
       mockIdempotency.set(data.idempotencyKey, record);
       return record;
     },
@@ -961,7 +1232,7 @@ export const mockPrisma = {
       const updated = { ...existing, ...data, updatedAt: new Date() };
       mockIdempotency.set(where.idempotencyKey, updated);
       return updated;
-    }
+    },
   },
   $connect: async () => {},
   $disconnect: async () => {},
@@ -978,40 +1249,74 @@ export const mockPrisma = {
   $extends: (extension: any) => {
     // Basic mock of $extends that merges query extensions
     const newMock = { ...mockPrisma } as any;
-    
+
     if (extension.query) {
       // Handle $allModels and model-specific extensions
       const models = [
-        'user', 'session', 'userSession', 'task', 'node', 'edgeNode', 
-        'sagaInstance', 'sagaStep', 'idempotencyRecord', 'auditLog', 
-        'apiKey', 'webhook', 'tenant', 'nodeMetric', 'schedulingDecision', 
-        'taskLog', 'taskExecution', 'certificateAuthority', 'agentCertificate', 
-        'bootstrapToken', 'alert', 'certificateRevocation', 'costRecord', 
-        'cRL', 'deadLetterEvent', 'fLModel', 'fLSession', 'nodeCertificate', 
-        'outboxEvent', 'processedOffset', 'tenantUser', 'webhookDelivery', 
-        'workflow', 'workflowExecution', 'workflowTaskRun', 'outcomeLog'
+        'user',
+        'session',
+        'userSession',
+        'task',
+        'node',
+        'edgeNode',
+        'sagaInstance',
+        'sagaStep',
+        'idempotencyRecord',
+        'auditLog',
+        'apiKey',
+        'webhook',
+        'tenant',
+        'nodeMetric',
+        'schedulingDecision',
+        'taskLog',
+        'taskExecution',
+        'certificateAuthority',
+        'agentCertificate',
+        'bootstrapToken',
+        'alert',
+        'certificateRevocation',
+        'costRecord',
+        'cRL',
+        'deadLetterEvent',
+        'fLModel',
+        'fLSession',
+        'nodeCertificate',
+        'outboxEvent',
+        'processedOffset',
+        'tenantUser',
+        'webhookDelivery',
+        'workflow',
+        'workflowExecution',
+        'workflowTaskRun',
+        'outcomeLog',
       ];
-      
+
       for (const modelName of models) {
         const originalModel = (mockPrisma as any)[modelName];
         if (originalModel) {
           // Create a new model object to avoid modifying the original
           const newModel = { ...originalModel };
           newMock[modelName] = newModel;
-          
+
           for (const opName in newModel) {
             if (typeof newModel[opName] === 'function') {
               newModel[opName] = async (args: any) => {
-                const handler = extension.query.$allModels?.$allOperations || 
-                                extension.query[modelName]?.[opName] ||
-                                extension.query[modelName]?.$allOperations;
-                
+                const handler =
+                  extension.query.$allModels?.$allOperations ||
+                  extension.query[modelName]?.[opName] ||
+                  extension.query[modelName]?.$allOperations;
+
                 // Always get the current version of the operation from the original mockPrisma
                 // This allows vi.spyOn() to work even after $extends has been called
                 const currentOp = (mockPrisma as any)[modelName][opName];
-                
+
                 if (handler) {
-                  return handler({ model: modelName, operation: opName, args, query: currentOp });
+                  return handler({
+                    model: modelName,
+                    operation: opName,
+                    args,
+                    query: currentOp,
+                  });
                 }
                 return currentOp(args);
               };
@@ -1021,11 +1326,17 @@ export const mockPrisma = {
       }
 
       // Handle top-level operations like $queryRaw
-      const topLevelOps = ['$queryRaw', '$executeRaw', '$queryRawUnsafe', '$executeRawUnsafe'];
+      const topLevelOps = [
+        '$queryRaw',
+        '$executeRaw',
+        '$queryRawUnsafe',
+        '$executeRawUnsafe',
+      ];
       for (const opName of topLevelOps) {
         if (typeof (newMock as any)[opName] === 'function') {
           newMock[opName] = async (args: any) => {
-            const handler = extension.query[opName] || extension.query.$allOperations;
+            const handler =
+              extension.query[opName] || extension.query.$allOperations;
             const currentOp = (mockPrisma as any)[opName];
             if (handler) {
               return handler({ operation: opName, args, query: currentOp });
@@ -1035,19 +1346,33 @@ export const mockPrisma = {
         }
       }
     }
-    
+
     return newMock;
   },
   auditLog: {
-    create: async ({ data }: any) => ({ ...data, id: `00000000-0000-4000-a100-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`, createdAt: new Date() }),
+    create: async ({ data }: any) => ({
+      ...data,
+      id: `00000000-0000-4000-a100-${Math.floor(Math.random() * 1000000000000)
+        .toString()
+        .padStart(12, '0')}`,
+      createdAt: new Date(),
+    }),
     findMany: async () => [],
     deleteMany: async () => ({ count: 0 }),
   },
   apiKey: createMockModelStore('apiKey'),
   webhook: createMockModelStore('webhook'),
   tenant: {
-    findUnique: async ({ where }: any) => ({ id: where.id || '00000000-0000-4000-a200-000000000000', name: 'Test Tenant', createdAt: new Date() }),
-    create: async ({ data }: any) => ({ ...data, id: data.id || '00000000-0000-4000-a200-000000000000', createdAt: new Date() }),
+    findUnique: async ({ where }: any) => ({
+      id: where.id || '00000000-0000-4000-a200-000000000000',
+      name: 'Test Tenant',
+      createdAt: new Date(),
+    }),
+    create: async ({ data }: any) => ({
+      ...data,
+      id: data.id || '00000000-0000-4000-a200-000000000000',
+      createdAt: new Date(),
+    }),
     delete: async ({ where }: any) => ({ id: where.id }),
     deleteMany: async () => ({ count: 1 }),
   },
@@ -1072,14 +1397,25 @@ export const mockPrisma = {
         mockDecisions.set(where.taskId, updated);
         return updated;
       }
-      const decision = { ...create, id: `decision-${Date.now()}`, timestamp: new Date() };
+      const decision = {
+        ...create,
+        id: `decision-${Date.now()}`,
+        timestamp: new Date(),
+      };
       mockDecisions.set(where.taskId, decision);
       return decision;
     },
-    findUnique: async ({ where }: any) => mockDecisions.get(where.taskId || where.id) || null,
+    findUnique: async ({ where }: any) =>
+      mockDecisions.get(where.taskId || where.id) || null,
   },
   taskLog: {
-    create: async ({ data }: any) => ({ ...data, id: `00000000-0000-4000-a500-${Math.floor(Math.random() * 1000000000000).toString().padStart(12, '0')}`, timestamp: new Date() }),
+    create: async ({ data }: any) => ({
+      ...data,
+      id: `00000000-0000-4000-a500-${Math.floor(Math.random() * 1000000000000)
+        .toString()
+        .padStart(12, '0')}`,
+      timestamp: new Date(),
+    }),
     findMany: async () => [],
     deleteMany: async () => ({ count: 0 }),
   },
@@ -1102,8 +1438,8 @@ export const mockPrisma = {
       }
       return {
         _sum: {
-          costUSD: sumCost || 150.0
-        }
+          costUSD: sumCost || 150.0,
+        },
       };
     },
     groupBy: async () => {
@@ -1111,14 +1447,22 @@ export const mockPrisma = {
         {
           nodeId: '00000000-0000-4000-a000-000000000001',
           _sum: { costUSD: 150.0 },
-          _count: { id: 10 }
-        }
+          _count: { id: 10 },
+        },
       ];
     },
     create: async ({ data }: any) => {
       const id = `exec-${Math.floor(Math.random() * 1000000000).toString()}`;
-      const exec = { ...data, id, createdAt: new Date(), updatedAt: new Date() };
-      logger.debug({ taskId: data.taskId, status: data.status }, '[Mock Prisma] Creating execution');
+      const exec = {
+        ...data,
+        id,
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      };
+      logger.debug(
+        { taskId: data.taskId, status: data.status },
+        '[Mock Prisma] Creating execution',
+      );
       mockExecutions.set(id, exec);
       return exec;
     },
@@ -1139,7 +1483,7 @@ export const mockPrisma = {
     },
     findFirst: async ({ where }: any) => {
       const execs = Array.from(mockExecutions.values());
-      const found = execs.find(e => e.taskId === where.taskId);
+      const found = execs.find((e) => e.taskId === where.taskId);
       return found || null;
     },
     findUnique: async ({ where }: any) => mockExecutions.get(where.id) || null,
@@ -1153,7 +1497,9 @@ export const mockPrisma = {
       let count = 0;
       for (const [id, exec] of mockExecutions.entries()) {
         const matchesTask = exec.taskId === where.taskId;
-        const matchesStatus = where.status ? exec.status === where.status : true;
+        const matchesStatus = where.status
+          ? exec.status === where.status
+          : true;
         if (matchesTask && matchesStatus) {
           // Only update defined fields
           const updateData: any = {};
@@ -1162,7 +1508,11 @@ export const mockPrisma = {
               updateData[key] = data[key];
             }
           }
-          mockExecutions.set(id, { ...exec, ...updateData, updatedAt: new Date() });
+          mockExecutions.set(id, {
+            ...exec,
+            ...updateData,
+            updatedAt: new Date(),
+          });
           count++;
         }
       }
@@ -1186,15 +1536,27 @@ export const mockPrisma = {
   },
   certificateAuthority: {
     findFirst: async () => null,
-    create: async ({ data }: any) => ({ ...data, id: `ca-${Date.now()}`, createdAt: new Date() }),
+    create: async ({ data }: any) => ({
+      ...data,
+      id: `ca-${Date.now()}`,
+      createdAt: new Date(),
+    }),
   },
   agentCertificate: {
     findUnique: async () => null,
-    create: async ({ data }: any) => ({ ...data, id: `cert-${Date.now()}`, createdAt: new Date() }),
+    create: async ({ data }: any) => ({
+      ...data,
+      id: `cert-${Date.now()}`,
+      createdAt: new Date(),
+    }),
   },
   bootstrapToken: {
     findUnique: async () => null,
-    update: async ({ where, data }: any) => ({ ...data, id: where.id || 'token', updatedAt: new Date() }),
+    update: async ({ where, data }: any) => ({
+      ...data,
+      id: where.id || 'token',
+      updatedAt: new Date(),
+    }),
   },
   alert: createMockModelStore('alert'),
   certificateRevocation: createMockModelStore('certificateRevocation'),
@@ -1223,21 +1585,28 @@ export const mockPrisma = {
 
       for (const d of data) {
         const id = d.id || generateUuid();
-        
+
         // 1. Resolve predictions from schedulingDecision
-        const decision = mockDecisions.get(d.taskId) || Array.from(mockDecisions.values()).find((sd: any) => sd.taskId === d.taskId);
+        const decision =
+          mockDecisions.get(d.taskId) ||
+          Array.from(mockDecisions.values()).find(
+            (sd: any) => sd.taskId === d.taskId,
+          );
         const explanation = decision?.explanation as any;
         const predictions = explanation?.predictions;
-        
+
         const predictedMemoryUsage = predictions?.memoryUsage ?? 0.1;
         const tenantId = decision?.tenantId ?? 'tenant-1';
-        
+
         // 2. Resolve actuals from nodeMetrics
         const metricsStore = g.__mock_nodeMetric;
-        const latestMetric = metricsStore 
-          ? Array.from(metricsStore.values())
+        const latestMetric = metricsStore
+          ? (Array.from(metricsStore.values())
               .filter((m: any) => m.nodeId === d.nodeId)
-              .sort((a: any, b: any) => b.timestamp.getTime() - a.timestamp.getTime())[0] as any
+              .sort(
+                (a: any, b: any) =>
+                  b.timestamp.getTime() - a.timestamp.getTime(),
+              )[0] as any)
           : null;
         const actualMemoryUsage = latestMetric?.memoryUsage ?? 0.3;
 
@@ -1248,9 +1617,9 @@ export const mockPrisma = {
           actualMemoryUsage,
           tenantId,
           createdAt: new Date(),
-          updatedAt: new Date()
+          updatedAt: new Date(),
         } as any;
-        
+
         store.set(id, item);
         created.push(item);
       }
@@ -1262,7 +1631,7 @@ export const mockPrisma = {
       const key = `__mock_${storeName}`;
       if (!g[key]) g[key] = new Map<string, any>();
       const store: Map<string, any> = g[key];
-      
+
       let all = Array.from(store.values());
       const where = args?.where;
       if (where) {
@@ -1284,16 +1653,18 @@ export const mockPrisma = {
       const key = `__mock_${storeName}`;
       if (!g[key]) g[key] = new Map<string, any>();
       const store: Map<string, any> = g[key];
-      
+
       const where = args?.where;
       const all = Array.from(store.values());
       if (!where) return all[0] || null;
-      return all.find((item: any) => {
-        for (const [k, v] of Object.entries(where)) {
-          if (v !== undefined && item[k] !== v) return false;
-        }
-        return true;
-      }) || null;
+      return (
+        all.find((item: any) => {
+          for (const [k, v] of Object.entries(where)) {
+            if (v !== undefined && item[k] !== v) return false;
+          }
+          return true;
+        }) || null
+      );
     },
     deleteMany: async () => {
       const storeName = 'outcomeLog';
@@ -1304,6 +1675,6 @@ export const mockPrisma = {
       const count = store.size;
       store.clear();
       return { count };
-    }
+    },
   },
 };

@@ -10,7 +10,10 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/summary',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.COST_READ),
+      ],
       schema: {
         tags: ['cost'],
         summary: 'Get cost summary',
@@ -27,16 +30,16 @@ export default async function costRoutes(fastify: FastifyInstance) {
 
       const [currentMonth, lastMonth, byResourceType] = await Promise.all([
         request.tPrisma.costRecord.aggregate({
-          where: { 
+          where: {
             recordedAt: { gte: startOfMonth },
-            tenantId: request.user!.tenantId!
+            tenantId: request.user!.tenantId!,
           },
           _sum: { cost: true },
         }),
         request.tPrisma.costRecord.aggregate({
           where: {
             recordedAt: { gte: startOfLastMonth, lt: startOfMonth },
-            tenantId: request.user!.tenantId!
+            tenantId: request.user!.tenantId!,
           },
           _sum: { cost: true },
         }),
@@ -71,7 +74,10 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get<{ Querystring: z.infer<typeof costQuerySchema> }>(
     '/records',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.COST_READ),
+      ],
       schema: {
         querystring: zodToFastifySchema(costQuerySchema),
         tags: ['cost'],
@@ -108,7 +114,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -117,7 +123,10 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/by-node',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.COST_READ),
+      ],
       schema: {
         tags: ['cost'],
         summary: 'Get cost breakdown by node',
@@ -132,7 +141,9 @@ export default async function costRoutes(fastify: FastifyInstance) {
       });
 
       // Get node names
-      const nodeIds = byNode.map((n) => n.nodeId).filter((id): id is string => !!id);
+      const nodeIds = byNode
+        .map((n) => n.nodeId)
+        .filter((id): id is string => !!id);
       const nodes = await request.tPrisma.edgeNode.findMany({
         where: { id: { in: nodeIds }, tenantId: request.user!.tenantId! },
         select: { id: true, name: true, region: true },
@@ -156,7 +167,10 @@ export default async function costRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/projections',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.COST_READ),
+      ],
       schema: {
         tags: ['cost'],
         summary: 'Get cost projections',
@@ -173,9 +187,9 @@ export default async function costRoutes(fastify: FastifyInstance) {
       ).getDate();
 
       const monthToDate = await request.tPrisma.costRecord.aggregate({
-        where: { 
+        where: {
           recordedAt: { gte: startOfMonth },
-          tenantId: request.user!.tenantId!
+          tenantId: request.user!.tenantId!,
         },
         _sum: { cost: true },
       });
@@ -193,4 +207,3 @@ export default async function costRoutes(fastify: FastifyInstance) {
     },
   );
 }
-

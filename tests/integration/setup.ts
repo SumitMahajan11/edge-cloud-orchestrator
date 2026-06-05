@@ -1,4 +1,4 @@
-import { beforeAll, afterAll } from 'vitest';
+import { beforeAll, afterAll } from "vitest";
 
 // Global setup for integration tests
 // e.g., starting/stopping shared containers, clearing test databases, etc.

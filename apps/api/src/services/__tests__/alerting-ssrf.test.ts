@@ -30,12 +30,18 @@ describe('AlertingService SSRF Protection', () => {
   };
 
   beforeEach(() => {
-    vi.mocked(sharedKernel.validateWebhookUrl).mockImplementation(async (url: string) => {
-      if (url.includes('169.254.169.254') || url.includes('localhost') || url.includes('127.0.0.1')) {
-        return { safe: false, reason: 'SSRF blocked' };
-      }
-      return { safe: true };
-    });
+    vi.mocked(sharedKernel.validateWebhookUrl).mockImplementation(
+      async (url: string) => {
+        if (
+          url.includes('169.254.169.254') ||
+          url.includes('localhost') ||
+          url.includes('127.0.0.1')
+        ) {
+          return { safe: false, reason: 'SSRF blocked' };
+        }
+        return { safe: true };
+      },
+    );
 
     redis = {
       multi: vi.fn(() => redis),
@@ -72,13 +78,17 @@ describe('AlertingService SSRF Protection', () => {
     expect(recordSpy).toHaveBeenCalledWith(
       metadataUrl,
       'SSRF_BLOCKED',
-      'SSRF blocked'
+      'SSRF blocked',
     );
-    expect(redis.lpush).toHaveBeenCalledWith('alerts:webhook:failures', expect.stringContaining('SSRF_BLOCKED'));
+    expect(redis.lpush).toHaveBeenCalledWith(
+      'alerts:webhook:failures',
+      expect.stringContaining('SSRF_BLOCKED'),
+    );
   });
 
   it('allows safe webhook URLs', async () => {
-    const safeUrl = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX';
+    const safeUrl =
+      'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX';
     alertingService = new AlertingService(logger, redis, {
       webhookUrl: safeUrl,
     });
@@ -90,9 +100,12 @@ describe('AlertingService SSRF Protection', () => {
     await (alertingService as any).sendWebhook(mockPayload);
 
     // Webhook SHOULD have been called
-    expect(fetchMock).toHaveBeenCalledWith(safeUrl, expect.objectContaining({
-      method: 'POST',
-      body: JSON.stringify(mockPayload),
-    }));
+    expect(fetchMock).toHaveBeenCalledWith(
+      safeUrl,
+      expect.objectContaining({
+        method: 'POST',
+        body: JSON.stringify(mockPayload),
+      }),
+    );
   });
 });

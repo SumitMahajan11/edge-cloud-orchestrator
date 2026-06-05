@@ -1,7 +1,7 @@
-import { DriftDetector, PredictionOutcome } from '../drift-detector';
-import { IMetricsCollector } from '@edgecloud/shared-kernel';
+import { DriftDetector, PredictionOutcome } from "../drift-detector";
+import { IMetricsCollector } from "@edgecloud/shared-kernel";
 
-describe('DriftDetector', () => {
+describe("DriftDetector", () => {
   let detector: DriftDetector;
   let metrics: vi.Mocked<IMetricsCollector>;
 
@@ -12,16 +12,19 @@ describe('DriftDetector', () => {
     detector = new DriftDetector(metrics);
   });
 
-  const createOutcome = (predicted: number, actual: number): PredictionOutcome => ({
-    taskId: 't-' + Math.random(),
-    nodeId: 'n-1',
-    modelVersion: 'v1.0.0',
+  const createOutcome = (
+    predicted: number,
+    actual: number,
+  ): PredictionOutcome => ({
+    taskId: "t-" + Math.random(),
+    nodeId: "n-1",
+    modelVersion: "v1.0.0",
     predictedScore: predicted,
     actualScore: actual,
-    timestamp: new Date()
+    timestamp: new Date(),
   });
 
-  it('should not detect drift when predictions are accurate', () => {
+  it("should not detect drift when predictions are accurate", () => {
     // Feed 100 accurate samples
     for (let i = 0; i < 100; i++) {
       detector.recordOutcome(createOutcome(0.8, 0.82)); // Small error
@@ -31,7 +34,7 @@ describe('DriftDetector', () => {
     expect(detector.isDrifting()).toBe(false);
   });
 
-  it('should detect drift when distributions shift', () => {
+  it("should detect drift when distributions shift", () => {
     // Feed 50 normal samples
     for (let i = 0; i < 50; i++) {
       detector.recordOutcome(createOutcome(0.8, 0.8));
@@ -48,19 +51,19 @@ describe('DriftDetector', () => {
     // MAE = (50*0.6 + 50*0)/100 = 0.3
     // Wait, FATAL_THRESHOLD is 0.5. WARN_THRESHOLD is 0.3.
     // Let's feed more shifted samples to cross 0.5.
-    
+
     for (let i = 0; i < 50; i++) {
       detector.recordOutcome(createOutcome(0.9, 0.1)); // Error = 0.8
     }
-    
+
     // Now window (size 100) has 50 with 0.6 and 50 with 0.8 error.
     // MAE = (0.6 + 0.8)/2 = 0.7
-    
+
     expect(detector.getMAE()).toBeGreaterThan(0.5);
     expect(detector.isDrifting()).toBe(true);
   });
 
-  it('should emit a drift alert event when drift is detected', () => {
+  it("should emit a drift alert event when drift is detected", () => {
     const onDrift = vi.fn();
     detector.onDrift(onDrift);
 
@@ -73,7 +76,7 @@ describe('DriftDetector', () => {
     expect(onDrift).toHaveBeenCalledWith(expect.any(Number));
   });
 
-  it('should eventually return to false when distribution recovers', () => {
+  it("should eventually return to false when distribution recovers", () => {
     // 1. Establish drift
     for (let i = 0; i < 100; i++) {
       detector.recordOutcome(createOutcome(0.9, 0.1));

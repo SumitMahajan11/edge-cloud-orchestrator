@@ -18,10 +18,14 @@ const { mockMtls } = vi.hoisted(() => ({
     },
     CertificateAuthorityManager: class {
       constructor() {}
-      async initialize() { return { certificatePem: 'mock' }; }
-      getCACertificate() { return 'mock-ca-cert'; }
+      async initialize() {
+        return { certificatePem: 'mock' };
+      }
+      getCACertificate() {
+        return 'mock-ca-cert';
+      }
     },
-  }
+  },
 }));
 
 vi.mock('../services/mtls-authentication.js', () => mockMtls);
@@ -53,13 +57,23 @@ describe('Carbon Endpoints Integration', () => {
   const mockTaskScheduler = {
     getCarbonIntensityData: vi.fn().mockResolvedValue({
       regions: [
-        { zone: 'US-EAST', carbonIntensityGco2: 450, lastUpdatedAt: new Date().toISOString(), source: 'ElectricityMaps' },
-        { zone: 'EU-WEST', carbonIntensityGco2: 120, lastUpdatedAt: new Date().toISOString(), source: 'ElectricityMaps' }
-      ]
+        {
+          zone: 'US-EAST',
+          carbonIntensityGco2: 450,
+          lastUpdatedAt: new Date().toISOString(),
+          source: 'ElectricityMaps',
+        },
+        {
+          zone: 'EU-WEST',
+          carbonIntensityGco2: 120,
+          lastUpdatedAt: new Date().toISOString(),
+          source: 'ElectricityMaps',
+        },
+      ],
     }),
     updateCarbonPolicy: vi.fn().mockImplementation((weight) => ({
       success: true,
-      carbonWeight: weight
+      carbonWeight: weight,
     })),
     getCarbonSavingsData: vi.fn(),
     getCarbonPolicyData: vi.fn(),
@@ -69,17 +83,22 @@ describe('Carbon Endpoints Integration', () => {
     app = fastify({ logger: false });
     app.decorate('prisma', { $disconnect: vi.fn() });
     app.decorate('taskScheduler', mockTaskScheduler);
-    
+
     await app.register(import('@fastify/jwt'), { secret: TEST_JWT_SECRET });
-    await app.register(import('@fastify/rate-limit'), { max: 100, timeWindow: 60000 });
+    await app.register(import('@fastify/rate-limit'), {
+      max: 100,
+      timeWindow: 60000,
+    });
 
     // Register common schemas
-    const { ErrorSchema, HealthSchema } = await import('@edgecloud/shared-kernel');
+    const { ErrorSchema, HealthSchema } =
+      await import('@edgecloud/shared-kernel');
     const { zodToFastifySchema } = await import('../utils/zod-schema.js');
     app.addSchema({ $id: 'ErrorSchema', ...zodToFastifySchema(ErrorSchema) });
     app.addSchema({ $id: 'HealthSchema', ...zodToFastifySchema(HealthSchema) });
-    
-    const { authenticate, requirePermission, requireRole } = await import('../middleware/auth.middleware.js');
+
+    const { authenticate, requirePermission, requireRole } =
+      await import('../middleware/auth.middleware.js');
     app.decorate('authenticate', authenticate);
     app.decorate('requirePermission', requirePermission);
     app.decorate('requireRole', requireRole);
@@ -118,7 +137,7 @@ describe('Carbon Endpoints Integration', () => {
   it('Test 2 — GET /api/v2/carbon/savings returns data', async () => {
     mockTaskScheduler.getCarbonSavingsData = vi.fn().mockResolvedValue({
       totalSavedGco2Today: 1500,
-      totalSavedGco2Week: 8500
+      totalSavedGco2Week: 8500,
     });
 
     const response = await app.inject({
@@ -135,7 +154,7 @@ describe('Carbon Endpoints Integration', () => {
     mockTaskScheduler.getCarbonPolicyData = vi.fn().mockResolvedValue({
       carbonWeight: 0.2,
       isActive: true,
-      activePolicy: 'GreenerPaths'
+      activePolicy: 'GreenerPaths',
     });
 
     const response = await app.inject({
@@ -154,7 +173,7 @@ describe('Carbon Endpoints Integration', () => {
       method: 'PATCH',
       url: '/api/v2/carbon/policy',
       headers: { authorization: `Bearer ${generateToken('TENANT_ADMIN')}` },
-      payload: { carbonWeight: 1.5 }
+      payload: { carbonWeight: 1.5 },
     });
     expect(highResponse.statusCode).toBe(400);
 
@@ -163,7 +182,7 @@ describe('Carbon Endpoints Integration', () => {
       method: 'PATCH',
       url: '/api/v2/carbon/policy',
       headers: { authorization: `Bearer ${generateToken('TENANT_ADMIN')}` },
-      payload: { carbonWeight: 0.4 }
+      payload: { carbonWeight: 0.4 },
     });
     expect(validResponse.statusCode).toBe(200);
     expect(JSON.parse(validResponse.body).carbonWeight).toBe(0.4);
@@ -174,7 +193,7 @@ describe('Carbon Endpoints Integration', () => {
       method: 'PATCH',
       url: '/api/v2/carbon/policy',
       headers: { authorization: `Bearer ${generateToken('VIEWER')}` },
-      payload: { carbonWeight: 0.5 }
+      payload: { carbonWeight: 0.5 },
     });
     expect(response.statusCode).toBe(403);
   });

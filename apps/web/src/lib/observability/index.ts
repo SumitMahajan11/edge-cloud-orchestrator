@@ -2,18 +2,16 @@
  * Observability Module Exports
  */
 
-export type { 
-  LogEntry, 
-  LoggerConfig 
-} from './logger'
-export { 
+export type { LogEntry, LoggerConfig } from "./logger";
+export {
   ChildLogger,
   createLogAggregator,
   createStructuredLogger,
   createTracingContext,
   LogAggregator,
   logAggregator,
-  StructuredLogger, 
+  StructuredLogger,
   structuredLogger,
   TracingContext,
-  tracingContext} from './logger'
+  tracingContext,
+} from "./logger";

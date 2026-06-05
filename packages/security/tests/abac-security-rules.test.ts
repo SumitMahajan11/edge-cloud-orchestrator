@@ -1,8 +1,15 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it } from "vitest";
 
-import { ABACEngine, Action, DEFAULT_POLICIES, PolicyBuilder,Resource, Subject } from '../src/abac';
+import {
+  ABACEngine,
+  Action,
+  DEFAULT_POLICIES,
+  PolicyBuilder,
+  Resource,
+  Subject,
+} from "../src/abac";
 
-describe('ABAC Security Rules Validation', () => {
+describe("ABAC Security Rules Validation", () => {
   let engine: ABACEngine;
 
   beforeEach(() => {
@@ -13,133 +20,161 @@ describe('ABAC Security Rules Validation', () => {
     }
   });
 
-  describe('Administrative Control', () => {
-    it('should allow admin full access to any resource and action', async () => {
+  describe("Administrative Control", () => {
+    it("should allow admin full access to any resource and action", async () => {
       const subject: Subject = {
-        id: 'admin-1',
-        type: 'user',
-        attributes: { roles: ['admin'] },
-        roles: ['admin']
+        id: "admin-1",
+        type: "user",
+        attributes: { roles: ["admin"] },
+        roles: ["admin"],
       };
 
       const resource: Resource = {
-        id: 'any-resource',
-        type: 'system',
-        attributes: { tenantId: 'tenant-A' }
+        id: "any-resource",
+        type: "system",
+        attributes: { tenantId: "tenant-A" },
       };
 
       const action: Action = {
-        name: 'delete-all',
-        attributes: {}
+        name: "delete-all",
+        attributes: {},
       };
 
-      const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
+      const decision = await engine.evaluate({
+        subject,
+        resource,
+        action,
+        environment: { time: new Date() },
+      });
       expect(decision.allowed).toBe(true);
-      expect(decision.matchedPolicies).toContain('admin-full-access');
+      expect(decision.matchedPolicies).toContain("admin-full-access");
     });
   });
 
-  describe('Tenant Isolation', () => {
-    it('should allow user to access resource in their own tenant', async () => {
+  describe("Tenant Isolation", () => {
+    it("should allow user to access resource in their own tenant", async () => {
       const subject: Subject = {
-        id: 'user-A',
-        type: 'user',
-        attributes: { 
-          roles: ['user'],
-          tenantId: 'tenant-A'
+        id: "user-A",
+        type: "user",
+        attributes: {
+          roles: ["user"],
+          tenantId: "tenant-A",
         },
-        roles: ['user']
+        roles: ["user"],
       };
 
       const resource: Resource = {
-        id: 'task-A',
-        type: 'task',
-        attributes: { 
-          type: 'task',
-          tenantId: 'tenant-A'
-        }
+        id: "task-A",
+        type: "task",
+        attributes: {
+          type: "task",
+          tenantId: "tenant-A",
+        },
       };
 
       const action: Action = {
-        name: 'read',
-        attributes: { name: 'read' }
+        name: "read",
+        attributes: { name: "read" },
       };
 
-      const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
+      const decision = await engine.evaluate({
+        subject,
+        resource,
+        action,
+        environment: { time: new Date() },
+      });
       expect(decision.allowed).toBe(true);
     });
 
-    it('should deny user access to resource in a different tenant', async () => {
+    it("should deny user access to resource in a different tenant", async () => {
       const subject: Subject = {
-        id: 'user-A',
-        type: 'user',
-        attributes: { 
-          roles: ['user'],
-          tenantId: 'tenant-A'
+        id: "user-A",
+        type: "user",
+        attributes: {
+          roles: ["user"],
+          tenantId: "tenant-A",
         },
-        roles: ['user']
+        roles: ["user"],
       };
 
       const resource: Resource = {
-        id: 'task-B',
-        type: 'task',
-        attributes: { 
-          type: 'task',
-          tenantId: 'tenant-B' 
-        }
+        id: "task-B",
+        type: "task",
+        attributes: {
+          type: "task",
+          tenantId: "tenant-B",
+        },
       };
 
       const action: Action = {
-        name: 'read',
-        attributes: { name: 'read' }
+        name: "read",
+        attributes: { name: "read" },
       };
 
-      const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
+      const decision = await engine.evaluate({
+        subject,
+        resource,
+        action,
+        environment: { time: new Date() },
+      });
       expect(decision.allowed).toBe(false);
-      expect(decision.matchedPolicies).toContain('tenant-isolation');
+      expect(decision.matchedPolicies).toContain("tenant-isolation");
     });
 
-    it('should allow admin to access resources across tenants', async () => {
+    it("should allow admin to access resources across tenants", async () => {
       const subject: Subject = {
-        id: 'admin-1',
-        type: 'user',
-        attributes: { roles: ['admin'] },
-        roles: ['admin']
+        id: "admin-1",
+        type: "user",
+        attributes: { roles: ["admin"] },
+        roles: ["admin"],
       };
 
       const resource: Resource = {
-        id: 'task-B',
-        type: 'task',
-        attributes: { tenantId: 'tenant-B' }
+        id: "task-B",
+        type: "task",
+        attributes: { tenantId: "tenant-B" },
       };
 
       const action: Action = {
-        name: 'read',
-        attributes: {}
+        name: "read",
+        attributes: {},
       };
 
-      const decision = await engine.evaluate({ subject, resource, action, environment: { time: new Date() } });
+      const decision = await engine.evaluate({
+        subject,
+        resource,
+        action,
+        environment: { time: new Date() },
+      });
       expect(decision.allowed).toBe(true);
     });
   });
 
-  describe('Backward Compatibility', () => {
-    it('should support legacy forSubject API', () => {
+  describe("Backward Compatibility", () => {
+    it("should support legacy forSubject API", () => {
       const builder = new PolicyBuilder();
-      
+
       // Complex object style
       builder
-        .id('test-legacy')
-        .name('Test Legacy')
+        .id("test-legacy")
+        .name("Test Legacy")
         .allow()
-        .forSubject({ 
-          type: 'user', 
-          attributes: { role: 'manager' } 
+        .forSubject({
+          type: "user",
+          attributes: { role: "manager" },
         });
 
       const policy = builder.build();
-      expect(policy.subjects).toContainEqual({ attribute: 'type', type: 'equals', value: 'user' });
-      expect(policy.subjects).toContainEqual({ attribute: 'role', type: 'equals', value: 'manager' });
+      expect(policy.subjects).toContainEqual({
+        attribute: "type",
+        type: "equals",
+        value: "user",
+      });
+      expect(policy.subjects).toContainEqual({
+        attribute: "role",
+        type: "equals",
+        value: "manager",
+      });
     });
   });
 });

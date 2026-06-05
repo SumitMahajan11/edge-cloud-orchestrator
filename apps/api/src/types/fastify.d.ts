@@ -94,7 +94,7 @@ declare module 'fastify' {
       ...roles: (UserRole | string)[]
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
     requirePermission: (
-      permission: string
+      permission: string,
     ) => (request: FastifyRequest, reply: FastifyReply) => Promise<void>;
   }
 

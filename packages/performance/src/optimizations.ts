@@ -1,6 +1,6 @@
-import { EventEmitter } from 'eventemitter3';
-import Redis from 'ioredis';
-import { Pool, PoolClient } from 'pg';
+import { EventEmitter } from "eventemitter3";
+import Redis from "ioredis";
+import { Pool, PoolClient } from "pg";
 
 // Phase 14: Performance Optimization - Caching & Connection Pooling
 
@@ -31,8 +31,8 @@ export class DistributedCache extends EventEmitter {
       },
     });
 
-    this.redis.on('connect', () => this.emit('connected'));
-    this.redis.on('error', (err) => this.emit('error', err));
+    this.redis.on("connect", () => this.emit("connected"));
+    this.redis.on("error", (err) => this.emit("error", err));
   }
 
   async get<T>(key: string): Promise<T | null> {
@@ -48,7 +48,7 @@ export class DistributedCache extends EventEmitter {
   async getOrSet<T>(
     key: string,
     factory: () => Promise<T>,
-    ttlSeconds?: number
+    ttlSeconds?: number,
   ): Promise<T> {
     const cached = await this.get<T>(key);
     if (cached !== null) {
@@ -84,7 +84,7 @@ export class DistributedCache extends EventEmitter {
     key: string,
     factory: () => Promise<T>,
     ttlSeconds: number = 300,
-    lockTimeout: number = 10
+    lockTimeout: number = 10,
   ): Promise<T> {
     const lockKey = `lock:${key}`;
     const lockValue = `${Date.now()}-${Math.random()}`;
@@ -96,8 +96,14 @@ export class DistributedCache extends EventEmitter {
     }
 
     // Try to acquire lock
-    const acquired = await this.redis.set(lockKey, lockValue, 'EX', lockTimeout, 'NX');
-    
+    const acquired = await this.redis.set(
+      lockKey,
+      lockValue,
+      "EX",
+      lockTimeout,
+      "NX",
+    );
+
     if (acquired) {
       try {
         // We have the lock, fetch and cache
@@ -130,7 +136,7 @@ export class MultiLayerCache extends EventEmitter {
   constructor(redisConfig: CacheConfig) {
     super();
     this.l2Cache = new DistributedCache(redisConfig);
-    
+
     // Periodic cleanup of expired L1 entries
     this.cleanupInterval = setInterval(() => this.cleanupL1(), 60000);
   }
@@ -146,7 +152,10 @@ export class MultiLayerCache extends EventEmitter {
     const l2Value = await this.l2Cache.get<T>(key);
     if (l2Value !== null) {
       // Populate L1
-      this.l1Cache.set(key, { value: l2Value, expires: Date.now() + this.l1TTL });
+      this.l1Cache.set(key, {
+        value: l2Value,
+        expires: Date.now() + this.l1TTL,
+      });
       return l2Value;
     }
 
@@ -166,7 +175,7 @@ export class MultiLayerCache extends EventEmitter {
 
   async deletePattern(pattern: string): Promise<void> {
     // Delete from L1 cache - iterate and match pattern
-    const regex = new RegExp(pattern.replace(/\*/g, '.*'));
+    const regex = new RegExp(pattern.replace(/\*/g, ".*"));
     for (const key of this.l1Cache.keys()) {
       if (regex.test(key)) {
         this.l1Cache.delete(key);
@@ -208,11 +217,12 @@ export interface PooledDatabaseConfig {
 
 export class PooledDatabase extends EventEmitter {
   private pool: Pool;
-  private queryMetrics: Map<string, { count: number; totalTime: number }> = new Map();
+  private queryMetrics: Map<string, { count: number; totalTime: number }> =
+    new Map();
 
   constructor(config: PooledDatabaseConfig) {
     super();
-    
+
     this.pool = new Pool({
       host: config.host,
       port: config.port,
@@ -228,23 +238,23 @@ export class PooledDatabase extends EventEmitter {
       query_timeout: (config.queryTimeout || 30) * 1000,
     });
 
-    this.pool.on('connect', () => this.emit('connect'));
-    this.pool.on('error', (err) => this.emit('error', err));
-    this.pool.on('acquire', () => this.emit('acquire'));
-    this.pool.on('remove', () => this.emit('remove'));
+    this.pool.on("connect", () => this.emit("connect"));
+    this.pool.on("error", (err) => this.emit("error", err));
+    this.pool.on("acquire", () => this.emit("acquire"));
+    this.pool.on("remove", () => this.emit("remove"));
   }
 
   async query<T = any>(sql: string, params?: any[]): Promise<T[]> {
     const startTime = Date.now();
     const client = await this.pool.connect();
-    
+
     try {
       const result = await client.query(sql, params);
-      
+
       // Track metrics
       const duration = Date.now() - startTime;
       this.trackQuery(sql, duration);
-      
+
       return result.rows;
     } finally {
       client.release();
@@ -253,14 +263,14 @@ export class PooledDatabase extends EventEmitter {
 
   async transaction<T>(fn: (client: PoolClient) => Promise<T>): Promise<T> {
     const client = await this.pool.connect();
-    
+
     try {
-      await client.query('BEGIN');
+      await client.query("BEGIN");
       const result = await fn(client);
-      await client.query('COMMIT');
+      await client.query("COMMIT");
       return result;
     } catch (error) {
-      await client.query('ROLLBACK');
+      await client.query("ROLLBACK");
       throw error;
     } finally {
       client.release();
@@ -278,9 +288,12 @@ export class PooledDatabase extends EventEmitter {
 
   private trackQuery(sql: string, duration: number): void {
     // Extract operation type (simplified)
-    const operation = sql.trim().split(' ')[0].toUpperCase();
-    
-    const metrics = this.queryMetrics.get(operation) || { count: 0, totalTime: 0 };
+    const operation = sql.trim().split(" ")[0].toUpperCase();
+
+    const metrics = this.queryMetrics.get(operation) || {
+      count: 0,
+      totalTime: 0,
+    };
     metrics.count++;
     metrics.totalTime += duration;
     this.queryMetrics.set(operation, metrics);
@@ -325,14 +338,15 @@ export class CachedQueryExecutor extends EventEmitter {
       cacheKey?: string;
       cacheTTL?: number;
       skipCache?: boolean;
-    }
+    },
   ): Promise<T[]> {
-    const cacheKey = options?.cacheKey || `query:${this.hashQuery(sql, params)}`;
+    const cacheKey =
+      options?.cacheKey || `query:${this.hashQuery(sql, params)}`;
 
     if (!options?.skipCache) {
       const cached = await this.cache.get<T[]>(cacheKey);
       if (cached !== null) {
-        this.emit('cacheHit', { cacheKey, sql });
+        this.emit("cacheHit", { cacheKey, sql });
         return cached;
       }
     }
@@ -341,7 +355,7 @@ export class CachedQueryExecutor extends EventEmitter {
 
     if (!options?.skipCache) {
       await this.cache.set(cacheKey, result, options?.cacheTTL);
-      this.emit('cacheMiss', { cacheKey, sql });
+      this.emit("cacheMiss", { cacheKey, sql });
     }
 
     return result;
@@ -357,7 +371,7 @@ export class CachedQueryExecutor extends EventEmitter {
     let hash = 0;
     for (let i = 0; i < str.length; i++) {
       const char = str.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash;
     }
     return hash.toString(16);
@@ -377,21 +391,29 @@ export class DistributedRateLimiter extends EventEmitter {
     });
   }
 
-  async isAllowed(key: string, limit: number, windowSeconds: number): Promise<boolean> {
+  async isAllowed(
+    key: string,
+    limit: number,
+    windowSeconds: number,
+  ): Promise<boolean> {
     const windowKey = `ratelimit:${key}:${Math.floor(Date.now() / 1000 / windowSeconds)}`;
-    
+
     const current = await this.redis.incr(windowKey);
     if (current === 1) {
       await this.redis.expire(windowKey, windowSeconds);
     }
-    
+
     return current <= limit;
   }
 
-  async getRemaining(key: string, limit: number, windowSeconds: number): Promise<number> {
+  async getRemaining(
+    key: string,
+    limit: number,
+    windowSeconds: number,
+  ): Promise<number> {
     const windowKey = `ratelimit:${key}:${Math.floor(Date.now() / 1000 / windowSeconds)}`;
     const current = await this.redis.get(windowKey);
-    return limit - (parseInt(current || '0', 10));
+    return limit - parseInt(current || "0", 10);
   }
 
   async close(): Promise<void> {

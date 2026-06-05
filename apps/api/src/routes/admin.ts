@@ -86,7 +86,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           totalPages: Math.ceil(total / limit),
           hasNext: limit < total,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -142,7 +142,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           totalPages: Math.ceil(total / limit),
           hasNext: limit < total,
           hasPrev: false,
-        }
+        },
       };
     },
   );

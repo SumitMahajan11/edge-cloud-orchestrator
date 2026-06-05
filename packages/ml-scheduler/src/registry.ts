@@ -1,9 +1,9 @@
-import { Redis } from 'ioredis';
-import fs from 'fs';
-import path from 'path';
-import { createLogger } from '@edgecloud/shared-kernel';
+import { Redis } from "ioredis";
+import fs from "fs";
+import path from "path";
+import { createLogger } from "@edgecloud/shared-kernel";
 
-const logger = createLogger('ml-model-registry');
+const logger = createLogger("ml-model-registry");
 
 export interface ModelMetadata {
   version: string;
@@ -15,12 +15,15 @@ export interface ModelMetadata {
 }
 
 export class ModelRegistry {
-  private readonly REDIS_KEY = 'ml:active_model_version';
-  private readonly HISTORY_KEY = 'ml:model_version_history';
+  private readonly REDIS_KEY = "ml:active_model_version";
+  private readonly HISTORY_KEY = "ml:model_version_history";
   private readonly MODEL_DIR: string;
 
-  constructor(private redis: Redis, modelDir?: string) {
-    this.MODEL_DIR = modelDir || path.join(process.cwd(), 'models');
+  constructor(
+    private redis: Redis,
+    modelDir?: string,
+  ) {
+    this.MODEL_DIR = modelDir || path.join(process.cwd(), "models");
     if (!fs.existsSync(this.MODEL_DIR)) {
       fs.mkdirSync(this.MODEL_DIR, { recursive: true });
     }
@@ -28,18 +31,23 @@ export class ModelRegistry {
 
   async listModels(): Promise<ModelMetadata[]> {
     const files = fs.readdirSync(this.MODEL_DIR);
-    const metaFiles = files.filter(f => f.startsWith('model_') && f.endsWith('.json'));
-    
+    const metaFiles = files.filter(
+      (f) => f.startsWith("model_") && f.endsWith(".json"),
+    );
+
     const versions: ModelMetadata[] = [];
     for (const file of metaFiles) {
       try {
-        const content = fs.readFileSync(path.join(this.MODEL_DIR, file), 'utf-8');
+        const content = fs.readFileSync(
+          path.join(this.MODEL_DIR, file),
+          "utf-8",
+        );
         versions.push(JSON.parse(content));
       } catch (e) {
-        logger.warn({ file }, 'Failed to parse model metadata');
+        logger.warn({ file }, "Failed to parse model metadata");
       }
     }
-    
+
     return versions.sort((a, b) => b.created_at.localeCompare(a.created_at));
   }
 
@@ -63,10 +71,10 @@ export class ModelRegistry {
     }
 
     await this.redis.set(this.REDIS_KEY, version);
-    await this.redis.publish('ml:model_updated', version);
-    
-    logger.info({ version }, 'Model promoted to active');
-    
+    await this.redis.publish("ml:model_updated", version);
+
+    logger.info({ version }, "Model promoted to active");
+
     // Prune old models from disk (keep last 5)
     await this.pruneOldModels();
   }
@@ -74,26 +82,29 @@ export class ModelRegistry {
   async rollbackModel(): Promise<string | null> {
     const previousVersion = await this.redis.lpop(this.HISTORY_KEY);
     if (!previousVersion) {
-      logger.warn('No version history available for rollback');
+      logger.warn("No version history available for rollback");
       return null;
     }
 
     await this.redis.set(this.REDIS_KEY, previousVersion);
-    await this.redis.publish('ml:model_updated', previousVersion);
-    
-    logger.info({ version: previousVersion }, 'Model rolled back to previous version');
+    await this.redis.publish("ml:model_updated", previousVersion);
+
+    logger.info(
+      { version: previousVersion },
+      "Model rolled back to previous version",
+    );
     return previousVersion;
   }
 
   async getModelMetadata(version: string): Promise<ModelMetadata | null> {
     const metaPath = path.join(this.MODEL_DIR, `model_${version}.json`);
     if (!fs.existsSync(metaPath)) return null;
-    
+
     try {
-      const content = fs.readFileSync(metaPath, 'utf-8');
+      const content = fs.readFileSync(metaPath, "utf-8");
       return JSON.parse(content);
     } catch (error) {
-      logger.error({ error, version }, 'Failed to read model metadata');
+      logger.error({ error, version }, "Failed to read model metadata");
       return null;
     }
   }
@@ -109,15 +120,24 @@ export class ModelRegistry {
       if (model.version === activeVersion) continue;
 
       try {
-        const metaPath = path.join(this.MODEL_DIR, `model_${model.version}.json`);
-        const artifactPath = path.join(this.MODEL_DIR, `model_${model.version}.bin`); // Assuming XGBoost binary name
-        
+        const metaPath = path.join(
+          this.MODEL_DIR,
+          `model_${model.version}.json`,
+        );
+        const artifactPath = path.join(
+          this.MODEL_DIR,
+          `model_${model.version}.bin`,
+        ); // Assuming XGBoost binary name
+
         if (fs.existsSync(metaPath)) fs.unlinkSync(metaPath);
         if (fs.existsSync(artifactPath)) fs.unlinkSync(artifactPath);
-        
-        logger.info({ version: model.version }, 'Pruned old model artifact');
+
+        logger.info({ version: model.version }, "Pruned old model artifact");
       } catch (e) {
-        logger.error({ error: e, version: model.version }, 'Failed to prune model');
+        logger.error(
+          { error: e, version: model.version },
+          "Failed to prune model",
+        );
       }
     }
   }

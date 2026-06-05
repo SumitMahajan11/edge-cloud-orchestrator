@@ -18,11 +18,15 @@ const { mockMtls } = vi.hoisted(() => ({
       constructor() {}
     },
     CertificateAuthorityManager: class {
-      constructor() { }
-      async initialize() { return { certificatePem: 'mock' }; }
-      getCACertificate() { return 'mock-ca-cert'; }
+      constructor() {}
+      async initialize() {
+        return { certificatePem: 'mock' };
+      }
+      getCACertificate() {
+        return 'mock-ca-cert';
+      }
     },
-  }
+  },
 }));
 
 vi.mock('../services/mtls-authentication.js', () => mockMtls);
@@ -78,23 +82,28 @@ describe('Admin Republish Integration', () => {
 
   beforeEach(async () => {
     app = fastify();
-    
+
     app.decorate('prisma', mockPrisma);
     app.decorate('redis', { ping: vi.fn().mockResolvedValue('PONG') });
-    
-    await app.register(import('@fastify/jwt'), { 
+
+    await app.register(import('@fastify/jwt'), {
       secret: TEST_JWT_SECRET,
       issuer: 'edge-cloud-orchestrator',
-      audience: 'edge-cloud-clients'
+      audience: 'edge-cloud-clients',
     });
-    await app.register(import('@fastify/rate-limit'), { max: 100, timeWindow: 60000 });
+    await app.register(import('@fastify/rate-limit'), {
+      max: 100,
+      timeWindow: 60000,
+    });
 
-    const { ErrorSchema, HealthSchema } = await import('@edgecloud/shared-kernel');
+    const { ErrorSchema, HealthSchema } =
+      await import('@edgecloud/shared-kernel');
     const { zodToFastifySchema } = await import('../utils/zod-schema.js');
     app.addSchema({ $id: 'ErrorSchema', ...zodToFastifySchema(ErrorSchema) });
     app.addSchema({ $id: 'HealthSchema', ...zodToFastifySchema(HealthSchema) });
-    
-    const { authenticate, requirePermission, requireRole } = await import('../middleware/auth.middleware.js');
+
+    const { authenticate, requirePermission, requireRole } =
+      await import('../middleware/auth.middleware.js');
     app.decorate('authenticate', authenticate);
     app.decorate('requirePermission', requirePermission);
     app.decorate('requireRole', requireRole);
@@ -119,11 +128,11 @@ describe('Admin Republish Integration', () => {
 
   it('Test 1 — Republish valid task event', async () => {
     const token = generateToken('SUPER_ADMIN');
-    mockPrisma.task.findUnique.mockResolvedValue({ 
-      id: VALID_TASK_ID, 
-      name: 'Task 1', 
-      type: 'CUSTOM', 
-      priority: 'MEDIUM' 
+    mockPrisma.task.findUnique.mockResolvedValue({
+      id: VALID_TASK_ID,
+      name: 'Task 1',
+      type: 'CUSTOM',
+      priority: 'MEDIUM',
     });
 
     const response = await app.inject({
@@ -132,8 +141,8 @@ describe('Admin Republish Integration', () => {
       headers: { authorization: `Bearer ${token}` },
       payload: {
         eventType: 'task.created',
-        entityId: VALID_TASK_ID
-      }
+        entityId: VALID_TASK_ID,
+      },
     });
 
     expect(response.statusCode).toBe(200);
@@ -142,7 +151,10 @@ describe('Admin Republish Integration', () => {
 
   it('Test 2 — Super admin can republish event', async () => {
     const token = generateToken('SUPER_ADMIN');
-    mockPrisma.task.findUnique.mockResolvedValue({ id: VALID_TASK_ID, name: 'T1' });
+    mockPrisma.task.findUnique.mockResolvedValue({
+      id: VALID_TASK_ID,
+      name: 'T1',
+    });
 
     const response = await app.inject({
       method: 'POST',
@@ -150,8 +162,8 @@ describe('Admin Republish Integration', () => {
       headers: { authorization: `Bearer ${token}` },
       payload: {
         eventType: 'task.created',
-        entityId: VALID_TASK_ID
-      }
+        entityId: VALID_TASK_ID,
+      },
     });
 
     expect(response.statusCode).toBe(200);
@@ -168,8 +180,8 @@ describe('Admin Republish Integration', () => {
       headers: { authorization: `Bearer ${token}` },
       payload: {
         eventType: 'task.created',
-        entityId: VALID_TASK_ID
-      }
+        entityId: VALID_TASK_ID,
+      },
     });
 
     expect(response.statusCode).toBe(404);
@@ -184,8 +196,8 @@ describe('Admin Republish Integration', () => {
       headers: { authorization: `Bearer ${token}` },
       payload: {
         eventType: 'task.created',
-        entityId: VALID_TASK_ID
-      }
+        entityId: VALID_TASK_ID,
+      },
     });
 
     expect(response.statusCode).toBe(403);

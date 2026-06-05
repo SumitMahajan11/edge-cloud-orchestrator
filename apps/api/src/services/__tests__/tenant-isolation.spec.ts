@@ -1,4 +1,7 @@
-import { prismaForTenant, runWithTenantContext } from '@edgecloud/shared-kernel';
+import {
+  prismaForTenant,
+  runWithTenantContext,
+} from '@edgecloud/shared-kernel';
 
 describe('Tenant Data Isolation', () => {
   let prisma: any;
@@ -23,17 +26,17 @@ describe('Tenant Data Isolation', () => {
         // Simple implementation of $extends for testing
         const extended: any = { ...basePrisma };
         const originalTaskFindMany = basePrisma.task.findMany;
-        
+
         extended.task.findMany = async (args: any) => {
           return extension.query.$allModels.$allOperations({
             model: 'Task',
             operation: 'findMany',
             args: args || {},
-            query: (a: any) => originalTaskFindMany(a)
+            query: (a: any) => originalTaskFindMany(a),
           });
         };
         return extended;
-      }
+      },
     };
 
     prisma = prismaForTenant(basePrisma);

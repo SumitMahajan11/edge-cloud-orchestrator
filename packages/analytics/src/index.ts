@@ -4,4 +4,5 @@ export {
   PredictiveAnalytics,
   RealTimeAnalytics,
   StreamProcessor,
-  type StreamWindow} from './stream-processor';
+  type StreamWindow,
+} from "./stream-processor";

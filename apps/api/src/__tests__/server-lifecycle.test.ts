@@ -1,5 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { configureForProductionTest, restoreTestEnvironment } from './helpers/production-env.js';
+import {
+  configureForProductionTest,
+  restoreTestEnvironment,
+} from './helpers/production-env.js';
 import { mockLeaderElectionToAlwaysLead } from './helpers/mock-leader-election.js';
 
 describe('Server Lifecycle', () => {
@@ -19,12 +22,14 @@ describe('Server Lifecycle', () => {
       getSecret: async (key: string) => {
         if (key === 'JWT_SECRET') return 'a'.repeat(32);
         if (key === 'ENCRYPTION_KEY') return 'b'.repeat(32);
-        if (key === 'DATABASE_URL') return 'postgresql://localhost:5432/test?sslmode=require';
-        if (key === 'ALLOWED_ORIGINS') return 'http://localhost:5173,http://localhost:3000';
+        if (key === 'DATABASE_URL')
+          return 'postgresql://localhost:5432/test?sslmode=require';
+        if (key === 'ALLOWED_ORIGINS')
+          return 'http://localhost:5173,http://localhost:3000';
         if (key === 'JWT_EXPIRES_IN') return '15m';
         if (key === 'RATE_LIMIT_WINDOW_MS') return '60000';
         return process.env[key] || null;
-      }
+      },
     };
 
     // Mock BEFORE init() so services don't try to acquire real Redis locks:

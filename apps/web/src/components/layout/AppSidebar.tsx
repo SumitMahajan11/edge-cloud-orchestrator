@@ -1,6 +1,6 @@
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { cn } from '../../lib/utils'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { cn } from "../../lib/utils";
 import {
   LayoutDashboard,
   Server,
@@ -15,89 +15,100 @@ import {
   Bell,
   Users,
   GitBranch,
-} from 'lucide-react'
-import { useState } from 'react'
-import { useTenant } from '../../contexts/TenantContext'
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "../ui/tooltip"
+} from "lucide-react";
+import { useState } from "react";
+import { useTenant } from "../../contexts/TenantContext";
+import { useAuth } from "@/context/AuthContext";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 const navItems = [
-  { path: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { path: '/nodes', label: 'Edge Nodes', icon: Server },
-  { path: '/scheduler', label: 'Task Scheduler', icon: Calendar },
-  { path: '/monitoring', label: 'Monitoring', icon: Activity },
-  { path: '/ml-intelligence', label: 'ML Intelligence', icon: Sparkles },
-  { path: '/alerts', label: 'Alerts', icon: Bell },
-  { path: '/logs', label: 'Logs', icon: ScrollText },
-  { path: '/policies', label: 'Policies', icon: Settings },
-  { path: '/workflows', label: 'Workflows', icon: GitBranch },
-  { path: '/webhooks', label: 'Webhooks', icon: Webhook },
-]
+  { path: "/", label: "Dashboard", icon: LayoutDashboard },
+  { path: "/nodes", label: "Edge Nodes", icon: Server },
+  { path: "/scheduler", label: "Task Scheduler", icon: Calendar },
+  { path: "/monitoring", label: "Monitoring", icon: Activity },
+  { path: "/ml-intelligence", label: "ML Intelligence", icon: Sparkles },
+  { path: "/alerts", label: "Alerts", icon: Bell },
+  { path: "/logs", label: "Logs", icon: ScrollText },
+  { path: "/policies", label: "Policies", icon: Settings },
+  { path: "/workflows", label: "Workflows", icon: GitBranch },
+  { path: "/webhooks", label: "Webhooks", icon: Webhook },
+];
 
-const adminNavItems = [
-  { path: '/tenants', label: 'Tenants', icon: Users },
-]
+const adminNavItems = [{ path: "/tenants", label: "Tenants", icon: Users }];
 
 interface AppSidebarProps {
-  isOpen: boolean
-  onToggle: () => void
+  isOpen: boolean;
+  onToggle: () => void;
 }
 
 export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
-  const pathname = usePathname()
-  const tenant = useTenant()
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
-  
-  const NavItem = ({ item, collapsed }: { item: typeof navItems[0], collapsed: boolean }) => {
-    const Icon = item.icon
-    const isActive = pathname === item.path
-    
+  const pathname = usePathname();
+  const tenant = useTenant();
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
+
+  const NavItem = ({
+    item,
+    collapsed,
+  }: {
+    item: (typeof navItems)[0];
+    collapsed: boolean;
+  }) => {
+    const Icon = item.icon;
+    const isActive = pathname === item.path;
+
     const content = (
       <Link
         href={item.path}
         onClick={() => setIsMobileOpen(false)}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all',
+          "flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all",
           isActive
-            ? 'bg-primary/10 text-primary'
-            : 'text-muted-foreground hover:bg-secondary hover:text-foreground',
-          collapsed && 'lg:justify-center lg:px-2'
+            ? "bg-primary/10 text-primary"
+            : "text-muted-foreground hover:bg-secondary hover:text-foreground",
+          collapsed && "lg:justify-center lg:px-2",
         )}
       >
-        <Icon className={cn('h-5 w-5 flex-shrink-0', isActive && 'text-primary')} />
+        <Icon
+          className={cn("h-5 w-5 flex-shrink-0", isActive && "text-primary")}
+        />
         {!collapsed && <span>{item.label}</span>}
       </Link>
-    )
+    );
 
     if (collapsed) {
       return (
         <Tooltip delayDuration={0}>
-          <TooltipTrigger asChild>
-            {content}
-          </TooltipTrigger>
-          <TooltipContent side="right" className="bg-card border-border text-foreground">
+          <TooltipTrigger asChild>{content}</TooltipTrigger>
+          <TooltipContent
+            side="right"
+            className="bg-card border-border text-foreground"
+          >
             {item.label}
           </TooltipContent>
         </Tooltip>
-      )
+      );
     }
 
-    return content
-  }
+    return content;
+  };
+
+  const { user } = useAuth();
+  const userInitials = user?.email
+    ? user.email.slice(0, 2).toUpperCase()
+    : "US";
+  const userDisplayName = user?.name || user?.email || "User";
+  const userRoleName = user?.role || "Authenticated";
 
   return (
     <>
       {/* Mobile overlay */}
       {isMobileOpen && (
-        <div 
+        <div
           className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40 lg:hidden"
           onClick={() => setIsMobileOpen(false)}
         />
       )}
-      
+
       {/* Mobile toggle button */}
       <button
         onClick={() => setIsMobileOpen(!isMobileOpen)}
@@ -109,24 +120,31 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
           <Menu className="h-5 w-5 text-foreground" />
         )}
       </button>
-      
+
       {/* Sidebar */}
       <aside
         className={cn(
-          'fixed left-0 top-0 z-40 h-screen bg-card border-r border-border transition-all duration-300',
-          isOpen ? 'w-64' : 'w-20',
-          isMobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+          "fixed left-0 top-0 z-40 h-screen bg-card border-r border-border transition-all duration-300",
+          isOpen ? "w-64" : "w-20",
+          isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
         )}
       >
         <div className="flex h-full flex-col">
           {/* Header */}
           <div className="flex h-16 items-center justify-between border-b border-border px-4">
-            <div className={cn('flex items-center gap-3', !isOpen && 'lg:justify-center lg:w-full')}>
+            <div
+              className={cn(
+                "flex items-center gap-3",
+                !isOpen && "lg:justify-center lg:w-full",
+              )}
+            >
               <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary">
                 <Server className="h-4 w-4 text-primary-foreground" />
               </div>
               {isOpen && (
-                <span className="font-semibold text-foreground tracking-tight">EdgeCloud</span>
+                <span className="font-semibold text-foreground tracking-tight">
+                  EdgeCloud
+                </span>
               )}
             </div>
             <button
@@ -136,7 +154,7 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
               <Menu className="h-4 w-4 text-muted-foreground" />
             </button>
           </div>
-          
+
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4 px-3">
             <ul className="space-y-1">
@@ -149,8 +167,13 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
 
             {tenant.isSuperAdmin && (
               <div className="mt-6">
-                <div className={cn('px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground', !isOpen && 'text-center px-0')}>
-                  {isOpen ? 'Administration' : 'Admin'}
+                <div
+                  className={cn(
+                    "px-3 mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    !isOpen && "text-center px-0",
+                  )}
+                >
+                  {isOpen ? "Administration" : "Admin"}
                 </div>
                 <ul className="space-y-1">
                   {adminNavItems.map((item) => (
@@ -162,17 +185,28 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
               </div>
             )}
           </nav>
-          
+
           {/* Footer */}
           <div className="border-t border-border p-4">
-            <div className={cn('flex items-center gap-3', !isOpen && 'lg:justify-center')}>
+            <div
+              className={cn(
+                "flex items-center gap-3",
+                !isOpen && "lg:justify-center",
+              )}
+            >
               <div className="h-8 w-8 rounded-full bg-secondary flex items-center justify-center border border-border">
-                <span className="text-[10px] font-bold text-primary">AD</span>
+                <span className="text-[10px] font-bold text-primary">
+                  {userInitials}
+                </span>
               </div>
               {isOpen && (
                 <div className="flex flex-col overflow-hidden">
-                  <span className="text-sm font-medium text-foreground truncate">Admin User</span>
-                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Authenticated</span>
+                  <span className="text-sm font-medium text-foreground truncate">
+                    {userDisplayName}
+                  </span>
+                  <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+                    {userRoleName}
+                  </span>
                 </div>
               )}
             </div>
@@ -180,5 +214,5 @@ export function AppSidebar({ isOpen, onToggle }: AppSidebarProps) {
         </div>
       </aside>
     </>
-  )
+  );
 }

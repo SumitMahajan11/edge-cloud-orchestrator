@@ -1,9 +1,7 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: ["class"],
-  content: [
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./src/**/*.{js,ts,jsx,tsx,mdx}"],
   theme: {
     extend: {
       colors: {
@@ -85,11 +83,20 @@ export default {
       },
       keyframes: {
         "pulse-glow": {
-          "0%, 100%": { opacity: "1", boxShadow: "0 0 20px hsl(var(--primary) / 0.5)" },
-          "50%": { opacity: "0.8", boxShadow: "0 0 10px hsl(var(--primary) / 0.3)" },
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow: "0 0 20px hsl(var(--primary) / 0.5)",
+          },
+          "50%": {
+            opacity: "0.8",
+            boxShadow: "0 0 10px hsl(var(--primary) / 0.3)",
+          },
         },
         "pulse-teal": {
-          "0%, 100%": { opacity: "1", boxShadow: "0 0 0 0 rgba(0,212,170,0.55)" },
+          "0%, 100%": {
+            opacity: "1",
+            boxShadow: "0 0 0 0 rgba(0,212,170,0.55)",
+          },
           "70%": { opacity: "0.9", boxShadow: "0 0 0 8px rgba(0,212,170,0)" },
         },
         "fade-in": {
@@ -108,4 +115,4 @@ export default {
     },
   },
   plugins: [require("tailwindcss-animate")],
-}
+};

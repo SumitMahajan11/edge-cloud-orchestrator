@@ -38,9 +38,11 @@ The system uses a **GitOps** model with the following components:
 ## Setup Instructions
 
 ### 1. Configure GitHub Environments
+
 Go to **Settings > Environments** in your GitHub repo and create a `production` environment. Add any required protection rules (like manual approvers).
 
 ### 2. Install ArgoCD Applications
+
 Apply the ArgoCD manifests to your cluster (assumes ArgoCD is already installed in the `argocd` namespace):
 
 ```bash
@@ -49,6 +51,7 @@ kubectl apply -f infra/k8s/argocd/production-app.yaml
 ```
 
 ### 3. Local Testing
+
 You can run the smoke tests locally against a target URL:
 
 ```bash

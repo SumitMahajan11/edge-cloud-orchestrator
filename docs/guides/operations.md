@@ -18,6 +18,7 @@ Event Processing → Retry (3x) → DLQ Storage
 ### Monitoring DLQ Size
 
 #### Redis CLI (Real-time)
+
 ```bash
 # Check DLQ size for a specific stream
 redis-cli XLEN edgecloud-events:dlq
@@ -29,6 +30,7 @@ redis-cli XLEN nodes.events:dlq
 ```
 
 #### API Endpoint
+
 ```bash
 # Get DLQ stats across all streams
 curl http://api.edgecloud.io/admin/dlq/stats \
@@ -36,6 +38,7 @@ curl http://api.edgecloud.io/admin/dlq/stats \
 ```
 
 Response:
+
 ```json
 {
   "totalEvents": 42,
@@ -56,6 +59,7 @@ Response:
 ### Inspecting Failed Events
 
 #### Redis CLI
+
 ```bash
 # View all events in DLQ
 redis-cli XRANGE edgecloud-events:dlq - +
@@ -68,6 +72,7 @@ redis-cli XRANGE edgecloud-events:dlq 1234567890123-0 1234567890123-0
 ```
 
 Example output:
+
 ```
 1) 1) "1719123456789-0"
    2) 1) "eventId"
@@ -83,6 +88,7 @@ Example output:
 ```
 
 #### API Endpoint
+
 ```bash
 # List failed events
 curl "http://api.edgecloud.io/admin/dlq/events?topic=tasks.commands&limit=50" \
@@ -96,6 +102,7 @@ curl http://api.edgecloud.io/admin/dlq/events/<event-id> \
 ### Manually Retrying Events
 
 #### From Redis Streams
+
 ```bash
 # 1. Inspect the event
 redis-cli XRANGE tasks.commands:dlq <event-id> <event-id>
@@ -108,6 +115,7 @@ redis-cli XDEL tasks.commands:dlq <event-id>
 ```
 
 #### Using API
+
 ```bash
 # Retry a single event
 curl -X POST http://api.edgecloud.io/admin/dlq/events/<event-id>/retry \
@@ -127,6 +135,7 @@ curl -X POST http://api.edgecloud.io/admin/dlq/topics/tasks.commands/retry-all \
 ### Alerting on DLQ Accumulation
 
 #### Prometheus Metrics
+
 ```prometheus
 # DLQ size per stream
 event_dlq_size{stream="tasks.commands:dlq"} 25
@@ -137,6 +146,7 @@ rate(event_dlq_total[5m])  # events per second
 ```
 
 #### Alert Rules
+
 ```yaml
 # In monitoring/alerts.yml
 groups:
@@ -162,9 +172,11 @@ groups:
 ```
 
 #### Grafana Dashboard
+
 Dashboard ID: `edgecloud-dlq-monitoring`
 
 Panels:
+
 1. **DLQ Size by Stream** (Time series)
 2. **DLQ Events Added Rate** (Gauge)
 3. **Retry Success Rate** (Percentage)
@@ -173,6 +185,7 @@ Panels:
 ### Purging Old DLQ Events
 
 #### API Endpoint
+
 ```bash
 # Purge events older than 7 days
 curl -X POST http://api.edgecloud.io/admin/dlq/purge \
@@ -182,6 +195,7 @@ curl -X POST http://api.edgecloud.io/admin/dlq/purge \
 ```
 
 #### Manual Cleanup (Redis)
+
 ```bash
 # Trim DLQ stream to keep only last 1000 events
 redis-cli XTRIM edgecloud-events:dlq MAXLEN 1000
@@ -192,13 +206,13 @@ redis-cli DEL edgecloud-events:dlq
 
 ### Common DLQ Errors
 
-| Error Pattern | Root Cause | Resolution |
-|--------------|------------|------------|
-| `Database connection timeout` | DB pool exhaustion | Increase pool size, check DB health |
-| `External API rate limit` | Third-party throttling | Implement backoff, contact API provider |
-| `Invalid event schema` | Bug in publisher | Fix event schema, redeploy |
-| `Handler undefined is not a function` | Code deployment issue | Rollback deployment, fix bug |
-| `Connection refused` | Downstream service offline | Restart service, check network |
+| Error Pattern                         | Root Cause                 | Resolution                              |
+| ------------------------------------- | -------------------------- | --------------------------------------- |
+| `Database connection timeout`         | DB pool exhaustion         | Increase pool size, check DB health     |
+| `External API rate limit`             | Third-party throttling     | Implement backoff, contact API provider |
+| `Invalid event schema`                | Bug in publisher           | Fix event schema, redeploy              |
+| `Handler undefined is not a function` | Code deployment issue      | Rollback deployment, fix bug            |
+| `Connection refused`                  | Downstream service offline | Restart service, check network          |
 
 ### DLQ Best Practices
 
@@ -214,6 +228,7 @@ redis-cli DEL edgecloud-events:dlq
 ### Monitoring Task Timeouts
 
 #### Prometheus Metrics
+
 ```prometheus
 # Task timeout rate
 rate(task_timeout_total[5m])
@@ -226,9 +241,11 @@ task_killed_by_timeout_total
 ```
 
 #### Grafana Dashboard
+
 Dashboard ID: `edgecloud-task-monitoring`
 
 Panels:
+
 1. **Task Execution Duration** (Heatmap)
 2. **Timeout Rate** (Time series)
 3. **Top Timeout Task Types** (Bar chart)
@@ -237,6 +254,7 @@ Panels:
 ### Adjusting Timeouts
 
 #### Identify Tasks Needing Adjustment
+
 ```bash
 # Get tasks with highest timeout rate
 curl "http://api.edgecloud.io/admin/tasks/timeout-stats?period=7d" \
@@ -244,7 +262,9 @@ curl "http://api.edgecloud.io/admin/tasks/timeout-stats?period=7d" \
 ```
 
 #### Update Default Timeout
+
 In `apps/api/prisma/schema.prisma`:
+
 ```prisma
 model Task {
   maxDurationSeconds Int @default(3600) // Adjust default
@@ -252,6 +272,7 @@ model Task {
 ```
 
 Then run migration:
+
 ```bash
 pnpm --filter api exec prisma migrate dev --name adjust_task_timeout
 ```

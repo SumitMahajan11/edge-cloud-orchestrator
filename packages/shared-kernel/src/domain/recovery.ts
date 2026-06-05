@@ -1,4 +1,4 @@
-import { Alert, HealingAction } from '../types/domain.js';
+import { Alert, HealingAction } from "../types/domain.js";
 
 export interface RecoveryConfig {
   cooldownMs: number;
@@ -13,19 +13,23 @@ export const DEFAULT_RECOVERY_CONFIG: RecoveryConfig = {
 };
 
 export function determineHealingAction(alert: Alert): HealingAction | null {
-  const alertName = alert.labels.alertname || '';
-  const target = alert.labels.instance || alert.labels.service || alert.labels.node || 'unknown';
+  const alertName = alert.labels.alertname || "";
+  const target =
+    alert.labels.instance ||
+    alert.labels.service ||
+    alert.labels.node ||
+    "unknown";
 
-  const alertMap: Record<string, HealingAction['type']> = {
-    NodeDown: 'reschedule-tasks',
-    NodeUnreachable: 'reschedule-tasks',
-    HighNodeLoad: 'scale-up',
-    ServiceCrashLooping: 'restart-service',
-    ServiceNotReady: 'restart-service',
-    HighMemoryUsage: 'scale-up',
-    KafkaConsumerLag: 'scale-up',
-    QueueBacklog: 'scale-up',
-    DeadlockDetected: 'restart-service',
+  const alertMap: Record<string, HealingAction["type"]> = {
+    NodeDown: "reschedule-tasks",
+    NodeUnreachable: "reschedule-tasks",
+    HighNodeLoad: "scale-up",
+    ServiceCrashLooping: "restart-service",
+    ServiceNotReady: "restart-service",
+    HighMemoryUsage: "scale-up",
+    KafkaConsumerLag: "scale-up",
+    QueueBacklog: "scale-up",
+    DeadlockDetected: "restart-service",
   };
 
   const type = alertMap[alertName];
@@ -34,7 +38,10 @@ export function determineHealingAction(alert: Alert): HealingAction | null {
   return {
     type,
     target,
-    reason: alert.annotations.summary || alert.annotations.description || 'Alert triggered',
+    reason:
+      alert.annotations.summary ||
+      alert.annotations.description ||
+      "Alert triggered",
   };
 }
 
@@ -42,7 +49,10 @@ export function shouldRetry(attempt: number, config: RecoveryConfig): boolean {
   return attempt < config.maxRetries;
 }
 
-export function calculateRetryDelay(attempt: number, config: RecoveryConfig): number {
+export function calculateRetryDelay(
+  attempt: number,
+  config: RecoveryConfig,
+): number {
   return config.cooldownMs * Math.pow(config.backoffFactor, attempt);
 }
 

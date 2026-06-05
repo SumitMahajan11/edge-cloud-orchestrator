@@ -2,13 +2,14 @@
 
 **Status**: Accepted  
 **Date**: 2026-04-19  
-**Authors**: Engineering Team  
+**Authors**: Engineering Team
 
 ---
 
 ## Context
 
 The project initially used **Helm** as the primary package manager for Kubernetes deployments. While Helm is powerful, it introduced several challenges for this specific project:
+
 1. **Template Complexity**: Over-reliance on `.tpl` files made manifests difficult to debug.
 2. **Values Proliferation**: `values.yaml` became a "catch-all" for configuration, leading to tight coupling between services.
 3. **Drift Management**: Verifying the diff between what is in Git and what is running in the cluster was cumbersome.

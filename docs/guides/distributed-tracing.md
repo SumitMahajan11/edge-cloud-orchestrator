@@ -5,7 +5,7 @@ The Edge-Cloud Orchestrator uses **OpenTelemetry (OTel)** for distributed tracin
 ## 1. Architecture
 
 - **Instrumentation**: Auto-instrumentation via `@opentelemetry/auto-instrumentations-node` combined with manual spans for business logic.
-- **Propagation**: 
+- **Propagation**:
   - Trace context is propagated via `X-Trace-ID` and `X-Request-ID` HTTP headers.
   - Redis Streams messages include `_otel` metadata for cross-process propagation.
 - **Collector**: Jaeger Agent (UDP 6831).
@@ -27,16 +27,16 @@ Use the `tracer` exported from `@edgecloud/shared-kernel` to create custom spans
 ### Standard Pattern
 
 ```typescript
-import { tracer } from '@edgecloud/shared-kernel';
-import { SpanStatusCode } from '@opentelemetry/api';
+import { tracer } from "@edgecloud/shared-kernel";
+import { SpanStatusCode } from "@opentelemetry/api";
 
 async function myComplexLogic() {
-  await tracer.startActiveSpan('my_service:operation_name', async (span) => {
+  await tracer.startActiveSpan("my_service:operation_name", async (span) => {
     try {
-      span.setAttribute('custom.attribute', 'value');
-      
+      span.setAttribute("custom.attribute", "value");
+
       // Your business logic here
-      
+
       span.setStatus({ code: SpanStatusCode.OK });
     } catch (error) {
       span.recordException(error);
@@ -51,21 +51,21 @@ async function myComplexLogic() {
 
 ### Request Correlation
 
-Every service automatically starts a root span for HTTP requests via the shared `fastifyLoggingPlugin` or `createExpressLoggingMiddleware`. 
+Every service automatically starts a root span for HTTP requests via the shared `fastifyLoggingPlugin` or `createExpressLoggingMiddleware`.
 
 - The **Trace ID** is available via `getTraceId()` from `@edgecloud/shared-kernel`.
 - The **Request ID** is available via `getRequestId()`.
 
 ## 4. Key Traced Components
 
-| Component | Span Name | Key Attributes |
-|-----------|-----------|----------------|
-| **API Gateway** | `nginx` | `http.method`, `http.url`, `request_id` |
-| **Scheduler** | `scheduler:process_queue` | `task.id`, `node.id`, `scheduler.throttled` |
-| **Dispatcher** | `scheduler:dispatch_task` | `http.url`, `task.id`, `node.id` |
-| **Edge Agent** | `agent:run_task` | `task.id`, `task.image`, `node.id` |
-| **Heartbeat** | `orchestrator:heartbeat_check` | `monitor.stale_nodes_count` |
-| **ML Predictor** | `ml:node_score_calculation` | `task.id`, `ml.decision.nodeId`, `ml.fallback_reason` |
+| Component        | Span Name                      | Key Attributes                                        |
+| ---------------- | ------------------------------ | ----------------------------------------------------- |
+| **API Gateway**  | `nginx`                        | `http.method`, `http.url`, `request_id`               |
+| **Scheduler**    | `scheduler:process_queue`      | `task.id`, `node.id`, `scheduler.throttled`           |
+| **Dispatcher**   | `scheduler:dispatch_task`      | `http.url`, `task.id`, `node.id`                      |
+| **Edge Agent**   | `agent:run_task`               | `task.id`, `task.image`, `node.id`                    |
+| **Heartbeat**    | `orchestrator:heartbeat_check` | `monitor.stale_nodes_count`                           |
+| **ML Predictor** | `ml:node_score_calculation`    | `task.id`, `ml.decision.nodeId`, `ml.fallback_reason` |
 
 ## 5. Troubleshooting
 

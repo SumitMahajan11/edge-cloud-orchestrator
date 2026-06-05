@@ -6,18 +6,18 @@ Task lifecycle management microservice. Accepts task submissions, validates reso
 
 ## Port
 
-| Variable | Default | Description         |
-|----------|---------|---------------------|
-| PORT     | 3005    | HTTP listen port    |
+| Variable | Default | Description      |
+| -------- | ------- | ---------------- |
+| PORT     | 3005    | HTTP listen port |
 
 ## Environment Variables
 
-| Variable      | Required | Description                        |
-|---------------|----------|------------------------------------|
-| DATABASE_URL  | yes      | PostgreSQL connection string       |
-| REDIS_URL     | yes      | Redis connection URL               |
-| KAFKA_BROKERS | no       | Kafka broker addresses             |
-| NODE_ENV      | no       | production / development           |
+| Variable      | Required | Description                  |
+| ------------- | -------- | ---------------------------- |
+| DATABASE_URL  | yes      | PostgreSQL connection string |
+| REDIS_URL     | yes      | Redis connection URL         |
+| KAFKA_BROKERS | no       | Kafka broker addresses       |
+| NODE_ENV      | no       | production / development     |
 
 ## Development
 

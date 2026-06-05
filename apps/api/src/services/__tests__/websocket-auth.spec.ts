@@ -1,16 +1,15 @@
 import { WebSocketManager } from '../websocket-manager';
 import jwt from 'jsonwebtoken';
 
-
 const { TEST_SECRET } = vi.hoisted(() => ({
-  TEST_SECRET: 'a'.repeat(32)
+  TEST_SECRET: 'a'.repeat(32),
 }));
 
 vi.mock('../../config/env', () => ({
   env: {
     JWT_SECRET: TEST_SECRET,
     NODE_ENV: 'test',
-  }
+  },
 }));
 
 describe('WebSocketManager Authentication', () => {
@@ -28,7 +27,10 @@ describe('WebSocketManager Authentication', () => {
   });
 
   it('should accept connection with valid JWT in query parameter', async () => {
-    const token = jwt.sign({ id: 'user-1', email: 'test@example.com', role: 'ADMIN' }, TEST_SECRET);
+    const token = jwt.sign(
+      { id: 'user-1', email: 'test@example.com', role: 'ADMIN' },
+      TEST_SECRET,
+    );
     const mockWs = {
       on: vi.fn(),
       send: vi.fn(),
@@ -44,8 +46,10 @@ describe('WebSocketManager Authentication', () => {
     wsManager.handleConnection(mockWs, mockReq);
 
     expect(mockWs.close).not.toHaveBeenCalled();
-    expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('connected'));
-    
+    expect(mockWs.send).toHaveBeenCalledWith(
+      expect.stringContaining('connected'),
+    );
+
     // Check if client is stored and authenticated
     const clients = (wsManager as any).clients;
     expect(clients.size).toBe(1);
@@ -55,7 +59,10 @@ describe('WebSocketManager Authentication', () => {
   });
 
   it('should accept connection with valid JWT in Authorization header', async () => {
-    const token = jwt.sign({ id: 'user-2', email: 'test@example.com', role: 'ADMIN' }, TEST_SECRET);
+    const token = jwt.sign(
+      { id: 'user-2', email: 'test@example.com', role: 'ADMIN' },
+      TEST_SECRET,
+    );
     const mockWs = {
       on: vi.fn(),
       send: vi.fn(),
@@ -65,17 +72,19 @@ describe('WebSocketManager Authentication', () => {
 
     const mockReq = {
       url: '/ws',
-      headers: { 
+      headers: {
         host: 'localhost',
-        authorization: `Bearer ${token}`
+        authorization: `Bearer ${token}`,
       },
     } as any;
 
     wsManager.handleConnection(mockWs, mockReq);
 
     expect(mockWs.close).not.toHaveBeenCalled();
-    expect(mockWs.send).toHaveBeenCalledWith(expect.stringContaining('connected'));
-    
+    expect(mockWs.send).toHaveBeenCalledWith(
+      expect.stringContaining('connected'),
+    );
+
     const clients = (wsManager as any).clients;
     const client = Array.from(clients.values())[0] as any;
     expect(client.userId).toBe('user-2');

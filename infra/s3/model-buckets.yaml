@@ -35,4 +35,3 @@ encryption:
   status: Enabled
   algorithm: AES256
   bucket_key_enabled: true
-

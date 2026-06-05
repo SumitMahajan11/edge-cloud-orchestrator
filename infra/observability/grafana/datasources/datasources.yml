@@ -13,7 +13,7 @@ datasources:
       manageAlerts: true
       prometheusType: Prometheus
       prometheusVersion: 2.48.0
-      cacheLevel: 'High'
+      cacheLevel: "High"
       incrementalQuerying: true
 
   - name: Jaeger
@@ -23,12 +23,12 @@ datasources:
     editable: false
     jsonData:
       tracesToLogs:
-        datasourceUid: 'loki'
-        tags: ['job', 'instance', 'service', 'requestId']
-        mappedTags: [{ key: 'service.name', value: 'service' }]
+        datasourceUid: "loki"
+        tags: ["job", "instance", "service", "requestId"]
+        mappedTags: [{ key: "service.name", value: "service" }]
         mapTagNamesEnabled: false
-        spanStartTimeShift: '1h'
-        spanEndTimeShift: '1h'
+        spanStartTimeShift: "1h"
+        spanEndTimeShift: "1h"
         filterByTraceID: true
         filterBySpanID: true
 

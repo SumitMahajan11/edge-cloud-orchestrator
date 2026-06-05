@@ -8,7 +8,6 @@
  * - Error classification accurate
  */
 
-
 import axios from 'axios';
 import {
   reliableCall,
@@ -67,10 +66,10 @@ describe('reliableCall', () => {
       });
 
       const promise = reliableCall(fn, { retries: 3 });
-      
+
       // Fast forward through retries
       await vi.runAllTimersAsync();
-      
+
       const result = await promise;
 
       expect(result).toBe('success');
@@ -82,7 +81,7 @@ describe('reliableCall', () => {
 
       const promise = reliableCall(fn, { retries: 1 });
       promise.catch(() => {});
-      
+
       await vi.runAllTimersAsync();
 
       await expect(promise).rejects.toThrow(ReliableCallError);
@@ -94,11 +93,11 @@ describe('reliableCall', () => {
 
       const promise = reliableCall(fn, { retries: 3 });
       promise.catch(() => {});
-      
+
       await vi.runAllTimersAsync();
 
       await expect(promise).rejects.toThrow(ReliableCallError);
-      
+
       try {
         await promise;
       } catch (error: any) {
@@ -189,7 +188,7 @@ describe('reliableCall', () => {
       } catch (e) {}
 
       // Third call succeeds, closing circuit
-      await new Promise(resolve => setTimeout(resolve, 50));
+      await new Promise((resolve) => setTimeout(resolve, 50));
       const result = await reliableCall(fn, { circuitBreaker, retries: 0 });
       expect(result).toBe('success');
     });

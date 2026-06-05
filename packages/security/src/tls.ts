@@ -1,9 +1,9 @@
-import fs from 'fs';
-import https from 'https';
-import crypto from 'crypto';
-import pino from 'pino';
+import fs from "fs";
+import https from "https";
+import crypto from "crypto";
+import pino from "pino";
 
-const logger = pino({ name: 'shared-tls-factory' });
+const logger = pino({ name: "shared-tls-factory" });
 
 export interface MtlsOptions {
   certPath: string;
@@ -15,11 +15,17 @@ export interface MtlsOptions {
 /**
  * Validates that the certificate and key are present, valid, and not nearing expiry.
  */
-function validateCerts(options: MtlsOptions): { cert: Buffer; key: Buffer; ca: Buffer } {
+function validateCerts(options: MtlsOptions): {
+  cert: Buffer;
+  key: Buffer;
+  ca: Buffer;
+} {
   const { certPath, keyPath, caPath } = options;
 
-  if (!fs.existsSync(certPath)) throw new Error(`Cert file not found: ${certPath}`);
-  if (!fs.existsSync(keyPath)) throw new Error(`Key file not found: ${keyPath}`);
+  if (!fs.existsSync(certPath))
+    throw new Error(`Cert file not found: ${certPath}`);
+  if (!fs.existsSync(keyPath))
+    throw new Error(`Key file not found: ${keyPath}`);
   if (!fs.existsSync(caPath)) throw new Error(`CA file not found: ${caPath}`);
 
   const cert = fs.readFileSync(certPath);
@@ -30,10 +36,14 @@ function validateCerts(options: MtlsOptions): { cert: Buffer; key: Buffer; ca: B
   const x509 = new crypto.X509Certificate(cert);
   const validTo = new Date(x509.validTo);
   const now = new Date();
-  const diffDays = Math.ceil((validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  const diffDays = Math.ceil(
+    (validTo.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+  );
 
   if (diffDays < 7) {
-    throw new Error(`FATAL: Certificate for ${options.serviceName} expires in ${diffDays} days! Refusing to start.`);
+    throw new Error(
+      `FATAL: Certificate for ${options.serviceName} expires in ${diffDays} days! Refusing to start.`,
+    );
   }
 
   return { cert, key, ca };
@@ -51,12 +61,12 @@ export function createMtlsServer(options: MtlsOptions): https.ServerOptions {
     ca,
     requestCert: true,
     rejectUnauthorized: true,
-    minVersion: 'TLSv1.3',
+    minVersion: "TLSv1.3",
     // Custom authorization callback to log rejections
     SNICallback: (servername, cb) => {
       // Logic could be added here if multiple certs are used
       cb(null);
-    }
+    },
   };
 }
 
@@ -77,14 +87,19 @@ export function createMtlsAgent(options: MtlsOptions): https.Agent {
 /**
  * Middleware or helper to validate client certificate CN pattern.
  */
-export function validateClientCertificate(cert: any, expectedPattern: RegExp): boolean {
+export function validateClientCertificate(
+  cert: any,
+  expectedPattern: RegExp,
+): boolean {
   if (!cert || !cert.subject) return false;
   const cn = cert.subject.CN;
   if (!cn) return false;
-  
+
   const isValid = expectedPattern.test(cn);
   if (!isValid) {
-    logger.error(`Unauthorized client certificate CN: ${cn}. Expected pattern: ${expectedPattern}`);
+    logger.error(
+      `Unauthorized client certificate CN: ${cn}. Expected pattern: ${expectedPattern}`,
+    );
   }
   return isValid;
 }

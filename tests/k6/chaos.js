@@ -10,15 +10,15 @@
  * - CPU throttling
  */
 
-const axios = require('axios');
-const { spawn, exec } = require('child_process');
-const util = require('util');
+const axios = require("axios");
+const { spawn, exec } = require("child_process");
+const util = require("util");
 const execPromise = util.promisify(exec);
 
-const API_URL = process.env.API_URL || 'http://localhost:3000';
-const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
-const DB_CONTAINER = process.env.DB_CONTAINER || 'edge-cloud-postgres';
-const REDIS_CONTAINER = process.env.REDIS_CONTAINER || 'edge-cloud-redis';
+const API_URL = process.env.API_URL || "http://localhost:3000";
+const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379";
+const DB_CONTAINER = process.env.DB_CONTAINER || "edge-cloud-postgres";
+const REDIS_CONTAINER = process.env.REDIS_CONTAINER || "edge-cloud-redis";
 
 const CHAOS_DURATIONS = {
   short: 5000, // 5 seconds
@@ -39,7 +39,7 @@ class ChaosTestRunner {
   async checkHealth() {
     try {
       const response = await axios.get(`${API_URL}/health`, { timeout: 5000 });
-      return response.data.status === 'healthy';
+      return response.data.status === "healthy";
     } catch (error) {
       return false;
     }
@@ -72,7 +72,7 @@ class ChaosTestRunner {
     try {
       // Check initial health
       const initialHealth = await this.checkHealth();
-      this.log(`Initial health: ${initialHealth ? 'healthy' : 'unhealthy'}`);
+      this.log(`Initial health: ${initialHealth ? "healthy" : "unhealthy"}`);
 
       // Inject chaos
       await chaosFn();
@@ -84,17 +84,17 @@ class ChaosTestRunner {
       // Check health during chaos
       const duringChaosHealth = await this.checkHealth();
       this.log(
-        `Health during chaos: ${duringChaosHealth ? 'healthy' : 'unhealthy'}`,
+        `Health during chaos: ${duringChaosHealth ? "healthy" : "unhealthy"}`,
       );
 
       // Restore chaos
       await this.restoreChaos(name);
-      this.log('Chaos restored');
+      this.log("Chaos restored");
 
       // Measure recovery
       const recovery = await this.measureRecovery();
       this.log(
-        `Recovery: ${recovery.recovered ? 'success' : 'failed'} (${recovery.recoveryTime}ms)`,
+        `Recovery: ${recovery.recovered ? "success" : "failed"} (${recovery.recoveryTime}ms)`,
       );
 
       const result = {
@@ -123,18 +123,18 @@ class ChaosTestRunner {
 
   async restoreChaos(testName) {
     switch (testName) {
-      case 'database-failure':
+      case "database-failure":
         await execPromise(`docker start ${DB_CONTAINER}`).catch(() => {});
         break;
-      case 'redis-failure':
+      case "redis-failure":
         await execPromise(`docker start ${REDIS_CONTAINER}`).catch(() => {});
         break;
-      case 'network-latency':
+      case "network-latency":
         await execPromise(
-          'docker network rm chaos-network 2>/dev/null || true',
+          "docker network rm chaos-network 2>/dev/null || true",
         ).catch(() => {});
         break;
-      case 'edge-agent-failure':
+      case "edge-agent-failure":
         // Edge agent should auto-restart
         break;
     }
@@ -142,7 +142,7 @@ class ChaosTestRunner {
 
   async testDatabaseFailure() {
     return this.runTest(
-      'database-failure',
+      "database-failure",
       async () => {
         try {
           await execPromise(`docker stop ${DB_CONTAINER}`);
@@ -156,7 +156,7 @@ class ChaosTestRunner {
 
   async testRedisFailure() {
     return this.runTest(
-      'redis-failure',
+      "redis-failure",
       async () => {
         try {
           await execPromise(`docker stop ${REDIS_CONTAINER}`);
@@ -170,18 +170,18 @@ class ChaosTestRunner {
 
   async testNetworkLatency() {
     return this.runTest(
-      'network-latency',
+      "network-latency",
       async () => {
         // This would require tc (traffic control) on Linux
         // For Docker, we'd use network emulation
-        this.log('Network latency injection requires root privileges');
+        this.log("Network latency injection requires root privileges");
       },
       CHAOS_DURATIONS.short,
     );
   }
 
   async testHighLoad() {
-    this.log('\n🔥 Starting chaos test: high-load');
+    this.log("\n🔥 Starting chaos test: high-load");
 
     const requests = [];
     const numRequests = 1000;
@@ -202,7 +202,7 @@ class ChaosTestRunner {
     const failed = responses.length - successful;
 
     const result = {
-      name: 'high-load',
+      name: "high-load",
       totalRequests: numRequests,
       successful,
       failed,
@@ -220,7 +220,7 @@ class ChaosTestRunner {
   }
 
   async testMemoryPressure() {
-    this.log('\n🔥 Starting chaos test: memory-pressure');
+    this.log("\n🔥 Starting chaos test: memory-pressure");
 
     // Allocate memory to stress the system
     const chunks = [];
@@ -228,7 +228,7 @@ class ChaosTestRunner {
 
     try {
       for (let i = 0; i < 100; i++) {
-        chunks.push(Buffer.alloc(chunkSize, 'x'));
+        chunks.push(Buffer.alloc(chunkSize, "x"));
 
         // Check health periodically
         if (i % 10 === 0) {
@@ -241,7 +241,7 @@ class ChaosTestRunner {
       }
 
       const result = {
-        name: 'memory-pressure',
+        name: "memory-pressure",
         memoryAllocated: chunks.length * 10,
         passed: await this.checkHealth(),
       };
@@ -258,15 +258,15 @@ class ChaosTestRunner {
   }
 
   printSummary() {
-    console.log('\n' + '='.repeat(60));
-    console.log('CHAOS TEST SUMMARY');
-    console.log('='.repeat(60));
+    console.log("\n" + "=".repeat(60));
+    console.log("CHAOS TEST SUMMARY");
+    console.log("=".repeat(60));
 
     let passed = 0;
     let failed = 0;
 
     this.results.forEach((result) => {
-      const status = result.passed ? '✅ PASSED' : '❌ FAILED';
+      const status = result.passed ? "✅ PASSED" : "❌ FAILED";
       console.log(`${status}: ${result.name}`);
 
       if (result.recoveryTime) {
@@ -280,9 +280,9 @@ class ChaosTestRunner {
       else failed++;
     });
 
-    console.log('='.repeat(60));
+    console.log("=".repeat(60));
     console.log(`Total: ${passed} passed, ${failed} failed`);
-    console.log('='.repeat(60));
+    console.log("=".repeat(60));
 
     return { passed, failed, total: this.results.length };
   }
@@ -292,15 +292,15 @@ class ChaosTestRunner {
 async function main() {
   const runner = new ChaosTestRunner();
 
-  console.log('🎯 Edge-Cloud Orchestrator Chaos Testing');
-  console.log('='.repeat(60));
+  console.log("🎯 Edge-Cloud Orchestrator Chaos Testing");
+  console.log("=".repeat(60));
 
   // Run tests
   await runner.testHighLoad();
   await new Promise((resolve) => setTimeout(resolve, 5000));
 
   // Database and Redis tests require Docker
-  if (process.env.RUN_DOCKER_CHAOS === 'true') {
+  if (process.env.RUN_DOCKER_CHAOS === "true") {
     await runner.testDatabaseFailure();
     await new Promise((resolve) => setTimeout(resolve, 10000));
 

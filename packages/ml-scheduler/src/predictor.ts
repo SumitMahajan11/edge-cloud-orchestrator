@@ -1,19 +1,19 @@
-import { EdgeNode, Task, createLogger } from '@edgecloud/shared-kernel';
-import path from 'path';
-import fs from 'fs';
+import { EdgeNode, Task, createLogger } from "@edgecloud/shared-kernel";
+import path from "path";
+import fs from "fs";
 
 let tf: any = null;
 try {
-  tf = require('@tensorflow/tfjs-node');
+  tf = require("@tensorflow/tfjs-node");
 } catch (e) {
   if ((globalThis as any).tf) {
     tf = (globalThis as any).tf;
   } else {
-    console.warn('TensorFlow native addon not available, using mock predictor');
+    console.warn("TensorFlow native addon not available, using mock predictor");
   }
 }
 
-const logger = createLogger('ml-predictor');
+const logger = createLogger("ml-predictor");
 
 export interface TrainingExample {
   cpu_usage_pct: number;
@@ -43,19 +43,21 @@ export class SchedulingPredictor {
   }
 
   setMetrics(metrics: any) {
-    if (metrics && typeof metrics.setMLFallbackMode === 'function') {
+    if (metrics && typeof metrics.setMLFallbackMode === "function") {
       metrics.setMLFallbackMode(this.useMock);
     }
   }
 
-  async train(historicalData: TrainingExample[]): Promise<{ version: string; mae: number }> {
+  async train(
+    historicalData: TrainingExample[],
+  ): Promise<{ version: string; mae: number }> {
     if (this.useMock) {
-      logger.warn('Mock predictor: training simulated');
-      return { version: 'mock-' + Date.now(), mae: 0.1 };
+      logger.warn("Mock predictor: training simulated");
+      return { version: "mock-" + Date.now(), mae: 0.1 };
     }
-    
+
     if (historicalData.length < 50) {
-      throw new Error('Insufficient training data. Need at least 50 examples.');
+      throw new Error("Insufficient training data. Need at least 50 examples.");
     }
 
     // Prepare training data
@@ -65,16 +67,20 @@ export class SchedulingPredictor {
     // Build model (Refined for regression)
     this.model = tf.sequential({
       layers: [
-        tf.layers.dense({ inputShape: [this.featureSize], units: 32, activation: 'relu' }),
+        tf.layers.dense({
+          inputShape: [this.featureSize],
+          units: 32,
+          activation: "relu",
+        }),
         tf.layers.dropout({ rate: 0.1 }),
-        tf.layers.dense({ units: 16, activation: 'relu' }),
-        tf.layers.dense({ units: 1, activation: 'sigmoid' }),
+        tf.layers.dense({ units: 16, activation: "relu" }),
+        tf.layers.dense({ units: 1, activation: "sigmoid" }),
       ],
     });
 
     this.model.compile({
       optimizer: tf.train.adam(0.005),
-      loss: 'meanSquaredError',
+      loss: "meanSquaredError",
     });
 
     // Train
@@ -85,7 +91,7 @@ export class SchedulingPredictor {
     });
 
     const mae = history.history.loss[history.history.loss.length - 1];
-    const version = new Date().toISOString().replace(/[:.-]/g, '');
+    const version = new Date().toISOString().replace(/[:.-]/g, "");
 
     this.isTrained = true;
     this.currentVersion = version;
@@ -104,15 +110,15 @@ export class SchedulingPredictor {
 
     const features = this.encodeTaskAndNode(task, node);
     const input = tf.tensor2d([features]);
-    
+
     try {
       const prediction = this.model.predict(input);
       const data = await prediction.data();
       const score = data[0];
-      
+
       input.dispose();
       prediction.dispose();
-      
+
       return score;
     } catch (error) {
       input.dispose();
@@ -122,16 +128,18 @@ export class SchedulingPredictor {
 
   async loadModel(modelDir: string, version: string): Promise<void> {
     const meta_path = path.join(modelDir, `model_${version}.json`);
-    let meta: any = { version: version, algorithm: 'TF' };
-    
+    let meta: any = { version: version, algorithm: "TF" };
+
     if (fs.existsSync(meta_path)) {
-      meta = JSON.parse(fs.readFileSync(meta_path, 'utf-8'));
+      meta = JSON.parse(fs.readFileSync(meta_path, "utf-8"));
     }
-    
+
     // Version Validation Gate - MUST happen even in mock mode
     const minVersion = process.env.MIN_MODEL_VERSION;
     if (minVersion && !this.isVersionSatisfied(meta.version, minVersion)) {
-      throw new Error(`Model version ${meta.version} is below minimum required version ${minVersion}. Load aborted.`);
+      throw new Error(
+        `Model version ${meta.version} is below minimum required version ${minVersion}. Load aborted.`,
+      );
     }
 
     if (this.useMock) {
@@ -141,12 +149,14 @@ export class SchedulingPredictor {
       return;
     }
 
-    if (meta.algorithm === 'XGBoost') {
-      logger.info(`XGBoost model version ${meta.version} detected. Loading artifact from ${meta.artifact_path}`);
+    if (meta.algorithm === "XGBoost") {
+      logger.info(
+        `XGBoost model version ${meta.version} detected. Loading artifact from ${meta.artifact_path}`,
+      );
       this.currentVersion = meta.version;
       this.isTrained = false; // Fallback to heuristics if algorithm is XGBoost
     } else {
-      const modelPath = `file://${path.join(modelDir, version, 'model.json')}`;
+      const modelPath = `file://${path.join(modelDir, version, "model.json")}`;
       this.model = await tf.loadLayersModel(modelPath);
       this.isTrained = true;
       this.currentVersion = meta.version;
@@ -158,36 +168,37 @@ export class SchedulingPredictor {
     if (this.useMock || !this.isTrained || !this.model) {
       return;
     }
-    
+
     if (!fs.existsSync(modelDir)) {
       fs.mkdirSync(modelDir, { recursive: true });
     }
-    
-    const version = this.currentVersion || new Date().toISOString().replace(/[:.-]/g, '');
+
+    const version =
+      this.currentVersion || new Date().toISOString().replace(/[:.-]/g, "");
     const modelPath = path.join(modelDir, version);
     if (!fs.existsSync(modelPath)) {
       fs.mkdirSync(modelPath, { recursive: true });
     }
-    
+
     // Save layers model
     await this.model.save(`file://${modelPath}`);
-    
+
     // Save metadata JSON
     const metadata = {
       version,
-      algorithm: 'TF',
-      timestamp: new Date().toISOString()
+      algorithm: "TF",
+      timestamp: new Date().toISOString(),
     };
     fs.writeFileSync(
       path.join(modelDir, `model_${version}.json`),
-      JSON.stringify(metadata, null, 2)
+      JSON.stringify(metadata, null, 2),
     );
   }
 
   private isVersionSatisfied(current: string, min: string): boolean {
-    const stripV = (s: string) => s.startsWith('v') ? s.substring(1) : s;
-    const c = stripV(current).split('.').map(Number);
-    const m = stripV(min).split('.').map(Number);
+    const stripV = (s: string) => (s.startsWith("v") ? s.substring(1) : s);
+    const c = stripV(current).split(".").map(Number);
+    const m = stripV(min).split(".").map(Number);
     for (let i = 0; i < 3; i++) {
       if ((c[i] || 0) > (m[i] || 0)) return true;
       if ((c[i] || 0) < (m[i] || 0)) return false;
@@ -208,17 +219,20 @@ export class SchedulingPredictor {
       d.requires_gpu,
       Math.min(1, d.image_size_mb / 500),
       d.hour_of_day / 24,
-      d.day_of_week / 7
+      d.day_of_week / 7,
     ];
   }
 
   private encodeTaskAndNode(task: Task, node: EdgeNode): number[] {
     const priorityMap: Record<string, number> = {
-      'LOW': 0, 'MEDIUM': 1, 'HIGH': 2, 'CRITICAL': 3
+      LOW: 0,
+      MEDIUM: 1,
+      HIGH: 2,
+      CRITICAL: 3,
     };
 
     const now = new Date();
-    
+
     return [
       node.cpuUsage / 100,
       node.memoryUsage / 100,
@@ -227,11 +241,11 @@ export class SchedulingPredictor {
       0.95, // Default success rate
       node.costPerHour / 2.0,
       priorityMap[task.priority] || 1,
-      (task.metadata?.estimated_duration_ms as number || 5000) / 30000,
+      ((task.metadata?.estimated_duration_ms as number) || 5000) / 30000,
       task.metadata?.requires_gpu ? 1 : 0,
-      (task.metadata?.image_size_mb as number || 0) / 500,
+      ((task.metadata?.image_size_mb as number) || 0) / 500,
       now.getHours() / 24,
-      now.getDay() / 7
+      now.getDay() / 7,
     ];
   }
 
@@ -240,7 +254,7 @@ export class SchedulingPredictor {
     score *= 1 - (node.cpuUsage / 100) * 0.4;
     score *= 1 - (node.memoryUsage / 100) * 0.3;
     score *= 1 - Math.min(1, node.latency / 500) * 0.2;
-    if (node.status !== 'ONLINE') score *= 0.1;
+    if (node.status !== "ONLINE") score *= 0.1;
     if (node.tasksRunning >= node.maxTasks) score *= 0.05;
     return score;
   }
@@ -257,40 +271,58 @@ export class SchedulingPredictor {
    * Calculate feature importance for a specific prediction using perturbation.
    * This is a local attribution method similar to LIME/SHAP.
    */
-  async getFeatureImportance(task: Task, node: EdgeNode): Promise<{ name: string; contribution: number; direction: 'positive' | 'negative' }[]> {
+  async getFeatureImportance(
+    task: Task,
+    node: EdgeNode,
+  ): Promise<
+    { name: string; contribution: number; direction: "positive" | "negative" }[]
+  > {
     if (this.useMock || !this.isTrained || !this.model) {
       return this.getHeuristicImportance(task, node);
     }
 
     const featureNames = [
-      "cpu_usage_pct", "ram_usage_pct", "current_task_count", "avg_latency_ms",
-      "historical_success_rate_7d", "region_cost_rate", "priority", "estimated_duration_ms",
-      "requires_gpu", "image_size_mb", "hour_of_day", "day_of_week"
+      "cpu_usage_pct",
+      "ram_usage_pct",
+      "current_task_count",
+      "avg_latency_ms",
+      "historical_success_rate_7d",
+      "region_cost_rate",
+      "priority",
+      "estimated_duration_ms",
+      "requires_gpu",
+      "image_size_mb",
+      "hour_of_day",
+      "day_of_week",
     ];
 
     const originalFeatures = this.encodeTaskAndNode(task, node);
     const baselineScore = await this.predictAsync(task, node);
-    const importance: Array<{ name: string; contribution: number; direction: 'positive' | 'negative' }> = [];
+    const importance: Array<{
+      name: string;
+      contribution: number;
+      direction: "positive" | "negative";
+    }> = [];
 
     for (let i = 0; i < originalFeatures.length; i++) {
       // Perturb the feature: move toward the other extreme of the 0-1 scale
       const perturbedFeatures = [...originalFeatures];
       const originalValue = originalFeatures[i];
-      
+
       // Calculate a local delta
       const delta = 0.1;
       let perturbedValue = originalValue! + delta;
       if (perturbedValue > 1.0) {
         perturbedValue = originalValue! - delta;
       }
-      
+
       perturbedFeatures[i] = perturbedValue;
-      
+
       const input = tf.tensor2d([perturbedFeatures]);
       const prediction = this.model.predict(input);
       const data = await prediction.data();
       const newScore = data[0];
-      
+
       input.dispose();
       prediction.dispose();
 
@@ -300,7 +332,7 @@ export class SchedulingPredictor {
       importance.push({
         name: featureNames[i]!,
         contribution: Math.abs(diff),
-        direction: diff > 0 ? 'positive' : ('negative' as const)
+        direction: diff > 0 ? "positive" : ("negative" as const),
       });
     }
 
@@ -308,15 +340,32 @@ export class SchedulingPredictor {
     return importance.sort((a, b) => b.contribution - a.contribution);
   }
 
-  private getHeuristicImportance(_task: Task, node: EdgeNode): { name: string; contribution: number; direction: 'positive' | 'negative' }[] {
+  private getHeuristicImportance(
+    _task: Task,
+    node: EdgeNode,
+  ): {
+    name: string;
+    contribution: number;
+    direction: "positive" | "negative";
+  }[] {
     // Heuristic fallback for importance
     const importance = [
-      { name: 'cpu_usage_pct', contribution: node.cpuUsage / 100, direction: 'negative' as const },
-      { name: 'ram_usage_pct', contribution: node.memoryUsage / 100, direction: 'negative' as const },
-      { name: 'avg_latency_ms', contribution: Math.min(1, node.latency / 500), direction: 'negative' as const },
+      {
+        name: "cpu_usage_pct",
+        contribution: node.cpuUsage / 100,
+        direction: "negative" as const,
+      },
+      {
+        name: "ram_usage_pct",
+        contribution: node.memoryUsage / 100,
+        direction: "negative" as const,
+      },
+      {
+        name: "avg_latency_ms",
+        contribution: Math.min(1, node.latency / 500),
+        direction: "negative" as const,
+      },
     ];
     return importance.sort((a, b) => b.contribution - a.contribution);
   }
 }
-
-

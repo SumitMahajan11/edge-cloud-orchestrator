@@ -373,4 +373,3 @@ groups:
         annotations:
           summary: "Backup is stale"
           description: "Last successful backup was more than 24 hours ago"
-

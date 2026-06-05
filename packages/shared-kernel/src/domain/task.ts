@@ -1,16 +1,16 @@
-import type { TaskStatus, Priority as TaskPriority } from '../types/domain.js';
+import type { TaskStatus, Priority as TaskPriority } from "../types/domain.js";
 
-export type TaskType = 
-  | 'IMAGE_CLASSIFICATION'
-  | 'DATA_AGGREGATION'
-  | 'MODEL_INFERENCE'
-  | 'SENSOR_FUSION'
-  | 'VIDEO_PROCESSING'
-  | 'LOG_ANALYSIS'
-  | 'ANOMALY_DETECTION'
-  | 'CUSTOM';
+export type TaskType =
+  | "IMAGE_CLASSIFICATION"
+  | "DATA_AGGREGATION"
+  | "MODEL_INFERENCE"
+  | "SENSOR_FUSION"
+  | "VIDEO_PROCESSING"
+  | "LOG_ANALYSIS"
+  | "ANOMALY_DETECTION"
+  | "CUSTOM";
 
-export type ExecutionTarget = 'EDGE' | 'CLOUD';
+export type ExecutionTarget = "EDGE" | "CLOUD";
 
 export interface Task {
   id: string;
@@ -40,7 +40,7 @@ export interface Task {
   executionTimeMs?: number;
   cost?: number;
   region: string;
-  runtime: 'NATIVE' | 'DOCKER' | 'WASM';
+  runtime: "NATIVE" | "DOCKER" | "WASM";
   affinity?: string;
   traceId?: string;
   createdAt: Date;
@@ -60,7 +60,7 @@ export interface CreateTaskCommand {
   input?: Record<string, unknown>;
   metadata?: Record<string, unknown>;
   maxRetries?: number;
-  runtime?: 'NATIVE' | 'DOCKER' | 'WASM';
+  runtime?: "NATIVE" | "DOCKER" | "WASM";
   affinity?: string;
   traceId?: string;
 }

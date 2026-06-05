@@ -2,13 +2,14 @@
 
 **Status**: Accepted  
 **Date**: 2026-04-19  
-**Authors**: Engineering Team  
+**Authors**: Engineering Team
 
 ---
 
 ## Context
 
 The Edge-Cloud Orchestrator previously maintained two parallel API Gateway implementations:
+
 1. **Kong API Gateway**: A feature-rich gateway built on Nginx, configured via declarative `kong.yml`.
 2. **Nginx (Custom)**: A lightweight, high-performance web server and proxy used in the `api-gateway` service.
 
@@ -29,14 +30,14 @@ We have decided to **standardize on Nginx** as the sole API Gateway and **decomm
 
 Rate limiting configurations have been ported from Kong's `rate-limiting` plugin to Nginx `limit_req_zone` and `limit_req` directives:
 
-| Endpoint | Kong Limit | Nginx Zone |
-|---|---|---|
-| `/api/auth` | 100/min | `zone=auth rate=100r/m` |
-| `/api/tasks` | 500/min | `zone=tasks rate=500r/m` |
-| `/api/nodes` | 500/min | `zone=nodes rate=500r/m` |
-| `/api/scheduler` | 100/min | `zone=scheduler rate=100r/m` |
-| `/ws` | 1000/min | `zone=ws rate=1000r/m` |
-| `/health` | 1000/min | `zone=health rate=1000r/m` |
+| Endpoint         | Kong Limit | Nginx Zone                   |
+| ---------------- | ---------- | ---------------------------- |
+| `/api/auth`      | 100/min    | `zone=auth rate=100r/m`      |
+| `/api/tasks`     | 500/min    | `zone=tasks rate=500r/m`     |
+| `/api/nodes`     | 500/min    | `zone=nodes rate=500r/m`     |
+| `/api/scheduler` | 100/min    | `zone=scheduler rate=100r/m` |
+| `/ws`            | 1000/min   | `zone=ws rate=1000r/m`       |
+| `/health`        | 1000/min   | `zone=health rate=1000r/m`   |
 
 ## Consequences
 

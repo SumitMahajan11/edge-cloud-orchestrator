@@ -1,7 +1,7 @@
-import { PrismaClient } from '@prisma/client';
-import { createLogger } from '@edgecloud/shared-kernel';
+import { PrismaClient } from "@prisma/client";
+import { createLogger } from "@edgecloud/shared-kernel";
 
-const logger = createLogger('ml-feature-extractor');
+const logger = createLogger("ml-feature-extractor");
 
 export interface TrainingRow {
   // Node Features
@@ -11,17 +11,17 @@ export interface TrainingRow {
   avg_latency_ms: number;
   historical_success_rate_7d: number;
   region_cost_rate: number;
-  
+
   // Task Features
   priority: number;
   estimated_duration_ms: number;
   requires_gpu: number;
   image_size_mb: number;
-  
+
   // Temporal Features
   hour_of_day: number;
   day_of_week: number;
-  
+
   // Target
   scheduling_score: number; // 1.0 = on time, 0.5 = late, 0.0 = failure
 }
@@ -30,8 +30,10 @@ export class FeatureExtractor {
   constructor(private prisma: PrismaClient) {}
 
   async extractTrainingData(lookbackDays: number = 7): Promise<TrainingRow[]> {
-    logger.info(`Extracting training data for the last ${lookbackDays} days...`);
-    
+    logger.info(
+      `Extracting training data for the last ${lookbackDays} days...`,
+    );
+
     // This query joins task executions with their scheduling decisions and node/task metadata
     const query = `
       SELECT 
@@ -64,28 +66,28 @@ export class FeatureExtractor {
       const result = await this.prisma.$queryRawUnsafe<any[]>(query);
       return result.map((row: any) => this.mapToTrainingRow(row));
     } catch (error) {
-      logger.error({ error }, 'Failed to extract training data');
+      logger.error({ error }, "Failed to extract training data");
       throw error;
     }
   }
 
   private mapToTrainingRow(row: any): TrainingRow {
     const executedAt = new Date(row.executed_at);
-    
+
     // Priority mapping
     const priorityMap: Record<string, number> = {
-      'LOW': 0,
-      'MEDIUM': 1,
-      'HIGH': 2,
-      'CRITICAL': 3
+      LOW: 0,
+      MEDIUM: 1,
+      HIGH: 2,
+      CRITICAL: 3,
     };
 
     // Outcome scoring logic (Requirement: 1.0 = on time, 0.5 = late, 0.0 = failed)
     let schedulingScore = 0.0;
-    if (row.outcome_status === 'COMPLETED') {
+    if (row.outcome_status === "COMPLETED") {
       const estimated = parseFloat(row.estimated_duration) || 5000;
       const actual = parseFloat(row.execution_time_ms) || 0;
-      
+
       if (actual <= estimated) {
         schedulingScore = 1.0;
       } else {
@@ -94,22 +96,23 @@ export class FeatureExtractor {
     }
 
     return {
-      cpu_usage_pct: parseFloat(row.cpu_usage || '0'),
-      ram_usage_pct: parseFloat(row.memory_usage || '0'),
-      current_task_count: parseInt(row.tasks_running || '0'),
-      avg_latency_ms: parseFloat(row.node_latency || '0'),
+      cpu_usage_pct: parseFloat(row.cpu_usage || "0"),
+      ram_usage_pct: parseFloat(row.memory_usage || "0"),
+      current_task_count: parseInt(row.tasks_running || "0"),
+      avg_latency_ms: parseFloat(row.node_latency || "0"),
       historical_success_rate_7d: 0.95, // Placeholder - ideally from a summary table
-      region_cost_rate: parseFloat(row.cost_per_hour || '0.05'),
-      
+      region_cost_rate: parseFloat(row.cost_per_hour || "0.05"),
+
       priority: priorityMap[row.priority] || 1,
       estimated_duration_ms: parseFloat(row.estimated_duration) || 5000,
-      requires_gpu: row.requires_gpu === 'true' || row.requires_gpu === true ? 1 : 0,
+      requires_gpu:
+        row.requires_gpu === "true" || row.requires_gpu === true ? 1 : 0,
       image_size_mb: parseFloat(row.image_size) || 0,
-      
+
       hour_of_day: executedAt.getHours(),
       day_of_week: executedAt.getDay(),
-      
-      scheduling_score: schedulingScore
+
+      scheduling_score: schedulingScore,
     };
   }
 }

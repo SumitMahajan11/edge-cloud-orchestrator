@@ -2,7 +2,6 @@ import nock from 'nock';
 import { pino } from 'pino';
 import { WebhookRetryJob } from '../webhook-retry';
 
-
 describe('WebhookRetryJob', () => {
   let prisma: any;
   let logger: any;
@@ -21,7 +20,7 @@ describe('WebhookRetryJob', () => {
     };
     logger = pino({ level: 'silent' });
     job = new WebhookRetryJob(prisma as any, logger, 60000, 5);
-    
+
     // Enable system time mocking
     vi.useFakeTimers();
   });
@@ -48,7 +47,7 @@ describe('WebhookRetryJob', () => {
     };
 
     prisma.webhookDelivery.findMany.mockResolvedValue([delivery]);
-    
+
     const scope = nock('https://example.com')
       .post('/webhook', (body) => body.foo === 'bar')
       .reply(200, { success: true });
@@ -56,13 +55,15 @@ describe('WebhookRetryJob', () => {
     await job.process();
 
     expect(scope.isDone()).toBe(true);
-    expect(prisma.webhookDelivery.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'del-1' },
-      data: expect.objectContaining({
-        status: 'DELIVERED',
-        statusCode: 200,
+    expect(prisma.webhookDelivery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'del-1' },
+        data: expect.objectContaining({
+          status: 'DELIVERED',
+          statusCode: 200,
+        }),
       }),
-    }));
+    );
   });
 
   it('should increment retry count and calculate exponential backoff on failure', async () => {
@@ -81,7 +82,7 @@ describe('WebhookRetryJob', () => {
     };
 
     prisma.webhookDelivery.findMany.mockResolvedValue([delivery]);
-    
+
     nock('https://example.com')
       .post('/webhook')
       .reply(500, 'Internal Server Error');
@@ -96,13 +97,15 @@ describe('WebhookRetryJob', () => {
     // backoffMs = 4 * 60000 = 240,000ms
     const expectedNextRetryAt = new Date(now.getTime() + 240000);
 
-    expect(prisma.webhookDelivery.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'del-2' },
-      data: expect.objectContaining({
-        retryCount: 2,
-        nextRetryAt: expectedNextRetryAt,
+    expect(prisma.webhookDelivery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'del-2' },
+        data: expect.objectContaining({
+          retryCount: 2,
+          nextRetryAt: expectedNextRetryAt,
+        }),
       }),
-    }));
+    );
   });
 
   it('should mark as DEAD_LETTERED and create audit log after max retries', async () => {
@@ -121,38 +124,42 @@ describe('WebhookRetryJob', () => {
     };
 
     prisma.webhookDelivery.findMany.mockResolvedValue([delivery]);
-    
-    nock('https://example.com')
-      .post('/webhook')
-      .reply(404, 'Not Found');
+
+    nock('https://example.com').post('/webhook').reply(404, 'Not Found');
 
     await job.process();
 
-    expect(prisma.webhookDelivery.update).toHaveBeenCalledWith(expect.objectContaining({
-      where: { id: 'del-3' },
-      data: expect.objectContaining({
-        status: 'DEAD_LETTERED',
-        retryCount: 5,
+    expect(prisma.webhookDelivery.update).toHaveBeenCalledWith(
+      expect.objectContaining({
+        where: { id: 'del-3' },
+        data: expect.objectContaining({
+          status: 'DEAD_LETTERED',
+          retryCount: 5,
+        }),
       }),
-    }));
+    );
 
-    expect(prisma.auditLog.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({
-        action: 'WEBHOOK_EXHAUSTED',
-        entityId: 'del-3',
-        tenantId: 'tenant-1'
+    expect(prisma.auditLog.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          action: 'WEBHOOK_EXHAUSTED',
+          entityId: 'del-3',
+          tenantId: 'tenant-1',
+        }),
       }),
-    }));
+    );
   });
 
   it('should respect the batch size (take)', async () => {
     prisma.webhookDelivery.findMany.mockResolvedValue([]);
-    
+
     await job.process();
 
-    expect(prisma.webhookDelivery.findMany).toHaveBeenCalledWith(expect.objectContaining({
-      take: 50
-    }));
+    expect(prisma.webhookDelivery.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        take: 50,
+      }),
+    );
   });
 
   it('should skip retries for disabled webhooks', async () => {
@@ -161,15 +168,13 @@ describe('WebhookRetryJob', () => {
       webhookId: 'web-1',
       webhook: {
         enabled: false,
-        url: 'https://example.com/webhook'
-      }
+        url: 'https://example.com/webhook',
+      },
     };
 
     prisma.webhookDelivery.findMany.mockResolvedValue([delivery]);
-    
-    const scope = nock('https://example.com')
-      .post('/webhook')
-      .reply(200);
+
+    const scope = nock('https://example.com').post('/webhook').reply(200);
 
     await job.process();
 

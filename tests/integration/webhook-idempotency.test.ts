@@ -2,10 +2,10 @@
  * Webhook Idempotency Integration Tests
  */
 
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { setupTestApp, teardownTestApp, type TestContext } from './helpers';
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { setupTestApp, teardownTestApp, type TestContext } from "./helpers";
 
-describe('Webhook Idempotency Integration', () => {
+describe("Webhook Idempotency Integration", () => {
   let ctx: TestContext;
 
   beforeAll(async () => {
@@ -16,18 +16,18 @@ describe('Webhook Idempotency Integration', () => {
     await teardownTestApp(ctx);
   });
 
-  it('should prevent duplicate redelivery requests using idempotency', async () => {
+  it("should prevent duplicate redelivery requests using idempotency", async () => {
     // 1. Create a webhook
     const webhookRes = await ctx.app.inject({
-      method: 'POST',
-      url: '/v1/webhooks',
+      method: "POST",
+      url: "/v1/webhooks",
       headers: {
         Authorization: `Bearer ${ctx.accessToken}`,
       },
       payload: {
-        name: 'Idempotency Test Webhook',
-        url: 'https://example.com/webhook',
-        events: ['test.event'],
+        name: "Idempotency Test Webhook",
+        url: "https://example.com/webhook",
+        events: ["test.event"],
         enabled: true,
       },
     });
@@ -39,16 +39,16 @@ describe('Webhook Idempotency Integration', () => {
     const delivery = await ctx.prisma.webhookDelivery.create({
       data: {
         webhookId,
-        event: 'test.event',
+        event: "test.event",
         payload: { test: true },
-        status: 'FAILED',
+        status: "FAILED",
         tenantId: webhook.tenantId,
       },
     });
 
     // 3. First redeliver request - should succeed
     const res1 = await ctx.app.inject({
-      method: 'POST',
+      method: "POST",
       url: `/v1/webhooks/${webhookId}/redeliver/${delivery.id}`,
       headers: {
         Authorization: `Bearer ${ctx.accessToken}`,
@@ -60,7 +60,7 @@ describe('Webhook Idempotency Integration', () => {
 
     // 4. Second redeliver request - should fail with 409 Conflict
     const res2 = await ctx.app.inject({
-      method: 'POST',
+      method: "POST",
       url: `/v1/webhooks/${webhookId}/redeliver/${delivery.id}`,
       headers: {
         Authorization: `Bearer ${ctx.accessToken}`,
@@ -68,22 +68,22 @@ describe('Webhook Idempotency Integration', () => {
     });
     expect(res2.statusCode).toBe(409);
     const body2 = JSON.parse(res2.payload);
-    expect(body2.error.code).toBe('CONFLICT');
-    expect(body2.error.message).toContain('already in progress');
+    expect(body2.error.code).toBe("CONFLICT");
+    expect(body2.error.message).toContain("already in progress");
   });
 
-  it('should prevent duplicate retry requests using idempotency', async () => {
+  it("should prevent duplicate retry requests using idempotency", async () => {
     // 1. Create a webhook
     const webhookRes = await ctx.app.inject({
-      method: 'POST',
-      url: '/v1/webhooks',
+      method: "POST",
+      url: "/v1/webhooks",
       headers: {
         Authorization: `Bearer ${ctx.accessToken}`,
       },
       payload: {
-        name: 'Retry Idempotency Test',
-        url: 'https://example.com/webhook',
-        events: ['test.event'],
+        name: "Retry Idempotency Test",
+        url: "https://example.com/webhook",
+        events: ["test.event"],
         enabled: true,
       },
     });
@@ -95,16 +95,16 @@ describe('Webhook Idempotency Integration', () => {
     const delivery = await ctx.prisma.webhookDelivery.create({
       data: {
         webhookId,
-        event: 'test.event',
+        event: "test.event",
         payload: { test: true },
-        status: 'FAILED',
+        status: "FAILED",
         tenantId: webhook.tenantId,
       },
     });
 
     // 3. First retry request - should succeed
     const res1 = await ctx.app.inject({
-      method: 'POST',
+      method: "POST",
       url: `/v1/webhooks/deliveries/${delivery.id}/retry`,
       headers: {
         Authorization: `Bearer ${ctx.accessToken}`,
@@ -114,7 +114,7 @@ describe('Webhook Idempotency Integration', () => {
 
     // 4. Second retry request - should fail with 409 Conflict
     const res2 = await ctx.app.inject({
-      method: 'POST',
+      method: "POST",
       url: `/v1/webhooks/deliveries/${delivery.id}/retry`,
       headers: {
         Authorization: `Bearer ${ctx.accessToken}`,
@@ -122,6 +122,6 @@ describe('Webhook Idempotency Integration', () => {
     });
     expect(res2.statusCode).toBe(409);
     const body2 = JSON.parse(res2.payload);
-    expect(body2.error.code).toBe('CONFLICT');
+    expect(body2.error.code).toBe("CONFLICT");
   });
 });

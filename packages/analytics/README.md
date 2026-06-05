@@ -12,20 +12,25 @@ pnpm add @edgecloud/analytics
 
 ## Exports
 
-| Export            | Type     | Description                                    |
-|-------------------|----------|------------------------------------------------|
-| `StreamProcessor` | class    | Windowed stream aggregation over Kafka topics  |
-| `TelemetrySink`   | class    | Write aggregated metrics to Redis              |
-| `AggregationWindow`| type    | Tumbling/sliding window configuration          |
+| Export              | Type  | Description                                   |
+| ------------------- | ----- | --------------------------------------------- |
+| `StreamProcessor`   | class | Windowed stream aggregation over Kafka topics |
+| `TelemetrySink`     | class | Write aggregated metrics to Redis             |
+| `AggregationWindow` | type  | Tumbling/sliding window configuration         |
 
 ## Usage
 
 ```typescript
-import { StreamProcessor } from '@edgecloud/analytics'
+import { StreamProcessor } from "@edgecloud/analytics";
 
-const processor = new StreamProcessor({ brokers: ['localhost:9092'], windowMs: 60_000 })
-processor.on('aggregate', (summary) => redis.publish('analytics', JSON.stringify(summary)))
-await processor.start(['tasks.completed', 'nodes.heartbeat'])
+const processor = new StreamProcessor({
+  brokers: ["localhost:9092"],
+  windowMs: 60_000,
+});
+processor.on("aggregate", (summary) =>
+  redis.publish("analytics", JSON.stringify(summary)),
+);
+await processor.start(["tasks.completed", "nodes.heartbeat"]);
 ```
 
 ## Build

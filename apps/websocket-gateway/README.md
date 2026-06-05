@@ -6,18 +6,18 @@ Real-time WebSocket broadcast gateway. Subscribes to Kafka topics for node event
 
 ## Port
 
-| Variable | Default | Description              |
-|----------|---------|--------------------------|
-| PORT     | 3002    | WebSocket listen port    |
+| Variable | Default | Description           |
+| -------- | ------- | --------------------- |
+| PORT     | 3002    | WebSocket listen port |
 
 ## Environment Variables
 
-| Variable       | Required | Description                        |
-|----------------|----------|------------------------------------|
-| REDIS_URL      | yes      | Redis connection URL (pub/sub)     |
-| KAFKA_BROKERS  | no       | Kafka broker addresses             |
-| JWT_SECRET     | yes      | JWT secret for WS auth             |
-| NODE_ENV       | no       | production / development           |
+| Variable      | Required | Description                    |
+| ------------- | -------- | ------------------------------ |
+| REDIS_URL     | yes      | Redis connection URL (pub/sub) |
+| KAFKA_BROKERS | no       | Kafka broker addresses         |
+| JWT_SECRET    | yes      | JWT secret for WS auth         |
+| NODE_ENV      | no       | production / development       |
 
 ## Development
 

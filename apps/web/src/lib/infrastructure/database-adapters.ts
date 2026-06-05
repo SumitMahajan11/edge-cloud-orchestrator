@@ -1,69 +1,81 @@
-import { dbLogger as logger } from '../logger'
+import { dbLogger as logger } from "../logger";
 
 interface DatabaseAdapter {
-  connect(): Promise<void>
-  disconnect(): Promise<void>
-  query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]>
-  execute(sql: string, params?: unknown[]): Promise<{ rowsAffected: number }>
-  transaction<T>(fn: (trx: DatabaseAdapter) => Promise<T>): Promise<T>
-  isConnected(): boolean
+  connect(): Promise<void>;
+  disconnect(): Promise<void>;
+  query<T = unknown>(sql: string, params?: unknown[]): Promise<T[]>;
+  execute(sql: string, params?: unknown[]): Promise<{ rowsAffected: number }>;
+  transaction<T>(fn: (trx: DatabaseAdapter) => Promise<T>): Promise<T>;
+  isConnected(): boolean;
 }
 
 interface PostgresConfig {
-  host: string
-  port: number
-  database: string
-  user: string
-  password: string
-  ssl?: boolean
-  poolSize?: number
+  host: string;
+  port: number;
+  database: string;
+  user: string;
+  password: string;
+  ssl?: boolean;
+  poolSize?: number;
 }
 
 interface QueryResult<T = unknown> {
-  rows: T[]
-  rowCount: number
+  rows: T[];
+  rowCount: number;
 }
 
 // Check if running in Node.js environment (browser-safe check)
-const isNode = typeof globalThis !== 'undefined' && 
-  typeof (globalThis as { window?: unknown }).window === 'undefined'
+const isNode =
+  typeof globalThis !== "undefined" &&
+  typeof (globalThis as { window?: unknown }).window === "undefined";
 
 // Type for pg Pool
 interface PgPool {
-  connect(): Promise<PgClient>
-  query(sql: string, params?: unknown[]): Promise<{ rows: unknown[]; rowCount: number }>
-  end(): Promise<void>
+  connect(): Promise<PgClient>;
+  query(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ rows: unknown[]; rowCount: number }>;
+  end(): Promise<void>;
 }
 
 interface PgClient {
-  query(sql: string, params?: unknown[]): Promise<{ rows: unknown[]; rowCount: number }>
-  release(): void
+  query(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ rows: unknown[]; rowCount: number }>;
+  release(): void;
 }
 
 // Type for better-sqlite3
 interface SqliteDatabase {
-  prepare(sql: string): { all: (...params: unknown[]) => unknown[]; run: (...params: unknown[]) => { changes: number } }
-  close(): void
+  prepare(sql: string): {
+    all: (...params: unknown[]) => unknown[];
+    run: (...params: unknown[]) => { changes: number };
+  };
+  close(): void;
 }
 
 // PostgreSQL Adapter (Node.js only - uses pg driver)
 class PostgresAdapter implements DatabaseAdapter {
-  private config: PostgresConfig
-  private connected = false
-  private pool: unknown = null
+  private config: PostgresConfig;
+  private connected = false;
+  private pool: unknown = null;
 
   constructor(config: PostgresConfig) {
     this.config = {
       poolSize: 10,
       ...config,
-    }
+    };
   }
 
   async connect(): Promise<void> {
     if (!isNode) {
-      logger.warn('PostgreSQL adapter not available in browser environment, using fallback')
-      this.connected = true
-      return
+      logger.warn(
+        "PostgreSQL adapter not available in browser environment, using fallback",
+      );
+      this.connected = true;
+      return;
     }
 
     try {
@@ -71,20 +83,22 @@ class PostgresAdapter implements DatabaseAdapter {
       const pgModule = await (async () => {
         try {
           // @ts-ignore - Dynamic import of optional Node.js module
-          return await import('pg')
+          return await import("pg");
         } catch {
-          return null
+          return null;
         }
-      })()
-      
+      })();
+
       if (!pgModule) {
-        logger.warn('pg module not available, using mock connection')
-        this.connected = true
-        return
+        logger.warn("pg module not available, using mock connection");
+        this.connected = true;
+        return;
       }
-      
-      const Pool = pgModule.Pool as new (config: Record<string, unknown>) => PgPool
-      
+
+      const Pool = pgModule.Pool as new (
+        config: Record<string, unknown>,
+      ) => PgPool;
+
       this.pool = new Pool({
         host: this.config.host,
         port: this.config.port,
@@ -93,75 +107,103 @@ class PostgresAdapter implements DatabaseAdapter {
         password: this.config.password,
         ssl: this.config.ssl ? { rejectUnauthorized: false } : undefined,
         max: this.config.poolSize,
-      } as Record<string, unknown>)
+      } as Record<string, unknown>);
 
       // Test connection
-      const client = await (this.pool as { connect: () => Promise<{ release: () => void }> }).connect()
-      client.release()
-      
-      this.connected = true
-      logger.info(`Connected to PostgreSQL at ${this.config.host}:${this.config.port}`)
+      const client = await (
+        this.pool as { connect: () => Promise<{ release: () => void }> }
+      ).connect();
+      client.release();
+
+      this.connected = true;
+      logger.info(
+        `Connected to PostgreSQL at ${this.config.host}:${this.config.port}`,
+      );
     } catch (error) {
-      logger.error('Failed to connect to PostgreSQL', error as Error)
-      throw error
+      logger.error("Failed to connect to PostgreSQL", error as Error);
+      throw error;
     }
   }
 
   async disconnect(): Promise<void> {
     if (this.pool) {
-      await (this.pool as { end: () => Promise<void> }).end()
-      this.pool = null
+      await (this.pool as { end: () => Promise<void> }).end();
+      this.pool = null;
     }
-    this.connected = false
-    logger.info('Disconnected from PostgreSQL')
+    this.connected = false;
+    logger.info("Disconnected from PostgreSQL");
   }
 
   async query<T>(sql: string, params?: unknown[]): Promise<T[]> {
-    if (!this.connected) {throw new Error('Not connected')}
-    
-    if (!this.pool) {
-      logger.warn('Pool not available, returning empty result')
-      return []
+    if (!this.connected) {
+      throw new Error("Not connected");
     }
 
-    const result = await (this.pool as { query: (sql: string, params?: unknown[]) => Promise<{ rows: T[] }> }).query(sql, params)
-    logger.debug(`Query executed: ${sql.substring(0, 50)}...`, { rowCount: result.rows.length })
-    return result.rows
+    if (!this.pool) {
+      logger.warn("Pool not available, returning empty result");
+      return [];
+    }
+
+    const result = await (
+      this.pool as {
+        query: (sql: string, params?: unknown[]) => Promise<{ rows: T[] }>;
+      }
+    ).query(sql, params);
+    logger.debug(`Query executed: ${sql.substring(0, 50)}...`, {
+      rowCount: result.rows.length,
+    });
+    return result.rows;
   }
 
-  async execute(sql: string, params?: unknown[]): Promise<{ rowsAffected: number }> {
-    if (!this.connected) {throw new Error('Not connected')}
-    
-    if (!this.pool) {
-      return { rowsAffected: 0 }
+  async execute(
+    sql: string,
+    params?: unknown[],
+  ): Promise<{ rowsAffected: number }> {
+    if (!this.connected) {
+      throw new Error("Not connected");
     }
 
-    const result = await (this.pool as { query: (sql: string, params?: unknown[]) => Promise<{ rowCount: number }> }).query(sql, params)
-    logger.debug(`Execute: ${sql.substring(0, 50)}...`, { rowsAffected: result.rowCount })
-    return { rowsAffected: result.rowCount }
+    if (!this.pool) {
+      return { rowsAffected: 0 };
+    }
+
+    const result = await (
+      this.pool as {
+        query: (
+          sql: string,
+          params?: unknown[],
+        ) => Promise<{ rowCount: number }>;
+      }
+    ).query(sql, params);
+    logger.debug(`Execute: ${sql.substring(0, 50)}...`, {
+      rowsAffected: result.rowCount,
+    });
+    return { rowsAffected: result.rowCount };
   }
 
   async transaction<T>(fn: (trx: DatabaseAdapter) => Promise<T>): Promise<T> {
     if (!this.pool) {
-      return fn(this)
+      return fn(this);
     }
 
-    const client = await (this.pool as { connect: () => Promise<PostgresClient> }).connect()
+    const client = await (
+      this.pool as { connect: () => Promise<PostgresClient> }
+    ).connect();
     try {
-      await client.query('BEGIN')
-      const result = await fn(this)
-      await client.query('COMMIT')
-      return result
+      await client.query("BEGIN");
+      const result = await fn(this);
+      await client.query("COMMIT");
+      return result;
     } catch (error) {
-      await client.query('ROLLBACK')
-      throw error
+      await client.query("ROLLBACK");
+      throw error;
     } finally {
-      client.release()
+      client.release();
     }
   }
 
   isConnected(): boolean {
-    return this.connected
+    return this.connected;
   }
 
   // Task-specific operations
@@ -173,54 +215,57 @@ class PostgresAdapter implements DatabaseAdapter {
        status = EXCLUDED.status,
        duration = EXCLUDED.duration,
        cost = EXCLUDED.cost`,
-      [] // Task params
-    )
+      [], // Task params
+    );
   }
 
   async getTasks(limit = 100, offset = 0): Promise<unknown[]> {
     return this.query(
       `SELECT * FROM tasks ORDER BY submitted_at DESC LIMIT $1 OFFSET $2`,
-      [limit, offset]
-    )
+      [limit, offset],
+    );
   }
 
   async getTaskStats(): Promise<{
-    total: number
-    pending: number
-    running: number
-    completed: number
-    failed: number
+    total: number;
+    pending: number;
+    running: number;
+    completed: number;
+    failed: number;
   }> {
     const result = await this.query<{
-      status: string
-      count: string
-    }>(`SELECT status, COUNT(*) as count FROM tasks GROUP BY status`)
-    
-    const stats = { total: 0, pending: 0, running: 0, completed: 0, failed: 0 }
+      status: string;
+      count: string;
+    }>(`SELECT status, COUNT(*) as count FROM tasks GROUP BY status`);
+
+    const stats = { total: 0, pending: 0, running: 0, completed: 0, failed: 0 };
     result.forEach((row) => {
-      const count = parseInt(row.count, 10)
-      stats.total += count
+      const count = parseInt(row.count, 10);
+      stats.total += count;
       if (row.status in stats) {
-        stats[row.status as keyof typeof stats] = count
+        stats[row.status as keyof typeof stats] = count;
       }
-    })
-    return stats
+    });
+    return stats;
   }
 }
 
 interface PostgresClient {
-  query: (sql: string, params?: unknown[]) => Promise<{ rows: unknown[]; rowCount: number }>
-  release: () => void
+  query: (
+    sql: string,
+    params?: unknown[],
+  ) => Promise<{ rows: unknown[]; rowCount: number }>;
+  release: () => void;
 }
 
 // SQLite Adapter (for local development)
 class SQLiteAdapter implements DatabaseAdapter {
-  private connected = false
-  private dbPath: string
-  private db: unknown = null
+  private connected = false;
+  private dbPath: string;
+  private db: unknown = null;
 
-  constructor(dbPath = ':memory:') {
-    this.dbPath = dbPath
+  constructor(dbPath = ":memory:") {
+    this.dbPath = dbPath;
   }
 
   async connect(): Promise<void> {
@@ -229,99 +274,123 @@ class SQLiteAdapter implements DatabaseAdapter {
         const sqliteModule = await (async () => {
           try {
             // @ts-ignore - Dynamic import of optional Node.js module
-            return await import('better-sqlite3')
+            return await import("better-sqlite3");
           } catch {
-            return null
+            return null;
           }
-        })()
+        })();
         if (sqliteModule) {
-          const Database = sqliteModule.default as new (path: string) => SqliteDatabase
-          this.db = new Database(this.dbPath)
-          logger.info(`Opened SQLite database: ${this.dbPath}`)
+          const Database = sqliteModule.default as new (
+            path: string,
+          ) => SqliteDatabase;
+          this.db = new Database(this.dbPath);
+          logger.info(`Opened SQLite database: ${this.dbPath}`);
         } else {
-          logger.warn('better-sqlite3 not available, using in-memory fallback')
+          logger.warn("better-sqlite3 not available, using in-memory fallback");
         }
       } catch {
-        logger.warn('better-sqlite3 not available, using in-memory fallback')
+        logger.warn("better-sqlite3 not available, using in-memory fallback");
       }
     }
-    this.connected = true
+    this.connected = true;
   }
 
   async disconnect(): Promise<void> {
     if (this.db) {
-      (this.db as { close: () => void }).close()
-      this.db = null
+      (this.db as { close: () => void }).close();
+      this.db = null;
     }
-    this.connected = false
-    logger.info('Closed SQLite database')
+    this.connected = false;
+    logger.info("Closed SQLite database");
   }
 
   async query<T>(_sql: string, _params?: unknown[]): Promise<T[]> {
-    if (!this.connected) {throw new Error('Not connected')}
-    
-    if (this.db) {
-      const stmt = (this.db as { prepare: (sql: string) => { all: (...params: unknown[]) => T[] } }).prepare(_sql)
-      return stmt.all(...(_params || []))
+    if (!this.connected) {
+      throw new Error("Not connected");
     }
-    
-    logger.debug(`SQLite query (mock): ${_sql.substring(0, 50)}...`)
-    return []
+
+    if (this.db) {
+      const stmt = (
+        this.db as {
+          prepare: (sql: string) => { all: (...params: unknown[]) => T[] };
+        }
+      ).prepare(_sql);
+      return stmt.all(...(_params || []));
+    }
+
+    logger.debug(`SQLite query (mock): ${_sql.substring(0, 50)}...`);
+    return [];
   }
 
-  async execute(_sql: string, _params?: unknown[]): Promise<{ rowsAffected: number }> {
-    if (!this.connected) {throw new Error('Not connected')}
-    
-    if (this.db) {
-      const stmt = (this.db as { prepare: (sql: string) => { run: (...params: unknown[]) => { changes: number } } }).prepare(_sql)
-      const result = stmt.run(...(_params || []))
-      return { rowsAffected: result.changes }
+  async execute(
+    _sql: string,
+    _params?: unknown[],
+  ): Promise<{ rowsAffected: number }> {
+    if (!this.connected) {
+      throw new Error("Not connected");
     }
-    
-    logger.debug(`SQLite execute (mock): ${_sql.substring(0, 50)}...`)
-    return { rowsAffected: 0 }
+
+    if (this.db) {
+      const stmt = (
+        this.db as {
+          prepare: (sql: string) => {
+            run: (...params: unknown[]) => { changes: number };
+          };
+        }
+      ).prepare(_sql);
+      const result = stmt.run(...(_params || []));
+      return { rowsAffected: result.changes };
+    }
+
+    logger.debug(`SQLite execute (mock): ${_sql.substring(0, 50)}...`);
+    return { rowsAffected: 0 };
   }
 
   async transaction<T>(fn: (trx: DatabaseAdapter) => Promise<T>): Promise<T> {
     // Fallback implementation for environments without native transaction support
-    await this.execute('BEGIN TRANSACTION')
+    await this.execute("BEGIN TRANSACTION");
     try {
-      const result = await fn(this)
-      await this.execute('COMMIT')
-      return result
+      const result = await fn(this);
+      await this.execute("COMMIT");
+      return result;
     } catch (error) {
-      await this.execute('ROLLBACK')
-      throw error
+      await this.execute("ROLLBACK");
+      throw error;
     }
   }
 
   isConnected(): boolean {
-    return this.connected
+    return this.connected;
   }
 }
 
 // Database Manager
 class DatabaseManager {
-  private adapter: DatabaseAdapter | null = null
-  private type: 'postgres' | 'sqlite' | 'indexeddb' = 'indexeddb'
+  private adapter: DatabaseAdapter | null = null;
+  private type: "postgres" | "sqlite" | "indexeddb" = "indexeddb";
 
-  async initialize(type: 'postgres' | 'sqlite', config?: PostgresConfig): Promise<void> {
-    this.type = type
+  async initialize(
+    type: "postgres" | "sqlite",
+    config?: PostgresConfig,
+  ): Promise<void> {
+    this.type = type;
 
-    if (type === 'postgres' && config) {
-      this.adapter = new PostgresAdapter(config)
-    } else if (type === 'sqlite') {
-      this.adapter = new SQLiteAdapter()
+    if (type === "postgres" && config) {
+      this.adapter = new PostgresAdapter(config);
+    } else if (type === "sqlite") {
+      this.adapter = new SQLiteAdapter();
     } else {
-      throw new Error(`Unsupported database type: ${type}`)
+      throw new Error(`Unsupported database type: ${type}`);
     }
 
-    await this.adapter.connect()
-    await this.migrate()
+    await this.adapter.connect();
+    await this.migrate();
   }
 
   private async migrate(): Promise<void> {
-    if (!this.adapter) {return}
+    if (!this.adapter) {
+      return;
+    }
 
     // Create tables
     await this.adapter.execute(`
@@ -344,7 +413,7 @@ class DatabaseManager {
         max_retries INTEGER DEFAULT 3,
         metadata TEXT
       )
-    `)
+    `);
 
     await this.adapter.execute(`
       CREATE TABLE IF NOT EXISTS nodes (
@@ -366,7 +435,7 @@ class DatabaseManager {
         cost_per_hour REAL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )
-    `)
+    `);
 
     await this.adapter.execute(`
       CREATE TABLE IF NOT EXISTS audit_logs (
@@ -383,34 +452,36 @@ class DatabaseManager {
         status TEXT NOT NULL,
         details TEXT
       )
-    `)
+    `);
 
-    console.log('Database migration completed')
+    console.log("Database migration completed");
   }
 
   getAdapter(): DatabaseAdapter {
-    if (!this.adapter) {throw new Error('Database not initialized')}
-    return this.adapter
+    if (!this.adapter) {
+      throw new Error("Database not initialized");
+    }
+    return this.adapter;
   }
 
   async close(): Promise<void> {
     if (this.adapter) {
-      await this.adapter.disconnect()
-      this.adapter = null
+      await this.adapter.disconnect();
+      this.adapter = null;
     }
   }
 
   isConnected(): boolean {
-    return this.adapter?.isConnected() ?? false
+    return this.adapter?.isConnected() ?? false;
   }
 
   getType(): string {
-    return this.type
+    return this.type;
   }
 }
 
 // Singleton instance
-export const databaseManager = new DatabaseManager()
+export const databaseManager = new DatabaseManager();
 
-export { DatabaseManager,PostgresAdapter, SQLiteAdapter }
-export type { DatabaseAdapter, PostgresConfig, QueryResult }
+export { DatabaseManager, PostgresAdapter, SQLiteAdapter };
+export type { DatabaseAdapter, PostgresConfig, QueryResult };

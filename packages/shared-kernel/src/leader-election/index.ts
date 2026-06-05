@@ -1,8 +1,8 @@
-import Redis from 'ioredis';
-import Redlock, { Lock } from 'redlock';
-import type { Logger } from 'pino';
-import { EventEmitter } from 'eventemitter3';
-import { Gauge, Registry, register } from 'prom-client';
+import Redis from "ioredis";
+import Redlock, { Lock } from "redlock";
+import type { Logger } from "pino";
+import { EventEmitter } from "eventemitter3";
+import { Gauge, Registry, register } from "prom-client";
 
 export interface LeaderElectionConfig {
   lockKey: string;
@@ -12,8 +12,8 @@ export interface LeaderElectionConfig {
 }
 
 export interface LeaderEvents {
-  'leadership-acquired': () => void;
-  'leadership-lost': () => void;
+  "leadership-acquired": () => void;
+  "leadership-lost": () => void;
 }
 
 export class LeaderElection extends EventEmitter {
@@ -22,15 +22,11 @@ export class LeaderElection extends EventEmitter {
   private isLeader = false;
   private renewalInterval: ReturnType<typeof setInterval> | null = null;
   private leaderGauge: Gauge | null = null;
-  private serviceId: string = 'unknown';
+  private serviceId: string = "unknown";
   private logger: Logger;
   private config: LeaderElectionConfig;
 
-  constructor(
-    redis: Redis,
-    logger: Logger,
-    config: LeaderElectionConfig
-  ) {
+  constructor(redis: Redis, logger: Logger, config: LeaderElectionConfig) {
     super();
     this.logger = logger;
     this.config = config;
@@ -41,14 +37,14 @@ export class LeaderElection extends EventEmitter {
       retryJitter: 200,
     });
 
-    this.redlock.on('clientError', (error: any) => {
-      this.logger.error({ error }, 'Redlock error');
+    this.redlock.on("clientError", (error: any) => {
+      this.logger.error({ error }, "Redlock error");
     });
 
     const metricsRegistry = config.registry || register;
-    
+
     // Initialize Prometheus gauge
-    const metricName = 'edgecloud_scheduler_leader';
+    const metricName = "edgecloud_scheduler_leader";
     try {
       const existingMetric = metricsRegistry.getSingleMetric(metricName);
       if (existingMetric instanceof Gauge) {
@@ -56,25 +52,33 @@ export class LeaderElection extends EventEmitter {
       } else {
         this.leaderGauge = new Gauge({
           name: metricName,
-          help: 'Whether this instance is the leader (1) or not (0)',
-          labelNames: ['service_id'],
+          help: "Whether this instance is the leader (1) or not (0)",
+          labelNames: ["service_id"],
           registers: [metricsRegistry],
         });
       }
     } catch (e) {
-      this.logger.debug('Failed to initialize leader gauge, metrics may be disabled');
+      this.logger.debug(
+        "Failed to initialize leader gauge, metrics may be disabled",
+      );
     }
   }
 
   /**
    * Acquire leadership lease manually
    */
-  public async acquireLease(serviceId: string, ttlMs: number): Promise<boolean> {
+  public async acquireLease(
+    serviceId: string,
+    ttlMs: number,
+  ): Promise<boolean> {
     this.serviceId = serviceId;
     this.config.ttl = ttlMs;
-    
+
     try {
-      this.lock = await this.redlock.acquire([this.config.lockKey], this.config.ttl);
+      this.lock = await this.redlock.acquire(
+        [this.config.lockKey],
+        this.config.ttl,
+      );
       this.onLeadershipAcquired();
       return true;
     } catch (error) {
@@ -88,8 +92,11 @@ export class LeaderElection extends EventEmitter {
   private onLeadershipAcquired() {
     if (this.isLeader) return;
     this.isLeader = true;
-    this.logger.info({ lockKey: this.config.lockKey, serviceId: this.serviceId }, 'Leadership acquired');
-    this.emit('leadership-acquired');
+    this.logger.info(
+      { lockKey: this.config.lockKey, serviceId: this.serviceId },
+      "Leadership acquired",
+    );
+    this.emit("leadership-acquired");
     this.updateMetric(1);
     this.startRenewalTimer();
   }
@@ -98,8 +105,11 @@ export class LeaderElection extends EventEmitter {
     if (!this.isLeader) return;
     this.isLeader = false;
     this.lock = null;
-    this.logger.warn({ lockKey: this.config.lockKey, serviceId: this.serviceId }, 'Leadership lost');
-    this.emit('leadership-lost');
+    this.logger.warn(
+      { lockKey: this.config.lockKey, serviceId: this.serviceId },
+      "Leadership lost",
+    );
+    this.emit("leadership-lost");
     this.updateMetric(0);
     this.stopRenewalTimer();
   }
@@ -113,7 +123,7 @@ export class LeaderElection extends EventEmitter {
   private startRenewalTimer() {
     this.stopRenewalTimer();
     // Renew at 1/3 of TTL as requested
-    const interval = Math.max(this.config.ttl / 3, 100); 
+    const interval = Math.max(this.config.ttl / 3, 100);
     this.renewalInterval = setInterval(async () => {
       if (!this.lock) {
         this.onLeadershipLost();
@@ -121,9 +131,15 @@ export class LeaderElection extends EventEmitter {
       }
       try {
         this.lock = await (this.lock as any).extend(this.config.ttl);
-        this.logger.debug({ lockKey: this.config.lockKey }, 'Leadership lease renewed');
+        this.logger.debug(
+          { lockKey: this.config.lockKey },
+          "Leadership lease renewed",
+        );
       } catch (e) {
-        this.logger.warn({ error: e, lockKey: this.config.lockKey }, 'Failed to renew leadership lease');
+        this.logger.warn(
+          { error: e, lockKey: this.config.lockKey },
+          "Failed to renew leadership lease",
+        );
         this.onLeadershipLost();
       }
     }, interval);
@@ -139,7 +155,11 @@ export class LeaderElection extends EventEmitter {
   /**
    * Startup helper with exponential backoff
    */
-  public async start(serviceId: string, ttlMs: number, maxAttempts = 5): Promise<boolean> {
+  public async start(
+    serviceId: string,
+    ttlMs: number,
+    maxAttempts = 5,
+  ): Promise<boolean> {
     this.serviceId = serviceId;
     this.config.ttl = ttlMs;
 
@@ -148,13 +168,22 @@ export class LeaderElection extends EventEmitter {
       if (acquired) return true;
 
       if (attempt < maxAttempts) {
-        const delay = Math.min(200 * Math.pow(2, attempt - 1) + Math.random() * 100, 5000);
-        this.logger.debug({ attempt, nextRetry: delay, serviceId }, 'Leadership acquisition failed, retrying...');
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delay = Math.min(
+          200 * Math.pow(2, attempt - 1) + Math.random() * 100,
+          5000,
+        );
+        this.logger.debug(
+          { attempt, nextRetry: delay, serviceId },
+          "Leadership acquisition failed, retrying...",
+        );
+        await new Promise((resolve) => setTimeout(resolve, delay));
       }
     }
 
-    this.logger.error({ attempts: maxAttempts, serviceId }, 'Failed to acquire leadership after maximum attempts');
+    this.logger.error(
+      { attempts: maxAttempts, serviceId },
+      "Failed to acquire leadership after maximum attempts",
+    );
     return false;
   }
 
@@ -171,7 +200,7 @@ export class LeaderElection extends EventEmitter {
       try {
         await (this.lock as any).release();
       } catch (e) {
-        this.logger.error({ error: e }, 'Failed to release lock on stop');
+        this.logger.error({ error: e }, "Failed to release lock on stop");
       }
     }
     this.onLeadershipLost();

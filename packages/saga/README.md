@@ -12,23 +12,23 @@ pnpm add @edgecloud/saga
 
 ## Exports
 
-| Export             | Type     | Description                                  |
-|--------------------|----------|----------------------------------------------|
-| `SagaOrchestrator` | class    | Runs saga steps with automatic compensation  |
-| `SagaStep`         | type     | Step definition: action + compensation       |
-| `SagaContext`      | type     | Shared state passed between steps            |
+| Export             | Type  | Description                                 |
+| ------------------ | ----- | ------------------------------------------- |
+| `SagaOrchestrator` | class | Runs saga steps with automatic compensation |
+| `SagaStep`         | type  | Step definition: action + compensation      |
+| `SagaContext`      | type  | Shared state passed between steps           |
 
 ## Usage
 
 ```typescript
-import { SagaOrchestrator, SagaStep } from '@edgecloud/saga'
+import { SagaOrchestrator, SagaStep } from "@edgecloud/saga";
 
 const steps: SagaStep[] = [
   { execute: reserveResources, compensate: releaseResources },
-  { execute: dispatchToAgent,  compensate: cancelDispatch },
-]
-const saga = new SagaOrchestrator(steps)
-await saga.run(context)
+  { execute: dispatchToAgent, compensate: cancelDispatch },
+];
+const saga = new SagaOrchestrator(steps);
+await saga.run(context);
 ```
 
 ## Build

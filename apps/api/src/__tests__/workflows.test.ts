@@ -19,10 +19,14 @@ const { mockMtls } = vi.hoisted(() => ({
     },
     CertificateAuthorityManager: class {
       constructor() {}
-      async initialize() { return {}; }
-      getCACertificate() { return 'mock-ca-cert'; }
+      async initialize() {
+        return {};
+      }
+      getCACertificate() {
+        return 'mock-ca-cert';
+      }
     },
-  }
+  },
 }));
 
 vi.mock('../services/mtls-authentication.js', () => mockMtls);
@@ -65,25 +69,33 @@ describe('Workflow Engine Integration', () => {
 
   const mockPrisma: any = {
     workflow: {
-      create: vi.fn().mockImplementation(({ data }) => ({ id: VALID_ID, ...data })),
+      create: vi
+        .fn()
+        .mockImplementation(({ data }) => ({ id: VALID_ID, ...data })),
       findFirst: vi.fn().mockImplementation(({ where }) => {
         if (where.id === VALID_ID && where.tenantId === tenantId) {
-          return { 
-            id: VALID_ID, 
-            name: 'Test Workflow', 
+          return {
+            id: VALID_ID,
+            name: 'Test Workflow',
             tenantId,
           };
         }
         return null;
       }),
       findUnique: vi.fn().mockImplementation(({ where }) => {
-        if (where.id === VALID_ID) {return { id: VALID_ID, tenantId, definition: {} };}
+        if (where.id === VALID_ID) {
+          return { id: VALID_ID, tenantId, definition: {} };
+        }
         return null;
       }),
     },
     workflowExecution: {
-      create: vi.fn().mockResolvedValue({ id: VALID_EXEC_ID, status: 'RUNNING' }),
-      update: vi.fn().mockResolvedValue({ id: VALID_EXEC_ID, status: 'COMPLETED' }),
+      create: vi
+        .fn()
+        .mockResolvedValue({ id: VALID_EXEC_ID, status: 'RUNNING' }),
+      update: vi
+        .fn()
+        .mockResolvedValue({ id: VALID_EXEC_ID, status: 'COMPLETED' }),
       findUnique: vi.fn(),
     },
     task: {
@@ -102,10 +114,11 @@ describe('Workflow Engine Integration', () => {
   beforeEach(async () => {
     app = fastify({ logger: false });
     app.decorate('prisma', mockPrisma);
-    
-    const { enterWithTenantContext, prismaForTenant } = await import('@edgecloud/shared-kernel');
+
+    const { enterWithTenantContext, prismaForTenant } =
+      await import('@edgecloud/shared-kernel');
     app.decorateRequest('tPrisma', {
-      getter: function(this: any) {
+      getter: function (this: any) {
         const tenantId = this.user?.tenantId;
         const prisma = this.server.prisma;
         if (tenantId && typeof prisma.$extends === 'function') {
@@ -113,22 +126,27 @@ describe('Workflow Engine Integration', () => {
           return prismaForTenant(prisma, tenantId);
         }
         return prisma;
-      }
+      },
     });
 
     app.decorate('workflowEngine', mockWorkflowEngine);
     app.decorate('taskScheduler', { enqueue: vi.fn() });
     app.decorate('wsManager', { broadcastToTenant: vi.fn() });
-    
+
     await app.register(import('@fastify/jwt'), { secret: TEST_JWT_SECRET });
-    await app.register(import('@fastify/rate-limit'), { max: 100, timeWindow: 60000 });
-    
-    const { ErrorSchema, HealthSchema } = await import('@edgecloud/shared-kernel');
+    await app.register(import('@fastify/rate-limit'), {
+      max: 100,
+      timeWindow: 60000,
+    });
+
+    const { ErrorSchema, HealthSchema } =
+      await import('@edgecloud/shared-kernel');
     const { zodToFastifySchema } = await import('../utils/zod-schema.js');
     app.addSchema({ $id: 'ErrorSchema', ...zodToFastifySchema(ErrorSchema) });
     app.addSchema({ $id: 'HealthSchema', ...zodToFastifySchema(HealthSchema) });
-    
-    const { authenticate, requirePermission, requireRole } = await import('../middleware/auth.middleware.js');
+
+    const { authenticate, requirePermission, requireRole } =
+      await import('../middleware/auth.middleware.js');
     app.decorate('authenticate', authenticate);
     app.decorate('requirePermission', requirePermission);
     app.decorate('requireRole', requireRole);
@@ -159,52 +177,72 @@ describe('Workflow Engine Integration', () => {
         name: 'Test Workflow',
         version: '1.0.0',
         nodes: [
-          { id: 'n1', name: 'Start', type: 'task', config: {}, inputs: [], outputs: [] }
+          {
+            id: 'n1',
+            name: 'Start',
+            type: 'task',
+            config: {},
+            inputs: [],
+            outputs: [],
+          },
         ],
-        edges: []
-      }
+        edges: [],
+      },
     });
 
-    if (response.statusCode !== 201) {console.error('FAIL BODY:', response.body);}
+    if (response.statusCode !== 201) {
+      console.error('FAIL BODY:', response.body);
+    }
     expect(response.statusCode).toBe(201);
     expect(JSON.parse(response.body).name).toBe('Test Workflow');
   });
 
-    it('Test 2 — Reject workflow with cycle', async () => {
-      const token = generateToken('t1');
-      const response = await app.inject({
-        method: 'POST',
-        url: '/v2/workflows',
-        headers: { authorization: `Bearer ${token}` },
-        payload: {
-          name: 'Cyclic Workflow',
-          version: '1.0.0',
-          nodes: [
-            { id: 'A', name: 'Task A', type: 'task', config: {}, inputs: [], outputs: [] }
-          ],
-          edges: [
-            { id: 'e1', from: 'A', to: 'A' }
-          ]
-        }
-      });
-
-      expect(response.statusCode).toBe(400);
-      expect(JSON.parse(response.body).error.code).toBe('INVALID_DAG');
+  it('Test 2 — Reject workflow with cycle', async () => {
+    const token = generateToken('t1');
+    const response = await app.inject({
+      method: 'POST',
+      url: '/v2/workflows',
+      headers: { authorization: `Bearer ${token}` },
+      payload: {
+        name: 'Cyclic Workflow',
+        version: '1.0.0',
+        nodes: [
+          {
+            id: 'A',
+            name: 'Task A',
+            type: 'task',
+            config: {},
+            inputs: [],
+            outputs: [],
+          },
+        ],
+        edges: [{ id: 'e1', from: 'A', to: 'A' }],
+      },
     });
+
+    expect(response.statusCode).toBe(400);
+    expect(JSON.parse(response.body).error.code).toBe('INVALID_DAG');
+  });
 
   it('Test 3 — Workflow execution gating', async () => {
     const token = generateToken('t1');
-    mockPrisma.workflow.findFirst.mockResolvedValue({ id: VALID_ID, tenantId: 't1' });
-    
+    mockPrisma.workflow.findFirst.mockResolvedValue({
+      id: VALID_ID,
+      tenantId: 't1',
+    });
+
     const response = await app.inject({
       method: 'POST',
       url: `/v2/workflows/${VALID_ID}/execute`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { input: { key: 'val' } }
+      payload: { input: { key: 'val' } },
     });
 
     expect(response.statusCode).toBe(202);
-    expect(mockWorkflowEngine.executeWorkflow).toHaveBeenCalledWith(VALID_ID, 't1');
+    expect(mockWorkflowEngine.executeWorkflow).toHaveBeenCalledWith(
+      VALID_ID,
+      't1',
+    );
   });
 
   it('Test 4 — Get workflow status', async () => {
@@ -213,41 +251,41 @@ describe('Workflow Engine Integration', () => {
       id: VALID_EXEC_ID,
       status: 'COMPLETED',
       tenantId: 't1',
-      taskRuns: []
+      taskRuns: [],
     });
 
     const response = await app.inject({
       method: 'GET',
       url: `/v2/workflows/executions/${VALID_EXEC_ID}`,
-      headers: { authorization: `Bearer ${token}` }
+      headers: { authorization: `Bearer ${token}` },
     });
 
     expect(response.statusCode).toBe(200);
     expect(JSON.parse(response.body).status).toBe('COMPLETED');
   });
 
-    it('Test 5 — Workflow tenant isolation on read', async () => {
-      const token = generateToken('t2'); // Different tenant
-      mockPrisma.workflow.findFirst.mockResolvedValue(null);
+  it('Test 5 — Workflow tenant isolation on read', async () => {
+    const token = generateToken('t2'); // Different tenant
+    mockPrisma.workflow.findFirst.mockResolvedValue(null);
 
-      const response = await app.inject({
-        method: 'GET',
-        url: `/v2/workflows/${VALID_ID}`,
-        headers: { authorization: `Bearer ${token}` }
-      });
-
-      expect(response.statusCode).toBe(404);
+    const response = await app.inject({
+      method: 'GET',
+      url: `/v2/workflows/${VALID_ID}`,
+      headers: { authorization: `Bearer ${token}` },
     });
 
+    expect(response.statusCode).toBe(404);
+  });
+
   it('Test 6 — Workflow tenant isolation on execution', async () => {
-    const token = generateToken('t2'); 
+    const token = generateToken('t2');
     mockPrisma.workflow.findFirst.mockResolvedValue(null);
 
     const response = await app.inject({
       method: 'POST',
       url: `/v2/workflows/${VALID_ID}/execute`,
       headers: { authorization: `Bearer ${token}` },
-      payload: { input: {} }
+      payload: { input: {} },
     });
 
     expect(response.statusCode).toBe(404);

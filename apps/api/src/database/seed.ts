@@ -1,4 +1,12 @@
-import { PrismaClient, Role, TaskStatus, NodeStatus, ExecutionTarget, Runtime, TaskType } from '@prisma/client';
+import {
+  PrismaClient,
+  Role,
+  TaskStatus,
+  NodeStatus,
+  ExecutionTarget,
+  Runtime,
+  TaskType,
+} from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import fs from 'fs';
 import path from 'path';
@@ -114,16 +122,36 @@ async function main() {
 
   // 4. Create Sample Tasks (5 tasks)
   const taskSpecs = [
-    { name: 'Image Classification Worker', status: TaskStatus.RUNNING, type: TaskType.IMAGE_CLASSIFICATION },
-    { name: 'Data Aggregator Nightly', status: TaskStatus.PENDING, type: TaskType.DATA_AGGREGATION },
-    { name: 'Anomaly Detection Stream', status: TaskStatus.COMPLETED, type: TaskType.ANOMALY_DETECTION },
-    { name: 'Batch Log Processor', status: TaskStatus.FAILED, type: TaskType.LOG_ANALYSIS },
-    { name: 'Custom Edge Script', status: TaskStatus.PENDING, type: TaskType.CUSTOM },
+    {
+      name: 'Image Classification Worker',
+      status: TaskStatus.RUNNING,
+      type: TaskType.IMAGE_CLASSIFICATION,
+    },
+    {
+      name: 'Data Aggregator Nightly',
+      status: TaskStatus.PENDING,
+      type: TaskType.DATA_AGGREGATION,
+    },
+    {
+      name: 'Anomaly Detection Stream',
+      status: TaskStatus.COMPLETED,
+      type: TaskType.ANOMALY_DETECTION,
+    },
+    {
+      name: 'Batch Log Processor',
+      status: TaskStatus.FAILED,
+      type: TaskType.LOG_ANALYSIS,
+    },
+    {
+      name: 'Custom Edge Script',
+      status: TaskStatus.PENDING,
+      type: TaskType.CUSTOM,
+    },
   ];
 
   for (const spec of taskSpecs) {
     const existing = await prisma.task.findFirst({
-      where: { name: spec.name, tenantId: createdTenants[0]!.id }
+      where: { name: spec.name, tenantId: createdTenants[0]!.id },
     });
 
     if (!existing) {
@@ -171,8 +199,11 @@ async function main() {
       format: 'layers-model',
       generatedBy: 'seed-script',
       convertedBy: null,
-      modelTopology: { training_config: {}, model_config: { class_name: 'Sequential', config: { layers: [] } } },
-      weightsManifest: []
+      modelTopology: {
+        training_config: {},
+        model_config: { class_name: 'Sequential', config: { layers: [] } },
+      },
+      weightsManifest: [],
     };
     fs.writeFileSync(modelPath, JSON.stringify(dummyModel, null, 2));
     logger.info({ path: modelPath }, 'Created dummy ML model for scheduler');

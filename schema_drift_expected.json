@@ -32,16 +32,11 @@
                 "type": "string"
               }
             },
-            "required": [
-              "code",
-              "message"
-            ],
+            "required": ["code", "message"],
             "type": "object"
           }
         },
-        "required": [
-          "error"
-        ],
+        "required": ["error"],
         "title": "ErrorSchema",
         "type": "object"
       },
@@ -58,11 +53,7 @@
             "type": "string"
           },
           "status": {
-            "enum": [
-              "degraded",
-              "healthy",
-              "unhealthy"
-            ],
+            "enum": ["degraded", "healthy", "unhealthy"],
             "type": "string"
           },
           "timestamp": {
@@ -73,11 +64,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "service",
-          "status",
-          "timestamp"
-        ],
+        "required": ["service", "status", "timestamp"],
         "title": "HealthSchema",
         "type": "object"
       }
@@ -132,9 +119,7 @@
           }
         },
         "summary": "Get audit logs",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/cleanup": {
@@ -156,10 +141,7 @@
                     "type": "array"
                   }
                 },
-                "required": [
-                  "olderThanDays",
-                  "types"
-                ],
+                "required": ["olderThanDays", "types"],
                 "type": "object"
               }
             }
@@ -172,9 +154,7 @@
           }
         },
         "summary": "Clean up old data",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/dlq/events": {
@@ -228,9 +208,7 @@
           }
         },
         "summary": "List DLQ events with filtering",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/dlq/events/{id}/retry": {
@@ -252,9 +230,7 @@
           }
         },
         "summary": "Retry a specific DLQ event",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/dlq/purge": {
@@ -280,9 +256,7 @@
           }
         },
         "summary": "Purge old DLQ events",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/dlq/stats": {
@@ -293,9 +267,7 @@
           }
         },
         "summary": "Get DLQ statistics across all streams",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/events/republish": {
@@ -316,10 +288,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "entityId",
-                  "eventType"
-                ],
+                "required": ["entityId", "eventType"],
                 "type": "object"
               }
             }
@@ -332,9 +301,7 @@
           }
         },
         "summary": "Republish an event to Kafka",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/events/republish-range": {
@@ -358,11 +325,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "eventType",
-                  "fromTimestamp",
-                  "toTimestamp"
-                ],
+                "required": ["eventType", "fromTimestamp", "toTimestamp"],
                 "type": "object"
               }
             }
@@ -375,9 +338,7 @@
           }
         },
         "summary": "Bulk republish events to Kafka",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/health": {
@@ -388,9 +349,7 @@
           }
         },
         "summary": "Get system health",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/ml/retrain": {
@@ -401,9 +360,7 @@
           }
         },
         "summary": "Trigger ML model retraining",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/users": {
@@ -414,9 +371,7 @@
           }
         },
         "summary": "List all users",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/users/{id}/deactivate": {
@@ -438,9 +393,7 @@
           }
         },
         "summary": "Deactivate user",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/users/{id}/role": {
@@ -463,18 +416,11 @@
                 "additionalProperties": false,
                 "properties": {
                   "role": {
-                    "enum": [
-                      "ADMIN",
-                      "OPERATOR",
-                      "SUPER_ADMIN",
-                      "VIEWER"
-                    ],
+                    "enum": ["ADMIN", "OPERATOR", "SUPER_ADMIN", "VIEWER"],
                     "type": "string"
                   }
                 },
-                "required": [
-                  "role"
-                ],
+                "required": ["role"],
                 "type": "object"
               }
             }
@@ -487,9 +433,7 @@
           }
         },
         "summary": "Update user role",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/admin/ws-stats": {
@@ -500,9 +444,7 @@
           }
         },
         "summary": "Get WebSocket statistics",
-        "tags": [
-          "admin"
-        ]
+        "tags": ["admin"]
       }
     },
     "/v2/agents/ca": {
@@ -525,9 +467,7 @@
           }
         },
         "summary": "Get CA certificate",
-        "tags": [
-          "agents"
-        ]
+        "tags": ["agents"]
       }
     },
     "/v2/agents/certificates/sign": {
@@ -570,12 +510,7 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "bootstrapToken",
-                  "csr",
-                  "nodeName",
-                  "region"
-                ],
+                "required": ["bootstrapToken", "csr", "nodeName", "region"],
                 "type": "object"
               }
             }
@@ -640,9 +575,7 @@
           }
         },
         "summary": "Bootstrap agent certificate and register node",
-        "tags": [
-          "agents"
-        ]
+        "tags": ["agents"]
       }
     },
     "/v2/agents/heartbeat": {
@@ -681,9 +614,7 @@
           }
         },
         "summary": "Agent heartbeat",
-        "tags": [
-          "agents"
-        ]
+        "tags": ["agents"]
       }
     },
     "/v2/agents/tasks/pending": {
@@ -736,9 +667,7 @@
           }
         },
         "summary": "Poll for pending tasks",
-        "tags": [
-          "agents"
-        ]
+        "tags": ["agents"]
       }
     },
     "/v2/agents/tasks/{taskId}/result": {
@@ -795,10 +724,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "exit_code",
-                  "status"
-                ],
+                "required": ["exit_code", "status"],
                 "type": "object"
               }
             }
@@ -811,9 +737,7 @@
           }
         },
         "summary": "Report task result",
-        "tags": [
-          "agents"
-        ]
+        "tags": ["agents"]
       }
     },
     "/v2/agents/tasks/{taskId}/status": {
@@ -837,9 +761,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "status"
-                ],
+                "required": ["status"],
                 "type": "object"
               }
             }
@@ -852,9 +774,7 @@
           }
         },
         "summary": "Update task execution status",
-        "tags": [
-          "agents"
-        ]
+        "tags": ["agents"]
       }
     },
     "/v2/alerts/": {
@@ -886,12 +806,7 @@
                             "type": "string"
                           },
                           "severity": {
-                            "enum": [
-                              "CRITICAL",
-                              "HIGH",
-                              "LOW",
-                              "MEDIUM"
-                            ],
+                            "enum": ["CRITICAL", "HIGH", "LOW", "MEDIUM"],
                             "type": "string"
                           },
                           "source": {
@@ -914,9 +829,7 @@
           }
         },
         "summary": "Get active alerts for tenant",
-        "tags": [
-          "alerts"
-        ]
+        "tags": ["alerts"]
       }
     },
     "/v2/alerts/test": {
@@ -930,23 +843,14 @@
                     "type": "string"
                   },
                   "severity": {
-                    "enum": [
-                      "CRITICAL",
-                      "HIGH",
-                      "LOW",
-                      "MEDIUM"
-                    ],
+                    "enum": ["CRITICAL", "HIGH", "LOW", "MEDIUM"],
                     "type": "string"
                   },
                   "title": {
                     "type": "string"
                   }
                 },
-                "required": [
-                  "description",
-                  "severity",
-                  "title"
-                ],
+                "required": ["description", "severity", "title"],
                 "type": "object"
               }
             }
@@ -959,9 +863,7 @@
           }
         },
         "summary": "Send test alert",
-        "tags": [
-          "alerts"
-        ]
+        "tags": ["alerts"]
       }
     },
     "/v2/alerts/{id}/acknowledge": {
@@ -982,9 +884,7 @@
           }
         },
         "summary": "Acknowledge an alert",
-        "tags": [
-          "alerts"
-        ]
+        "tags": ["alerts"]
       }
     },
     "/v2/analytics/cost": {
@@ -1073,9 +973,7 @@
           }
         },
         "summary": "Get cost analytics",
-        "tags": [
-          "analytics"
-        ]
+        "tags": ["analytics"]
       }
     },
     "/v2/api-keys/": {
@@ -1086,9 +984,7 @@
           }
         },
         "summary": "List my API keys",
-        "tags": [
-          "api-keys"
-        ]
+        "tags": ["api-keys"]
       },
       "post": {
         "requestBody": {
@@ -1128,9 +1024,7 @@
                     "type": "array"
                   }
                 },
-                "required": [
-                  "name"
-                ],
+                "required": ["name"],
                 "type": "object"
               }
             }
@@ -1143,9 +1037,7 @@
           }
         },
         "summary": "Create a new API key",
-        "tags": [
-          "api-keys"
-        ]
+        "tags": ["api-keys"]
       }
     },
     "/v2/api-keys/{id}": {
@@ -1167,9 +1059,7 @@
           }
         },
         "summary": "Revoke an API key",
-        "tags": [
-          "api-keys"
-        ]
+        "tags": ["api-keys"]
       }
     },
     "/v2/auth/login": {
@@ -1189,10 +1079,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "email",
-                  "password"
-                ],
+                "required": ["email", "password"],
                 "type": "object"
               }
             }
@@ -1237,11 +1124,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "email",
-                        "id",
-                        "role"
-                      ],
+                      "required": ["email", "id", "role"],
                       "type": "object"
                     }
                   },
@@ -1280,9 +1163,7 @@
           }
         },
         "summary": "Login and get tokens",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/auth/logout": {
@@ -1305,9 +1186,7 @@
           }
         },
         "summary": "Logout and invalidate session",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/auth/me": {
@@ -1318,9 +1197,7 @@
           }
         },
         "summary": "Get current user profile",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/auth/refresh": {
@@ -1336,9 +1213,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "refreshToken"
-                ],
+                "required": ["refreshToken"],
                 "type": "object"
               }
             }
@@ -1351,9 +1226,7 @@
           }
         },
         "summary": "Refresh access token",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/auth/register": {
@@ -1394,11 +1267,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "email",
-                  "name",
-                  "password"
-                ],
+                "required": ["email", "name", "password"],
                 "type": "object"
               }
             }
@@ -1443,11 +1312,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "email",
-                        "id",
-                        "role"
-                      ],
+                      "required": ["email", "id", "role"],
                       "type": "object"
                     }
                   },
@@ -1486,9 +1351,7 @@
           }
         },
         "summary": "Register a new user",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/auth/sessions": {
@@ -1499,9 +1362,7 @@
           }
         },
         "summary": "Revoke all user sessions (logout everywhere)",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       },
       "get": {
         "responses": {
@@ -1510,9 +1371,7 @@
           }
         },
         "summary": "List active user sessions",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/auth/sessions/{id}": {
@@ -1534,9 +1393,7 @@
           }
         },
         "summary": "Revoke a specific session",
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v2/carbon/by-region": {
@@ -1571,9 +1428,7 @@
           }
         },
         "summary": "Get carbon breakdown by region",
-        "tags": [
-          "carbon"
-        ]
+        "tags": ["carbon"]
       }
     },
     "/v2/carbon/intensity": {
@@ -1613,9 +1468,7 @@
           }
         },
         "summary": "Get regional carbon intensity",
-        "tags": [
-          "carbon"
-        ]
+        "tags": ["carbon"]
       }
     },
     "/v2/carbon/policy": {
@@ -1644,9 +1497,7 @@
           }
         },
         "summary": "Get active carbon optimization policy",
-        "tags": [
-          "carbon"
-        ]
+        "tags": ["carbon"]
       },
       "patch": {
         "requestBody": {
@@ -1661,9 +1512,7 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "carbonWeight"
-                ],
+                "required": ["carbonWeight"],
                 "type": "object"
               }
             }
@@ -1691,9 +1540,7 @@
           }
         },
         "summary": "Update carbon optimization weight",
-        "tags": [
-          "carbon"
-        ]
+        "tags": ["carbon"]
       }
     },
     "/v2/carbon/savings": {
@@ -1749,9 +1596,7 @@
           }
         },
         "summary": "Get carbon savings metrics",
-        "tags": [
-          "carbon"
-        ]
+        "tags": ["carbon"]
       }
     },
     "/v2/carbon/summary": {
@@ -1780,9 +1625,7 @@
           }
         },
         "summary": "Get carbon footprint summary",
-        "tags": [
-          "carbon"
-        ]
+        "tags": ["carbon"]
       }
     },
     "/v2/circuit-breakers/": {
@@ -1810,11 +1653,7 @@
                         "type": "string"
                       },
                       "state": {
-                        "enum": [
-                          "CLOSED",
-                          "HALF_OPEN",
-                          "OPEN"
-                        ],
+                        "enum": ["CLOSED", "HALF_OPEN", "OPEN"],
                         "type": "string"
                       },
                       "successCount": {
@@ -1831,9 +1670,7 @@
           }
         },
         "summary": "Get all circuit breaker states",
-        "tags": [
-          "resilience"
-        ]
+        "tags": ["resilience"]
       }
     },
     "/v2/circuit-breakers/{name}/reset": {
@@ -1880,9 +1717,7 @@
           }
         },
         "summary": "Force reset a circuit breaker",
-        "tags": [
-          "resilience"
-        ]
+        "tags": ["resilience"]
       }
     },
     "/v2/cost/by-node": {
@@ -1893,9 +1728,7 @@
           }
         },
         "summary": "Get cost breakdown by node",
-        "tags": [
-          "cost"
-        ]
+        "tags": ["cost"]
       }
     },
     "/v2/cost/projections": {
@@ -1906,9 +1739,7 @@
           }
         },
         "summary": "Get cost projections",
-        "tags": [
-          "cost"
-        ]
+        "tags": ["cost"]
       }
     },
     "/v2/cost/records": {
@@ -1955,12 +1786,7 @@
             "required": false,
             "schema": {
               "default": "day",
-              "enum": [
-                "day",
-                "hour",
-                "month",
-                "week"
-              ],
+              "enum": ["day", "hour", "month", "week"],
               "type": "string"
             }
           }
@@ -1971,9 +1797,7 @@
           }
         },
         "summary": "Get cost records",
-        "tags": [
-          "cost"
-        ]
+        "tags": ["cost"]
       }
     },
     "/v2/cost/summary": {
@@ -1984,9 +1808,7 @@
           }
         },
         "summary": "Get cost summary",
-        "tags": [
-          "cost"
-        ]
+        "tags": ["cost"]
       }
     },
     "/v2/fl/models": {
@@ -1997,9 +1819,7 @@
           }
         },
         "summary": "List FL models",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       },
       "post": {
         "requestBody": {
@@ -2034,12 +1854,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "architecture",
-                  "name",
-                  "parameters",
-                  "version"
-                ],
+                "required": ["architecture", "name", "parameters", "version"],
                 "type": "object"
               }
             }
@@ -2052,9 +1867,7 @@
           }
         },
         "summary": "Register a FL model",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       }
     },
     "/v2/fl/models/{id}": {
@@ -2076,9 +1889,7 @@
           }
         },
         "summary": "Get FL model",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       }
     },
     "/v2/fl/models/{id}/weights": {
@@ -2100,9 +1911,7 @@
           }
         },
         "summary": "Download weights for a FL model",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       },
       "post": {
         "parameters": [
@@ -2122,9 +1931,7 @@
           }
         },
         "summary": "Upload weights for a FL model",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       }
     },
     "/v2/fl/sessions": {
@@ -2140,11 +1947,7 @@
                     "properties": {
                       "aggregationStrategy": {
                         "default": "fedavg",
-                        "enum": [
-                          "fedadam",
-                          "fedavg",
-                          "fedprox"
-                        ],
+                        "enum": ["fedadam", "fedavg", "fedprox"],
                         "type": "string"
                       },
                       "gradientClipNorm": {
@@ -2200,9 +2003,7 @@
                     "type": "integer"
                   }
                 },
-                "required": [
-                  "modelId"
-                ],
+                "required": ["modelId"],
                 "type": "object"
               }
             }
@@ -2215,9 +2016,7 @@
           }
         },
         "summary": "Start FL training session",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       }
     },
     "/v2/fl/sessions/{id}": {
@@ -2239,9 +2038,7 @@
           }
         },
         "summary": "Get FL session",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       }
     },
     "/v2/fl/sessions/{id}/stop": {
@@ -2263,9 +2060,7 @@
           }
         },
         "summary": "Stop FL session",
-        "tags": [
-          "federated-learning"
-        ]
+        "tags": ["federated-learning"]
       }
     },
     "/v2/logs/": {
@@ -2292,12 +2087,7 @@
             "name": "level",
             "required": false,
             "schema": {
-              "enum": [
-                "DEBUG",
-                "ERROR",
-                "INFO",
-                "WARN"
-              ],
+              "enum": ["DEBUG", "ERROR", "INFO", "WARN"],
               "type": "string"
             }
           },
@@ -2326,9 +2116,7 @@
           }
         },
         "summary": "Get system-wide logs",
-        "tags": [
-          "logs"
-        ]
+        "tags": ["logs"]
       }
     },
     "/v2/logs/stats": {
@@ -2339,9 +2127,7 @@
           }
         },
         "summary": "Get log statistics",
-        "tags": [
-          "logs"
-        ]
+        "tags": ["logs"]
       }
     },
     "/v2/metrics/": {
@@ -2352,9 +2138,7 @@
           }
         },
         "summary": "Get system metrics",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/metrics/ml": {
@@ -2386,9 +2170,7 @@
           }
         },
         "summary": "Get ML-specific metrics",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/metrics/network": {
@@ -2420,9 +2202,7 @@
           }
         },
         "summary": "Get network performance metrics",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/metrics/nodes": {
@@ -2433,9 +2213,7 @@
           }
         },
         "summary": "Get node metrics summary",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/metrics/prometheus": {
@@ -2447,9 +2225,7 @@
           }
         },
         "summary": "Get Prometheus metrics",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/metrics/requests": {
@@ -2460,9 +2236,7 @@
           }
         },
         "summary": "Get request metrics",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/metrics/system": {
@@ -2480,9 +2254,7 @@
           }
         },
         "summary": "Get system metrics",
-        "tags": [
-          "metrics"
-        ]
+        "tags": ["metrics"]
       }
     },
     "/v2/ml/drift/current": {
@@ -2517,9 +2289,7 @@
           }
         },
         "summary": "Get current ML drift status",
-        "tags": [
-          "ml"
-        ]
+        "tags": ["ml"]
       }
     },
     "/v2/ml/drift/history": {
@@ -2561,9 +2331,7 @@
           }
         },
         "summary": "Get ML drift history",
-        "tags": [
-          "ml"
-        ]
+        "tags": ["ml"]
       }
     },
     "/v2/ml/model/current": {
@@ -2601,9 +2369,7 @@
           }
         },
         "summary": "Get current ML model status",
-        "tags": [
-          "ml"
-        ]
+        "tags": ["ml"]
       }
     },
     "/v2/ml/outcomes/stats": {
@@ -2635,9 +2401,7 @@
           }
         },
         "summary": "Get ML outcome collection stats",
-        "tags": [
-          "ml"
-        ]
+        "tags": ["ml"]
       }
     },
     "/v2/ml/retrain": {
@@ -2663,9 +2427,7 @@
           }
         },
         "summary": "Manually trigger model retraining",
-        "tags": [
-          "ml"
-        ]
+        "tags": ["ml"]
       }
     },
     "/v2/ml/retrain/status": {
@@ -2695,9 +2457,7 @@
           }
         },
         "summary": "Get status of current retraining job",
-        "tags": [
-          "ml"
-        ]
+        "tags": ["ml"]
       }
     },
     "/v2/nodes/": {
@@ -2716,12 +2476,7 @@
             "name": "status",
             "required": false,
             "schema": {
-              "enum": [
-                "DEGRADED",
-                "MAINTENANCE",
-                "OFFLINE",
-                "ONLINE"
-              ],
+              "enum": ["DEGRADED", "MAINTENANCE", "OFFLINE", "ONLINE"],
               "type": "string"
             }
           },
@@ -2752,12 +2507,7 @@
             "required": false,
             "schema": {
               "default": "createdAt",
-              "enum": [
-                "createdAt",
-                "name",
-                "region",
-                "status"
-              ],
+              "enum": ["createdAt", "name", "region", "status"],
               "type": "string"
             }
           },
@@ -2767,10 +2517,7 @@
             "required": false,
             "schema": {
               "default": "desc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
+              "enum": ["asc", "desc"],
               "type": "string"
             }
           }
@@ -2809,9 +2556,7 @@
                                 "type": "number"
                               }
                             },
-                            "required": [
-                              "activeTasks"
-                            ],
+                            "required": ["activeTasks"],
                             "type": "object"
                           },
                           "location": {
@@ -2839,11 +2584,7 @@
                                 "type": "number"
                               }
                             },
-                            "required": [
-                              "cpuCores",
-                              "memoryGB",
-                              "storageGB"
-                            ],
+                            "required": ["cpuCores", "memoryGB", "storageGB"],
                             "type": "object"
                           },
                           "status": {
@@ -2897,9 +2638,7 @@
           }
         },
         "summary": "List edge nodes",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       },
       "post": {
         "requestBody": {
@@ -3013,9 +2752,7 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "activeTasks"
-                      ],
+                      "required": ["activeTasks"],
                       "type": "object"
                     },
                     "location": {
@@ -3043,20 +2780,11 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "cpuCores",
-                        "memoryGB",
-                        "storageGB"
-                      ],
+                      "required": ["cpuCores", "memoryGB", "storageGB"],
                       "type": "object"
                     },
                     "status": {
-                      "enum": [
-                        "DEGRADED",
-                        "MAINTENANCE",
-                        "OFFLINE",
-                        "ONLINE"
-                      ],
+                      "enum": ["DEGRADED", "MAINTENANCE", "OFFLINE", "ONLINE"],
                       "type": "string"
                     }
                   },
@@ -3089,9 +2817,7 @@
           }
         },
         "summary": "Register a new edge node",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}": {
@@ -3113,9 +2839,7 @@
           }
         },
         "summary": "Deregister an edge node",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       },
       "get": {
         "parameters": [
@@ -3160,9 +2884,7 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "activeTasks"
-                      ],
+                      "required": ["activeTasks"],
                       "type": "object"
                     },
                     "location": {
@@ -3190,20 +2912,11 @@
                           "type": "number"
                         }
                       },
-                      "required": [
-                        "cpuCores",
-                        "memoryGB",
-                        "storageGB"
-                      ],
+                      "required": ["cpuCores", "memoryGB", "storageGB"],
                       "type": "object"
                     },
                     "status": {
-                      "enum": [
-                        "DEGRADED",
-                        "MAINTENANCE",
-                        "OFFLINE",
-                        "ONLINE"
-                      ],
+                      "enum": ["DEGRADED", "MAINTENANCE", "OFFLINE", "ONLINE"],
                       "type": "string"
                     }
                   },
@@ -3236,9 +2949,7 @@
           }
         },
         "summary": "Get node by ID",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       },
       "patch": {
         "parameters": [
@@ -3313,9 +3024,7 @@
           }
         },
         "summary": "Update node configuration",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}/drain": {
@@ -3352,9 +3061,7 @@
           }
         },
         "summary": "Start draining a node (stop accepting new tasks)",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}/heartbeat": {
@@ -3397,10 +3104,7 @@
                     "type": "number"
                   }
                 },
-                "required": [
-                  "cpuUsage",
-                  "memoryUsage"
-                ],
+                "required": ["cpuUsage", "memoryUsage"],
                 "type": "object"
               }
             }
@@ -3413,9 +3117,7 @@
           }
         },
         "summary": "Receive heartbeat from edge agent",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}/maintenance": {
@@ -3440,9 +3142,7 @@
                     "type": "boolean"
                   }
                 },
-                "required": [
-                  "enabled"
-                ],
+                "required": ["enabled"],
                 "type": "object"
               }
             }
@@ -3455,9 +3155,7 @@
           }
         },
         "summary": "Enable/disable maintenance mode",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}/metrics": {
@@ -3506,9 +3204,7 @@
           }
         },
         "summary": "Get node metrics history",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}/offline": {
@@ -3545,9 +3241,7 @@
           }
         },
         "summary": "Force a node to OFFLINE status",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/nodes/{id}/scheduling-history": {
@@ -3578,9 +3272,7 @@
           }
         },
         "summary": "Get scheduling history for a node",
-        "tags": [
-          "nodes"
-        ]
+        "tags": ["nodes"]
       }
     },
     "/v2/policies/": {
@@ -3591,9 +3283,7 @@
           }
         },
         "summary": "List available scheduling policies",
-        "tags": [
-          "policies"
-        ]
+        "tags": ["policies"]
       }
     },
     "/v2/policies/active": {
@@ -3604,9 +3294,7 @@
           }
         },
         "summary": "Get the currently active scheduling policy",
-        "tags": [
-          "policies"
-        ]
+        "tags": ["policies"]
       },
       "patch": {
         "requestBody": {
@@ -3619,9 +3307,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "policy"
-                ],
+                "required": ["policy"],
                 "type": "object"
               }
             }
@@ -3634,9 +3320,7 @@
           }
         },
         "summary": "Update the active scheduling policy",
-        "tags": [
-          "policies"
-        ]
+        "tags": ["policies"]
       }
     },
     "/v2/policies/config": {
@@ -3647,9 +3331,7 @@
           }
         },
         "summary": "Get detailed configuration for all policies",
-        "tags": [
-          "policies"
-        ]
+        "tags": ["policies"]
       }
     },
     "/v2/policies/thresholds": {
@@ -3660,9 +3342,7 @@
           }
         },
         "summary": "Get system health thresholds",
-        "tags": [
-          "policies"
-        ]
+        "tags": ["policies"]
       },
       "patch": {
         "requestBody": {
@@ -3697,9 +3377,7 @@
           }
         },
         "summary": "Update system health thresholds",
-        "tags": [
-          "policies"
-        ]
+        "tags": ["policies"]
       }
     },
     "/v2/scheduler/decisions": {
@@ -3732,9 +3410,7 @@
           }
         },
         "summary": "Get recent scheduling decisions",
-        "tags": [
-          "scheduler"
-        ]
+        "tags": ["scheduler"]
       }
     },
     "/v2/scheduler/metrics": {
@@ -3766,9 +3442,7 @@
           }
         },
         "summary": "Get scheduler-specific metrics",
-        "tags": [
-          "scheduler"
-        ]
+        "tags": ["scheduler"]
       }
     },
     "/v2/status": {
@@ -3788,9 +3462,7 @@
           }
         },
         "summary": "Get system circuit breaker status",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       }
     },
     "/v2/system/info": {
@@ -3801,9 +3473,7 @@
           }
         },
         "summary": "Get system information",
-        "tags": [
-          "system"
-        ]
+        "tags": ["system"]
       }
     },
     "/v2/tasks/": {
@@ -3847,12 +3517,7 @@
             "name": "priority",
             "required": false,
             "schema": {
-              "enum": [
-                "CRITICAL",
-                "HIGH",
-                "LOW",
-                "MEDIUM"
-              ],
+              "enum": ["CRITICAL", "HIGH", "LOW", "MEDIUM"],
               "type": "string"
             }
           },
@@ -3901,10 +3566,7 @@
             "required": false,
             "schema": {
               "default": "desc",
-              "enum": [
-                "asc",
-                "desc"
-              ],
+              "enum": ["asc", "desc"],
               "type": "string"
             }
           },
@@ -4025,11 +3687,7 @@
                             "type": "string"
                           },
                           "runtime": {
-                            "enum": [
-                              "DOCKER",
-                              "NATIVE",
-                              "WASM"
-                            ],
+                            "enum": ["DOCKER", "NATIVE", "WASM"],
                             "type": "string"
                           },
                           "specs": {
@@ -4049,10 +3707,7 @@
                                         "type": "number"
                                       }
                                     },
-                                    "required": [
-                                      "cpuCores",
-                                      "memoryGB"
-                                    ],
+                                    "required": ["cpuCores", "memoryGB"],
                                     "type": "object"
                                   }
                                 ]
@@ -4156,9 +3811,7 @@
           }
         },
         "summary": "List tasks",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       },
       "post": {
         "requestBody": {
@@ -4199,21 +3852,12 @@
                   },
                   "priority": {
                     "default": "MEDIUM",
-                    "enum": [
-                      "CRITICAL",
-                      "HIGH",
-                      "LOW",
-                      "MEDIUM"
-                    ],
+                    "enum": ["CRITICAL", "HIGH", "LOW", "MEDIUM"],
                     "type": "string"
                   },
                   "runtime": {
                     "default": "DOCKER",
-                    "enum": [
-                      "DOCKER",
-                      "NATIVE",
-                      "WASM"
-                    ],
+                    "enum": ["DOCKER", "NATIVE", "WASM"],
                     "type": "string"
                   },
                   "specs": {
@@ -4239,11 +3883,7 @@
                   },
                   "target": {
                     "default": "EDGE",
-                    "enum": [
-                      "CLOUD",
-                      "EDGE",
-                      "HYBRID"
-                    ],
+                    "enum": ["CLOUD", "EDGE", "HYBRID"],
                     "type": "string"
                   },
                   "traceId": {
@@ -4276,11 +3916,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "image",
-                  "name",
-                  "type"
-                ],
+                "required": ["image", "name", "type"],
                 "type": "object"
               }
             }
@@ -4382,11 +4018,7 @@
                       "type": "string"
                     },
                     "runtime": {
-                      "enum": [
-                        "DOCKER",
-                        "NATIVE",
-                        "WASM"
-                      ],
+                      "enum": ["DOCKER", "NATIVE", "WASM"],
                       "type": "string"
                     },
                     "specs": {
@@ -4406,10 +4038,7 @@
                                   "type": "number"
                                 }
                               },
-                              "required": [
-                                "cpuCores",
-                                "memoryGB"
-                              ],
+                              "required": ["cpuCores", "memoryGB"],
                               "type": "object"
                             }
                           ]
@@ -4511,9 +4140,7 @@
           }
         },
         "summary": "Create and schedule a new task",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/tasks/stats": {
@@ -4524,9 +4151,7 @@
           }
         },
         "summary": "Get task statistics (Deprecated)",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/tasks/{id}": {
@@ -4637,11 +4262,7 @@
                       "type": "string"
                     },
                     "runtime": {
-                      "enum": [
-                        "DOCKER",
-                        "NATIVE",
-                        "WASM"
-                      ],
+                      "enum": ["DOCKER", "NATIVE", "WASM"],
                       "type": "string"
                     },
                     "specs": {
@@ -4661,10 +4282,7 @@
                                   "type": "number"
                                 }
                               },
-                              "required": [
-                                "cpuCores",
-                                "memoryGB"
-                              ],
+                              "required": ["cpuCores", "memoryGB"],
                               "type": "object"
                             }
                           ]
@@ -4756,9 +4374,7 @@
           }
         },
         "summary": "Get task by ID",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/tasks/{id}/cancel": {
@@ -4780,9 +4396,7 @@
           }
         },
         "summary": "Cancel a task",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/tasks/{id}/logs": {
@@ -4822,9 +4436,7 @@
           }
         },
         "summary": "Get task logs",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/tasks/{id}/retry": {
@@ -4846,9 +4458,7 @@
           }
         },
         "summary": "Retry a failed task",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/tasks/{id}/scheduling-decision": {
@@ -4870,9 +4480,7 @@
           }
         },
         "summary": "Get scheduling decision for a task",
-        "tags": [
-          "tasks"
-        ]
+        "tags": ["tasks"]
       }
     },
     "/v2/webhooks/": {
@@ -4883,9 +4491,7 @@
           }
         },
         "summary": "List webhooks",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       },
       "post": {
         "requestBody": {
@@ -4921,11 +4527,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "events",
-                  "name",
-                  "url"
-                ],
+                "required": ["events", "name", "url"],
                 "type": "object"
               }
             }
@@ -4938,9 +4540,7 @@
           }
         },
         "summary": "Create a webhook",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/webhooks/deliveries/{id}/retry": {
@@ -4977,9 +4577,7 @@
           }
         },
         "summary": "Retry a failed webhook delivery",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/webhooks/stats": {
@@ -5011,9 +4609,7 @@
           }
         },
         "summary": "Get webhook delivery statistics",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/webhooks/{id}": {
@@ -5035,9 +4631,7 @@
           }
         },
         "summary": "Delete a webhook",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       },
       "patch": {
         "parameters": [
@@ -5093,9 +4687,7 @@
           }
         },
         "summary": "Update a webhook",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/webhooks/{id}/deliveries": {
@@ -5127,9 +4719,7 @@
           }
         },
         "summary": "Get webhook delivery history",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/webhooks/{id}/redeliver/{deliveryId}": {
@@ -5160,9 +4750,7 @@
           }
         },
         "summary": "Redeliver a webhook",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/webhooks/{id}/test": {
@@ -5199,9 +4787,7 @@
           }
         },
         "summary": "Send a test event to the webhook",
-        "tags": [
-          "webhooks"
-        ]
+        "tags": ["webhooks"]
       }
     },
     "/v2/workflows/": {
@@ -5212,9 +4798,7 @@
           }
         },
         "summary": "List workflows",
-        "tags": [
-          "workflows"
-        ]
+        "tags": ["workflows"]
       },
       "post": {
         "requestBody": {
@@ -5240,11 +4824,7 @@
                           "type": "string"
                         }
                       },
-                      "required": [
-                        "from",
-                        "id",
-                        "to"
-                      ],
+                      "required": ["from", "id", "to"],
                       "type": "object"
                     },
                     "type": "array"
@@ -5354,12 +4934,7 @@
                     "type": "string"
                   }
                 },
-                "required": [
-                  "edges",
-                  "name",
-                  "nodes",
-                  "version"
-                ],
+                "required": ["edges", "name", "nodes", "version"],
                 "type": "object"
               }
             }
@@ -5372,9 +4947,7 @@
           }
         },
         "summary": "Create a new workflow",
-        "tags": [
-          "workflows"
-        ]
+        "tags": ["workflows"]
       }
     },
     "/v2/workflows/executions/{executionId}": {
@@ -5395,9 +4968,7 @@
           }
         },
         "summary": "Get workflow execution status",
-        "tags": [
-          "workflows"
-        ]
+        "tags": ["workflows"]
       }
     },
     "/v2/workflows/{id}": {
@@ -5419,9 +4990,7 @@
           }
         },
         "summary": "Get workflow by ID",
-        "tags": [
-          "workflows"
-        ]
+        "tags": ["workflows"]
       }
     },
     "/v2/workflows/{id}/execute": {
@@ -5459,9 +5028,7 @@
           }
         },
         "summary": "Execute a workflow",
-        "tags": [
-          "workflows"
-        ]
+        "tags": ["workflows"]
       }
     }
   }

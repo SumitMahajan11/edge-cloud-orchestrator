@@ -1,5 +1,5 @@
-import { IEventBus, TOPICS } from '@edgecloud/shared-kernel';
-import { EventEmitter } from 'eventemitter3';
+import { IEventBus, TOPICS } from "@edgecloud/shared-kernel";
+import { EventEmitter } from "eventemitter3";
 
 // Phase 12: Data Pipeline - Stream Processing & Analytics
 
@@ -19,13 +19,13 @@ export interface AggregationRule {
   id: string;
   name: string;
   sourceTopic: string;
-  windowType: 'tumbling' | 'sliding' | 'session';
+  windowType: "tumbling" | "sliding" | "session";
   windowSize: number; // milliseconds
   slideInterval?: number; // for sliding windows
   groupBy: string[];
   aggregations: {
     field: string;
-    operation: 'count' | 'sum' | 'avg' | 'min' | 'max' | 'percentile';
+    operation: "count" | "sum" | "avg" | "min" | "max" | "percentile";
     alias: string;
     percentile?: number; // for percentile operation
   }[];
@@ -45,28 +45,32 @@ export class StreamProcessor extends EventEmitter {
 
   async start(): Promise<void> {
     // Subscribe to raw metrics topic
-    await this.eventBus.subscribe(TOPICS.METRICS_RAW, 'stream-processor', async (event) => {
-      await this.processEvent(event as unknown as StreamEvent);
-    });
+    await this.eventBus.subscribe(
+      TOPICS.METRICS_RAW,
+      "stream-processor",
+      async (event) => {
+        await this.processEvent(event as unknown as StreamEvent);
+      },
+    );
 
     // Start window processing loop
     this.processingInterval = setInterval(() => {
       void this.processWindows();
     }, 1000);
 
-    this.emit('started');
+    this.emit("started");
   }
 
   async stop(): Promise<void> {
     if (this.processingInterval) {
       clearInterval(this.processingInterval);
     }
-    this.emit('stopped');
+    this.emit("stopped");
   }
 
   registerRule(rule: AggregationRule): void {
     this.rules.set(rule.id, rule);
-    this.emit('ruleRegistered', rule);
+    this.emit("ruleRegistered", rule);
   }
 
   private async processEvent(event: StreamEvent): Promise<void> {
@@ -77,9 +81,12 @@ export class StreamProcessor extends EventEmitter {
     }
   }
 
-  private async addToWindow(rule: AggregationRule, event: StreamEvent): Promise<void> {
+  private async addToWindow(
+    rule: AggregationRule,
+    event: StreamEvent,
+  ): Promise<void> {
     const windowKey = this.getWindowKey(rule, event);
-    
+
     let window = this.windows.get(windowKey);
     if (!window) {
       window = {
@@ -104,18 +111,25 @@ export class StreamProcessor extends EventEmitter {
     }
   }
 
-  private async emitWindowResults(windowKey: string, window: StreamWindow): Promise<void> {
-    const parts = windowKey.split(':');
+  private async emitWindowResults(
+    windowKey: string,
+    window: StreamWindow,
+  ): Promise<void> {
+    const parts = windowKey.split(":");
     const ruleId = parts[0];
-    if (!ruleId) { return; }
+    if (!ruleId) {
+      return;
+    }
     const rule = this.rules.get(ruleId);
-    if (!rule) {return;}
+    if (!rule) {
+      return;
+    }
 
     const results = this.aggregateWindow(rule, window);
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     await this.eventBus.publish(rule.outputTopic, {
-      eventType: 'WindowAggregated',
+      eventType: "WindowAggregated",
       aggregateId: windowKey,
       version: 1,
       window: {
@@ -127,33 +141,42 @@ export class StreamProcessor extends EventEmitter {
       eventCount: window.events.length,
     } as any);
 
-    this.emit('windowProcessed', { windowKey, results });
+    this.emit("windowProcessed", { windowKey, results });
   }
 
-  private aggregateWindow(rule: AggregationRule, window: StreamWindow): Record<string, any> {
+  private aggregateWindow(
+    rule: AggregationRule,
+    window: StreamWindow,
+  ): Record<string, any> {
     const results: Record<string, any> = {};
 
     for (const agg of rule.aggregations) {
-      const values = window.events.map((e) => this.getNestedValue(e.data, agg.field));
-      
+      const values = window.events.map((e) =>
+        this.getNestedValue(e.data, agg.field),
+      );
+
       switch (agg.operation) {
-        case 'count':
+        case "count":
           results[agg.alias] = values.length;
           break;
-        case 'sum':
+        case "sum":
           results[agg.alias] = values.reduce((a, b) => a + (Number(b) || 0), 0);
           break;
-        case 'avg':
-          results[agg.alias] = values.reduce((a, b) => a + (Number(b) || 0), 0) / values.length;
+        case "avg":
+          results[agg.alias] =
+            values.reduce((a, b) => a + (Number(b) || 0), 0) / values.length;
           break;
-        case 'min':
+        case "min":
           results[agg.alias] = Math.min(...values.map((v) => Number(v) || 0));
           break;
-        case 'max':
+        case "max":
           results[agg.alias] = Math.max(...values.map((v) => Number(v) || 0));
           break;
-        case 'percentile':
-          results[agg.alias] = this.calculatePercentile(values, agg.percentile || 95);
+        case "percentile":
+          results[agg.alias] = this.calculatePercentile(
+            values,
+            agg.percentile || 95,
+          );
           break;
       }
     }
@@ -162,12 +185,14 @@ export class StreamProcessor extends EventEmitter {
   }
 
   private getWindowKey(rule: AggregationRule, event: StreamEvent): string {
-    const groupValues = rule.groupBy.map((field) => this.getNestedValue(event.data, field));
-    return `${rule.id}:${groupValues.join(':')}:${Math.floor(Date.now() / rule.windowSize)}`;
+    const groupValues = rule.groupBy.map((field) =>
+      this.getNestedValue(event.data, field),
+    );
+    return `${rule.id}:${groupValues.join(":")}:${Math.floor(Date.now() / rule.windowSize)}`;
   }
 
   private getNestedValue(obj: any, path: string): any {
-    return path.split('.').reduce((o, p) => o?.[p], obj);
+    return path.split(".").reduce((o, p) => o?.[p], obj);
   }
 
   private calculatePercentile(values: any[], percentile: number): number {
@@ -204,9 +229,13 @@ export class RealTimeAnalytics extends EventEmitter {
 
   async start(): Promise<void> {
     // Subscribe to aggregated metrics
-    await this.eventBus.subscribe(TOPICS.METRICS_AGGREGATED, 'analytics', async (event) => {
-      await this.processAggregatedMetrics(event);
-    });
+    await this.eventBus.subscribe(
+      TOPICS.METRICS_AGGREGATED,
+      "analytics",
+      async (event) => {
+        await this.processAggregatedMetrics(event);
+      },
+    );
 
     // Start real-time calculation
     this.calculationInterval = setInterval(() => {
@@ -236,23 +265,25 @@ export class RealTimeAnalytics extends EventEmitter {
       this.metrics = this.metrics.slice(-this.maxHistorySize);
     }
 
-    this.emit('metricsUpdated', this.getLatestMetrics());
+    this.emit("metricsUpdated", this.getLatestMetrics());
   }
 
   private calculateRealTimeMetrics(): void {
     const latest = this.getLatestMetrics();
-    
+
     // Publish real-time dashboard update
-    void this.eventBus.publish('metrics.realtime', {
-      eventType: 'RealtimeMetrics',
-      aggregateId: 'dashboard',
+    void this.eventBus.publish("metrics.realtime", {
+      eventType: "RealtimeMetrics",
+      aggregateId: "dashboard",
       version: 1,
       metrics: latest,
     } as any);
   }
 
   getLatestMetrics(): DashboardMetrics | null {
-    return this.metrics.length > 0 ? (this.metrics[this.metrics.length - 1] ?? null) : null;
+    return this.metrics.length > 0
+      ? (this.metrics[this.metrics.length - 1] ?? null)
+      : null;
   }
 
   getMetricsHistory(durationMinutes: number): DashboardMetrics[] {
@@ -261,39 +292,52 @@ export class RealTimeAnalytics extends EventEmitter {
   }
 
   // Anomaly detection
-  detectAnomalies(): Array<{ metric: string; value: number; threshold: number; severity: 'warning' | 'critical' }> {
-    const anomalies: Array<{ metric: string; value: number; threshold: number; severity: 'warning' | 'critical' }> = [];
+  detectAnomalies(): Array<{
+    metric: string;
+    value: number;
+    threshold: number;
+    severity: "warning" | "critical";
+  }> {
+    const anomalies: Array<{
+      metric: string;
+      value: number;
+      threshold: number;
+      severity: "warning" | "critical";
+    }> = [];
     const latest = this.getLatestMetrics();
 
-    if (!latest) {return anomalies;}
+    if (!latest) {
+      return anomalies;
+    }
 
     // Check success rate
     if (latest.metrics.successRate < 0.95) {
       anomalies.push({
-        metric: 'successRate',
+        metric: "successRate",
         value: latest.metrics.successRate,
         threshold: 0.95,
-        severity: latest.metrics.successRate < 0.90 ? 'critical' : 'warning',
+        severity: latest.metrics.successRate < 0.9 ? "critical" : "warning",
       });
     }
 
     // Check CPU utilization
     if (latest.metrics.cpuUtilization > 85) {
       anomalies.push({
-        metric: 'cpuUtilization',
+        metric: "cpuUtilization",
         value: latest.metrics.cpuUtilization,
         threshold: 85,
-        severity: latest.metrics.cpuUtilization > 95 ? 'critical' : 'warning',
+        severity: latest.metrics.cpuUtilization > 95 ? "critical" : "warning",
       });
     }
 
     // Check scheduling latency
     if (latest.metrics.schedulingLatency > 100) {
       anomalies.push({
-        metric: 'schedulingLatency',
+        metric: "schedulingLatency",
         value: latest.metrics.schedulingLatency,
         threshold: 100,
-        severity: latest.metrics.schedulingLatency > 500 ? 'critical' : 'warning',
+        severity:
+          latest.metrics.schedulingLatency > 500 ? "critical" : "warning",
       });
     }
 
@@ -313,16 +357,26 @@ export class PredictiveAnalytics extends EventEmitter {
 
     // Keep last 24 hours
     const cutoff = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    this.historicalData = this.historicalData.filter((d) => d.timestamp >= cutoff);
+    this.historicalData = this.historicalData.filter(
+      (d) => d.timestamp >= cutoff,
+    );
   }
 
-  predictLoad(nextMinutes: number): { timestamp: Date; predictedTasks: number; confidence: number }[] {
+  predictLoad(
+    nextMinutes: number,
+  ): { timestamp: Date; predictedTasks: number; confidence: number }[] {
     // Simple moving average prediction
-    const predictions: { timestamp: Date; predictedTasks: number; confidence: number }[] = [];
-    
+    const predictions: {
+      timestamp: Date;
+      predictedTasks: number;
+      confidence: number;
+    }[] = [];
+
     const recentLoad = this.historicalData.slice(-12); // Last hour (5-min intervals)
-    const avgLoad = recentLoad.reduce((sum, d) => sum + (d.tasksPerSecond || 0), 0) / recentLoad.length;
-    
+    const avgLoad =
+      recentLoad.reduce((sum, d) => sum + (d.tasksPerSecond || 0), 0) /
+      recentLoad.length;
+
     for (let i = 1; i <= nextMinutes / 5; i++) {
       predictions.push({
         timestamp: new Date(Date.now() + i * 5 * 60 * 1000),
@@ -334,9 +388,17 @@ export class PredictiveAnalytics extends EventEmitter {
     return predictions;
   }
 
-  predictNodeFailures(): { nodeId: string; probability: number; reasons: string[] }[] {
+  predictNodeFailures(): {
+    nodeId: string;
+    probability: number;
+    reasons: string[];
+  }[] {
     // Analyze node health patterns to predict failures
-    const predictions: { nodeId: string; probability: number; reasons: string[] }[] = [];
+    const predictions: {
+      nodeId: string;
+      probability: number;
+      reasons: string[];
+    }[] = [];
 
     // Group by node
     const nodeData = new Map<string, any[]>();
@@ -352,28 +414,36 @@ export class PredictiveAnalytics extends EventEmitter {
     // Analyze each node
     for (const [nodeId, data] of nodeData) {
       const recent = data.slice(-6); // Last 30 minutes
-      const avgCpu = recent.reduce((sum, d) => sum + (d.cpuUsage || 0), 0) / recent.length;
-      const avgMemory = recent.reduce((sum, d) => sum + (d.memoryUsage || 0), 0) / recent.length;
-      const errorRate = recent.filter((d) => d.status === 'error').length / recent.length;
+      const avgCpu =
+        recent.reduce((sum, d) => sum + (d.cpuUsage || 0), 0) / recent.length;
+      const avgMemory =
+        recent.reduce((sum, d) => sum + (d.memoryUsage || 0), 0) /
+        recent.length;
+      const errorRate =
+        recent.filter((d) => d.status === "error").length / recent.length;
 
       const reasons: string[] = [];
       let probability = 0;
 
       if (avgCpu > 90) {
         probability += 0.3;
-        reasons.push('Sustained high CPU usage');
+        reasons.push("Sustained high CPU usage");
       }
       if (avgMemory > 90) {
         probability += 0.3;
-        reasons.push('Sustained high memory usage');
+        reasons.push("Sustained high memory usage");
       }
       if (errorRate > 0.1) {
         probability += 0.4;
-        reasons.push('Increased error rate');
+        reasons.push("Increased error rate");
       }
 
       if (probability > 0) {
-        predictions.push({ nodeId, probability: Math.min(probability, 1), reasons });
+        predictions.push({
+          nodeId,
+          probability: Math.min(probability, 1),
+          reasons,
+        });
       }
     }
 

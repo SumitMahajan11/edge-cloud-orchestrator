@@ -12,3 +12,6 @@ infrastructure
 backend/node_modules
 packages/*/node_modules
 apps/*/node_modules
+apps/agent/target
+apps/agent/target_clippy
+infra

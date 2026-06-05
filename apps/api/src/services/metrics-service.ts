@@ -709,9 +709,7 @@ export function recordApiRequest(
 
   if (statusCode >= 400) {
     // Note: detailed error code is handled in the global error handler
-    apiErrorsTotal
-      .labels('UNKNOWN', endpoint, method)
-      .inc();
+    apiErrorsTotal.labels('UNKNOWN', endpoint, method).inc();
   }
 }
 

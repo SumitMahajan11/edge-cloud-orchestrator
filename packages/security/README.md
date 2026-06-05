@@ -12,24 +12,31 @@ pnpm add @edgecloud/security
 
 ## Exports
 
-| Export        | Type     | Description                                  |
-|---------------|----------|----------------------------------------------|
-| `AbacEngine`  | class    | Attribute-based access control evaluator     |
-| `RbacEngine`  | class    | Role-based access control evaluator          |
-| `VaultClient` | class    | HashiCorp Vault secret/PKI operations        |
-| `MtlsManager` | class    | mTLS certificate generation and rotation     |
-| `JwtUtils`    | object   | JWT sign/verify helpers                      |
+| Export        | Type   | Description                              |
+| ------------- | ------ | ---------------------------------------- |
+| `AbacEngine`  | class  | Attribute-based access control evaluator |
+| `RbacEngine`  | class  | Role-based access control evaluator      |
+| `VaultClient` | class  | HashiCorp Vault secret/PKI operations    |
+| `MtlsManager` | class  | mTLS certificate generation and rotation |
+| `JwtUtils`    | object | JWT sign/verify helpers                  |
 
 ## Usage
 
 ```typescript
-import { AbacEngine, VaultClient } from '@edgecloud/security'
+import { AbacEngine, VaultClient } from "@edgecloud/security";
 
-const abac = new AbacEngine()
-const allowed = abac.evaluate({ subject: user, action: 'task:create', resource: task })
+const abac = new AbacEngine();
+const allowed = abac.evaluate({
+  subject: user,
+  action: "task:create",
+  resource: task,
+});
 
-const vault = new VaultClient({ addr: process.env.VAULT_ADDR!, token: process.env.VAULT_TOKEN! })
-const secret = await vault.readSecret('secret/db-password')
+const vault = new VaultClient({
+  addr: process.env.VAULT_ADDR!,
+  token: process.env.VAULT_TOKEN!,
+});
+const secret = await vault.readSecret("secret/db-password");
 ```
 
 ## Build

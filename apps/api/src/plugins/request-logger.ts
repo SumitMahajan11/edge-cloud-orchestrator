@@ -43,4 +43,3 @@ export const requestLogger = fp(async (fastify: FastifyInstance) => {
     },
   );
 });
-

@@ -13,8 +13,16 @@ export const registerSchema = z.object({
     .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
     .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
     .regex(/[0-9]/, 'Password must contain at least one number')
-    .regex(/[^A-Za-z0-9]/, 'Password must contain at least one special character'),
-  name: z.string().trim().min(2, 'Name must be at least 2 characters').max(100).regex(/^[a-zA-Z\s\-\.]+$/, 'Name contains invalid characters'),
+    .regex(
+      /[^A-Za-z0-9]/,
+      'Password must contain at least one special character',
+    ),
+  name: z
+    .string()
+    .trim()
+    .min(2, 'Name must be at least 2 characters')
+    .max(100)
+    .regex(/^[a-zA-Z\s\-\.]+$/, 'Name contains invalid characters'),
 });
 
 export const loginSchema = z.object({
@@ -40,7 +48,12 @@ export const authResponseSchema = z.object({
 });
 
 export const createApiKeySchema = z.object({
-  name: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/, 'API Key name contains invalid characters'),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'API Key name contains invalid characters'),
   permissions: z.array(z.string().trim()).optional(),
   expiresAt: z.string().datetime().optional().nullable(),
 });
@@ -50,9 +63,27 @@ export const createApiKeySchema = z.object({
 // ============================================
 
 export const createNodeSchema = z.object({
-  name: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/, 'Node name contains invalid characters'),
-  location: z.string().trim().min(1).max(200).regex(/^[a-zA-Z0-9\s\-_,\.]+$/, 'Location contains invalid characters'),
-  region: z.string().trim().min(1).max(50).regex(/^[a-z0-9\-]+$/, 'Region must be lowercase alphanumeric with hyphens'),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Node name contains invalid characters'),
+  location: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .regex(/^[a-zA-Z0-9\s\-_,\.]+$/, 'Location contains invalid characters'),
+  region: z
+    .string()
+    .trim()
+    .min(1)
+    .max(50)
+    .regex(
+      /^[a-z0-9\-]+$/,
+      'Region must be lowercase alphanumeric with hyphens',
+    ),
   ipAddress: z.string().ip({ version: 'v4' }),
   port: z.number().int().min(1).max(65535),
   cpuCores: z.number().int().min(1).max(256),
@@ -92,7 +123,12 @@ export const nodeQuerySchema = z.object({
 // ============================================
 
 export const createTaskSchema = z.object({
-  name: z.string().trim().min(1).max(200).regex(/^[a-zA-Z0-9\s\-_]+$/, 'Task name contains invalid characters'),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Task name contains invalid characters'),
   type: z.enum([
     'IMAGE_CLASSIFICATION',
     'DATA_AGGREGATION',
@@ -168,7 +204,12 @@ export const taskQuerySchema = z.object({
 // ============================================
 
 export const workflowNodeSchema = z.object({
-  id: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\-_]+$/, 'Node ID contains invalid characters'),
+  id: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[a-zA-Z0-9\-_]+$/, 'Node ID contains invalid characters'),
   name: z.string().trim().min(1).max(100),
   type: z.enum(['task', 'decision', 'parallel', 'wait', 'subworkflow']),
   config: z.record(z.string().max(100), z.unknown()),
@@ -211,12 +252,28 @@ export const executeWorkflowSchema = z.object({
 // ============================================
 
 export const createWebhookSchema = z.object({
-  name: z.string().trim().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/, 'Webhook name contains invalid characters'),
-  url: z.string().url().trim().refine(u => u.startsWith('https://') || process.env.NODE_ENV === 'development', {
-    message: 'Webhook URL must use HTTPS in production',
-  }),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .regex(/^[a-zA-Z0-9\s\-_]+$/, 'Webhook name contains invalid characters'),
+  url: z
+    .string()
+    .url()
+    .trim()
+    .refine(
+      (u) => u.startsWith('https://') || process.env.NODE_ENV === 'development',
+      {
+        message: 'Webhook URL must use HTTPS in production',
+      },
+    ),
   events: z.array(z.string().trim()).min(1),
-  secret: z.string().min(32, 'Webhook secret must be at least 32 characters').max(128).optional(),
+  secret: z
+    .string()
+    .min(32, 'Webhook secret must be at least 32 characters')
+    .max(128)
+    .optional(),
   enabled: z.boolean().default(true),
 });
 
@@ -307,7 +364,10 @@ export const ApiErrorSchema = z.object({
   requestId: z.string().describe('Unique request ID'),
   timestamp: z.string().datetime().describe('ISO 8601 timestamp'),
   details: z.unknown().optional().describe('Optional error details'),
-  stack: z.string().optional().describe('Error stack trace (non-production only)'),
+  stack: z
+    .string()
+    .optional()
+    .describe('Error stack trace (non-production only)'),
 });
 
 export const ErrorSchema = ApiErrorSchema;
@@ -403,7 +463,9 @@ export const adminEventRepublishRangeBodySchema = z.object({
 
 export const adminDlqEventsQuerySchema = z.object({
   topic: z.string().optional(),
-  status: z.enum(['PENDING', 'RETRYING', 'REPROCESSED', 'PERMANENTLY_FAILED']).optional(),
+  status: z
+    .enum(['PENDING', 'RETRYING', 'REPROCESSED', 'PERMANENTLY_FAILED'])
+    .optional(),
   limit: z.coerce.number().int().min(1).max(100).optional(),
   offset: z.coerce.number().int().min(0).optional(),
 });

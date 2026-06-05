@@ -1,4 +1,4 @@
-version: '3.8'
+version: "3.8"
 
 # Multi-Region Docker Compose Configuration
 # This simulates a multi-region deployment using Docker networks

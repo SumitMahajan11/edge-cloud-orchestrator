@@ -161,7 +161,6 @@ async function registerCostRoutes(
 
   // GET /api/v1/cost/history - Get cost history
   fastify.get('/history', async () => {
-
     // Would query CostHistory table
     return {
       totalCost: 0,

@@ -12,20 +12,20 @@ pnpm add @edgecloud/circuit-breaker
 
 ## Exports
 
-| Export             | Type     | Description                                  |
-|--------------------|----------|----------------------------------------------|
-| `CircuitBreaker`   | class    | Circuit breaker with open/half-open/closed   |
-| `RetryManager`     | class    | Exponential backoff retry                    |
-| `Bulkhead`         | class    | Concurrency limiter                          |
-| `CheckpointManager`| class    | Distributed checkpoint store (Redis)         |
+| Export              | Type  | Description                                |
+| ------------------- | ----- | ------------------------------------------ |
+| `CircuitBreaker`    | class | Circuit breaker with open/half-open/closed |
+| `RetryManager`      | class | Exponential backoff retry                  |
+| `Bulkhead`          | class | Concurrency limiter                        |
+| `CheckpointManager` | class | Distributed checkpoint store (Redis)       |
 
 ## Usage
 
 ```typescript
-import { CircuitBreaker } from '@edgecloud/circuit-breaker'
+import { CircuitBreaker } from "@edgecloud/circuit-breaker";
 
-const breaker = new CircuitBreaker({ threshold: 5, timeout: 30000 })
-const result = await breaker.execute(() => fetchFromExternalService())
+const breaker = new CircuitBreaker({ threshold: 5, timeout: 30000 });
+const result = await breaker.execute(() => fetchFromExternalService());
 ```
 
 ## Build

@@ -212,7 +212,10 @@ export class BackpressureController extends EventEmitter {
       const persisted = await this.redis.get('config:backpressure');
       if (persisted) {
         this.config = { ...this.config, ...JSON.parse(persisted) };
-        this.logger.debug({ config: this.config }, 'Backpressure config refreshed from Redis');
+        this.logger.debug(
+          { config: this.config },
+          'Backpressure config refreshed from Redis',
+        );
       }
     } catch (error) {
       this.logger.error({ error }, 'Failed to refresh backpressure config');
@@ -225,7 +228,10 @@ export class BackpressureController extends EventEmitter {
   async persistConfig(config: Partial<BackpressureConfig>): Promise<void> {
     this.config = { ...this.config, ...config };
     await this.redis.set('config:backpressure', JSON.stringify(this.config));
-    this.logger.info({ config: this.config }, 'Backpressure config persisted to Redis');
+    this.logger.info(
+      { config: this.config },
+      'Backpressure config persisted to Redis',
+    );
   }
 
   // Metrics collection helpers

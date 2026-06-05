@@ -8,9 +8,9 @@ global.fetch = mockFetch;
 
 describe('OpenAPI Contract Validation', () => {
   it('should validate request and response types against the OpenAPI spec', async () => {
-    const client = createClient<paths>({ 
+    const client = createClient<paths>({
       baseUrl: 'http://localhost:3090',
-      fetch: mockFetch
+      fetch: mockFetch,
     });
 
     // Mock a successful response matching the OpenAPI schema for /v2/nodes
@@ -26,32 +26,33 @@ describe('OpenAPI Contract Validation', () => {
             status: 'ONLINE',
             region: 'us-east-1',
             createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
+            updatedAt: new Date().toISOString(),
+          },
         ],
         meta: {
           total: 1,
           page: 1,
-          limit: 20
-        }
+          limit: 20,
+        },
       }),
-      text: async () => JSON.stringify({
-        data: [
-          {
-            id: 'node-1',
-            name: 'edge-node-alpha',
-            status: 'ONLINE',
-            region: 'us-east-1',
-            createdAt: new Date().toISOString(),
-            updatedAt: new Date().toISOString()
-          }
-        ],
-        meta: {
-          total: 1,
-          page: 1,
-          limit: 20
-        }
-      })
+      text: async () =>
+        JSON.stringify({
+          data: [
+            {
+              id: 'node-1',
+              name: 'edge-node-alpha',
+              status: 'ONLINE',
+              region: 'us-east-1',
+              createdAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            },
+          ],
+          meta: {
+            total: 1,
+            page: 1,
+            limit: 20,
+          },
+        }),
     });
 
     // Type-safe fetch using OpenAPI spec
@@ -60,16 +61,18 @@ describe('OpenAPI Contract Validation', () => {
       params: {
         query: {
           status: 'ONLINE',
-          limit: 10
-        }
-      }
+          limit: 10,
+        },
+      },
     });
 
     expect(error).toBeUndefined();
     expect((data as any)?.data[0].name).toBe('edge-node-alpha');
     expect(mockFetch).toHaveBeenCalled();
     const [request] = mockFetch.mock.calls[0];
-    expect(request.url).toBe('http://localhost:3090/v2/nodes/?status=ONLINE&limit=10');
+    expect(request.url).toBe(
+      'http://localhost:3090/v2/nodes/?status=ONLINE&limit=10',
+    );
     expect(request.method).toBe('GET');
   });
 });

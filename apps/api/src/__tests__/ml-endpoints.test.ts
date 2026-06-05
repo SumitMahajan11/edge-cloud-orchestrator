@@ -18,10 +18,14 @@ const { mockMtls } = vi.hoisted(() => ({
     },
     CertificateAuthorityManager: class {
       constructor() {}
-      async initialize() { return { certificatePem: 'mock' }; }
-      getCACertificate() { return 'mock-ca-cert'; }
+      async initialize() {
+        return { certificatePem: 'mock' };
+      }
+      getCACertificate() {
+        return 'mock-ca-cert';
+      }
     },
-  }
+  },
 }));
 
 vi.mock('../services/mtls-authentication.js', () => mockMtls);
@@ -63,30 +67,37 @@ describe('ML Endpoints Integration', () => {
 
   const mockTaskScheduler: any = {
     scheduleTask: vi.fn().mockResolvedValue({ id: 'task-1' }),
-    getMLDriftState: vi.fn().mockResolvedValue({ driftScore: 0.05, isDrifting: false }),
+    getMLDriftState: vi
+      .fn()
+      .mockResolvedValue({ driftScore: 0.05, isDrifting: false }),
     getMLOutcomeStats: vi.fn().mockResolvedValue({ outcomesBuffered: 100 }),
     triggerMLRetrain: vi.fn().mockResolvedValue({ success: true }),
   };
 
   beforeEach(async () => {
     app = fastify();
-    
+
     app.decorate('prisma', mockPrisma);
     app.decorate('taskScheduler', mockTaskScheduler);
-    
-    await app.register(import('@fastify/jwt'), { 
+
+    await app.register(import('@fastify/jwt'), {
       secret: TEST_JWT_SECRET,
       issuer: 'edge-cloud-orchestrator',
-      audience: 'edge-cloud-clients'
+      audience: 'edge-cloud-clients',
     });
-    await app.register(import('@fastify/rate-limit'), { max: 100, timeWindow: 60000 });
+    await app.register(import('@fastify/rate-limit'), {
+      max: 100,
+      timeWindow: 60000,
+    });
 
-    const { ErrorSchema, HealthSchema } = await import('@edgecloud/shared-kernel');
+    const { ErrorSchema, HealthSchema } =
+      await import('@edgecloud/shared-kernel');
     const { zodToFastifySchema } = await import('../utils/zod-schema.js');
     app.addSchema({ $id: 'ErrorSchema', ...zodToFastifySchema(ErrorSchema) });
     app.addSchema({ $id: 'HealthSchema', ...zodToFastifySchema(HealthSchema) });
-    
-    const { authenticate, requirePermission, requireRole } = await import('../middleware/auth.middleware.js');
+
+    const { authenticate, requirePermission, requireRole } =
+      await import('../middleware/auth.middleware.js');
     app.decorate('authenticate', authenticate);
     app.decorate('requirePermission', requirePermission);
     app.decorate('requireRole', requireRole);
@@ -111,13 +122,18 @@ describe('ML Endpoints Integration', () => {
   it('Test 1 — Fetch current drift', async () => {
     const token = generateToken();
     mockPrisma.driftLog.findMany.mockResolvedValue([
-      { id: 'd1', modelId: VALID_MODEL_ID, driftScore: 0.12, timestamp: new Date() }
+      {
+        id: 'd1',
+        modelId: VALID_MODEL_ID,
+        driftScore: 0.12,
+        timestamp: new Date(),
+      },
     ]);
 
     const response = await app.inject({
       method: 'GET',
       url: '/api/v2/ml/drift/current',
-      headers: { authorization: `Bearer ${token}` }
+      headers: { authorization: `Bearer ${token}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -126,13 +142,13 @@ describe('ML Endpoints Integration', () => {
   it('Test 2 — Fetch outcome statistics', async () => {
     const token = generateToken();
     mockPrisma.task.groupBy.mockResolvedValue([
-      { status: 'COMPLETED', _count: 10 }
+      { status: 'COMPLETED', _count: 10 },
     ]);
 
     const response = await app.inject({
       method: 'GET',
       url: '/api/v2/ml/outcomes/stats',
-      headers: { authorization: `Bearer ${token}` }
+      headers: { authorization: `Bearer ${token}` },
     });
 
     expect(response.statusCode).toBe(200);
@@ -144,7 +160,7 @@ describe('ML Endpoints Integration', () => {
       method: 'POST',
       url: '/api/v2/ml/retrain',
       headers: { authorization: `Bearer ${token}` },
-      payload: { priority: 'HIGH' }
+      payload: { priority: 'HIGH' },
     });
 
     expect(response.statusCode).toBe(200);
@@ -157,7 +173,7 @@ describe('ML Endpoints Integration', () => {
       method: 'POST',
       url: '/api/v2/ml/retrain',
       headers: { authorization: `Bearer ${token}` },
-      payload: { priority: 'HIGH' }
+      payload: { priority: 'HIGH' },
     });
 
     expect(response.statusCode).toBe(403);

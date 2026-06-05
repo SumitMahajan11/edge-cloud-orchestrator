@@ -6,18 +6,18 @@ Rate limiting is enforced at the API Gateway (Nginx) layer to prevent abuse and 
 
 All rate limits are **per-user**, extracted from JWT tokens. Requests without valid JWT tokens use the "anonymous" bucket.
 
-| Endpoint | Method | Limit | Burst | Window | Notes |
-|----------|--------|-------|-------|--------|-------|
-| `/tasks` | POST | 100 req/s | 10 | 1 second | Task creation with validation |
-| `/tasks` | GET | 100 req/s | 10 | 1 second | Task listing |
-| `/tasks/{id}` | DELETE | 50 req/s | 5 | 1 second | Task deletion (stricter) |
-| `/tasks/{id}` | GET/PUT | 100 req/s | 10 | 1 second | Task retrieval/update |
-| `/api/*` | ALL | 1000 req/s | 50 | 1 second | General API operations |
-| `/api/auth/*` | POST | 5 req/m | 3 | 1 minute | Authentication (IP-based) |
-| `/nodes` | ALL | 1000 req/s | 50 | 1 second | Node management |
-| `/schedule` | ALL | 1000 req/s | 50 | 1 second | Scheduler operations |
-| `/ws` | WebSocket | N/A | N/A | N/A | No rate limit (persistent connections) |
-| `/health` | GET | Unlimited | N/A | N/A | Health checks excluded |
+| Endpoint      | Method    | Limit      | Burst | Window   | Notes                                  |
+| ------------- | --------- | ---------- | ----- | -------- | -------------------------------------- |
+| `/tasks`      | POST      | 100 req/s  | 10    | 1 second | Task creation with validation          |
+| `/tasks`      | GET       | 100 req/s  | 10    | 1 second | Task listing                           |
+| `/tasks/{id}` | DELETE    | 50 req/s   | 5     | 1 second | Task deletion (stricter)               |
+| `/tasks/{id}` | GET/PUT   | 100 req/s  | 10    | 1 second | Task retrieval/update                  |
+| `/api/*`      | ALL       | 1000 req/s | 50    | 1 second | General API operations                 |
+| `/api/auth/*` | POST      | 5 req/m    | 3     | 1 minute | Authentication (IP-based)              |
+| `/nodes`      | ALL       | 1000 req/s | 50    | 1 second | Node management                        |
+| `/schedule`   | ALL       | 1000 req/s | 50    | 1 second | Scheduler operations                   |
+| `/ws`         | WebSocket | N/A        | N/A   | N/A      | No rate limit (persistent connections) |
+| `/health`     | GET       | Unlimited  | N/A   | N/A      | Health checks excluded                 |
 
 ## Rate Limit Headers
 
@@ -38,10 +38,12 @@ Too many requests. Limit exceeded per user rate limit.
 Task creation requests (`POST /tasks`) are validated at the gateway layer before reaching backend services:
 
 ### Required Fields
+
 - `image` (string, non-empty): Container image name
 - `command` (string, non-empty): Command to execute
 
 ### Validation Errors
+
 Invalid requests receive a `400 Bad Request` response with detailed error messages:
 
 ```json
@@ -52,6 +54,7 @@ Invalid requests receive a `400 Bad Request` response with detailed error messag
 ```
 
 ### Validation Rules
+
 1. Request body must be valid JSON
 2. `image` field must be a non-empty string
 3. `command` field must be a non-empty string
@@ -76,6 +79,7 @@ Rate limiting metrics are exported to Prometheus:
 ### Grafana Dashboard
 
 Monitor rate limiting effectiveness:
+
 - Requests hitting rate limits over time
 - Rate-limited requests by endpoint
 - Anonymous vs authenticated request distribution

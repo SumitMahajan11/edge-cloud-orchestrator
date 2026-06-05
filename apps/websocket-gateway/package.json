@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "ts-node-dev --respawn src/index.ts",
+    "dev": "cross-env PORT=3004 ts-node-dev --respawn src/index.ts",
     "start": "node dist/index.js"
   },
   "dependencies": {

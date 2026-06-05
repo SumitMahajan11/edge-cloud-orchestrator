@@ -12,20 +12,20 @@ pnpm add @edgecloud/ml-scheduler
 
 ## Exports
 
-| Export          | Type     | Description                                  |
-|-----------------|----------|----------------------------------------------|
-| `MLScheduler`   | class    | Multi-objective ML node scorer               |
-| `DriftDetector` | class    | Statistical drift detection with retraining  |
-| `NodeScorer`    | class    | Feature extraction and score normalization   |
+| Export          | Type  | Description                                 |
+| --------------- | ----- | ------------------------------------------- |
+| `MLScheduler`   | class | Multi-objective ML node scorer              |
+| `DriftDetector` | class | Statistical drift detection with retraining |
+| `NodeScorer`    | class | Feature extraction and score normalization  |
 
 ## Usage
 
 ```typescript
-import { MLScheduler } from '@edgecloud/ml-scheduler'
+import { MLScheduler } from "@edgecloud/ml-scheduler";
 
-const scheduler = new MLScheduler({ modelPath: './models/node-scorer' })
-await scheduler.initialize()
-const ranked = await scheduler.rankNodes(candidateNodes, task)
+const scheduler = new MLScheduler({ modelPath: "./models/node-scorer" });
+await scheduler.initialize();
+const ranked = await scheduler.rankNodes(candidateNodes, task);
 ```
 
 ## Build

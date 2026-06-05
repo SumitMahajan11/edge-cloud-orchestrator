@@ -7,6 +7,7 @@
 ## Context
 
 Edge-Cloud Orchestrator requires Kubernetes deployment for:
+
 - **Staging environment** — Auto-deploy from `main` branch for testing
 - **Production environment** — Manual approval before deployment
 - **Multiple services** — API, agent, scheduler, websocket-gateway, metrics
@@ -15,12 +16,14 @@ Edge-Cloud Orchestrator requires Kubernetes deployment for:
 Two primary approaches were evaluated:
 
 ### Helm
+
 - Templating engine with Go templates
 - Package management (charts, repositories)
 - Values override system for environment customization
 - Large ecosystem of community charts
 
 ### Kustomize + ArgoCD
+
 - Declarative YAML patches (no templating DSL)
 - Base configuration + environment overlays (staging, production)
 - ArgoCD GitOps controller auto-syncs from Git
@@ -58,6 +61,7 @@ Two primary approaches were evaluated:
 ## Consequences
 
 ### Positive
+
 - ✅ **Git Becomes Source of Truth** — Complete audit trail, instant rollback
 - ✅ **Staging Auto-Syncs** — Automatic deployment when `main` updated (fast feedback)
 - ✅ **Production Safety Gate** — Manual approval prevents accidental production changes
@@ -66,6 +70,7 @@ Two primary approaches were evaluated:
 - ✅ **Native Tooling** — Built into kubectl, no additional dependencies
 
 ### Negative
+
 - ⚠️ **Helm Charts Not Directly Usable** — Can't drop in community Helm charts (but Kustomize can reference Helm repos if needed)
 - ⚠️ **Less Templating Power** — Can't generate resources programmatically (must list explicitly)
 - ⚠️ **Larger YAML Files** — No loops or conditionals (must write out each resource)
@@ -108,6 +113,7 @@ infra/k8s/
 ## GitOps Workflow
 
 ### Staging (Auto-Sync)
+
 ```bash
 # Developer merges PR to main
 git checkout main
@@ -121,6 +127,7 @@ git push origin main
 ```
 
 ### Production (Manual Approval)
+
 ```bash
 # 1. ArgoCD detects change, marks production as "OutOfSync"
 # 2. Engineer reviews diff in ArgoCD UI
@@ -132,6 +139,7 @@ git push origin main
 ## Kustomize Example
 
 ### Base Configuration
+
 ```yaml
 # infra/k8s/base/api-deployment.yaml
 apiVersion: apps/v1
@@ -143,15 +151,16 @@ spec:
   template:
     spec:
       containers:
-      - name: api
-        image: api:latest
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
+        - name: api
+          image: api:latest
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
 ```
 
 ### Production Overlay
+
 ```yaml
 # infra/k8s/overlays/production/replicas-patch.yaml
 apiVersion: apps/v1
@@ -195,7 +204,7 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-    - CreateNamespace=true
+      - CreateNamespace=true
 ```
 
 ## Mitigation Strategies
@@ -216,6 +225,7 @@ spec:
 ## Revisit Triggers
 
 This decision should be revisited when:
+
 - Need to deploy community Helm charts without maintaining fork
 - Deployment complexity requires programmatic resource generation
 - Team prefers Helm's packaging and versioning model

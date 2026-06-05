@@ -1,5 +1,5 @@
-import * as React from "react"
-import { cn } from "../../lib/utils"
+import * as React from "react";
+import { cn } from "../../lib/utils";
 
 const Label = React.forwardRef<
   HTMLLabelElement,
@@ -9,11 +9,11 @@ const Label = React.forwardRef<
     ref={ref}
     className={cn(
       "text-xs font-mono uppercase tracking-wider text-muted-foreground",
-      className
+      className,
     )}
     {...props}
   />
-))
-Label.displayName = "Label"
+));
+Label.displayName = "Label";
 
-export { Label }
+export { Label };

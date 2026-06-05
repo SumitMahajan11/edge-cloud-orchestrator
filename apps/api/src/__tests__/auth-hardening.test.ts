@@ -45,7 +45,7 @@ describe('Auth Hardening E2E Logic', () => {
     it('should issue new tokens and revoke the old session', async () => {
       const oldRefreshToken = 'old-token';
       const hashedOldToken = (authService as any).hashToken(oldRefreshToken);
-      
+
       const mockSession = {
         id: 'session-1',
         userId: mockUser.id,
@@ -56,16 +56,22 @@ describe('Auth Hardening E2E Logic', () => {
         user: mockUser,
       };
 
-      vi.spyOn(mockPrisma.userSession, 'findUnique').mockResolvedValue(mockSession as any);
+      vi.spyOn(mockPrisma.userSession, 'findUnique').mockResolvedValue(
+        mockSession as any,
+      );
       vi.spyOn(mockPrisma.userSession, 'create').mockResolvedValue({} as any);
       vi.spyOn(mockPrisma.userSession, 'update').mockResolvedValue({} as any);
 
-      const result = await authService.rotateRefreshToken(oldRefreshToken, '127.0.0.1', 'test-agent');
+      const result = await authService.rotateRefreshToken(
+        oldRefreshToken,
+        '127.0.0.1',
+        'test-agent',
+      );
 
       expect(result.accessToken).toBeDefined();
       expect(result.refreshToken).toBeDefined();
       expect(result.refreshToken).not.toBe(oldRefreshToken);
-      
+
       // Verify old session revoked
       expect(mockPrisma.userSession.update).toHaveBeenCalledWith({
         where: { id: mockSession.id },
@@ -77,14 +83,14 @@ describe('Auth Hardening E2E Logic', () => {
         `revoked_token:${mockSession.accessTokenJti}`,
         'revoked',
         'EX',
-        3600
+        3600,
       );
     });
 
     it('should detect reuse and invalidate ALL sessions', async () => {
       const reusedToken = 'reused-token';
       const hashedReusedToken = (authService as any).hashToken(reusedToken);
-      
+
       const mockSession = {
         id: 'session-1',
         userId: mockUser.id,
@@ -93,10 +99,16 @@ describe('Auth Hardening E2E Logic', () => {
         user: mockUser,
       };
 
-      vi.spyOn(mockPrisma.userSession, 'findUnique').mockResolvedValue(mockSession as any);
-      
+      vi.spyOn(mockPrisma.userSession, 'findUnique').mockResolvedValue(
+        mockSession as any,
+      );
+
       try {
-        await authService.rotateRefreshToken(reusedToken, '127.0.0.1', 'attacker-agent');
+        await authService.rotateRefreshToken(
+          reusedToken,
+          '127.0.0.1',
+          'attacker-agent',
+        );
         expect.fail('Should have thrown');
       } catch (error: any) {
         expect(error.message).toMatch(/Refresh token reuse detected/);
@@ -113,7 +125,7 @@ describe('Auth Hardening E2E Logic', () => {
         data: expect.objectContaining({
           action: 'SECURITY_ALERT',
           details: expect.objectContaining({
-            alertType: 'TOKEN_THEFT_ATTEMPT'
+            alertType: 'TOKEN_THEFT_ATTEMPT',
           }),
         }),
       });
@@ -123,14 +135,14 @@ describe('Auth Hardening E2E Logic', () => {
   describe('Session Management', () => {
     it('should list only active sessions', async () => {
       vi.spyOn(mockPrisma.userSession, 'findMany').mockResolvedValue([]);
-      
+
       await authService.listUserSessions(mockUser.id);
-      
+
       expect(mockPrisma.userSession.findMany).toHaveBeenCalledWith({
         where: expect.objectContaining({
           userId: mockUser.id,
           revoked: false,
-          expiresAt: { gte: expect.any(Date) }
+          expiresAt: { gte: expect.any(Date) },
         }),
         select: expect.any(Object),
         orderBy: { lastUsedAt: 'desc' },
@@ -140,11 +152,13 @@ describe('Auth Hardening E2E Logic', () => {
     it('should revoke specific session and its access token', async () => {
       const sessionId = 'session-to-revoke';
       const mockSession = { id: sessionId, accessTokenJti: 'jti-123' };
-      
-      vi.spyOn(mockPrisma.userSession, 'findFirst').mockResolvedValue(mockSession as any);
-      
+
+      vi.spyOn(mockPrisma.userSession, 'findFirst').mockResolvedValue(
+        mockSession as any,
+      );
+
       await authService.revokeSessionById(sessionId, mockUser.id);
-      
+
       expect(mockPrisma.userSession.update).toHaveBeenCalledWith({
         where: { id: sessionId },
         data: { revoked: true },
@@ -154,25 +168,27 @@ describe('Auth Hardening E2E Logic', () => {
         `revoked_token:${mockSession.accessTokenJti}`,
         'revoked',
         'EX',
-        3600
+        3600,
       );
     });
 
     it('should revoke all user sessions and their access tokens', async () => {
       const sessions = [
         { accessTokenJti: 'jti-1' },
-        { accessTokenJti: 'jti-2' }
+        { accessTokenJti: 'jti-2' },
       ];
-      
-      vi.spyOn(mockPrisma.userSession, 'findMany').mockResolvedValue(sessions as any);
+
+      vi.spyOn(mockPrisma.userSession, 'findMany').mockResolvedValue(
+        sessions as any,
+      );
       const mockPipeline = {
         set: vi.fn().mockReturnThis(),
         exec: vi.fn().mockResolvedValue([]),
       };
       vi.spyOn(mockRedis, 'pipeline').mockReturnValue(mockPipeline as any);
-      
+
       await authService.revokeAllUserSessions(mockUser.id);
-      
+
       expect(mockPrisma.userSession.updateMany).toHaveBeenCalledWith({
         where: { userId: mockUser.id },
         data: { revoked: true },

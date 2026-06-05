@@ -1,1 +1,1728 @@
-{"numTotalTestSuites":97,"numPassedTestSuites":96,"numFailedTestSuites":1,"numPendingTestSuites":0,"numTotalTests":167,"numPassedTests":146,"numFailedTests":21,"numPendingTests":0,"numTodoTests":0,"startTime":1780199614337,"success":false,"testResults":[{"assertionResults":[{"ancestorTitles":["","OpenAPI Specification Contract"],"fullName":" OpenAPI Specification Contract simple test","status":"passed","title":"simple test","duration":4,"failureMessages":[]}],"startTime":1780199636743,"endTime":1780199636747,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/openapi.test.ts"},{"assertionResults":[{"ancestorTitles":["","Integration Tests","Health Checks"],"fullName":" Integration Tests Health Checks should have healthy API server","status":"skipped","title":"should have healthy API server","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Health Checks"],"fullName":" Integration Tests Health Checks should have healthy edge agent","status":"skipped","title":"should have healthy edge agent","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Authentication Flow"],"fullName":" Integration Tests Authentication Flow should register a new user","status":"skipped","title":"should register a new user","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Authentication Flow"],"fullName":" Integration Tests Authentication Flow should login with valid credentials","status":"skipped","title":"should login with valid credentials","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Authentication Flow"],"fullName":" Integration Tests Authentication Flow should reject invalid credentials","status":"skipped","title":"should reject invalid credentials","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Authentication Flow"],"fullName":" Integration Tests Authentication Flow should refresh token","status":"skipped","title":"should refresh token","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Authentication Flow"],"fullName":" Integration Tests Authentication Flow should get current user","status":"skipped","title":"should get current user","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Node Management"],"fullName":" Integration Tests Node Management should list nodes","status":"skipped","title":"should list nodes","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Node Management"],"fullName":" Integration Tests Node Management should create a node","status":"skipped","title":"should create a node","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Node Management"],"fullName":" Integration Tests Node Management should get node by ID","status":"skipped","title":"should get node by ID","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Node Management"],"fullName":" Integration Tests Node Management should update node","status":"skipped","title":"should update node","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Node Management"],"fullName":" Integration Tests Node Management should get node metrics","status":"skipped","title":"should get node metrics","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Task Management"],"fullName":" Integration Tests Task Management should list tasks","status":"skipped","title":"should list tasks","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Task Management"],"fullName":" Integration Tests Task Management should create a task","status":"skipped","title":"should create a task","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Task Management"],"fullName":" Integration Tests Task Management should get task stats","status":"skipped","title":"should get task stats","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Task Management"],"fullName":" Integration Tests Task Management should get task by ID","status":"skipped","title":"should get task by ID","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Task Management"],"fullName":" Integration Tests Task Management should cancel a task","status":"skipped","title":"should cancel a task","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Metrics & Monitoring"],"fullName":" Integration Tests Metrics & Monitoring should get system metrics","status":"skipped","title":"should get system metrics","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Metrics & Monitoring"],"fullName":" Integration Tests Metrics & Monitoring should get request metrics","status":"skipped","title":"should get request metrics","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Metrics & Monitoring"],"fullName":" Integration Tests Metrics & Monitoring should get node metrics summary","status":"skipped","title":"should get node metrics summary","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Cost & Carbon Tracking"],"fullName":" Integration Tests Cost & Carbon Tracking should get cost summary","status":"skipped","title":"should get cost summary","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Cost & Carbon Tracking"],"fullName":" Integration Tests Cost & Carbon Tracking should get cost by node","status":"skipped","title":"should get cost by node","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Cost & Carbon Tracking"],"fullName":" Integration Tests Cost & Carbon Tracking should get carbon summary","status":"skipped","title":"should get carbon summary","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Cost & Carbon Tracking"],"fullName":" Integration Tests Cost & Carbon Tracking should get carbon by region","status":"skipped","title":"should get carbon by region","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Webhook Management"],"fullName":" Integration Tests Webhook Management should list webhooks","status":"skipped","title":"should list webhooks","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Webhook Management"],"fullName":" Integration Tests Webhook Management should create a webhook","status":"skipped","title":"should create a webhook","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Webhook Management"],"fullName":" Integration Tests Webhook Management should delete a webhook","status":"skipped","title":"should delete a webhook","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Rate Limiting"],"fullName":" Integration Tests Rate Limiting should enforce rate limits","status":"skipped","title":"should enforce rate limits","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Error Handling"],"fullName":" Integration Tests Error Handling should return 404 for non-existent node","status":"skipped","title":"should return 404 for non-existent node","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Error Handling"],"fullName":" Integration Tests Error Handling should return 401 for missing auth","status":"skipped","title":"should return 401 for missing auth","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Error Handling"],"fullName":" Integration Tests Error Handling should return 400 for invalid input","status":"skipped","title":"should return 400 for invalid input","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Edge Agent Communication"],"fullName":" Integration Tests Edge Agent Communication should get edge agent metrics","status":"skipped","title":"should get edge agent metrics","failureMessages":[]},{"ancestorTitles":["","Integration Tests","Edge Agent Communication"],"fullName":" Integration Tests Edge Agent Communication should ping edge agent","status":"skipped","title":"should ping edge agent","failureMessages":[]}],"startTime":1780199614337,"endTime":1780199614337,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/tests/integration.test.ts"},{"assertionResults":[{"ancestorTitles":["","API Versioning & Deprecation","V1 Deprecation Headers"],"fullName":" API Versioning & Deprecation V1 Deprecation Headers should include Deprecation and Sunset headers on /v1 requests","status":"skipped","title":"should include Deprecation and Sunset headers on /v1 requests","failureMessages":[]},{"ancestorTitles":["","API Versioning & Deprecation","V1 Deprecation Headers"],"fullName":" API Versioning & Deprecation V1 Deprecation Headers should include Deprecation headers even on 404s for v1 prefix","status":"skipped","title":"should include Deprecation headers even on 404s for v1 prefix","failureMessages":[]},{"ancestorTitles":["","API Versioning & Deprecation","V2 Routing"],"fullName":" API Versioning & Deprecation V2 Routing should NOT include Deprecation headers on /v2 requests","status":"skipped","title":"should NOT include Deprecation headers on /v2 requests","failureMessages":[]},{"ancestorTitles":["","API Versioning & Deprecation","V2 Routing"],"fullName":" API Versioning & Deprecation V2 Routing should work with X-API-Version header","status":"skipped","title":"should work with X-API-Version header","failureMessages":[]},{"ancestorTitles":["","API Versioning & Deprecation","Version Negotiation & Validation"],"fullName":" API Versioning & Deprecation Version Negotiation & Validation should return 400 for unsupported versions","status":"skipped","title":"should return 400 for unsupported versions","failureMessages":[]},{"ancestorTitles":["","API Versioning & Deprecation","Version Negotiation & Validation"],"fullName":" API Versioning & Deprecation Version Negotiation & Validation should return 400 for version mismatch between header and URL","status":"skipped","title":"should return 400 for version mismatch between header and URL","failureMessages":[]}],"startTime":1780199614337,"endTime":1780199614337,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/tests/versioning.test.ts"},{"assertionResults":[{"ancestorTitles":["","Admin Republish Integration"],"fullName":" Admin Republish Integration Test 1 — Republish valid task event","status":"passed","title":"Test 1 — Republish valid task event","duration":1847,"failureMessages":[]},{"ancestorTitles":["","Admin Republish Integration"],"fullName":" Admin Republish Integration Test 2 — Super admin can republish event","status":"passed","title":"Test 2 — Super admin can republish event","duration":1008,"failureMessages":[]},{"ancestorTitles":["","Admin Republish Integration"],"fullName":" Admin Republish Integration Test 3 — Rejects non-existent entity","status":"passed","title":"Test 3 — Rejects non-existent entity","duration":836,"failureMessages":[]},{"ancestorTitles":["","Admin Republish Integration"],"fullName":" Admin Republish Integration Test 4 — Rejects tenant-scoped tokens","status":"passed","title":"Test 4 — Rejects tenant-scoped tokens","duration":808,"failureMessages":[]}],"startTime":1780199624561,"endTime":1780199629061,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/admin-republish.test.ts"},{"assertionResults":[{"ancestorTitles":["","Auth Hardening E2E Logic","Refresh Token Rotation"],"fullName":" Auth Hardening E2E Logic Refresh Token Rotation should issue new tokens and revoke the old session","status":"passed","title":"should issue new tokens and revoke the old session","duration":57,"failureMessages":[]},{"ancestorTitles":["","Auth Hardening E2E Logic","Refresh Token Rotation"],"fullName":" Auth Hardening E2E Logic Refresh Token Rotation should detect reuse and invalidate ALL sessions","status":"passed","title":"should detect reuse and invalidate ALL sessions","duration":4,"failureMessages":[]},{"ancestorTitles":["","Auth Hardening E2E Logic","Session Management"],"fullName":" Auth Hardening E2E Logic Session Management should list only active sessions","status":"passed","title":"should list only active sessions","duration":4,"failureMessages":[]},{"ancestorTitles":["","Auth Hardening E2E Logic","Session Management"],"fullName":" Auth Hardening E2E Logic Session Management should revoke specific session and its access token","status":"passed","title":"should revoke specific session and its access token","duration":6,"failureMessages":[]},{"ancestorTitles":["","Auth Hardening E2E Logic","Session Management"],"fullName":" Auth Hardening E2E Logic Session Management should revoke all user sessions and their access tokens","status":"passed","title":"should revoke all user sessions and their access tokens","duration":4,"failureMessages":[]}],"startTime":1780199622454,"endTime":1780199622532,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/auth-hardening.test.ts"},{"assertionResults":[{"ancestorTitles":["","Carbon Endpoints Integration"],"fullName":" Carbon Endpoints Integration Test 1 — GET /api/v2/carbon/intensity returns regions array","status":"passed","title":"Test 1 — GET /api/v2/carbon/intensity returns regions array","duration":1860,"failureMessages":[]},{"ancestorTitles":["","Carbon Endpoints Integration"],"fullName":" Carbon Endpoints Integration Test 2 — GET /api/v2/carbon/savings returns data","status":"passed","title":"Test 2 — GET /api/v2/carbon/savings returns data","duration":1113,"failureMessages":[]},{"ancestorTitles":["","Carbon Endpoints Integration"],"fullName":" Carbon Endpoints Integration Test 3 — GET /api/v2/carbon/policy returns data","status":"passed","title":"Test 3 — GET /api/v2/carbon/policy returns data","duration":853,"failureMessages":[]},{"ancestorTitles":["","Carbon Endpoints Integration"],"fullName":" Carbon Endpoints Integration Test 4 — PATCH /api/v2/carbon/policy validates carbonWeight range (0-1)","status":"passed","title":"Test 4 — PATCH /api/v2/carbon/policy validates carbonWeight range (0-1)","duration":905,"failureMessages":[]},{"ancestorTitles":["","Carbon Endpoints Integration"],"fullName":" Carbon Endpoints Integration Test 3 — Carbon policy requires CARBON_POLICY_WRITE permission","status":"passed","title":"Test 3 — Carbon policy requires CARBON_POLICY_WRITE permission","duration":924,"failureMessages":[]}],"startTime":1780199624551,"endTime":1780199630208,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/carbon-endpoints.test.ts"},{"assertionResults":[{"ancestorTitles":["","OpenAPI Contract Validation"],"fullName":" OpenAPI Contract Validation should validate request and response types against the OpenAPI spec","status":"passed","title":"should validate request and response types against the OpenAPI spec","duration":29,"failureMessages":[]}],"startTime":1780199635254,"endTime":1780199635283,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/contract.test.ts"},{"assertionResults":[{"ancestorTitles":["","Database Resilience & Observability"],"fullName":" Database Resilience & Observability should record query metrics on successful execution","status":"passed","title":"should record query metrics on successful execution","duration":99,"failureMessages":[]},{"ancestorTitles":["","Database Resilience & Observability"],"fullName":" Database Resilience & Observability should open circuit breaker after consecutive failures","status":"passed","title":"should open circuit breaker after consecutive failures","duration":31,"failureMessages":[]},{"ancestorTitles":["","Database Resilience & Observability"],"fullName":" Database Resilience & Observability should return 503 from /health/ready when circuit breaker is OPEN","status":"passed","title":"should return 503 from /health/ready when circuit breaker is OPEN","duration":88,"failureMessages":[]},{"ancestorTitles":["","Database Resilience & Observability"],"fullName":" Database Resilience & Observability should log a warning for slow queries","status":"passed","title":"should log a warning for slow queries","duration":197,"failureMessages":[]}],"startTime":1780199634225,"endTime":1780199634640,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/db-resilience.test.ts"},{"assertionResults":[{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format Zod validation errors (400)","status":"passed","title":"should format Zod validation errors (400)","duration":87,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format Prisma P2025 as RESOURCE_NOT_FOUND (404)","status":"passed","title":"should format Prisma P2025 as RESOURCE_NOT_FOUND (404)","duration":6,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format Prisma P2002 as RESOURCE_CONFLICT (409)","status":"passed","title":"should format Prisma P2002 as RESOURCE_CONFLICT (409)","duration":9,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format expired JWT as TOKEN_EXPIRED (401)","status":"passed","title":"should format expired JWT as TOKEN_EXPIRED (401)","duration":4,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format invalid JWT as TOKEN_INVALID (401)","status":"passed","title":"should format invalid JWT as TOKEN_INVALID (401)","duration":5,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format permission errors as FORBIDDEN (403)","status":"passed","title":"should format permission errors as FORBIDDEN (403)","duration":3,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format rate limit hits as RATE_LIMIT_EXCEEDED (429)","status":"passed","title":"should format rate limit hits as RATE_LIMIT_EXCEEDED (429)","duration":6,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should format unknown errors as INTERNAL_ERROR (500)","status":"passed","title":"should format unknown errors as INTERNAL_ERROR (500)","duration":4,"failureMessages":[]},{"ancestorTitles":["","Global Error Handler"],"fullName":" Global Error Handler should hide stack trace in production","status":"passed","title":"should hide stack trace in production","duration":8,"failureMessages":[]}],"startTime":1780199622748,"endTime":1780199622881,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/error-handler.test.ts"},{"assertionResults":[{"ancestorTitles":["","ML Endpoints Integration"],"fullName":" ML Endpoints Integration Test 1 — Fetch current drift","status":"passed","title":"Test 1 — Fetch current drift","duration":2036,"failureMessages":[]},{"ancestorTitles":["","ML Endpoints Integration"],"fullName":" ML Endpoints Integration Test 2 — Fetch outcome statistics","status":"passed","title":"Test 2 — Fetch outcome statistics","duration":962,"failureMessages":[]},{"ancestorTitles":["","ML Endpoints Integration"],"fullName":" ML Endpoints Integration Test 3 — Retrain model (Permission Gate)","status":"passed","title":"Test 3 — Retrain model (Permission Gate)","duration":866,"failureMessages":[]},{"ancestorTitles":["","ML Endpoints Integration"],"fullName":" ML Endpoints Integration Test 4 — Reject retrain for standard USER","status":"passed","title":"Test 4 — Reject retrain for standard USER","duration":782,"failureMessages":[]}],"startTime":1780199625401,"endTime":1780199630049,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/ml-endpoints.test.ts"},{"assertionResults":[{"ancestorTitles":["","OpenAPI Specification Contract"],"fullName":" OpenAPI Specification Contract should be a valid OpenAPI 3.0.3 specification","status":"passed","title":"should be a valid OpenAPI 3.0.3 specification","duration":5,"failureMessages":[]},{"ancestorTitles":["","OpenAPI Specification Contract"],"fullName":" OpenAPI Specification Contract should contain core API paths","status":"passed","title":"should contain core API paths","duration":9,"failureMessages":[]},{"ancestorTitles":["","OpenAPI Specification Contract"],"fullName":" OpenAPI Specification Contract should have schemas for core routes","status":"passed","title":"should have schemas for core routes","duration":1,"failureMessages":[]},{"ancestorTitles":["","OpenAPI Specification Contract"],"fullName":" OpenAPI Specification Contract should have security schemes defined","status":"passed","title":"should have security schemes defined","duration":1,"failureMessages":[]}],"startTime":1780199636738,"endTime":1780199636754,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/openapi.spec.ts"},{"assertionResults":[{"ancestorTitles":["","Security Configuration","GAP 1: CSP Header Completeness"],"fullName":" Security Configuration GAP 1: CSP Header Completeness should have the correct CSP headers on every response","status":"pending","title":"should have the correct CSP headers on every response","failureMessages":[]},{"ancestorTitles":["","Security Configuration","GAP 2: CORS Whitelist Verification"],"fullName":" Security Configuration GAP 2: CORS Whitelist Verification should allow requests from a listed origin","status":"pending","title":"should allow requests from a listed origin","failureMessages":[]},{"ancestorTitles":["","Security Configuration","GAP 2: CORS Whitelist Verification"],"fullName":" Security Configuration GAP 2: CORS Whitelist Verification should return 403 or block requests from an unlisted origin","status":"pending","title":"should return 403 or block requests from an unlisted origin","failureMessages":[]},{"ancestorTitles":["","Security Configuration","GAP 3: Rate Limit Headers"],"fullName":" Security Configuration GAP 3: Rate Limit Headers should include rate limit headers in the response","status":"pending","title":"should include rate limit headers in the response","failureMessages":[]}],"startTime":1780199614337,"endTime":1780199614337,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/security.test.ts"},{"assertionResults":[{"ancestorTitles":["","Workflow Engine Integration"],"fullName":" Workflow Engine Integration Test 1 — Create workflow with valid DAG","status":"passed","title":"Test 1 — Create workflow with valid DAG","duration":1938,"failureMessages":[]},{"ancestorTitles":["","Workflow Engine Integration"],"fullName":" Workflow Engine Integration Test 2 — Reject workflow with cycle","status":"passed","title":"Test 2 — Reject workflow with cycle","duration":1069,"failureMessages":[]},{"ancestorTitles":["","Workflow Engine Integration"],"fullName":" Workflow Engine Integration Test 3 — Workflow execution gating","status":"passed","title":"Test 3 — Workflow execution gating","duration":851,"failureMessages":[]},{"ancestorTitles":["","Workflow Engine Integration"],"fullName":" Workflow Engine Integration Test 4 — Get workflow status","status":"passed","title":"Test 4 — Get workflow status","duration":850,"failureMessages":[]},{"ancestorTitles":["","Workflow Engine Integration"],"fullName":" Workflow Engine Integration Test 5 — Workflow tenant isolation on read","status":"passed","title":"Test 5 — Workflow tenant isolation on read","duration":861,"failureMessages":[]},{"ancestorTitles":["","Workflow Engine Integration"],"fullName":" Workflow Engine Integration Test 6 — Workflow tenant isolation on execution","status":"passed","title":"Test 6 — Workflow tenant isolation on execution","duration":748,"failureMessages":[]}],"startTime":1780199624554,"endTime":1780199630873,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/workflows.test.ts"},{"assertionResults":[{"ancestorTitles":["","Zombie Task Recovery Integration","Atomic Assignment & Rollback"],"fullName":" Zombie Task Recovery Integration Atomic Assignment & Rollback should revert task to PENDING if dispatch fails","status":"failed","title":"should revert task to PENDING if dispatch fails","duration":41,"failureMessages":["Cannot read properties of undefined (reading 'submittedAt')"],"location":{"line":380,"column":28}},{"ancestorTitles":["","Zombie Task Recovery Integration","Reconciliation Loop Zombie Recovery"],"fullName":" Zombie Task Recovery Integration Reconciliation Loop Zombie Recovery should recover tasks stuck in SCHEDULED for > 60s and reconcile node count","status":"failed","title":"should recover tasks stuck in SCHEDULED for > 60s and reconcile node count","duration":18,"failureMessages":["expected \"spy\" to be called with arguments: [ ObjectContaining{…} ]\u001b[90m\n\nReceived: \n\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m0\u001b[22m\n\u001b[39m"],"location":{"line":257,"column":42}}],"startTime":1780199622022,"endTime":1780199622084,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/tests/integration/zombie-task-recovery.test.ts"},{"assertionResults":[{"ancestorTitles":["","ConsistencyCheckerJob"],"fullName":" ConsistencyCheckerJob should detect invariant violations and report them","status":"passed","title":"should detect invariant violations and report them","duration":29,"failureMessages":[]},{"ancestorTitles":["","ConsistencyCheckerJob"],"fullName":" ConsistencyCheckerJob should apply safe fixes for stuck tasks","status":"passed","title":"should apply safe fixes for stuck tasks","duration":13,"failureMessages":[]},{"ancestorTitles":["","ConsistencyCheckerJob"],"fullName":" ConsistencyCheckerJob should handle offline nodes and reassign tasks","status":"passed","title":"should handle offline nodes and reassign tasks","duration":26,"failureMessages":[]},{"ancestorTitles":["","ConsistencyCheckerJob"],"fullName":" ConsistencyCheckerJob should schedule the job to run at the correct hour","status":"passed","title":"should schedule the job to run at the correct hour","duration":7,"failureMessages":[]}],"startTime":1780199631924,"endTime":1780199631999,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/jobs/__tests__/consistency-checker.spec.ts"},{"assertionResults":[{"ancestorTitles":["","WebhookRetryJob"],"fullName":" WebhookRetryJob should successfully retry a failed delivery","status":"passed","title":"should successfully retry a failed delivery","duration":300,"failureMessages":[]},{"ancestorTitles":["","WebhookRetryJob"],"fullName":" WebhookRetryJob should increment retry count and calculate exponential backoff on failure","status":"passed","title":"should increment retry count and calculate exponential backoff on failure","duration":68,"failureMessages":[]},{"ancestorTitles":["","WebhookRetryJob"],"fullName":" WebhookRetryJob should mark as DEAD_LETTERED and create audit log after max retries","status":"passed","title":"should mark as DEAD_LETTERED and create audit log after max retries","duration":41,"failureMessages":[]},{"ancestorTitles":["","WebhookRetryJob"],"fullName":" WebhookRetryJob should respect the batch size (take)","status":"passed","title":"should respect the batch size (take)","duration":4,"failureMessages":[]},{"ancestorTitles":["","WebhookRetryJob"],"fullName":" WebhookRetryJob should skip retries for disabled webhooks","status":"passed","title":"should skip retries for disabled webhooks","duration":8,"failureMessages":[]}],"startTime":1780199624165,"endTime":1780199624589,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/jobs/__tests__/webhook-retry.spec.ts"},{"assertionResults":[{"ancestorTitles":["","PrismaClientWithReplicas"],"fullName":" PrismaClientWithReplicas should create primary client when no read replica configured","status":"failed","title":"should create primary client when no read replica configured","duration":484,"failureMessages":["basePrimary.$extends is not a function"],"location":{"line":45,"column":32}},{"ancestorTitles":["","PrismaClientWithReplicas"],"fullName":" PrismaClientWithReplicas should create separate read replica when configured","status":"failed","title":"should create separate read replica when configured","duration":218,"failureMessages":["basePrimary.$extends is not a function"],"location":{"line":45,"column":32}},{"ancestorTitles":["","PrismaClientWithReplicas"],"fullName":" PrismaClientWithReplicas should connect to both primary and replica","status":"failed","title":"should connect to both primary and replica","duration":258,"failureMessages":["basePrimary.$extends is not a function"],"location":{"line":45,"column":32}},{"ancestorTitles":["","PrismaClientWithReplicas"],"fullName":" PrismaClientWithReplicas should disconnect from both clients","status":"failed","title":"should disconnect from both clients","duration":306,"failureMessages":["basePrimary.$extends is not a function"],"location":{"line":45,"column":32}},{"ancestorTitles":["","PrismaClientWithReplicas"],"fullName":" PrismaClientWithReplicas should pass health check when both connections work","status":"failed","title":"should pass health check when both connections work","duration":3,"failureMessages":["basePrimary.$extends is not a function"],"location":{"line":45,"column":32}},{"ancestorTitles":["","PrismaClientWithReplicas"],"fullName":" PrismaClientWithReplicas should expose $transaction on primary client","status":"failed","title":"should expose $transaction on primary client","duration":2,"failureMessages":["basePrimary.$extends is not a function"],"location":{"line":45,"column":32}}],"startTime":1780199632415,"endTime":1780199633688,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/database/__tests__/client.spec.ts"},{"assertionResults":[{"ancestorTitles":["","Agent Registration Routes"],"fullName":" Agent Registration Routes should sign a valid CSR with a valid bootstrap token","status":"passed","title":"should sign a valid CSR with a valid bootstrap token","duration":2868,"failureMessages":[]},{"ancestorTitles":["","Agent Registration Routes"],"fullName":" Agent Registration Routes should reject an expired bootstrap token","status":"failed","title":"should reject an expired bootstrap token","duration":742,"failureMessages":["expected 500 to be 400 // Object.is equality"],"location":{"line":125,"column":33}}],"startTime":1780199633726,"endTime":1780199637337,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/__tests__/agents.spec.ts"},{"assertionResults":[{"ancestorTitles":["","Granular RBAC Authorization Suite","VIEWER Role"],"fullName":" Granular RBAC Authorization Suite VIEWER Role should ALLOW reading tasks","status":"passed","title":"should ALLOW reading tasks","duration":1928,"failureMessages":[]},{"ancestorTitles":["","Granular RBAC Authorization Suite","VIEWER Role"],"fullName":" Granular RBAC Authorization Suite VIEWER Role should DENY creating tasks","status":"passed","title":"should DENY creating tasks","duration":1037,"failureMessages":[]},{"ancestorTitles":["","Granular RBAC Authorization Suite","USER Role"],"fullName":" Granular RBAC Authorization Suite USER Role should ALLOW creating tasks","status":"passed","title":"should ALLOW creating tasks","duration":887,"failureMessages":[]},{"ancestorTitles":["","Granular RBAC Authorization Suite","USER Role"],"fullName":" Granular RBAC Authorization Suite USER Role should DENY triggering ML retraining (Admin permission)","status":"passed","title":"should DENY triggering ML retraining (Admin permission)","duration":830,"failureMessages":[]},{"ancestorTitles":["","Granular RBAC Authorization Suite","TENANT_ADMIN Role"],"fullName":" Granular RBAC Authorization Suite TENANT_ADMIN Role should ALLOW reading audit logs","status":"failed","title":"should ALLOW reading audit logs","duration":842,"failureMessages":["expected 500 to be 200 // Object.is equality"],"location":{"line":242,"column":35}},{"ancestorTitles":["","Granular RBAC Authorization Suite","TENANT_ADMIN Role"],"fullName":" Granular RBAC Authorization Suite TENANT_ADMIN Role should DENY system-wide actions (even with Admin role if tenant-scoped)","status":"passed","title":"should DENY system-wide actions (even with Admin role if tenant-scoped)","duration":763,"failureMessages":[]},{"ancestorTitles":["","Granular RBAC Authorization Suite","SUPER_ADMIN Role"],"fullName":" Granular RBAC Authorization Suite SUPER_ADMIN Role should ALLOW system-wide actions with SYSTEM tenantId","status":"passed","title":"should ALLOW system-wide actions with SYSTEM tenantId","duration":716,"failureMessages":[]}],"startTime":1780199624562,"endTime":1780199631569,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/__tests__/authorization.spec.ts"},{"assertionResults":[{"ancestorTitles":["","AlertingService SSRF Protection"],"fullName":" AlertingService SSRF Protection blocks SSRF attempts targeting cloud metadata","status":"passed","title":"blocks SSRF attempts targeting cloud metadata","duration":21,"failureMessages":[]},{"ancestorTitles":["","AlertingService SSRF Protection"],"fullName":" AlertingService SSRF Protection allows safe webhook URLs","status":"passed","title":"allows safe webhook URLs","duration":4,"failureMessages":[]}],"startTime":1780199638478,"endTime":1780199638504,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/alerting-ssrf.test.ts"},{"assertionResults":[{"ancestorTitles":["","AutoHealer","Task Retry Logic"],"fullName":" AutoHealer Task Retry Logic should trigger re-scheduling when task status = FAILED and retry count < maxRetries","status":"passed","title":"should trigger re-scheduling when task status = FAILED and retry count < maxRetries","duration":25,"failureMessages":[]},{"ancestorTitles":["","AutoHealer","Task Retry Logic"],"fullName":" AutoHealer Task Retry Logic should NOT retry when retry count >= maxRetries","status":"passed","title":"should NOT retry when retry count >= maxRetries","duration":5,"failureMessages":[]},{"ancestorTitles":["","AutoHealer","Task Retry Logic"],"fullName":" AutoHealer Task Retry Logic should update task status to FAILED_PERMANENT after max retries","status":"passed","title":"should update task status to FAILED_PERMANENT after max retries","duration":4,"failureMessages":[]}],"startTime":1780199638957,"endTime":1780199638991,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/auto-healer.spec.ts"},{"assertionResults":[{"ancestorTitles":["","mTLS Forgery Protection"],"fullName":" mTLS Forgery Protection rejects a certificate signed by a different CA even if serial is in DB","status":"failed","title":"rejects a certificate signed by a different CA even if serial is in DB","duration":1486,"failureMessages":["expected true to be false // Object.is equality"],"location":{"line":108,"column":26}},{"ancestorTitles":["","mTLS Forgery Protection"],"fullName":" mTLS Forgery Protection accepts a valid certificate signed by the system CA","status":"failed","title":"accepts a valid certificate signed by the system CA","duration":3096,"failureMessages":["expected 'valid-node\\nO=EdgeCloud' to be 'valid-node' // Object.is equality"],"location":{"line":184,"column":27}}],"startTime":1780199622717,"endTime":1780199627299,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/mtls-forgery.test.ts"},{"assertionResults":[{"ancestorTitles":["","mTLS Certificate Authority"],"fullName":" mTLS Certificate Authority should generate a real X.509 CA certificate","status":"passed","title":"should generate a real X.509 CA certificate","duration":551,"failureMessages":[]},{"ancestorTitles":["","mTLS Certificate Authority"],"fullName":" mTLS Certificate Authority should issue and sign an agent certificate","status":"failed","title":"should issue and sign an agent certificate","duration":1652,"failureMessages":["this.prisma.$transaction is not a function"],"location":{"line":377,"column":13}}],"startTime":1780199638094,"endTime":1780199640297,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/mtls.spec.ts"},{"assertionResults":[{"ancestorTitles":["","CertificateValidator Revocation Cache"],"fullName":" CertificateValidator Revocation Cache should hit database on first check of a non-revoked certificate","status":"passed","title":"should hit database on first check of a non-revoked certificate","duration":15,"failureMessages":[]},{"ancestorTitles":["","CertificateValidator Revocation Cache"],"fullName":" CertificateValidator Revocation Cache should NOT hit database on second check of a non-revoked certificate within TTL","status":"passed","title":"should NOT hit database on second check of a non-revoked certificate within TTL","duration":2,"failureMessages":[]},{"ancestorTitles":["","CertificateValidator Revocation Cache"],"fullName":" CertificateValidator Revocation Cache should hit database again after TTL expires for non-revoked certificate","status":"passed","title":"should hit database again after TTL expires for non-revoked certificate","duration":3,"failureMessages":[]},{"ancestorTitles":["","CertificateValidator Revocation Cache"],"fullName":" CertificateValidator Revocation Cache should return true immediately for revoked certificates without hitting DB twice","status":"passed","title":"should return true immediately for revoked certificates without hitting DB twice","duration":2,"failureMessages":[]},{"ancestorTitles":["","CertificateValidator Revocation Cache"],"fullName":" CertificateValidator Revocation Cache should pre-populate cache in refreshCRLIfNeeded","status":"passed","title":"should pre-populate cache in refreshCRLIfNeeded","duration":3,"failureMessages":[]}],"startTime":1780199636040,"endTime":1780199636066,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/revocation-cache.spec.ts"},{"assertionResults":[{"ancestorTitles":["","TaskScheduler Race Condition (RACE-01)"],"fullName":" TaskScheduler Race Condition (RACE-01) should prevent oversubscription by checking capacity inside the lock","status":"failed","title":"should prevent oversubscription by checking capacity inside the lock","duration":37,"failureMessages":["scheduler.scoreAndAssignWithLock is not a function"],"location":{"line":152,"column":45}},{"ancestorTitles":["","TaskScheduler Race Condition (RACE-01)"],"fullName":" TaskScheduler Race Condition (RACE-01) should skip node if capacity is reached while waiting for lock","status":"failed","title":"should skip node if capacity is reached while waiting for lock","duration":5,"failureMessages":["scheduler.scoreAndAssignWithLock is not a function"],"location":{"line":175,"column":45}},{"ancestorTitles":["","TaskScheduler Race Condition (RACE-01)"],"fullName":" TaskScheduler Race Condition (RACE-01) should skip node if lock cannot be acquired","status":"failed","title":"should skip node if lock cannot be acquired","duration":4,"failureMessages":["scheduler.scoreAndAssignWithLock is not a function"],"location":{"line":190,"column":45}}],"startTime":1780199621893,"endTime":1780199621939,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/scheduling-concurrency.test.ts"},{"assertionResults":[{"ancestorTitles":["","TaskScheduler Audit Model"],"fullName":" TaskScheduler Audit Model should maintain 1 Task but create multiple TaskExecutions on failure","status":"passed","title":"should maintain 1 Task but create multiple TaskExecutions on failure","duration":57,"failureMessages":[]}],"startTime":1780199635795,"endTime":1780199635852,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/task-scheduler.audit.spec.ts"},{"assertionResults":[{"ancestorTitles":["","TaskScheduler","Leader Election"],"fullName":" TaskScheduler Leader Election should attempt to become leader on start","status":"passed","title":"should attempt to become leader on start","duration":25,"failureMessages":[]},{"ancestorTitles":["","TaskScheduler","Leader Election"],"fullName":" TaskScheduler Leader Election should handle leader election failure gracefully","status":"passed","title":"should handle leader election failure gracefully","duration":7,"failureMessages":[]},{"ancestorTitles":["","TaskScheduler","Leader Election"],"fullName":" TaskScheduler Leader Election should report leader status correctly","status":"passed","title":"should report leader status correctly","duration":5,"failureMessages":[]},{"ancestorTitles":["","TaskScheduler","Task Queue Operations"],"fullName":" TaskScheduler Task Queue Operations should enqueue task with priority score","status":"passed","title":"should enqueue task with priority score","duration":7,"failureMessages":[]},{"ancestorTitles":["","TaskScheduler","Task Queue Operations"],"fullName":" TaskScheduler Task Queue Operations should dequeue task from queue","status":"passed","title":"should dequeue task from queue","duration":9,"failureMessages":[]},{"ancestorTitles":["","TaskScheduler","Task Queue Operations"],"fullName":" TaskScheduler Task Queue Operations should calculate priority score correctly","status":"passed","title":"should calculate priority score correctly","duration":4,"failureMessages":[]},{"ancestorTitles":["","TaskScheduler","Scheduler State"],"fullName":" TaskScheduler Scheduler State should track instance ID","status":"passed","title":"should track instance ID","duration":7,"failureMessages":[]}],"startTime":1780199635132,"endTime":1780199635197,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/task-scheduler.spec.ts"},{"assertionResults":[{"ancestorTitles":["","Tenant Data Isolation"],"fullName":" Tenant Data Isolation should restrict queries to Tenant A when in Tenant A context","status":"passed","title":"should restrict queries to Tenant A when in Tenant A context","duration":12,"failureMessages":[]},{"ancestorTitles":["","Tenant Data Isolation"],"fullName":" Tenant Data Isolation should restrict queries to Tenant B when in Tenant B context","status":"passed","title":"should restrict queries to Tenant B when in Tenant B context","duration":1,"failureMessages":[]},{"ancestorTitles":["","Tenant Data Isolation"],"fullName":" Tenant Data Isolation should not return data if no tenant context is set (or fallback to all if permitted)","status":"passed","title":"should not return data if no tenant context is set (or fallback to all if permitted)","duration":1,"failureMessages":[]}],"startTime":1780199639311,"endTime":1780199639325,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/tenant-isolation.spec.ts"},{"assertionResults":[{"ancestorTitles":["","WebSocketManager Authentication"],"fullName":" WebSocketManager Authentication should accept connection with valid JWT in query parameter","status":"passed","title":"should accept connection with valid JWT in query parameter","duration":49,"failureMessages":[]},{"ancestorTitles":["","WebSocketManager Authentication"],"fullName":" WebSocketManager Authentication should accept connection with valid JWT in Authorization header","status":"passed","title":"should accept connection with valid JWT in Authorization header","duration":17,"failureMessages":[]},{"ancestorTitles":["","WebSocketManager Authentication"],"fullName":" WebSocketManager Authentication should reject connection with no token","status":"passed","title":"should reject connection with no token","duration":3,"failureMessages":[]},{"ancestorTitles":["","WebSocketManager Authentication"],"fullName":" WebSocketManager Authentication should reject connection with invalid token","status":"passed","title":"should reject connection with invalid token","duration":2,"failureMessages":[]}],"startTime":1780199631189,"endTime":1780199631260,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/websocket-auth.spec.ts"},{"assertionResults":[{"ancestorTitles":["","WebSocket Manager Tenant Isolation"],"fullName":" WebSocket Manager Tenant Isolation should automatically subscribe user to their tenant-scoped channels locally","status":"failed","title":"should automatically subscribe user to their tenant-scoped channels locally","duration":52,"failureMessages":["expected \"spy\" to be called with arguments: [ '*:*:*' ]\u001b[90m\n\nReceived: \n\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m0\u001b[22m\n\u001b[39m"],"location":{"line":65,"column":34}},{"ancestorTitles":["","WebSocket Manager Tenant Isolation"],"fullName":" WebSocket Manager Tenant Isolation should allow SUPER_ADMIN to have wildcard local subscription","status":"failed","title":"should allow SUPER_ADMIN to have wildcard local subscription","duration":27,"failureMessages":["expected false to be true // Object.is equality"],"location":{"line":84,"column":43}},{"ancestorTitles":["","WebSocket Manager Tenant Isolation"],"fullName":" WebSocket Manager Tenant Isolation should prevent Tenant A from subscribing to Tenant B channels","status":"failed","title":"should prevent Tenant A from subscribing to Tenant B channels","duration":12,"failureMessages":["expected true to be false // Object.is equality"],"location":{"line":103,"column":47}},{"ancestorTitles":["","WebSocket Manager Tenant Isolation"],"fullName":" WebSocket Manager Tenant Isolation should allow Tenant A to subscribe to their own channels","status":"passed","title":"should allow Tenant A to subscribe to their own channels","duration":8,"failureMessages":[]},{"ancestorTitles":["","WebSocket Manager Tenant Isolation"],"fullName":" WebSocket Manager Tenant Isolation should broadcast messages only to the correct Redis channel","status":"failed","title":"should broadcast messages only to the correct Redis channel","duration":11,"failureMessages":["expected \"spy\" to be called with arguments: [ 'task:created:tenant-a', …(1) ]\u001b[90m\n\nReceived: \n\n\u001b[1m  1st spy call:\n\n\u001b[22m\u001b[2m  Array [\u001b[22m\n\u001b[32m-   \"task:created:tenant-a\",\u001b[90m\n\u001b[32m-   StringContaining \"\\\"tenantId\\\":\\\"tenant-a\\\"\",\u001b[90m\n\u001b[31m+   \"ws:broadcast\",\u001b[90m\n\u001b[31m+   \"{\\\"instanceId\\\":\\\"ws-1780199623995-gvjj3\\\",\\\"channel\\\":\\\"task:created\\\",\\\"payload\\\":{\\\"id\\\":\\\"task-1\\\"},\\\"excludeSender\\\":\\\"tenant-a\\\"}\",\u001b[90m\n\u001b[2m  ]\u001b[22m\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m1\u001b[22m\n\u001b[39m"],"location":{"line":130,"column":31}},{"ancestorTitles":["","WebSocket Manager Tenant Isolation"],"fullName":" WebSocket Manager Tenant Isolation should reject connections without tenantId (unless SUPER_ADMIN)","status":"failed","title":"should reject connections without tenantId (unless SUPER_ADMIN)","duration":9,"failureMessages":["expected \"spy\" to be called with arguments: [ 4001, …(1) ]\u001b[90m\n\nReceived: \n\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m0\u001b[22m\n\u001b[39m"],"location":{"line":143,"column":26}}],"startTime":1780199623895,"endTime":1780199624015,"status":"failed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/websocket-tenant-isolation.test.ts"},{"assertionResults":[{"ancestorTitles":["","reliableCall","successful execution"],"fullName":" reliableCall successful execution should return result on first success","status":"passed","title":"should return result on first success","duration":11,"failureMessages":[]},{"ancestorTitles":["","reliableCall","successful execution"],"fullName":" reliableCall successful execution should not retry on success","status":"passed","title":"should not retry on success","duration":1,"failureMessages":[]},{"ancestorTitles":["","reliableCall","retry behavior"],"fullName":" reliableCall retry behavior should retry after transient failure","status":"passed","title":"should retry after transient failure","duration":49,"failureMessages":[]},{"ancestorTitles":["","reliableCall","retry behavior"],"fullName":" reliableCall retry behavior should throw ReliableCallError after max retries","status":"passed","title":"should throw ReliableCallError after max retries","duration":54,"failureMessages":[]},{"ancestorTitles":["","reliableCall","retry behavior"],"fullName":" reliableCall retry behavior should include attempt count in error","status":"passed","title":"should include attempt count in error","duration":16,"failureMessages":[]},{"ancestorTitles":["","reliableCall","timeout protection"],"fullName":" reliableCall timeout protection should timeout slow operations","status":"passed","title":"should timeout slow operations","duration":115,"failureMessages":[]},{"ancestorTitles":["","reliableCall","timeout protection"],"fullName":" reliableCall timeout protection should include operation name in timeout error","status":"passed","title":"should include operation name in timeout error","duration":615,"failureMessages":[]},{"ancestorTitles":["","reliableCall","circuit breaker integration"],"fullName":" reliableCall circuit breaker integration should respect open circuit breaker","status":"passed","title":"should respect open circuit breaker","duration":6,"failureMessages":[]},{"ancestorTitles":["","reliableCall","circuit breaker integration"],"fullName":" reliableCall circuit breaker integration should close circuit after success","status":"passed","title":"should close circuit after success","duration":73,"failureMessages":[]},{"ancestorTitles":["","reliableCall","error classification"],"fullName":" reliableCall error classification should classify network errors as retryable","status":"passed","title":"should classify network errors as retryable","duration":3,"failureMessages":[]},{"ancestorTitles":["","reliableCall","error classification"],"fullName":" reliableCall error classification should classify HTTP 5xx as retryable","status":"passed","title":"should classify HTTP 5xx as retryable","duration":1,"failureMessages":[]},{"ancestorTitles":["","reliableCall","error classification"],"fullName":" reliableCall error classification should classify timeout errors as non-retryable","status":"passed","title":"should classify timeout errors as non-retryable","duration":1,"failureMessages":[]},{"ancestorTitles":["","reliableCall","error classification"],"fullName":" reliableCall error classification should classify client errors as non-retryable","status":"passed","title":"should classify client errors as non-retryable","duration":1,"failureMessages":[]},{"ancestorTitles":["","reliableAxios"],"fullName":" reliableAxios should wrap axios.get with reliability","status":"passed","title":"should wrap axios.get with reliability","duration":6,"failureMessages":[]},{"ancestorTitles":["","reliableAxios"],"fullName":" reliableAxios should retry on 503 error","status":"passed","title":"should retry on 503 error","duration":694,"failureMessages":[]},{"ancestorTitles":["","reliableFetch"],"fullName":" reliableFetch should wrap fetch with reliability","status":"passed","title":"should wrap fetch with reliability","duration":2,"failureMessages":[]},{"ancestorTitles":["","reliableFetch"],"fullName":" reliableFetch should retry on 500 error","status":"passed","title":"should retry on 500 error","duration":1137,"failureMessages":[]}],"startTime":1780199621855,"endTime":1780199624645,"status":"passed","message":"","name":"D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/utils/__tests__/reliableCall.spec.ts"}]}
+{
+  "numTotalTestSuites": 97,
+  "numPassedTestSuites": 96,
+  "numFailedTestSuites": 1,
+  "numPendingTestSuites": 0,
+  "numTotalTests": 167,
+  "numPassedTests": 146,
+  "numFailedTests": 21,
+  "numPendingTests": 0,
+  "numTodoTests": 0,
+  "startTime": 1780199614337,
+  "success": false,
+  "testResults": [
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "OpenAPI Specification Contract"],
+          "fullName": " OpenAPI Specification Contract simple test",
+          "status": "passed",
+          "title": "simple test",
+          "duration": 4,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199636743,
+      "endTime": 1780199636747,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/openapi.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Integration Tests", "Health Checks"],
+          "fullName": " Integration Tests Health Checks should have healthy API server",
+          "status": "skipped",
+          "title": "should have healthy API server",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Health Checks"],
+          "fullName": " Integration Tests Health Checks should have healthy edge agent",
+          "status": "skipped",
+          "title": "should have healthy edge agent",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Authentication Flow"],
+          "fullName": " Integration Tests Authentication Flow should register a new user",
+          "status": "skipped",
+          "title": "should register a new user",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Authentication Flow"],
+          "fullName": " Integration Tests Authentication Flow should login with valid credentials",
+          "status": "skipped",
+          "title": "should login with valid credentials",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Authentication Flow"],
+          "fullName": " Integration Tests Authentication Flow should reject invalid credentials",
+          "status": "skipped",
+          "title": "should reject invalid credentials",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Authentication Flow"],
+          "fullName": " Integration Tests Authentication Flow should refresh token",
+          "status": "skipped",
+          "title": "should refresh token",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Authentication Flow"],
+          "fullName": " Integration Tests Authentication Flow should get current user",
+          "status": "skipped",
+          "title": "should get current user",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Node Management"],
+          "fullName": " Integration Tests Node Management should list nodes",
+          "status": "skipped",
+          "title": "should list nodes",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Node Management"],
+          "fullName": " Integration Tests Node Management should create a node",
+          "status": "skipped",
+          "title": "should create a node",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Node Management"],
+          "fullName": " Integration Tests Node Management should get node by ID",
+          "status": "skipped",
+          "title": "should get node by ID",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Node Management"],
+          "fullName": " Integration Tests Node Management should update node",
+          "status": "skipped",
+          "title": "should update node",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Node Management"],
+          "fullName": " Integration Tests Node Management should get node metrics",
+          "status": "skipped",
+          "title": "should get node metrics",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Task Management"],
+          "fullName": " Integration Tests Task Management should list tasks",
+          "status": "skipped",
+          "title": "should list tasks",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Task Management"],
+          "fullName": " Integration Tests Task Management should create a task",
+          "status": "skipped",
+          "title": "should create a task",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Task Management"],
+          "fullName": " Integration Tests Task Management should get task stats",
+          "status": "skipped",
+          "title": "should get task stats",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Task Management"],
+          "fullName": " Integration Tests Task Management should get task by ID",
+          "status": "skipped",
+          "title": "should get task by ID",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Task Management"],
+          "fullName": " Integration Tests Task Management should cancel a task",
+          "status": "skipped",
+          "title": "should cancel a task",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Metrics & Monitoring"],
+          "fullName": " Integration Tests Metrics & Monitoring should get system metrics",
+          "status": "skipped",
+          "title": "should get system metrics",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Metrics & Monitoring"],
+          "fullName": " Integration Tests Metrics & Monitoring should get request metrics",
+          "status": "skipped",
+          "title": "should get request metrics",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Metrics & Monitoring"],
+          "fullName": " Integration Tests Metrics & Monitoring should get node metrics summary",
+          "status": "skipped",
+          "title": "should get node metrics summary",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Cost & Carbon Tracking"],
+          "fullName": " Integration Tests Cost & Carbon Tracking should get cost summary",
+          "status": "skipped",
+          "title": "should get cost summary",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Cost & Carbon Tracking"],
+          "fullName": " Integration Tests Cost & Carbon Tracking should get cost by node",
+          "status": "skipped",
+          "title": "should get cost by node",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Cost & Carbon Tracking"],
+          "fullName": " Integration Tests Cost & Carbon Tracking should get carbon summary",
+          "status": "skipped",
+          "title": "should get carbon summary",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Cost & Carbon Tracking"],
+          "fullName": " Integration Tests Cost & Carbon Tracking should get carbon by region",
+          "status": "skipped",
+          "title": "should get carbon by region",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Webhook Management"],
+          "fullName": " Integration Tests Webhook Management should list webhooks",
+          "status": "skipped",
+          "title": "should list webhooks",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Webhook Management"],
+          "fullName": " Integration Tests Webhook Management should create a webhook",
+          "status": "skipped",
+          "title": "should create a webhook",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Webhook Management"],
+          "fullName": " Integration Tests Webhook Management should delete a webhook",
+          "status": "skipped",
+          "title": "should delete a webhook",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Rate Limiting"],
+          "fullName": " Integration Tests Rate Limiting should enforce rate limits",
+          "status": "skipped",
+          "title": "should enforce rate limits",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Error Handling"],
+          "fullName": " Integration Tests Error Handling should return 404 for non-existent node",
+          "status": "skipped",
+          "title": "should return 404 for non-existent node",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Error Handling"],
+          "fullName": " Integration Tests Error Handling should return 401 for missing auth",
+          "status": "skipped",
+          "title": "should return 401 for missing auth",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Integration Tests", "Error Handling"],
+          "fullName": " Integration Tests Error Handling should return 400 for invalid input",
+          "status": "skipped",
+          "title": "should return 400 for invalid input",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Integration Tests",
+            "Edge Agent Communication"
+          ],
+          "fullName": " Integration Tests Edge Agent Communication should get edge agent metrics",
+          "status": "skipped",
+          "title": "should get edge agent metrics",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Integration Tests",
+            "Edge Agent Communication"
+          ],
+          "fullName": " Integration Tests Edge Agent Communication should ping edge agent",
+          "status": "skipped",
+          "title": "should ping edge agent",
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199614337,
+      "endTime": 1780199614337,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/tests/integration.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "",
+            "API Versioning & Deprecation",
+            "V1 Deprecation Headers"
+          ],
+          "fullName": " API Versioning & Deprecation V1 Deprecation Headers should include Deprecation and Sunset headers on /v1 requests",
+          "status": "skipped",
+          "title": "should include Deprecation and Sunset headers on /v1 requests",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "API Versioning & Deprecation",
+            "V1 Deprecation Headers"
+          ],
+          "fullName": " API Versioning & Deprecation V1 Deprecation Headers should include Deprecation headers even on 404s for v1 prefix",
+          "status": "skipped",
+          "title": "should include Deprecation headers even on 404s for v1 prefix",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "API Versioning & Deprecation", "V2 Routing"],
+          "fullName": " API Versioning & Deprecation V2 Routing should NOT include Deprecation headers on /v2 requests",
+          "status": "skipped",
+          "title": "should NOT include Deprecation headers on /v2 requests",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "API Versioning & Deprecation", "V2 Routing"],
+          "fullName": " API Versioning & Deprecation V2 Routing should work with X-API-Version header",
+          "status": "skipped",
+          "title": "should work with X-API-Version header",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "API Versioning & Deprecation",
+            "Version Negotiation & Validation"
+          ],
+          "fullName": " API Versioning & Deprecation Version Negotiation & Validation should return 400 for unsupported versions",
+          "status": "skipped",
+          "title": "should return 400 for unsupported versions",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "API Versioning & Deprecation",
+            "Version Negotiation & Validation"
+          ],
+          "fullName": " API Versioning & Deprecation Version Negotiation & Validation should return 400 for version mismatch between header and URL",
+          "status": "skipped",
+          "title": "should return 400 for version mismatch between header and URL",
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199614337,
+      "endTime": 1780199614337,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/tests/versioning.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Admin Republish Integration"],
+          "fullName": " Admin Republish Integration Test 1 — Republish valid task event",
+          "status": "passed",
+          "title": "Test 1 — Republish valid task event",
+          "duration": 1847,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Admin Republish Integration"],
+          "fullName": " Admin Republish Integration Test 2 — Super admin can republish event",
+          "status": "passed",
+          "title": "Test 2 — Super admin can republish event",
+          "duration": 1008,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Admin Republish Integration"],
+          "fullName": " Admin Republish Integration Test 3 — Rejects non-existent entity",
+          "status": "passed",
+          "title": "Test 3 — Rejects non-existent entity",
+          "duration": 836,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Admin Republish Integration"],
+          "fullName": " Admin Republish Integration Test 4 — Rejects tenant-scoped tokens",
+          "status": "passed",
+          "title": "Test 4 — Rejects tenant-scoped tokens",
+          "duration": 808,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199624561,
+      "endTime": 1780199629061,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/admin-republish.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "",
+            "Auth Hardening E2E Logic",
+            "Refresh Token Rotation"
+          ],
+          "fullName": " Auth Hardening E2E Logic Refresh Token Rotation should issue new tokens and revoke the old session",
+          "status": "passed",
+          "title": "should issue new tokens and revoke the old session",
+          "duration": 57,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Auth Hardening E2E Logic",
+            "Refresh Token Rotation"
+          ],
+          "fullName": " Auth Hardening E2E Logic Refresh Token Rotation should detect reuse and invalidate ALL sessions",
+          "status": "passed",
+          "title": "should detect reuse and invalidate ALL sessions",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Auth Hardening E2E Logic",
+            "Session Management"
+          ],
+          "fullName": " Auth Hardening E2E Logic Session Management should list only active sessions",
+          "status": "passed",
+          "title": "should list only active sessions",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Auth Hardening E2E Logic",
+            "Session Management"
+          ],
+          "fullName": " Auth Hardening E2E Logic Session Management should revoke specific session and its access token",
+          "status": "passed",
+          "title": "should revoke specific session and its access token",
+          "duration": 6,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Auth Hardening E2E Logic",
+            "Session Management"
+          ],
+          "fullName": " Auth Hardening E2E Logic Session Management should revoke all user sessions and their access tokens",
+          "status": "passed",
+          "title": "should revoke all user sessions and their access tokens",
+          "duration": 4,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199622454,
+      "endTime": 1780199622532,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/auth-hardening.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Carbon Endpoints Integration"],
+          "fullName": " Carbon Endpoints Integration Test 1 — GET /api/v2/carbon/intensity returns regions array",
+          "status": "passed",
+          "title": "Test 1 — GET /api/v2/carbon/intensity returns regions array",
+          "duration": 1860,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Carbon Endpoints Integration"],
+          "fullName": " Carbon Endpoints Integration Test 2 — GET /api/v2/carbon/savings returns data",
+          "status": "passed",
+          "title": "Test 2 — GET /api/v2/carbon/savings returns data",
+          "duration": 1113,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Carbon Endpoints Integration"],
+          "fullName": " Carbon Endpoints Integration Test 3 — GET /api/v2/carbon/policy returns data",
+          "status": "passed",
+          "title": "Test 3 — GET /api/v2/carbon/policy returns data",
+          "duration": 853,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Carbon Endpoints Integration"],
+          "fullName": " Carbon Endpoints Integration Test 4 — PATCH /api/v2/carbon/policy validates carbonWeight range (0-1)",
+          "status": "passed",
+          "title": "Test 4 — PATCH /api/v2/carbon/policy validates carbonWeight range (0-1)",
+          "duration": 905,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Carbon Endpoints Integration"],
+          "fullName": " Carbon Endpoints Integration Test 3 — Carbon policy requires CARBON_POLICY_WRITE permission",
+          "status": "passed",
+          "title": "Test 3 — Carbon policy requires CARBON_POLICY_WRITE permission",
+          "duration": 924,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199624551,
+      "endTime": 1780199630208,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/carbon-endpoints.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "OpenAPI Contract Validation"],
+          "fullName": " OpenAPI Contract Validation should validate request and response types against the OpenAPI spec",
+          "status": "passed",
+          "title": "should validate request and response types against the OpenAPI spec",
+          "duration": 29,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199635254,
+      "endTime": 1780199635283,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/contract.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Database Resilience & Observability"],
+          "fullName": " Database Resilience & Observability should record query metrics on successful execution",
+          "status": "passed",
+          "title": "should record query metrics on successful execution",
+          "duration": 99,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Database Resilience & Observability"],
+          "fullName": " Database Resilience & Observability should open circuit breaker after consecutive failures",
+          "status": "passed",
+          "title": "should open circuit breaker after consecutive failures",
+          "duration": 31,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Database Resilience & Observability"],
+          "fullName": " Database Resilience & Observability should return 503 from /health/ready when circuit breaker is OPEN",
+          "status": "passed",
+          "title": "should return 503 from /health/ready when circuit breaker is OPEN",
+          "duration": 88,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Database Resilience & Observability"],
+          "fullName": " Database Resilience & Observability should log a warning for slow queries",
+          "status": "passed",
+          "title": "should log a warning for slow queries",
+          "duration": 197,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199634225,
+      "endTime": 1780199634640,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/db-resilience.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format Zod validation errors (400)",
+          "status": "passed",
+          "title": "should format Zod validation errors (400)",
+          "duration": 87,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format Prisma P2025 as RESOURCE_NOT_FOUND (404)",
+          "status": "passed",
+          "title": "should format Prisma P2025 as RESOURCE_NOT_FOUND (404)",
+          "duration": 6,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format Prisma P2002 as RESOURCE_CONFLICT (409)",
+          "status": "passed",
+          "title": "should format Prisma P2002 as RESOURCE_CONFLICT (409)",
+          "duration": 9,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format expired JWT as TOKEN_EXPIRED (401)",
+          "status": "passed",
+          "title": "should format expired JWT as TOKEN_EXPIRED (401)",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format invalid JWT as TOKEN_INVALID (401)",
+          "status": "passed",
+          "title": "should format invalid JWT as TOKEN_INVALID (401)",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format permission errors as FORBIDDEN (403)",
+          "status": "passed",
+          "title": "should format permission errors as FORBIDDEN (403)",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format rate limit hits as RATE_LIMIT_EXCEEDED (429)",
+          "status": "passed",
+          "title": "should format rate limit hits as RATE_LIMIT_EXCEEDED (429)",
+          "duration": 6,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should format unknown errors as INTERNAL_ERROR (500)",
+          "status": "passed",
+          "title": "should format unknown errors as INTERNAL_ERROR (500)",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Global Error Handler"],
+          "fullName": " Global Error Handler should hide stack trace in production",
+          "status": "passed",
+          "title": "should hide stack trace in production",
+          "duration": 8,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199622748,
+      "endTime": 1780199622881,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/error-handler.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "ML Endpoints Integration"],
+          "fullName": " ML Endpoints Integration Test 1 — Fetch current drift",
+          "status": "passed",
+          "title": "Test 1 — Fetch current drift",
+          "duration": 2036,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "ML Endpoints Integration"],
+          "fullName": " ML Endpoints Integration Test 2 — Fetch outcome statistics",
+          "status": "passed",
+          "title": "Test 2 — Fetch outcome statistics",
+          "duration": 962,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "ML Endpoints Integration"],
+          "fullName": " ML Endpoints Integration Test 3 — Retrain model (Permission Gate)",
+          "status": "passed",
+          "title": "Test 3 — Retrain model (Permission Gate)",
+          "duration": 866,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "ML Endpoints Integration"],
+          "fullName": " ML Endpoints Integration Test 4 — Reject retrain for standard USER",
+          "status": "passed",
+          "title": "Test 4 — Reject retrain for standard USER",
+          "duration": 782,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199625401,
+      "endTime": 1780199630049,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/ml-endpoints.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "OpenAPI Specification Contract"],
+          "fullName": " OpenAPI Specification Contract should be a valid OpenAPI 3.0.3 specification",
+          "status": "passed",
+          "title": "should be a valid OpenAPI 3.0.3 specification",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "OpenAPI Specification Contract"],
+          "fullName": " OpenAPI Specification Contract should contain core API paths",
+          "status": "passed",
+          "title": "should contain core API paths",
+          "duration": 9,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "OpenAPI Specification Contract"],
+          "fullName": " OpenAPI Specification Contract should have schemas for core routes",
+          "status": "passed",
+          "title": "should have schemas for core routes",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "OpenAPI Specification Contract"],
+          "fullName": " OpenAPI Specification Contract should have security schemes defined",
+          "status": "passed",
+          "title": "should have security schemes defined",
+          "duration": 1,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199636738,
+      "endTime": 1780199636754,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/openapi.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "",
+            "Security Configuration",
+            "GAP 1: CSP Header Completeness"
+          ],
+          "fullName": " Security Configuration GAP 1: CSP Header Completeness should have the correct CSP headers on every response",
+          "status": "pending",
+          "title": "should have the correct CSP headers on every response",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Security Configuration",
+            "GAP 2: CORS Whitelist Verification"
+          ],
+          "fullName": " Security Configuration GAP 2: CORS Whitelist Verification should allow requests from a listed origin",
+          "status": "pending",
+          "title": "should allow requests from a listed origin",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Security Configuration",
+            "GAP 2: CORS Whitelist Verification"
+          ],
+          "fullName": " Security Configuration GAP 2: CORS Whitelist Verification should return 403 or block requests from an unlisted origin",
+          "status": "pending",
+          "title": "should return 403 or block requests from an unlisted origin",
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Security Configuration",
+            "GAP 3: Rate Limit Headers"
+          ],
+          "fullName": " Security Configuration GAP 3: Rate Limit Headers should include rate limit headers in the response",
+          "status": "pending",
+          "title": "should include rate limit headers in the response",
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199614337,
+      "endTime": 1780199614337,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/security.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Workflow Engine Integration"],
+          "fullName": " Workflow Engine Integration Test 1 — Create workflow with valid DAG",
+          "status": "passed",
+          "title": "Test 1 — Create workflow with valid DAG",
+          "duration": 1938,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Workflow Engine Integration"],
+          "fullName": " Workflow Engine Integration Test 2 — Reject workflow with cycle",
+          "status": "passed",
+          "title": "Test 2 — Reject workflow with cycle",
+          "duration": 1069,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Workflow Engine Integration"],
+          "fullName": " Workflow Engine Integration Test 3 — Workflow execution gating",
+          "status": "passed",
+          "title": "Test 3 — Workflow execution gating",
+          "duration": 851,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Workflow Engine Integration"],
+          "fullName": " Workflow Engine Integration Test 4 — Get workflow status",
+          "status": "passed",
+          "title": "Test 4 — Get workflow status",
+          "duration": 850,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Workflow Engine Integration"],
+          "fullName": " Workflow Engine Integration Test 5 — Workflow tenant isolation on read",
+          "status": "passed",
+          "title": "Test 5 — Workflow tenant isolation on read",
+          "duration": 861,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Workflow Engine Integration"],
+          "fullName": " Workflow Engine Integration Test 6 — Workflow tenant isolation on execution",
+          "status": "passed",
+          "title": "Test 6 — Workflow tenant isolation on execution",
+          "duration": 748,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199624554,
+      "endTime": 1780199630873,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/__tests__/workflows.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "",
+            "Zombie Task Recovery Integration",
+            "Atomic Assignment & Rollback"
+          ],
+          "fullName": " Zombie Task Recovery Integration Atomic Assignment & Rollback should revert task to PENDING if dispatch fails",
+          "status": "failed",
+          "title": "should revert task to PENDING if dispatch fails",
+          "duration": 41,
+          "failureMessages": [
+            "Cannot read properties of undefined (reading 'submittedAt')"
+          ],
+          "location": { "line": 380, "column": 28 }
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Zombie Task Recovery Integration",
+            "Reconciliation Loop Zombie Recovery"
+          ],
+          "fullName": " Zombie Task Recovery Integration Reconciliation Loop Zombie Recovery should recover tasks stuck in SCHEDULED for > 60s and reconcile node count",
+          "status": "failed",
+          "title": "should recover tasks stuck in SCHEDULED for > 60s and reconcile node count",
+          "duration": 18,
+          "failureMessages": [
+            "expected \"spy\" to be called with arguments: [ ObjectContaining{…} ]\u001b[90m\n\nReceived: \n\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m0\u001b[22m\n\u001b[39m"
+          ],
+          "location": { "line": 257, "column": 42 }
+        }
+      ],
+      "startTime": 1780199622022,
+      "endTime": 1780199622084,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/tests/integration/zombie-task-recovery.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "ConsistencyCheckerJob"],
+          "fullName": " ConsistencyCheckerJob should detect invariant violations and report them",
+          "status": "passed",
+          "title": "should detect invariant violations and report them",
+          "duration": 29,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "ConsistencyCheckerJob"],
+          "fullName": " ConsistencyCheckerJob should apply safe fixes for stuck tasks",
+          "status": "passed",
+          "title": "should apply safe fixes for stuck tasks",
+          "duration": 13,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "ConsistencyCheckerJob"],
+          "fullName": " ConsistencyCheckerJob should handle offline nodes and reassign tasks",
+          "status": "passed",
+          "title": "should handle offline nodes and reassign tasks",
+          "duration": 26,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "ConsistencyCheckerJob"],
+          "fullName": " ConsistencyCheckerJob should schedule the job to run at the correct hour",
+          "status": "passed",
+          "title": "should schedule the job to run at the correct hour",
+          "duration": 7,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199631924,
+      "endTime": 1780199631999,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/jobs/__tests__/consistency-checker.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "WebhookRetryJob"],
+          "fullName": " WebhookRetryJob should successfully retry a failed delivery",
+          "status": "passed",
+          "title": "should successfully retry a failed delivery",
+          "duration": 300,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebhookRetryJob"],
+          "fullName": " WebhookRetryJob should increment retry count and calculate exponential backoff on failure",
+          "status": "passed",
+          "title": "should increment retry count and calculate exponential backoff on failure",
+          "duration": 68,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebhookRetryJob"],
+          "fullName": " WebhookRetryJob should mark as DEAD_LETTERED and create audit log after max retries",
+          "status": "passed",
+          "title": "should mark as DEAD_LETTERED and create audit log after max retries",
+          "duration": 41,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebhookRetryJob"],
+          "fullName": " WebhookRetryJob should respect the batch size (take)",
+          "status": "passed",
+          "title": "should respect the batch size (take)",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebhookRetryJob"],
+          "fullName": " WebhookRetryJob should skip retries for disabled webhooks",
+          "status": "passed",
+          "title": "should skip retries for disabled webhooks",
+          "duration": 8,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199624165,
+      "endTime": 1780199624589,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/jobs/__tests__/webhook-retry.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "PrismaClientWithReplicas"],
+          "fullName": " PrismaClientWithReplicas should create primary client when no read replica configured",
+          "status": "failed",
+          "title": "should create primary client when no read replica configured",
+          "duration": 484,
+          "failureMessages": ["basePrimary.$extends is not a function"],
+          "location": { "line": 45, "column": 32 }
+        },
+        {
+          "ancestorTitles": ["", "PrismaClientWithReplicas"],
+          "fullName": " PrismaClientWithReplicas should create separate read replica when configured",
+          "status": "failed",
+          "title": "should create separate read replica when configured",
+          "duration": 218,
+          "failureMessages": ["basePrimary.$extends is not a function"],
+          "location": { "line": 45, "column": 32 }
+        },
+        {
+          "ancestorTitles": ["", "PrismaClientWithReplicas"],
+          "fullName": " PrismaClientWithReplicas should connect to both primary and replica",
+          "status": "failed",
+          "title": "should connect to both primary and replica",
+          "duration": 258,
+          "failureMessages": ["basePrimary.$extends is not a function"],
+          "location": { "line": 45, "column": 32 }
+        },
+        {
+          "ancestorTitles": ["", "PrismaClientWithReplicas"],
+          "fullName": " PrismaClientWithReplicas should disconnect from both clients",
+          "status": "failed",
+          "title": "should disconnect from both clients",
+          "duration": 306,
+          "failureMessages": ["basePrimary.$extends is not a function"],
+          "location": { "line": 45, "column": 32 }
+        },
+        {
+          "ancestorTitles": ["", "PrismaClientWithReplicas"],
+          "fullName": " PrismaClientWithReplicas should pass health check when both connections work",
+          "status": "failed",
+          "title": "should pass health check when both connections work",
+          "duration": 3,
+          "failureMessages": ["basePrimary.$extends is not a function"],
+          "location": { "line": 45, "column": 32 }
+        },
+        {
+          "ancestorTitles": ["", "PrismaClientWithReplicas"],
+          "fullName": " PrismaClientWithReplicas should expose $transaction on primary client",
+          "status": "failed",
+          "title": "should expose $transaction on primary client",
+          "duration": 2,
+          "failureMessages": ["basePrimary.$extends is not a function"],
+          "location": { "line": 45, "column": 32 }
+        }
+      ],
+      "startTime": 1780199632415,
+      "endTime": 1780199633688,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/database/__tests__/client.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Agent Registration Routes"],
+          "fullName": " Agent Registration Routes should sign a valid CSR with a valid bootstrap token",
+          "status": "passed",
+          "title": "should sign a valid CSR with a valid bootstrap token",
+          "duration": 2868,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Agent Registration Routes"],
+          "fullName": " Agent Registration Routes should reject an expired bootstrap token",
+          "status": "failed",
+          "title": "should reject an expired bootstrap token",
+          "duration": 742,
+          "failureMessages": ["expected 500 to be 400 // Object.is equality"],
+          "location": { "line": 125, "column": 33 }
+        }
+      ],
+      "startTime": 1780199633726,
+      "endTime": 1780199637337,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/__tests__/agents.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "VIEWER Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite VIEWER Role should ALLOW reading tasks",
+          "status": "passed",
+          "title": "should ALLOW reading tasks",
+          "duration": 1928,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "VIEWER Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite VIEWER Role should DENY creating tasks",
+          "status": "passed",
+          "title": "should DENY creating tasks",
+          "duration": 1037,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "USER Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite USER Role should ALLOW creating tasks",
+          "status": "passed",
+          "title": "should ALLOW creating tasks",
+          "duration": 887,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "USER Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite USER Role should DENY triggering ML retraining (Admin permission)",
+          "status": "passed",
+          "title": "should DENY triggering ML retraining (Admin permission)",
+          "duration": 830,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "TENANT_ADMIN Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite TENANT_ADMIN Role should ALLOW reading audit logs",
+          "status": "failed",
+          "title": "should ALLOW reading audit logs",
+          "duration": 842,
+          "failureMessages": ["expected 500 to be 200 // Object.is equality"],
+          "location": { "line": 242, "column": 35 }
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "TENANT_ADMIN Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite TENANT_ADMIN Role should DENY system-wide actions (even with Admin role if tenant-scoped)",
+          "status": "passed",
+          "title": "should DENY system-wide actions (even with Admin role if tenant-scoped)",
+          "duration": 763,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": [
+            "",
+            "Granular RBAC Authorization Suite",
+            "SUPER_ADMIN Role"
+          ],
+          "fullName": " Granular RBAC Authorization Suite SUPER_ADMIN Role should ALLOW system-wide actions with SYSTEM tenantId",
+          "status": "passed",
+          "title": "should ALLOW system-wide actions with SYSTEM tenantId",
+          "duration": 716,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199624562,
+      "endTime": 1780199631569,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/__tests__/authorization.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "AlertingService SSRF Protection"],
+          "fullName": " AlertingService SSRF Protection blocks SSRF attempts targeting cloud metadata",
+          "status": "passed",
+          "title": "blocks SSRF attempts targeting cloud metadata",
+          "duration": 21,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "AlertingService SSRF Protection"],
+          "fullName": " AlertingService SSRF Protection allows safe webhook URLs",
+          "status": "passed",
+          "title": "allows safe webhook URLs",
+          "duration": 4,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199638478,
+      "endTime": 1780199638504,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/alerting-ssrf.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "AutoHealer", "Task Retry Logic"],
+          "fullName": " AutoHealer Task Retry Logic should trigger re-scheduling when task status = FAILED and retry count < maxRetries",
+          "status": "passed",
+          "title": "should trigger re-scheduling when task status = FAILED and retry count < maxRetries",
+          "duration": 25,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "AutoHealer", "Task Retry Logic"],
+          "fullName": " AutoHealer Task Retry Logic should NOT retry when retry count >= maxRetries",
+          "status": "passed",
+          "title": "should NOT retry when retry count >= maxRetries",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "AutoHealer", "Task Retry Logic"],
+          "fullName": " AutoHealer Task Retry Logic should update task status to FAILED_PERMANENT after max retries",
+          "status": "passed",
+          "title": "should update task status to FAILED_PERMANENT after max retries",
+          "duration": 4,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199638957,
+      "endTime": 1780199638991,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/auto-healer.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "mTLS Forgery Protection"],
+          "fullName": " mTLS Forgery Protection rejects a certificate signed by a different CA even if serial is in DB",
+          "status": "failed",
+          "title": "rejects a certificate signed by a different CA even if serial is in DB",
+          "duration": 1486,
+          "failureMessages": [
+            "expected true to be false // Object.is equality"
+          ],
+          "location": { "line": 108, "column": 26 }
+        },
+        {
+          "ancestorTitles": ["", "mTLS Forgery Protection"],
+          "fullName": " mTLS Forgery Protection accepts a valid certificate signed by the system CA",
+          "status": "failed",
+          "title": "accepts a valid certificate signed by the system CA",
+          "duration": 3096,
+          "failureMessages": [
+            "expected 'valid-node\\nO=EdgeCloud' to be 'valid-node' // Object.is equality"
+          ],
+          "location": { "line": 184, "column": 27 }
+        }
+      ],
+      "startTime": 1780199622717,
+      "endTime": 1780199627299,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/mtls-forgery.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "mTLS Certificate Authority"],
+          "fullName": " mTLS Certificate Authority should generate a real X.509 CA certificate",
+          "status": "passed",
+          "title": "should generate a real X.509 CA certificate",
+          "duration": 551,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "mTLS Certificate Authority"],
+          "fullName": " mTLS Certificate Authority should issue and sign an agent certificate",
+          "status": "failed",
+          "title": "should issue and sign an agent certificate",
+          "duration": 1652,
+          "failureMessages": ["this.prisma.$transaction is not a function"],
+          "location": { "line": 377, "column": 13 }
+        }
+      ],
+      "startTime": 1780199638094,
+      "endTime": 1780199640297,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/mtls.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "CertificateValidator Revocation Cache"],
+          "fullName": " CertificateValidator Revocation Cache should hit database on first check of a non-revoked certificate",
+          "status": "passed",
+          "title": "should hit database on first check of a non-revoked certificate",
+          "duration": 15,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "CertificateValidator Revocation Cache"],
+          "fullName": " CertificateValidator Revocation Cache should NOT hit database on second check of a non-revoked certificate within TTL",
+          "status": "passed",
+          "title": "should NOT hit database on second check of a non-revoked certificate within TTL",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "CertificateValidator Revocation Cache"],
+          "fullName": " CertificateValidator Revocation Cache should hit database again after TTL expires for non-revoked certificate",
+          "status": "passed",
+          "title": "should hit database again after TTL expires for non-revoked certificate",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "CertificateValidator Revocation Cache"],
+          "fullName": " CertificateValidator Revocation Cache should return true immediately for revoked certificates without hitting DB twice",
+          "status": "passed",
+          "title": "should return true immediately for revoked certificates without hitting DB twice",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "CertificateValidator Revocation Cache"],
+          "fullName": " CertificateValidator Revocation Cache should pre-populate cache in refreshCRLIfNeeded",
+          "status": "passed",
+          "title": "should pre-populate cache in refreshCRLIfNeeded",
+          "duration": 3,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199636040,
+      "endTime": 1780199636066,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/revocation-cache.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "TaskScheduler Race Condition (RACE-01)"],
+          "fullName": " TaskScheduler Race Condition (RACE-01) should prevent oversubscription by checking capacity inside the lock",
+          "status": "failed",
+          "title": "should prevent oversubscription by checking capacity inside the lock",
+          "duration": 37,
+          "failureMessages": [
+            "scheduler.scoreAndAssignWithLock is not a function"
+          ],
+          "location": { "line": 152, "column": 45 }
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler Race Condition (RACE-01)"],
+          "fullName": " TaskScheduler Race Condition (RACE-01) should skip node if capacity is reached while waiting for lock",
+          "status": "failed",
+          "title": "should skip node if capacity is reached while waiting for lock",
+          "duration": 5,
+          "failureMessages": [
+            "scheduler.scoreAndAssignWithLock is not a function"
+          ],
+          "location": { "line": 175, "column": 45 }
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler Race Condition (RACE-01)"],
+          "fullName": " TaskScheduler Race Condition (RACE-01) should skip node if lock cannot be acquired",
+          "status": "failed",
+          "title": "should skip node if lock cannot be acquired",
+          "duration": 4,
+          "failureMessages": [
+            "scheduler.scoreAndAssignWithLock is not a function"
+          ],
+          "location": { "line": 190, "column": 45 }
+        }
+      ],
+      "startTime": 1780199621893,
+      "endTime": 1780199621939,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/scheduling-concurrency.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "TaskScheduler Audit Model"],
+          "fullName": " TaskScheduler Audit Model should maintain 1 Task but create multiple TaskExecutions on failure",
+          "status": "passed",
+          "title": "should maintain 1 Task but create multiple TaskExecutions on failure",
+          "duration": 57,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199635795,
+      "endTime": 1780199635852,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/task-scheduler.audit.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Leader Election"],
+          "fullName": " TaskScheduler Leader Election should attempt to become leader on start",
+          "status": "passed",
+          "title": "should attempt to become leader on start",
+          "duration": 25,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Leader Election"],
+          "fullName": " TaskScheduler Leader Election should handle leader election failure gracefully",
+          "status": "passed",
+          "title": "should handle leader election failure gracefully",
+          "duration": 7,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Leader Election"],
+          "fullName": " TaskScheduler Leader Election should report leader status correctly",
+          "status": "passed",
+          "title": "should report leader status correctly",
+          "duration": 5,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Task Queue Operations"],
+          "fullName": " TaskScheduler Task Queue Operations should enqueue task with priority score",
+          "status": "passed",
+          "title": "should enqueue task with priority score",
+          "duration": 7,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Task Queue Operations"],
+          "fullName": " TaskScheduler Task Queue Operations should dequeue task from queue",
+          "status": "passed",
+          "title": "should dequeue task from queue",
+          "duration": 9,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Task Queue Operations"],
+          "fullName": " TaskScheduler Task Queue Operations should calculate priority score correctly",
+          "status": "passed",
+          "title": "should calculate priority score correctly",
+          "duration": 4,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "TaskScheduler", "Scheduler State"],
+          "fullName": " TaskScheduler Scheduler State should track instance ID",
+          "status": "passed",
+          "title": "should track instance ID",
+          "duration": 7,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199635132,
+      "endTime": 1780199635197,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/task-scheduler.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "Tenant Data Isolation"],
+          "fullName": " Tenant Data Isolation should restrict queries to Tenant A when in Tenant A context",
+          "status": "passed",
+          "title": "should restrict queries to Tenant A when in Tenant A context",
+          "duration": 12,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Tenant Data Isolation"],
+          "fullName": " Tenant Data Isolation should restrict queries to Tenant B when in Tenant B context",
+          "status": "passed",
+          "title": "should restrict queries to Tenant B when in Tenant B context",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "Tenant Data Isolation"],
+          "fullName": " Tenant Data Isolation should not return data if no tenant context is set (or fallback to all if permitted)",
+          "status": "passed",
+          "title": "should not return data if no tenant context is set (or fallback to all if permitted)",
+          "duration": 1,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199639311,
+      "endTime": 1780199639325,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/tenant-isolation.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "WebSocketManager Authentication"],
+          "fullName": " WebSocketManager Authentication should accept connection with valid JWT in query parameter",
+          "status": "passed",
+          "title": "should accept connection with valid JWT in query parameter",
+          "duration": 49,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebSocketManager Authentication"],
+          "fullName": " WebSocketManager Authentication should accept connection with valid JWT in Authorization header",
+          "status": "passed",
+          "title": "should accept connection with valid JWT in Authorization header",
+          "duration": 17,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebSocketManager Authentication"],
+          "fullName": " WebSocketManager Authentication should reject connection with no token",
+          "status": "passed",
+          "title": "should reject connection with no token",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebSocketManager Authentication"],
+          "fullName": " WebSocketManager Authentication should reject connection with invalid token",
+          "status": "passed",
+          "title": "should reject connection with invalid token",
+          "duration": 2,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199631189,
+      "endTime": 1780199631260,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/websocket-auth.spec.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "WebSocket Manager Tenant Isolation"],
+          "fullName": " WebSocket Manager Tenant Isolation should automatically subscribe user to their tenant-scoped channels locally",
+          "status": "failed",
+          "title": "should automatically subscribe user to their tenant-scoped channels locally",
+          "duration": 52,
+          "failureMessages": [
+            "expected \"spy\" to be called with arguments: [ '*:*:*' ]\u001b[90m\n\nReceived: \n\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m0\u001b[22m\n\u001b[39m"
+          ],
+          "location": { "line": 65, "column": 34 }
+        },
+        {
+          "ancestorTitles": ["", "WebSocket Manager Tenant Isolation"],
+          "fullName": " WebSocket Manager Tenant Isolation should allow SUPER_ADMIN to have wildcard local subscription",
+          "status": "failed",
+          "title": "should allow SUPER_ADMIN to have wildcard local subscription",
+          "duration": 27,
+          "failureMessages": [
+            "expected false to be true // Object.is equality"
+          ],
+          "location": { "line": 84, "column": 43 }
+        },
+        {
+          "ancestorTitles": ["", "WebSocket Manager Tenant Isolation"],
+          "fullName": " WebSocket Manager Tenant Isolation should prevent Tenant A from subscribing to Tenant B channels",
+          "status": "failed",
+          "title": "should prevent Tenant A from subscribing to Tenant B channels",
+          "duration": 12,
+          "failureMessages": [
+            "expected true to be false // Object.is equality"
+          ],
+          "location": { "line": 103, "column": 47 }
+        },
+        {
+          "ancestorTitles": ["", "WebSocket Manager Tenant Isolation"],
+          "fullName": " WebSocket Manager Tenant Isolation should allow Tenant A to subscribe to their own channels",
+          "status": "passed",
+          "title": "should allow Tenant A to subscribe to their own channels",
+          "duration": 8,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "WebSocket Manager Tenant Isolation"],
+          "fullName": " WebSocket Manager Tenant Isolation should broadcast messages only to the correct Redis channel",
+          "status": "failed",
+          "title": "should broadcast messages only to the correct Redis channel",
+          "duration": 11,
+          "failureMessages": [
+            "expected \"spy\" to be called with arguments: [ 'task:created:tenant-a', …(1) ]\u001b[90m\n\nReceived: \n\n\u001b[1m  1st spy call:\n\n\u001b[22m\u001b[2m  Array [\u001b[22m\n\u001b[32m-   \"task:created:tenant-a\",\u001b[90m\n\u001b[32m-   StringContaining \"\\\"tenantId\\\":\\\"tenant-a\\\"\",\u001b[90m\n\u001b[31m+   \"ws:broadcast\",\u001b[90m\n\u001b[31m+   \"{\\\"instanceId\\\":\\\"ws-1780199623995-gvjj3\\\",\\\"channel\\\":\\\"task:created\\\",\\\"payload\\\":{\\\"id\\\":\\\"task-1\\\"},\\\"excludeSender\\\":\\\"tenant-a\\\"}\",\u001b[90m\n\u001b[2m  ]\u001b[22m\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m1\u001b[22m\n\u001b[39m"
+          ],
+          "location": { "line": 130, "column": 31 }
+        },
+        {
+          "ancestorTitles": ["", "WebSocket Manager Tenant Isolation"],
+          "fullName": " WebSocket Manager Tenant Isolation should reject connections without tenantId (unless SUPER_ADMIN)",
+          "status": "failed",
+          "title": "should reject connections without tenantId (unless SUPER_ADMIN)",
+          "duration": 9,
+          "failureMessages": [
+            "expected \"spy\" to be called with arguments: [ 4001, …(1) ]\u001b[90m\n\nReceived: \n\n\u001b[39m\u001b[90m\n\nNumber of calls: \u001b[1m0\u001b[22m\n\u001b[39m"
+          ],
+          "location": { "line": 143, "column": 26 }
+        }
+      ],
+      "startTime": 1780199623895,
+      "endTime": 1780199624015,
+      "status": "failed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/services/__tests__/websocket-tenant-isolation.test.ts"
+    },
+    {
+      "assertionResults": [
+        {
+          "ancestorTitles": ["", "reliableCall", "successful execution"],
+          "fullName": " reliableCall successful execution should return result on first success",
+          "status": "passed",
+          "title": "should return result on first success",
+          "duration": 11,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "successful execution"],
+          "fullName": " reliableCall successful execution should not retry on success",
+          "status": "passed",
+          "title": "should not retry on success",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "retry behavior"],
+          "fullName": " reliableCall retry behavior should retry after transient failure",
+          "status": "passed",
+          "title": "should retry after transient failure",
+          "duration": 49,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "retry behavior"],
+          "fullName": " reliableCall retry behavior should throw ReliableCallError after max retries",
+          "status": "passed",
+          "title": "should throw ReliableCallError after max retries",
+          "duration": 54,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "retry behavior"],
+          "fullName": " reliableCall retry behavior should include attempt count in error",
+          "status": "passed",
+          "title": "should include attempt count in error",
+          "duration": 16,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "timeout protection"],
+          "fullName": " reliableCall timeout protection should timeout slow operations",
+          "status": "passed",
+          "title": "should timeout slow operations",
+          "duration": 115,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "timeout protection"],
+          "fullName": " reliableCall timeout protection should include operation name in timeout error",
+          "status": "passed",
+          "title": "should include operation name in timeout error",
+          "duration": 615,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "circuit breaker integration"],
+          "fullName": " reliableCall circuit breaker integration should respect open circuit breaker",
+          "status": "passed",
+          "title": "should respect open circuit breaker",
+          "duration": 6,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "circuit breaker integration"],
+          "fullName": " reliableCall circuit breaker integration should close circuit after success",
+          "status": "passed",
+          "title": "should close circuit after success",
+          "duration": 73,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "error classification"],
+          "fullName": " reliableCall error classification should classify network errors as retryable",
+          "status": "passed",
+          "title": "should classify network errors as retryable",
+          "duration": 3,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "error classification"],
+          "fullName": " reliableCall error classification should classify HTTP 5xx as retryable",
+          "status": "passed",
+          "title": "should classify HTTP 5xx as retryable",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "error classification"],
+          "fullName": " reliableCall error classification should classify timeout errors as non-retryable",
+          "status": "passed",
+          "title": "should classify timeout errors as non-retryable",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableCall", "error classification"],
+          "fullName": " reliableCall error classification should classify client errors as non-retryable",
+          "status": "passed",
+          "title": "should classify client errors as non-retryable",
+          "duration": 1,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableAxios"],
+          "fullName": " reliableAxios should wrap axios.get with reliability",
+          "status": "passed",
+          "title": "should wrap axios.get with reliability",
+          "duration": 6,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableAxios"],
+          "fullName": " reliableAxios should retry on 503 error",
+          "status": "passed",
+          "title": "should retry on 503 error",
+          "duration": 694,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableFetch"],
+          "fullName": " reliableFetch should wrap fetch with reliability",
+          "status": "passed",
+          "title": "should wrap fetch with reliability",
+          "duration": 2,
+          "failureMessages": []
+        },
+        {
+          "ancestorTitles": ["", "reliableFetch"],
+          "fullName": " reliableFetch should retry on 500 error",
+          "status": "passed",
+          "title": "should retry on 500 error",
+          "duration": 1137,
+          "failureMessages": []
+        }
+      ],
+      "startTime": 1780199621855,
+      "endTime": 1780199624645,
+      "status": "passed",
+      "message": "",
+      "name": "D:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/utils/__tests__/reliableCall.spec.ts"
+    }
+  ]
+}

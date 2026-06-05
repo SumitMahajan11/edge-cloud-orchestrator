@@ -5,20 +5,18 @@
  * allowing request flows to be tracked across services.
  */
 
-import { 
-  getNodeAutoInstrumentations 
-} from '@opentelemetry/auto-instrumentations-node';
+import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-grpc';
 import { FastifyInstrumentation } from '@opentelemetry/instrumentation-fastify';
 import { HttpInstrumentation } from '@opentelemetry/instrumentation-http';
 import { PgInstrumentation } from '@opentelemetry/instrumentation-pg';
 import { RedisInstrumentation } from '@opentelemetry/instrumentation-redis';
 import { NodeSDK } from '@opentelemetry/sdk-node';
-import { 
-  ParentBasedSampler, 
+import {
+  ParentBasedSampler,
   BatchSpanProcessor,
   SpanProcessor,
-  ReadableSpan
+  ReadableSpan,
 } from '@opentelemetry/sdk-trace-base';
 import type { FastifyInstance } from 'fastify';
 
@@ -51,8 +49,12 @@ class TailSamplingSpanProcessor implements SpanProcessor {
     this.delegate.onEnd(span);
   }
 
-  forceFlush(): Promise<void> { return this.delegate.forceFlush(); }
-  shutdown(): Promise<void> { return this.delegate.shutdown(); }
+  forceFlush(): Promise<void> {
+    return this.delegate.forceFlush();
+  }
+  shutdown(): Promise<void> {
+    return this.delegate.shutdown();
+  }
 }
 
 let sdk: NodeSDK | null = null;
@@ -98,7 +100,10 @@ export function initTracing(): void {
   });
 
   sdk.start();
-  logger.info({ serviceName, endpoint }, 'OpenTelemetry tracing enabled with advanced sampling');
+  logger.info(
+    { serviceName, endpoint },
+    'OpenTelemetry tracing enabled with advanced sampling',
+  );
 }
 
 export function shutdownTracing(): Promise<void> {

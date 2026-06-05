@@ -1,5 +1,11 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { MoreHorizontal, Eye, ShieldCheck, ShieldAlert, ShieldX } from 'lucide-react'
+import { AnimatePresence, motion } from "framer-motion";
+import {
+  MoreHorizontal,
+  Eye,
+  ShieldCheck,
+  ShieldAlert,
+  ShieldX,
+} from "lucide-react";
 import {
   Table,
   TableBody,
@@ -7,19 +13,19 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '../ui/table'
-import { Progress } from '../ui/progress'
-import { cn } from '../../lib/utils'
-import type { EdgeNode } from '../../types'
-import { useRouter } from 'next/navigation'
+} from "../ui/table";
+import { Progress } from "../ui/progress";
+import { cn } from "../../lib/utils";
+import type { EdgeNode } from "../../types";
+import { useRouter } from "next/navigation";
 
 interface NodesTableViewProps {
-  nodes: EdgeNode[]
-  onSelect: (node: EdgeNode) => void
-  onDrain: ((node: EdgeNode) => void | Promise<void>) | undefined
-  onForceOffline: ((node: EdgeNode) => void | Promise<void>) | undefined
-  latencyWarn?: number
-  latencyCrit?: number
+  nodes: EdgeNode[];
+  onSelect: (node: EdgeNode) => void;
+  onDrain: ((node: EdgeNode) => void | Promise<void>) | undefined;
+  onForceOffline: ((node: EdgeNode) => void | Promise<void>) | undefined;
+  latencyWarn?: number;
+  latencyCrit?: number;
 }
 
 /**
@@ -35,7 +41,7 @@ export function NodesTableView({
   latencyWarn = 50,
   latencyCrit = 150,
 }: NodesTableViewProps) {
-  const router = useRouter()
+  const router = useRouter();
 
   if (nodes.length === 0) {
     return (
@@ -44,7 +50,7 @@ export function NodesTableView({
           No nodes match the current filter.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -108,12 +114,12 @@ export function NodesTableView({
                 </TableCell>
                 <TableCell
                   className={cn(
-                    'font-mono text-xs tabular-nums',
+                    "font-mono text-xs tabular-nums",
                     n.latency < latencyWarn
-                      ? 'text-[#10b981]'
+                      ? "text-[#10b981]"
                       : n.latency < latencyCrit
-                        ? 'text-[#f59e0b]'
-                        : 'text-[#ef4444]'
+                        ? "text-[#f59e0b]"
+                        : "text-[#ef4444]",
                   )}
                 >
                   {Math.round(n.latency)}ms
@@ -122,8 +128,10 @@ export function NodesTableView({
                   <button
                     type="button"
                     onClick={(e) => {
-                      e.stopPropagation()
-                      router.push(`/scheduler?node=${encodeURIComponent(n.id)}`)
+                      e.stopPropagation();
+                      router.push(
+                        `/scheduler?node=${encodeURIComponent(n.id)}`,
+                      );
                     }}
                     className="font-mono text-xs text-[#00d4aa] hover:underline underline-offset-2"
                   >
@@ -141,7 +149,11 @@ export function NodesTableView({
                   onClick={(e) => e.stopPropagation()}
                 >
                   <div className="inline-flex items-center gap-1">
-                    <RowAction label="View" onClick={() => onSelect(n)} icon={Eye} />
+                    <RowAction
+                      label="View"
+                      onClick={() => onSelect(n)}
+                      icon={Eye}
+                    />
                     {onDrain && (
                       <RowAction
                         label="Drain"
@@ -165,40 +177,40 @@ export function NodesTableView({
         </TableBody>
       </Table>
     </div>
-  )
+  );
 }
 
-function StatusPill({ status }: { status: EdgeNode['status'] }) {
+function StatusPill({ status }: { status: EdgeNode["status"] }) {
   const cfg =
-    status === 'online'
+    status === "online"
       ? {
-          label: 'ONLINE',
-          cls: 'border-[#00d4aa]/40 bg-[#00d4aa]/10 text-[#00d4aa]',
-          dot: 'bg-[#00d4aa] animate-pulse-teal',
+          label: "ONLINE",
+          cls: "border-[#00d4aa]/40 bg-[#00d4aa]/10 text-[#00d4aa]",
+          dot: "bg-[#00d4aa] animate-pulse-teal",
         }
-      : status === 'degraded'
+      : status === "degraded"
         ? {
-            label: 'DEGRADED',
-            cls: 'border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]',
-            dot: 'bg-[#f59e0b]',
+            label: "DEGRADED",
+            cls: "border-[#f59e0b]/40 bg-[#f59e0b]/10 text-[#f59e0b]",
+            dot: "bg-[#f59e0b]",
           }
         : {
-            label: 'OFFLINE',
-            cls: 'border-[#ef4444]/40 bg-[#ef4444]/10 text-[#ef4444]',
-            dot: 'bg-[#ef4444]',
-          }
+            label: "OFFLINE",
+            cls: "border-[#ef4444]/40 bg-[#ef4444]/10 text-[#ef4444]",
+            dot: "bg-[#ef4444]",
+          };
 
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border font-mono text-[10px]',
-        cfg.cls
+        "inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full border font-mono text-[10px]",
+        cfg.cls,
       )}
     >
-      <span className={cn('h-1.5 w-1.5 rounded-full', cfg.dot)} />
+      <span className={cn("h-1.5 w-1.5 rounded-full", cfg.dot)} />
       {cfg.label}
     </span>
-  )
+  );
 }
 
 function CertificateBadge({ node }: { node: EdgeNode }) {
@@ -206,17 +218,19 @@ function CertificateBadge({ node }: { node: EdgeNode }) {
   // so the UI is present and ready to consume real fields as soon as the
   // backend surfaces them on v4.0.0. Deterministic by id to avoid flicker.
   const hash =
-    node.id.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 0) & 0xffff
-  const status = hash % 7 === 0 ? 'expired' : hash % 13 === 0 ? 'expiring' : 'valid'
+    node.id.split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 0) &
+    0xffff;
+  const status =
+    hash % 7 === 0 ? "expired" : hash % 13 === 0 ? "expiring" : "valid";
 
-  if (status === 'valid') {
+  if (status === "valid") {
     return (
       <span className="inline-flex items-center gap-1 text-[#10b981]">
         <ShieldCheck className="h-3.5 w-3.5" />
       </span>
-    )
+    );
   }
-  if (status === 'expiring') {
+  if (status === "expiring") {
     return (
       <span
         className="inline-flex items-center gap-1 text-[#f59e0b]"
@@ -224,7 +238,7 @@ function CertificateBadge({ node }: { node: EdgeNode }) {
       >
         <ShieldAlert className="h-3.5 w-3.5" />
       </span>
-    )
+    );
   }
   return (
     <span
@@ -233,19 +247,27 @@ function CertificateBadge({ node }: { node: EdgeNode }) {
     >
       <ShieldX className="h-3.5 w-3.5" />
     </span>
-  )
+  );
 }
 
 function HeartbeatBadge({ lastHeartbeat }: { lastHeartbeat: Date }) {
   const secs = Math.max(
     0,
-    Math.floor((Date.now() - new Date(lastHeartbeat).getTime()) / 1000)
-  )
+    Math.floor((Date.now() - new Date(lastHeartbeat).getTime()) / 1000),
+  );
   const color =
-    secs < 10 ? 'text-[#10b981]' : secs < 30 ? 'text-[#f59e0b]' : 'text-[#ef4444]'
+    secs < 10
+      ? "text-[#10b981]"
+      : secs < 30
+        ? "text-[#f59e0b]"
+        : "text-[#ef4444]";
   const label =
-    secs < 60 ? `${secs}s ago` : secs < 3600 ? `${Math.floor(secs / 60)}m ago` : '—'
-  return <span className={color}>{label}</span>
+    secs < 60
+      ? `${secs}s ago`
+      : secs < 3600
+        ? `${Math.floor(secs / 60)}m ago`
+        : "—";
+  return <span className={color}>{label}</span>;
 }
 
 function RowAction({
@@ -254,10 +276,10 @@ function RowAction({
   icon: Icon,
   className,
 }: {
-  label: string
-  onClick: () => void
-  icon?: any
-  className?: string
+  label: string;
+  onClick: () => void;
+  icon?: any;
+  className?: string;
 }) {
   return (
     <button
@@ -265,11 +287,15 @@ function RowAction({
       onClick={onClick}
       title={label}
       className={cn(
-        'p-1.5 rounded hover:bg-[#00d4aa]/10 text-muted-foreground hover:text-[#00d4aa] transition-colors',
-        className
+        "p-1.5 rounded hover:bg-[#00d4aa]/10 text-muted-foreground hover:text-[#00d4aa] transition-colors",
+        className,
       )}
     >
-      {Icon ? <Icon className="h-3.5 w-3.5" /> : <span className="text-[10px]">{label}</span>}
+      {Icon ? (
+        <Icon className="h-3.5 w-3.5" />
+      ) : (
+        <span className="text-[10px]">{label}</span>
+      )}
     </button>
-  )
+  );
 }

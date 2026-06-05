@@ -1,21 +1,21 @@
-import * as React from "react"
+import * as React from "react";
 import {
   Sheet,
   SheetContent,
   SheetDescription,
   SheetHeader,
   SheetTitle,
-} from "../ui/sheet"
-import { cn } from "../../lib/utils"
+} from "../ui/sheet";
+import { cn } from "../../lib/utils";
 
 interface DrawerPanelProps {
-  isOpen: boolean
-  onClose: () => void
-  title: string
-  description?: string
-  children: React.ReactNode
-  className?: string
-  width?: "sm" | "md" | "lg" | "xl" | "full"
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  description?: string;
+  children: React.ReactNode;
+  className?: string;
+  width?: "sm" | "md" | "lg" | "xl" | "full";
 }
 
 const widthMap = {
@@ -24,7 +24,7 @@ const widthMap = {
   lg: "sm:max-w-lg",
   xl: "sm:max-w-xl",
   full: "sm:max-w-full",
-}
+};
 
 export function DrawerPanel({
   isOpen,
@@ -37,11 +37,17 @@ export function DrawerPanel({
 }: DrawerPanelProps) {
   return (
     <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent 
-        className={cn("bg-card border-l border-border h-full flex flex-col p-0", widthMap[width], className)}
+      <SheetContent
+        className={cn(
+          "bg-card border-l border-border h-full flex flex-col p-0",
+          widthMap[width],
+          className,
+        )}
       >
         <SheetHeader className="p-6 border-b border-border">
-          <SheetTitle className="text-xl font-bold text-foreground">{title}</SheetTitle>
+          <SheetTitle className="text-xl font-bold text-foreground">
+            {title}
+          </SheetTitle>
           {description && (
             <SheetDescription className="text-sm text-muted-foreground">
               {description}
@@ -53,5 +59,5 @@ export function DrawerPanel({
         </div>
       </SheetContent>
     </Sheet>
-  )
+  );
 }

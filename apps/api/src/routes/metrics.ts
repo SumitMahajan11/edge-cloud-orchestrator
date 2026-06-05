@@ -16,16 +16,26 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       failedTasks,
     ] = await Promise.all([
       fastify.prisma.edgeNode.count({ where: { tenantId } }),
-      fastify.prisma.edgeNode.count({ where: { status: 'online' as any, tenantId } }),
+      fastify.prisma.edgeNode.count({
+        where: { status: 'ONLINE' as any, tenantId },
+      }),
       fastify.prisma.task.count({ where: { tenantId } }),
-      fastify.prisma.task.count({ where: { status: 'pending' as any, tenantId } }),
-      fastify.prisma.task.count({ where: { status: 'running' as any, tenantId } }),
-      fastify.prisma.task.count({ where: { status: 'completed' as any, tenantId } }),
-      fastify.prisma.task.count({ where: { status: 'failed' as any, tenantId } }),
+      fastify.prisma.task.count({
+        where: { status: 'PENDING' as any, tenantId },
+      }),
+      fastify.prisma.task.count({
+        where: { status: 'RUNNING' as any, tenantId },
+      }),
+      fastify.prisma.task.count({
+        where: { status: 'COMPLETED' as any, tenantId },
+      }),
+      fastify.prisma.task.count({
+        where: { status: 'FAILED' as any, tenantId },
+      }),
     ]);
 
     const avgLatency = await (fastify.prisma.edgeNode as any).aggregate({
-      where: { status: 'online', tenantId },
+      where: { status: 'ONLINE', tenantId },
       _avg: { latency: true },
     });
 
@@ -71,13 +81,16 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/system',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
-      schema: { 
-        tags: ['metrics'], 
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SYSTEM_READ),
+      ],
+      schema: {
+        tags: ['metrics'],
         summary: 'Get system metrics',
         response: {
-          401: { $ref: 'ErrorSchema#' }
-        }
+          401: { $ref: 'ErrorSchema#' },
+        },
       },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
@@ -89,7 +102,10 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SYSTEM_READ),
+      ],
       schema: { tags: ['metrics'], summary: 'Get system metrics' },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
@@ -101,7 +117,10 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/requests',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SYSTEM_READ),
+      ],
       schema: { tags: ['metrics'], summary: 'Get request metrics' },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
@@ -120,12 +139,15 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/nodes',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_READ),
+      ],
       schema: { tags: ['metrics'], summary: 'Get node metrics summary' },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const nodes = await fastify.prisma.edgeNode.findMany({
-        where: { status: 'online' as any, tenantId: request.user!.tenantId! },
+        where: { status: 'ONLINE' as any, tenantId: request.user!.tenantId! },
       });
       return { total: nodes.length, nodes };
     },
@@ -135,9 +157,12 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/ml',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ML_READ)],
-      schema: { 
-        tags: ['metrics'], 
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.ML_READ),
+      ],
+      schema: {
+        tags: ['metrics'],
         summary: 'Get ML-specific metrics',
         response: {
           200: {
@@ -148,15 +173,17 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
               avgAccuracy: { type: 'number' },
               totalPredictions: { type: 'number' },
             },
-          }
-        }
+          },
+        },
       },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const tenantId = request.user!.tenantId!;
       const [activeModels, trainingJobs] = await Promise.all([
         fastify.prisma.fLModel.count({ where: { tenantId, isActive: true } }),
-        fastify.prisma.fLSession.count({ where: { tenantId, status: 'RUNNING' } }),
+        fastify.prisma.fLSession.count({
+          where: { tenantId, status: 'RUNNING' },
+        }),
       ]);
 
       return {
@@ -172,9 +199,12 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/network',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
-      schema: { 
-        tags: ['metrics'], 
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SYSTEM_READ),
+      ],
+      schema: {
+        tags: ['metrics'],
         summary: 'Get network performance metrics',
         response: {
           200: {
@@ -185,8 +215,8 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
               avgLatency: { type: 'number' },
               packetLoss: { type: 'number' },
             },
-          }
-        }
+          },
+        },
       },
     },
     async (_request: FastifyRequest, _reply: FastifyReply) => {
@@ -203,7 +233,10 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/prometheus',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SYSTEM_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SYSTEM_READ),
+      ],
       schema: {
         tags: ['metrics'],
         summary: 'Get Prometheus metrics',
@@ -212,8 +245,8 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     },
     async (_request: FastifyRequest, reply: FastifyReply) => {
       const metrics = await register.metrics();
-      void reply.header('Content-Type', register.contentType);      return metrics;
+      void reply.header('Content-Type', register.contentType);
+      return metrics;
     },
   );
 }
-

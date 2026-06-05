@@ -12,23 +12,23 @@ pnpm add @edgecloud/outbox
 
 ## Exports
 
-| Export           | Type     | Description                                      |
-|------------------|----------|--------------------------------------------------|
-| `OutboxManager`  | class    | Write events to outbox, run relay loop           |
-| `OutboxEvent`    | type     | Outbox record shape                              |
-| `OutboxRelay`    | class    | Background process: outbox → Kafka               |
+| Export          | Type  | Description                            |
+| --------------- | ----- | -------------------------------------- |
+| `OutboxManager` | class | Write events to outbox, run relay loop |
+| `OutboxEvent`   | type  | Outbox record shape                    |
+| `OutboxRelay`   | class | Background process: outbox → Kafka     |
 
 ## Usage
 
 ```typescript
-import { OutboxManager } from '@edgecloud/outbox'
+import { OutboxManager } from "@edgecloud/outbox";
 
 // In a Prisma transaction:
-const outbox = new OutboxManager(prisma, eventBus)
-await outbox.write(tx, { topic: 'tasks.submitted', payload: { taskId } })
+const outbox = new OutboxManager(prisma, eventBus);
+await outbox.write(tx, { topic: "tasks.submitted", payload: { taskId } });
 
 // Start relay (once per process):
-await outbox.startRelay()
+await outbox.startRelay();
 ```
 
 ## Build

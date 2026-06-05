@@ -2,9 +2,22 @@
  * Shared domain types for Edge-Cloud Orchestrator
  */
 
-export type TaskStatus = 'PENDING' | 'SCHEDULED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'FAILED_PERMANENT' | 'CANCELLED';
-export type NodeStatus = 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE' | 'STALE' | 'DRAINING';
-export type Priority = 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+export type TaskStatus =
+  | "PENDING"
+  | "SCHEDULED"
+  | "RUNNING"
+  | "COMPLETED"
+  | "FAILED"
+  | "FAILED_PERMANENT"
+  | "CANCELLED";
+export type NodeStatus =
+  | "ONLINE"
+  | "OFFLINE"
+  | "DEGRADED"
+  | "MAINTENANCE"
+  | "STALE"
+  | "DRAINING";
+export type Priority = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW";
 
 export interface DomainTask {
   id: string;
@@ -48,9 +61,9 @@ export interface ScoreWeights {
  * Weights sum to 1.0 and prioritize CPU (40%), memory (30%), and latency (30%).
  */
 export const DEFAULT_SCORE_WEIGHTS: ScoreWeights = {
-  cpu: 0.40,
-  memory: 0.30,
-  latency: 0.30,
+  cpu: 0.4,
+  memory: 0.3,
+  latency: 0.3,
   cost: 0.0,
   network: 0.0,
   ml: 0.0,
@@ -59,7 +72,12 @@ export const DEFAULT_SCORE_WEIGHTS: ScoreWeights = {
 } as const;
 
 export interface HealingAction {
-  type: 'reschedule-tasks' | 'restart-service' | 'scale-up' | 'scale-down' | 'clear-queue';
+  type:
+    | "reschedule-tasks"
+    | "restart-service"
+    | "scale-up"
+    | "scale-down"
+    | "clear-queue";
   target: string;
   reason: string;
 }

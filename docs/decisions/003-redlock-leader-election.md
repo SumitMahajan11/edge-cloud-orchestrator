@@ -7,6 +7,7 @@
 ## Context
 
 The Scheduler service runs 3 replicas for high availability. However, only **one scheduler instance** should make task placement decisions at any given time to prevent:
+
 - **Split-brain** — Multiple schedulers assigning the same task to different nodes
 - **Over-scheduling** — Tasks exceeding node capacity due to duplicate decisions
 - **Inconsistent state** — Conflicting scheduling decisions
@@ -14,12 +15,14 @@ The Scheduler service runs 3 replicas for high availability. However, only **one
 Two primary approaches were evaluated:
 
 ### Raft Consensus
+
 - Formal consensus algorithm with strong correctness guarantees
 - Leader election via multi-round voting
 - Log replication for state machine consistency
 - Implemented in etcd, Consul, CockroachDB
 
 ### Redlock (Redis Distributed Lock)
+
 - Distributed locking algorithm using Redis SET commands
 - Leader holds exclusive lock with TTL
 - Automatic leader timeout if leader crashes
@@ -54,12 +57,14 @@ Two primary approaches were evaluated:
 ## Consequences
 
 ### Positive
+
 - ✅ **Operational Simplicity** — No state machine, no log replication, no vote counting
 - ✅ **Faster Leadership Acquisition** — ~100ms vs. Raft's multi-round election
 - ✅ **Fewer Dependencies** — Leverages existing Redis infrastructure
 - ✅ **Easier Debugging** — Lock state visible via Redis CLI (`GET scheduler:leader`)
 
 ### Negative
+
 - ⚠️ **Weaker Guarantees** — Potential split-brain under extreme network partition (Redis unreachable from some nodes)
 - ⚠️ **Single Point of Failure** — Requires Redis Sentinel for true HA (single Redis instance is SPOF)
 - ⚠️ **Clock Dependency** — Lock TTL assumes reasonably synchronized clocks (mitigated with short TTL + retry)
@@ -90,13 +95,14 @@ Two primary approaches were evaluated:
 ## Implementation
 
 ### Leader Election
+
 ```typescript
-const LOCK_KEY = 'scheduler:leader';
+const LOCK_KEY = "scheduler:leader";
 const LOCK_TTL = 10000; // 10 seconds
 
 async function acquireLeadership(): Promise<boolean> {
-  const result = await redis.set(LOCK_KEY, instanceId, 'NX', 'PX', LOCK_TTL);
-  return result === 'OK';
+  const result = await redis.set(LOCK_KEY, instanceId, "NX", "PX", LOCK_TTL);
+  return result === "OK";
 }
 
 async function renewLeadership(): Promise<boolean> {
@@ -108,31 +114,33 @@ async function renewLeadership(): Promise<boolean> {
       return 0
     end
   `;
-  return await redis.eval(script, 1, LOCK_KEY, instanceId, LOCK_TTL) === 1;
+  return (await redis.eval(script, 1, LOCK_KEY, instanceId, LOCK_TTL)) === 1;
 }
 ```
 
 ### Leader Heartbeat
+
 ```typescript
 // Renew lock every 3 seconds (3x safety margin before 10s TTL)
 setInterval(async () => {
   const renewed = await renewLeadership();
   if (!renewed) {
-    logger.warn('Lost leadership, stopping scheduling loop');
+    logger.warn("Lost leadership, stopping scheduling loop");
     stopScheduling();
   }
 }, 3000);
 ```
 
 ### Fallback: Standy Mode
+
 ```typescript
 // Non-leader schedulers monitor lock and wait
 async function standbyLoop() {
-  while (!await acquireLeadership()) {
-    logger.info('Not leader, waiting...');
+  while (!(await acquireLeadership())) {
+    logger.info("Not leader, waiting...");
     await sleep(1000);
   }
-  logger.info('Acquired leadership, starting scheduling loop');
+  logger.info("Acquired leadership, starting scheduling loop");
   startScheduling();
 }
 ```
@@ -148,6 +156,7 @@ If network partitions prove problematic or stronger guarantees are needed:
 ## Revisit Triggers
 
 This decision should be revisited when:
+
 - Split-brain events cause data corruption (not just delays)
 - Scheduler state becomes stateful (requires log replication)
 - Network partitions occur frequently in deployment environment

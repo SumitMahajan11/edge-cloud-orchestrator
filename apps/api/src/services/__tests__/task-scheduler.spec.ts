@@ -2,7 +2,6 @@ import type { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
 
-
 import { TaskScheduler } from '../task-scheduler';
 import type { WebSocketManager } from '../websocket-manager';
 
@@ -39,7 +38,8 @@ const mockLeaderElection = {
 };
 
 vi.mock('@edgecloud/shared-kernel', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@edgecloud/shared-kernel')>();
+  const actual =
+    await importOriginal<typeof import('@edgecloud/shared-kernel')>();
   return {
     ...actual,
     LeaderElection: vi.fn().mockImplementation(() => mockLeaderElection),
@@ -99,7 +99,7 @@ describe('TaskScheduler', () => {
 
       expect(mockLeaderElection.start).toHaveBeenCalledWith(
         expect.stringContaining('scheduler-'),
-        expect.any(Number)
+        expect.any(Number),
       );
     });
 

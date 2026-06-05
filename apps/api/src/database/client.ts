@@ -38,9 +38,7 @@ class PrismaClientWithReplicas {
 
     const basePrimary = new PrismaClient({
       log:
-        env.NODE_ENV === 'development'
-          ? ['query', 'error', 'warn']
-          : ['error'],
+        env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
     });
     this.primary = basePrimary.$extends(slowQueryExtension);
 

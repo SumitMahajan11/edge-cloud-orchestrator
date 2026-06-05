@@ -6,16 +6,16 @@ Metrics aggregation and export microservice. Collects Prometheus metrics from al
 
 ## Port
 
-| Variable | Default | Description         |
-|----------|---------|---------------------|
-| PORT     | 3006    | HTTP listen port    |
+| Variable | Default | Description      |
+| -------- | ------- | ---------------- |
+| PORT     | 3006    | HTTP listen port |
 
 ## Environment Variables
 
-| Variable    | Required | Description                        |
-|-------------|----------|------------------------------------|
-| REDIS_URL   | yes      | Redis connection URL               |
-| NODE_ENV    | no       | production / development           |
+| Variable  | Required | Description              |
+| --------- | -------- | ------------------------ |
+| REDIS_URL | yes      | Redis connection URL     |
+| NODE_ENV  | no       | production / development |
 
 ## Development
 

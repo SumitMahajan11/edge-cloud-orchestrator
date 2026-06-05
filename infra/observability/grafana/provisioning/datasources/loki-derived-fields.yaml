@@ -10,8 +10,8 @@ datasources:
         - datasourceUid: tempo
           matcherRegex: '"traceId":"(\w+)"'
           name: TraceID
-          url: '$${__value.raw}'
+          url: "$${__value.raw}"
         - datasourceUid: tempo
           matcherRegex: '"spanId":"(\w+)"'
           name: SpanID
-          url: '$${__value.raw}'
+          url: "$${__value.raw}"

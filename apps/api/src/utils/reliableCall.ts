@@ -190,7 +190,10 @@ export async function reliableFetch<T>(
 /**
  * Check if an error is retryable
  */
-export function isRetryableError(error: unknown, retryableStatusCodes: number[] = [408, 429, 500, 502, 503, 504]): boolean {
+export function isRetryableError(
+  error: unknown,
+  retryableStatusCodes: number[] = [408, 429, 500, 502, 503, 504],
+): boolean {
   if (!error) return false;
 
   const err = error as any;

@@ -80,12 +80,18 @@ export function getCircuitBreaker(
   if (cb.listenerCount('open') === 0) {
     cb.on('open', () => {
       logger.warn({ breaker: config.name }, 'Circuit breaker opened');
-      wsManager?.broadcast('circuit_breaker.opened', { name: config.name, timestamp: new Date().toISOString() });
+      wsManager?.broadcast('circuit_breaker.opened', {
+        name: config.name,
+        timestamp: new Date().toISOString(),
+      });
     });
 
     cb.on('close', () => {
       logger.info({ breaker: config.name }, 'Circuit breaker closed (healthy)');
-      wsManager?.broadcast('circuit_breaker.closed', { name: config.name, timestamp: new Date().toISOString() });
+      wsManager?.broadcast('circuit_breaker.closed', {
+        name: config.name,
+        timestamp: new Date().toISOString(),
+      });
     });
 
     cb.on('halfOpen', () => {
@@ -93,7 +99,10 @@ export function getCircuitBreaker(
         { breaker: config.name },
         'Circuit breaker half-open (testing)',
       );
-      wsManager?.broadcast('circuit_breaker.half_open', { name: config.name, timestamp: new Date().toISOString() });
+      wsManager?.broadcast('circuit_breaker.half_open', {
+        name: config.name,
+        timestamp: new Date().toISOString(),
+      });
     });
   }
 

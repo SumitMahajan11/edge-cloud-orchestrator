@@ -13,7 +13,11 @@ export class ApiKeyService {
    * Creates a new API key for a user.
    * Returns the plaintext key (only time it's visible).
    */
-  async createApiKey(userId: string, name: string, permissions: any = { '*': true }): Promise<{ name: string; key: string }> {
+  async createApiKey(
+    userId: string,
+    name: string,
+    permissions: any = { '*': true },
+  ): Promise<{ name: string; key: string }> {
     // Generate 32 bytes of entropy
     const rawKey = crypto.randomBytes(32).toString('base64url');
     const keyPrefix = rawKey.substring(0, 8);
@@ -38,7 +42,7 @@ export class ApiKeyService {
    */
   async validateApiKey(rawKey: string): Promise<any | null> {
     const keyPrefix = rawKey.substring(0, 8);
-    
+
     const apiKeys = await this.prisma.apiKey.findMany({
       where: { keyPrefix },
       include: { user: true },

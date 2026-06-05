@@ -16,7 +16,7 @@ function getDbQueryDuration() {
   const name = 'db_query_duration_seconds';
   const existing = globalRegister.getSingleMetric(name);
   if (existing) return existing as Histogram<string>;
-  
+
   return new Histogram({
     name,
     help: 'Duration of Database queries in seconds',
@@ -28,7 +28,7 @@ function getDbQueryDuration() {
 export const prismaPlugin = fp(
   async (fastify, options: { prisma: PrismaClient }) => {
     fastify.log.info('Initializing Prisma with resilience middleware...');
-    
+
     const isMock = (options.prisma as any).isMock;
     const dbQueryDuration = getDbQueryDuration();
 
@@ -39,15 +39,16 @@ export const prismaPlugin = fp(
       resetTimeout: 30000, // 30s
     });
 
-    
     // 1. Add Scoped Tenant Extension
-    let extendedPrisma = isMock ? options.prisma : prismaForTenant(options.prisma);
+    let extendedPrisma = isMock
+      ? options.prisma
+      : prismaForTenant(options.prisma);
 
     // Common handler for all database operations
     const handleOperation = async ({ model, operation, args, query }: any) => {
       const start = Date.now();
       const modelName = model || 'none';
-      
+
       try {
         // Execute within Circuit Breaker
         const result = await dbCircuitBreaker.execute(async () => {
@@ -58,12 +59,13 @@ export const prismaPlugin = fp(
         dbQueryDuration.observe({ model: modelName, operation }, duration);
 
         // Log slow queries
-        if (duration > 0.1) { // 100ms
+        if (duration > 0.1) {
+          // 100ms
           fastify.log.warn({
             msg: 'Slow database query detected',
             model: modelName,
             operation,
-            duration: `${duration}s`
+            duration: `${duration}s`,
           });
         }
 
@@ -77,7 +79,7 @@ export const prismaPlugin = fp(
           fastify.log.error({
             msg: 'Database circuit breaker is OPEN. Rejecting query.',
             model: modelName,
-            operation
+            operation,
           });
         }
         throw error;
@@ -88,15 +90,15 @@ export const prismaPlugin = fp(
     extendedPrisma = extendedPrisma.$extends({
       query: {
         $allModels: {
-          $allOperations: handleOperation
+          $allOperations: handleOperation,
         },
         $queryRaw: handleOperation,
         $executeRaw: handleOperation,
         $queryRawUnsafe: handleOperation,
-        $executeRawUnsafe: handleOperation
+        $executeRawUnsafe: handleOperation,
       },
     });
-    
+
     if (!fastify.prisma) {
       fastify.decorate('prisma', extendedPrisma);
       fastify.decorate('dbCircuitBreaker', dbCircuitBreaker);
@@ -108,4 +110,3 @@ export const prismaPlugin = fp(
     });
   },
 );
-

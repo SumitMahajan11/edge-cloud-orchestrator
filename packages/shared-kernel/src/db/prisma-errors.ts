@@ -1,4 +1,4 @@
-import { Prisma } from '@prisma/client';
+import { Prisma } from "@prisma/client";
 
 /**
  * Checks if an error is a Prisma connection error (network or auth failures).
@@ -7,13 +7,13 @@ export function isPrismaConnectionError(e: any): boolean {
   if (!(e instanceof Prisma.PrismaClientKnownRequestError)) {
     return false;
   }
-  
+
   // P1000: Authentication failed
   // P1001: Can't reach database server
   // P1002: Database server timed out
   // P1008: Operations timed out (can be connection related)
   // P1017: Server has closed the connection
-  const connectionCodes = ['P1000', 'P1001', 'P1002', 'P1008', 'P1017'];
+  const connectionCodes = ["P1000", "P1001", "P1002", "P1008", "P1017"];
   return connectionCodes.includes(e.code);
 }
 
@@ -21,16 +21,19 @@ export function isPrismaConnectionError(e: any): boolean {
  * Checks if an error is a Prisma query timeout error.
  */
 export function isPrismaTimeoutError(e: any): boolean {
-  if (e instanceof Prisma.PrismaClientInitializationError && e.message.includes('timed out')) {
+  if (
+    e instanceof Prisma.PrismaClientInitializationError &&
+    e.message.includes("timed out")
+  ) {
     return true;
   }
-  
+
   if (!(e instanceof Prisma.PrismaClientKnownRequestError)) {
     return false;
   }
 
   // P2024: Timed out fetching a new connection from the pool
-  return e.code === 'P2024' || e.message.toLowerCase().includes('timeout');
+  return e.code === "P2024" || e.message.toLowerCase().includes("timeout");
 }
 
 /**
@@ -42,7 +45,7 @@ export function isPrismaPoolExhausted(e: any): boolean {
   }
 
   // P2024: Timed out fetching a new connection from the pool
-  return e.code === 'P2024';
+  return e.code === "P2024";
 }
 
 /**
@@ -53,7 +56,7 @@ export function isPrismaNotFound(e: any): boolean {
     return false;
   }
 
-  return e.code === 'P2025';
+  return e.code === "P2025";
 }
 
 /**
@@ -64,5 +67,5 @@ export function isPrismaConflict(e: any): boolean {
     return false;
   }
 
-  return e.code === 'P2002';
+  return e.code === "P2002";
 }

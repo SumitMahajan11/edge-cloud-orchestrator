@@ -2,16 +2,16 @@ name: CI
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_call:
 
 jobs:
   ci:
     name: Continuous Integration
     runs-on: ubuntu-latest
-    
+
     services:
       postgres:
         image: postgres:15-alpine
@@ -50,7 +50,7 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'pnpm'
+          cache: "pnpm"
 
       - name: 1. Install dependencies
         run: pnpm install --frozen-lockfile
@@ -72,13 +72,13 @@ jobs:
         run: |
           echo "Checking migration safety..."
           pnpm run validate:migrations
-          
+
           echo "Deploying migrations to fresh container..."
           pnpm --filter @edgecloud/api exec prisma migrate deploy
-          
+
           echo "Seeding database..."
           pnpm --filter @edgecloud/api exec prisma db seed
-          
+
           echo "Running smoke tests against seeded DB..."
           pnpm run test:smoke
         env:

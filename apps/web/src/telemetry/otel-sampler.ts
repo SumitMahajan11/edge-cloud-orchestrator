@@ -1,17 +1,10 @@
 import {
   SamplingDecision,
   TraceIdRatioBasedSampler,
-} from '@opentelemetry/sdk-trace-base';
-import type {
-  Sampler,
-  SamplingResult,
-} from '@opentelemetry/sdk-trace-base';
-import { SpanKind } from '@opentelemetry/api';
-import type {
-  Attributes,
-  Context,
-  Link,
-} from '@opentelemetry/api';
+} from "@opentelemetry/sdk-trace-base";
+import type { Sampler, SamplingResult } from "@opentelemetry/sdk-trace-base";
+import { SpanKind } from "@opentelemetry/api";
+import type { Attributes, Context, Link } from "@opentelemetry/api";
 
 /**
  * CompositeSampler for the Web frontend.
@@ -29,10 +22,10 @@ export class CompositeSampler implements Sampler {
     _spanName: string,
     _spanKind: SpanKind,
     attributes: Attributes,
-    _links: Link[]
+    _links: Link[],
   ): SamplingResult {
     // 1. Force trace for debugging
-    if (attributes['x-force-trace'] === 'true') {
+    if (attributes["x-force-trace"] === "true") {
       return { decision: SamplingDecision.RECORD_AND_SAMPLED };
     }
 
@@ -42,6 +35,6 @@ export class CompositeSampler implements Sampler {
   }
 
   toString(): string {
-    return 'WebCompositeSampler';
+    return "WebCompositeSampler";
   }
 }

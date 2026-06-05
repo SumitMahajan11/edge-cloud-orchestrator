@@ -22,7 +22,6 @@ let k8sOperator: any = null;
 let modelStorage: any = null;
 let workflowEngine: any = null;
 
-
 /**
  * Initialize all advanced services
  */
@@ -107,11 +106,14 @@ export async function initializeServices(
     // Register task lifecycle saga
     const scheduler = (app as any).taskScheduler;
     const taskSaga = createTaskLifecycleSaga(
-      prisma, 
-      logger, 
+      prisma,
+      logger,
       idempotencyService,
       redis,
-      scheduler ? (taskId, durationMs, status) => scheduler.recordTaskOutcome(taskId, durationMs, status) : undefined
+      scheduler
+        ? (taskId, durationMs, status) =>
+            scheduler.recordTaskOutcome(taskId, durationMs, status)
+        : undefined,
     );
     sagaOrchestrator.registerSaga(taskSaga);
 
@@ -148,24 +150,31 @@ export async function initializeServices(
     app.decorate('modelStorage', modelStorage);
     logger.info('✅ Model Storage Service initialized');
   } catch (error: any) {
-    logger.warn({ err: error.message }, '⚠️ Model Storage Service not initialized');
+    logger.warn(
+      { err: error.message },
+      '⚠️ Model Storage Service not initialized',
+    );
   }
 
   // 8. Cold Start Handler - Hybrid scheduling for new nodes
   try {
-    const { ColdStartHandler } = await import('../services/cold-start-handler.js');
+    const { ColdStartHandler } =
+      await import('../services/cold-start-handler.js');
     const coldStartHandler = new ColdStartHandler(redis, prisma, logger);
     app.decorate('coldStartHandler', coldStartHandler);
-    
+
     const scheduler = (app as any).taskScheduler;
     if (scheduler && typeof scheduler.setColdStartHandler === 'function') {
       scheduler.setColdStartHandler(coldStartHandler);
       logger.info('✅ Cold Start Handler integrated with TaskScheduler');
     }
-    
+
     logger.info('✅ Cold Start Handler initialized');
   } catch (error: any) {
-    logger.warn({ err: error.message }, '⚠️ Cold Start Handler not initialized');
+    logger.warn(
+      { err: error.message },
+      '⚠️ Cold Start Handler not initialized',
+    );
   }
 
   // 9. Workflow Engine - DAG-based task orchestration
@@ -179,7 +188,9 @@ export async function initializeServices(
       app.decorate('workflowEngine', workflowEngine);
       logger.info('✅ Workflow Engine initialized');
     } else {
-      logger.warn('⚠️ Workflow Engine requires TaskScheduler and WebSocketManager');
+      logger.warn(
+        '⚠️ Workflow Engine requires TaskScheduler and WebSocketManager',
+      );
     }
   } catch (error: any) {
     logger.warn({ err: error.message }, '⚠️ Workflow Engine not initialized');

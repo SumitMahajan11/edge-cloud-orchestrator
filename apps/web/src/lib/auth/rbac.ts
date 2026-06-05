@@ -1,98 +1,116 @@
-type Role = 'admin' | 'operator' | 'viewer' | 'service'
+type Role = "admin" | "operator" | "viewer" | "service";
 
-type Resource = 
-  | 'nodes' 
-  | 'tasks' 
-  | 'policies' 
-  | 'webhooks' 
-  | 'users' 
-  | 'logs' 
-  | 'settings'
-  | 'certificates'
-  | 'audit'
+type Resource =
+  | "nodes"
+  | "tasks"
+  | "policies"
+  | "webhooks"
+  | "users"
+  | "logs"
+  | "settings"
+  | "certificates"
+  | "audit";
 
-type Action = 'create' | 'read' | 'update' | 'delete' | 'execute' | 'admin'
+type Action = "create" | "read" | "update" | "delete" | "execute" | "admin";
 
 interface Permission {
-  resource: Resource
-  actions: Action[]
+  resource: Resource;
+  actions: Action[];
 }
 
 interface RoleDefinition {
-  name: Role
-  description: string
-  permissions: Permission[]
+  name: Role;
+  description: string;
+  permissions: Permission[];
 }
 
 interface UserSession {
-  userId: string
-  email: string
-  role: Role
-  permissions: Permission[]
-  issuedAt: number
-  expiresAt: number
-  ipAddress: string
-  userAgent: string
-  mfaVerified: boolean
+  userId: string;
+  email: string;
+  role: Role;
+  permissions: Permission[];
+  issuedAt: number;
+  expiresAt: number;
+  ipAddress: string;
+  userAgent: string;
+  mfaVerified: boolean;
 }
 
 const ROLE_DEFINITIONS: Record<Role, RoleDefinition> = {
   admin: {
-    name: 'admin',
-    description: 'Full system access',
+    name: "admin",
+    description: "Full system access",
     permissions: [
-      { resource: 'nodes', actions: ['create', 'read', 'update', 'delete', 'execute', 'admin'] },
-      { resource: 'tasks', actions: ['create', 'read', 'update', 'delete', 'execute', 'admin'] },
-      { resource: 'policies', actions: ['create', 'read', 'update', 'delete', 'admin'] },
-      { resource: 'webhooks', actions: ['create', 'read', 'update', 'delete', 'admin'] },
-      { resource: 'users', actions: ['create', 'read', 'update', 'delete', 'admin'] },
-      { resource: 'logs', actions: ['read', 'admin'] },
-      { resource: 'settings', actions: ['read', 'update', 'admin'] },
-      { resource: 'certificates', actions: ['create', 'read', 'update', 'delete', 'admin'] },
-      { resource: 'audit', actions: ['read', 'admin'] },
-    ]
+      {
+        resource: "nodes",
+        actions: ["create", "read", "update", "delete", "execute", "admin"],
+      },
+      {
+        resource: "tasks",
+        actions: ["create", "read", "update", "delete", "execute", "admin"],
+      },
+      {
+        resource: "policies",
+        actions: ["create", "read", "update", "delete", "admin"],
+      },
+      {
+        resource: "webhooks",
+        actions: ["create", "read", "update", "delete", "admin"],
+      },
+      {
+        resource: "users",
+        actions: ["create", "read", "update", "delete", "admin"],
+      },
+      { resource: "logs", actions: ["read", "admin"] },
+      { resource: "settings", actions: ["read", "update", "admin"] },
+      {
+        resource: "certificates",
+        actions: ["create", "read", "update", "delete", "admin"],
+      },
+      { resource: "audit", actions: ["read", "admin"] },
+    ],
   },
   operator: {
-    name: 'operator',
-    description: 'Can manage tasks and nodes, view logs',
+    name: "operator",
+    description: "Can manage tasks and nodes, view logs",
     permissions: [
-      { resource: 'nodes', actions: ['read', 'update', 'execute'] },
-      { resource: 'tasks', actions: ['create', 'read', 'update', 'execute'] },
-      { resource: 'policies', actions: ['read'] },
-      { resource: 'webhooks', actions: ['read'] },
-      { resource: 'users', actions: ['read'] },
-      { resource: 'logs', actions: ['read'] },
-      { resource: 'settings', actions: ['read'] },
-      { resource: 'certificates', actions: ['read'] },
-      { resource: 'audit', actions: ['read'] },
-    ]
+      { resource: "nodes", actions: ["read", "update", "execute"] },
+      { resource: "tasks", actions: ["create", "read", "update", "execute"] },
+      { resource: "policies", actions: ["read"] },
+      { resource: "webhooks", actions: ["read"] },
+      { resource: "users", actions: ["read"] },
+      { resource: "logs", actions: ["read"] },
+      { resource: "settings", actions: ["read"] },
+      { resource: "certificates", actions: ["read"] },
+      { resource: "audit", actions: ["read"] },
+    ],
   },
   viewer: {
-    name: 'viewer',
-    description: 'Read-only access',
+    name: "viewer",
+    description: "Read-only access",
     permissions: [
-      { resource: 'nodes', actions: ['read'] },
-      { resource: 'tasks', actions: ['read'] },
-      { resource: 'policies', actions: ['read'] },
-      { resource: 'webhooks', actions: ['read'] },
-      { resource: 'logs', actions: ['read'] },
-      { resource: 'settings', actions: ['read'] },
-    ]
+      { resource: "nodes", actions: ["read"] },
+      { resource: "tasks", actions: ["read"] },
+      { resource: "policies", actions: ["read"] },
+      { resource: "webhooks", actions: ["read"] },
+      { resource: "logs", actions: ["read"] },
+      { resource: "settings", actions: ["read"] },
+    ],
   },
   service: {
-    name: 'service',
-    description: 'Service account for API access',
+    name: "service",
+    description: "Service account for API access",
     permissions: [
-      { resource: 'nodes', actions: ['read', 'update'] },
-      { resource: 'tasks', actions: ['create', 'read', 'update', 'execute'] },
-      { resource: 'logs', actions: ['create', 'read'] },
-    ]
-  }
-}
+      { resource: "nodes", actions: ["read", "update"] },
+      { resource: "tasks", actions: ["create", "read", "update", "execute"] },
+      { resource: "logs", actions: ["create", "read"] },
+    ],
+  },
+};
 
 class RBACManager {
-  private sessions: Map<string, UserSession> = new Map()
-  private sessionTimeout = 24 * 60 * 60 * 1000 // 24 hours
+  private sessions: Map<string, UserSession> = new Map();
+  private sessionTimeout = 24 * 60 * 60 * 1000; // 24 hours
 
   createSession(
     userId: string,
@@ -100,7 +118,7 @@ class RBACManager {
     role: Role,
     ipAddress: string,
     userAgent: string,
-    mfaVerified: boolean = false
+    mfaVerified: boolean = false,
   ): UserSession {
     const session: UserSession = {
       userId,
@@ -112,124 +130,131 @@ class RBACManager {
       ipAddress,
       userAgent,
       mfaVerified,
-    }
+    };
 
-    this.sessions.set(userId, session)
-    return session
+    this.sessions.set(userId, session);
+    return session;
   }
 
   checkPermission(
     session: UserSession,
     resource: Resource,
-    action: Action
+    action: Action,
   ): boolean {
     // Check session expiry
     if (Date.now() > session.expiresAt) {
-      return false
+      return false;
     }
 
     // Find permission for resource
-    const permission = session.permissions.find((p) => p.resource === resource)
+    const permission = session.permissions.find((p) => p.resource === resource);
     if (!permission) {
-      return false
+      return false;
     }
 
     // Check if action is allowed
-    return permission.actions.includes(action) || permission.actions.includes('admin')
+    return (
+      permission.actions.includes(action) ||
+      permission.actions.includes("admin")
+    );
   }
 
   requirePermission(
     session: UserSession,
     resource: Resource,
-    action: Action
+    action: Action,
   ): void {
     if (!this.checkPermission(session, resource, action)) {
       throw new PermissionDeniedError(
-        `User ${session.email} does not have ${action} permission on ${resource}`
-      )
+        `User ${session.email} does not have ${action} permission on ${resource}`,
+      );
     }
   }
 
   getSession(userId: string): UserSession | undefined {
-    const session = this.sessions.get(userId)
-    if (!session) {return undefined}
+    const session = this.sessions.get(userId);
+    if (!session) {
+      return undefined;
+    }
 
     // Check if expired
     if (Date.now() > session.expiresAt) {
-      this.sessions.delete(userId)
-      return undefined
+      this.sessions.delete(userId);
+      return undefined;
     }
 
-    return session
+    return session;
   }
 
   invalidateSession(userId: string): boolean {
-    return this.sessions.delete(userId)
+    return this.sessions.delete(userId);
   }
 
   invalidateAllSessions(userId: string): number {
-    let count = 0
+    let count = 0;
     for (const [key, session] of this.sessions) {
       if (session.userId === userId) {
-        this.sessions.delete(key)
-        count++
+        this.sessions.delete(key);
+        count++;
       }
     }
-    return count
+    return count;
   }
 
   getActiveSessions(): UserSession[] {
-    const now = Date.now()
+    const now = Date.now();
     return Array.from(this.sessions.values()).filter(
-      (session) => session.expiresAt > now
-    )
+      (session) => session.expiresAt > now,
+    );
   }
 
   extendSession(userId: string): boolean {
-    const session = this.sessions.get(userId)
-    if (!session) {return false}
+    const session = this.sessions.get(userId);
+    if (!session) {
+      return false;
+    }
 
-    session.expiresAt = Date.now() + this.sessionTimeout
-    return true
+    session.expiresAt = Date.now() + this.sessionTimeout;
+    return true;
   }
 
   getRoleDefinition(role: Role): RoleDefinition {
-    return ROLE_DEFINITIONS[role]
+    return ROLE_DEFINITIONS[role];
   }
 
   getAllRoles(): RoleDefinition[] {
-    return Object.values(ROLE_DEFINITIONS)
+    return Object.values(ROLE_DEFINITIONS);
   }
 
   hasRole(session: UserSession, role: Role): boolean {
-    return session.role === role
+    return session.role === role;
   }
 
   requireRole(session: UserSession, role: Role): void {
     if (!this.hasRole(session, role)) {
       throw new PermissionDeniedError(
-        `User ${session.email} does not have required role: ${role}`
-      )
+        `User ${session.email} does not have required role: ${role}`,
+      );
     }
   }
 
   // Middleware helper for checking permissions
   middleware(resource: Resource, action: Action) {
     return (session: UserSession) => {
-      this.requirePermission(session, resource, action)
-    }
+      this.requirePermission(session, resource, action);
+    };
   }
 }
 
 class PermissionDeniedError extends Error {
   constructor(message: string) {
-    super(message)
-    this.name = 'PermissionDeniedError'
+    super(message);
+    this.name = "PermissionDeniedError";
   }
 }
 
 // Singleton instance
-export const rbacManager = new RBACManager()
+export const rbacManager = new RBACManager();
 
-export { PermissionDeniedError, RBACManager, ROLE_DEFINITIONS }
-export type { Action, Permission, Resource, Role, RoleDefinition, UserSession }
+export { PermissionDeniedError, RBACManager, ROLE_DEFINITIONS };
+export type { Action, Permission, Resource, Role, RoleDefinition, UserSession };

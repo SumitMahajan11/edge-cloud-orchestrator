@@ -33,7 +33,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -50,17 +50,24 @@ export default async function flRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { name, version, architecture, parameters, weightsUrl, weightsSize } = request.body;
+      const {
+        name,
+        version,
+        architecture,
+        parameters,
+        weightsUrl,
+        weightsSize,
+      } = request.body;
 
       const model = await (fastify.prisma as any).fLModel.create({
-        data: { 
-          name, 
-          version, 
-          architecture, 
-          parameters, 
-          weightsUrl: weightsUrl ?? null, 
-          weightsSize: weightsSize ?? null, 
-          tenantId: request.user!.tenantId! 
+        data: {
+          name,
+          version,
+          architecture,
+          parameters,
+          weightsUrl: weightsUrl ?? null,
+          weightsSize: weightsSize ?? null,
+          tenantId: request.user!.tenantId!,
         },
       });
 
@@ -96,7 +103,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Model not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -123,7 +130,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'BAD_REQUEST',
             message: 'No file uploaded',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -140,12 +147,14 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Model not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
       try {
-        const { url: weightsUrl, checksum: weightsChecksum } = await (fastify as any).modelStorage.uploadWeights(modelId, buffer);
+        const { url: weightsUrl, checksum: weightsChecksum } = await (
+          fastify as any
+        ).modelStorage.uploadWeights(modelId, buffer);
 
         await (fastify.prisma as any).fLModel.update({
           where: { id: modelId, tenantId: request.user!.tenantId! },
@@ -156,7 +165,12 @@ export default async function flRoutes(fastify: FastifyInstance) {
           },
         });
 
-        return { success: true, weightsUrl, weightsChecksum, size: buffer.length };
+        return {
+          success: true,
+          weightsUrl,
+          weightsChecksum,
+          size: buffer.length,
+        };
       } catch (err: any) {
         fastify.log.error({ err }, 'Failed to upload weights to S3');
         return reply.status(500).send({
@@ -164,7 +178,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'STORAGE_ERROR',
             message: 'Storage backend error',
             requestId: request.id,
-          }
+          },
         });
       }
     },
@@ -192,17 +206,22 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Weights not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
       try {
         const buffer = await (fastify as any).modelStorage.downloadWeights(
-          model.weightsUrl, 
-          model.weightsChecksum || undefined
+          model.weightsUrl,
+          model.weightsChecksum || undefined,
         );
 
-        void reply.header('Content-Type', 'application/octet-stream');        void reply.header('Content-Disposition', `attachment; filename="weights_${model.version}.bin"`);        return reply.send(buffer);
+        void reply.header('Content-Type', 'application/octet-stream');
+        void reply.header(
+          'Content-Disposition',
+          `attachment; filename="weights_${model.version}.bin"`,
+        );
+        return reply.send(buffer);
       } catch (err: any) {
         fastify.log.error({ err }, 'Failed to download weights from S3');
         return reply.status(500).send({
@@ -210,7 +229,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'STORAGE_ERROR',
             message: 'Storage backend error',
             requestId: request.id,
-          }
+          },
         });
       }
     },
@@ -240,12 +259,16 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Model not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
       const nodes = await (fastify.prisma.edgeNode as any).findMany({
-        where: { status: 'ONLINE', isMaintenanceMode: false, tenantId: request.user!.tenantId! },
+        where: {
+          status: 'ONLINE',
+          isMaintenanceMode: false,
+          tenantId: request.user!.tenantId!,
+        },
         take: config?.maxClients || 10,
       });
 
@@ -259,7 +282,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
               required: config?.minClients || 3,
             },
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -290,7 +313,10 @@ export default async function flRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const session = await (fastify.prisma as any).fLSession.findUnique({
-        where: { id: request.params.id, model: { tenantId: request.user!.tenantId! } },
+        where: {
+          id: request.params.id,
+          model: { tenantId: request.user!.tenantId! },
+        },
         include: { model: true },
       });
 
@@ -300,7 +326,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Session not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -321,7 +347,10 @@ export default async function flRoutes(fastify: FastifyInstance) {
     },
     async (request) => {
       const session = await (fastify.prisma as any).fLSession.update({
-        where: { id: request.params.id, model: { tenantId: request.user!.tenantId! } },
+        where: {
+          id: request.params.id,
+          model: { tenantId: request.user!.tenantId! },
+        },
         data: {
           status: 'COMPLETED',
           completedAt: new Date(),
@@ -332,4 +361,3 @@ export default async function flRoutes(fastify: FastifyInstance) {
     },
   );
 }
-

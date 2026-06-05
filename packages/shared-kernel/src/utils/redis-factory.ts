@@ -1,8 +1,8 @@
-import Redis, { RedisOptions } from 'ioredis';
-import { SecretManager } from '../secrets/SecretManager.js';
-import { createLogger } from '../logger/index.js';
+import Redis, { RedisOptions } from "ioredis";
+import { SecretManager } from "../secrets/SecretManager.js";
+import { createLogger } from "../logger/index.js";
 
-const logger = createLogger('redis-factory');
+const logger = createLogger("redis-factory");
 
 export interface RedisConfig {
   url?: string;
@@ -16,13 +16,24 @@ export class RedisFactory {
   /**
    * Create a Redis client from environment/secrets
    */
-  static async createClient(secretManager: SecretManager, options: Partial<RedisOptions> = {}): Promise<Redis> {
-    const redisUrl = await secretManager.getSecret('REDIS_URL');
-    const sentinelHosts = await secretManager.getSecret('REDIS_SENTINELS');
-    const masterName = await secretManager.getSecret('REDIS_MASTER_NAME') || 
-                      await secretManager.getSecret('REDIS_SENTINEL_NAME') || 
-                      'mymaster';
-    const password = await secretManager.getSecret('REDIS_PASSWORD');
+  static async createClient(
+    secretManager: SecretManager,
+    options: Partial<RedisOptions> = {},
+  ): Promise<Redis> {
+    if (process.env.FORCE_MOCK_REDIS === "true") {
+      logger.info("Initializing Redis Mock (FORCE_MOCK_REDIS=true)");
+      // @ts-ignore
+      const MockRedis = (await import("ioredis-mock")).default;
+      return new MockRedis(options) as unknown as Redis;
+    }
+
+    const redisUrl = await secretManager.getSecret("REDIS_URL");
+    const sentinelHosts = await secretManager.getSecret("REDIS_SENTINELS");
+    const masterName =
+      (await secretManager.getSecret("REDIS_MASTER_NAME")) ||
+      (await secretManager.getSecret("REDIS_SENTINEL_NAME")) ||
+      "mymaster";
+    const password = await secretManager.getSecret("REDIS_PASSWORD");
 
     const config: RedisOptions = {
       ...options,
@@ -31,7 +42,7 @@ export class RedisFactory {
         return delay;
       },
       reconnectOnError(err) {
-        const targetError = 'READONLY';
+        const targetError = "READONLY";
         if (err.message.includes(targetError)) {
           return true;
         }
@@ -44,14 +55,14 @@ export class RedisFactory {
     }
 
     if (sentinelHosts) {
-      const sentinels = sentinelHosts.split(',').map((s) => {
-        const [host, port] = s.trim().split(':');
-        return { host: host!, port: parseInt(port || '26379', 10) };
+      const sentinels = sentinelHosts.split(",").map((s) => {
+        const [host, port] = s.trim().split(":");
+        return { host: host!, port: parseInt(port || "26379", 10) };
       });
 
       logger.info(
         { masterName, sentinelCount: sentinels.length },
-        'Initializing Redis with Sentinel mode',
+        "Initializing Redis with Sentinel mode",
       );
 
       return new Redis({
@@ -65,17 +76,17 @@ export class RedisFactory {
 
     if (redisUrl) {
       logger.info(
-        { url: redisUrl.replace(/:[^:@]+@/, ':***@') },
-        'Initializing Redis with standard URL',
+        { url: redisUrl.replace(/:[^:@]+@/, ":***@") },
+        "Initializing Redis with standard URL",
       );
       return new Redis(redisUrl, config);
     }
 
     // Fallback to localhost
-    logger.warn('No Redis configuration found, falling back to localhost:6379');
+    logger.warn("No Redis configuration found, falling back to localhost:6379");
     return new Redis({
       ...config,
-      host: 'localhost',
+      host: "localhost",
       port: 6379,
     });
   }

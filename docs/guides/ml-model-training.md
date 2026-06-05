@@ -32,6 +32,7 @@ The Python training script produces model artifacts that are loaded by the Node.
 ## Prerequisites
 
 ### Python Training Environment
+
 - **Python**: 3.9+
 - **Required packages**: See `packages/ml-scheduler/src/training/requirements.txt`
   - `pandas` - Data manipulation
@@ -41,6 +42,7 @@ The Python training script produces model artifacts that are loaded by the Node.
   - `joblib` - Model serialization (for sklearn fallback)
 
 ### Node.js Runtime Environment
+
 - **Node.js**: 18+
 - **Package**: `@tensorflow/tfjs-node` (optional, falls back to mock predictor if unavailable)
 
@@ -71,6 +73,7 @@ Training data should be historical scheduling decisions with outcomes:
 ```
 
 **Data sources**:
+
 - Export from PostgreSQL: `task_executions` table + `edge_nodes` metrics
 - Minimum samples: 50 (script enforces this)
 - Recommended: 1000+ samples for reliable predictions
@@ -95,6 +98,7 @@ python train_model.py \
 ### Step 3: Verify Output
 
 Training produces:
+
 ```
 packages/ml-scheduler/models/
 ├── model_20260425193045.xgb.json  # XGBoost model artifact
@@ -103,16 +107,25 @@ packages/ml-scheduler/models/
 ```
 
 **Metadata example** (`model_20260425193045.json`):
+
 ```json
 {
   "version": "20260425193045",
   "algorithm": "XGBoost",
   "mae": 0.0423,
   "features": [
-    "cpu_usage_pct", "ram_usage_pct", "current_task_count",
-    "avg_latency_ms", "historical_success_rate_7d", "region_cost_rate",
-    "priority", "estimated_duration_ms", "requires_gpu", "image_size_mb",
-    "hour_of_day", "day_of_week"
+    "cpu_usage_pct",
+    "ram_usage_pct",
+    "current_task_count",
+    "avg_latency_ms",
+    "historical_success_rate_7d",
+    "region_cost_rate",
+    "priority",
+    "estimated_duration_ms",
+    "requires_gpu",
+    "image_size_mb",
+    "hour_of_day",
+    "day_of_week"
   ],
   "created_at": "2026-04-25T19:30:45.123456",
   "artifact_path": "/path/to/model_20260425193045.xgb.json"
@@ -151,12 +164,14 @@ training/__pycache__/
 ### Storage Recommendations
 
 **Option 1: S3 Bucket** (Recommended for production)
+
 ```bash
 aws s3 cp packages/ml-scheduler/models/ s3://edgecloud-ml-models/ \
   --recursive --exclude "*.json" --include "*.xgb.json"
 ```
 
 **Option 2: Vault KV Store** (For security-sensitive deployments)
+
 ```bash
 vault kv put secret/ml-scheduler/models \
   model_version=20260425193045 \
@@ -164,6 +179,7 @@ vault kv put secret/ml-scheduler/models \
 ```
 
 **Option 3: Shared Volume** (For single-node deployments)
+
 ```bash
 # Mount NFS/EFS volume at /mnt/ml-models
 cp packages/ml-scheduler/models/*.json /mnt/ml-models/
@@ -207,6 +223,7 @@ Retrain when **scheduling accuracy drops below threshold**:
 When **no model files found** or **TensorFlow.js unavailable**:
 
 ### Fallback Chain
+
 ```
 1. Try loading XGBoost model from models/model_{version}.json
    ↓ (if fails)
@@ -233,6 +250,7 @@ private heuristicPrediction(task: Task, node: EdgeNode): number {
 ```
 
 **Characteristics**:
+
 - ✅ Always available (no dependencies)
 - ✅ Fast (~1ms per prediction)
 - ⚠️ Less accurate than ML model (doesn't learn from historical data)
@@ -249,6 +267,7 @@ New nodes require **~50 heartbeats** before model predictions are reliable:
 ## Troubleshooting
 
 ### Training Fails: "Empty dataset"
+
 ```bash
 # Check data file
 cat data/training/historical_data.json | jq length
@@ -264,13 +283,16 @@ psql -c "COPY (
 ```
 
 ### Training Fails: "Target column not found"
+
 Ensure your JSON includes `scheduling_score` column. Calculate it as:
+
 ```
-scheduling_score = (task_completed_successfully ? 1 : 0) * 
+scheduling_score = (task_completed_successfully ? 1 : 0) *
                    (1 - resource_wastage_ratio)
 ```
 
 ### Model Not Loading in Scheduler
+
 ```bash
 # Check models directory
 ls -la packages/ml-scheduler/models/
@@ -284,6 +306,7 @@ docker logs scheduler-service | grep -i "model"
 ```
 
 ### TensorFlow.js Native Addon Missing
+
 ```bash
 # Install tfjs-node with native bindings
 cd packages/ml-scheduler
@@ -295,13 +318,13 @@ npm install @tensorflow/tfjs-node
 
 ## Performance Benchmarks
 
-| Metric | XGBoost Model | TensorFlow.js | Heuristic Fallback |
-|--------|---------------|---------------|-------------------|
-| **Training Time** | 5-30 seconds | N/A (trained in Python) | N/A |
-| **Inference Latency** | ~2ms | ~5ms | ~1ms |
-| **Accuracy (MAE)** | 0.03-0.08 | 0.04-0.10 | 0.15-0.25 |
-| **Memory Usage** | 50-200 MB | 100-300 MB | <10 MB |
-| **Cold Start** | Requires model file | Requires model file | Always available |
+| Metric                | XGBoost Model       | TensorFlow.js           | Heuristic Fallback |
+| --------------------- | ------------------- | ----------------------- | ------------------ |
+| **Training Time**     | 5-30 seconds        | N/A (trained in Python) | N/A                |
+| **Inference Latency** | ~2ms                | ~5ms                    | ~1ms               |
+| **Accuracy (MAE)**    | 0.03-0.08           | 0.04-0.10               | 0.15-0.25          |
+| **Memory Usage**      | 50-200 MB           | 100-300 MB              | <10 MB             |
+| **Cold Start**        | Requires model file | Requires model file     | Always available   |
 
 ## References
 

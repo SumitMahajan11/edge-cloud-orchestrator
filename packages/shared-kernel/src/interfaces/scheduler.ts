@@ -1,4 +1,4 @@
-import { Priority, SystemLoad, BackpressureDecision } from '../types/domain';
+import { Priority, SystemLoad, BackpressureDecision } from "../types/domain";
 
 // --- PriorityScheduler ---
 
@@ -34,7 +34,7 @@ export interface PriorityStats {
 export interface IPriorityScheduler {
   start(): void;
   stop(): void;
-  submitTask(task: Omit<PriorityTask, 'agingBoost'>): Promise<ScheduleResult>;
+  submitTask(task: Omit<PriorityTask, "agingBoost">): Promise<ScheduleResult>;
   getNextBatch(batchSize?: number): Promise<PriorityTask[]>;
   getStats(): Promise<PriorityStats>;
   promoteTask(taskId: string, newPriority: TaskPriority): Promise<boolean>;
@@ -82,7 +82,7 @@ export interface IBackpressureController {
 
 // --- GracefulDegradation ---
 
-export type DegradationLevel = 'normal' | 'degraded' | 'minimal' | 'critical';
+export type DegradationLevel = "normal" | "degraded" | "minimal" | "critical";
 
 export interface FeatureState {
   name: string;
@@ -112,8 +112,8 @@ export interface IGracefulDegradation {
     primaryFn: () => Promise<T>,
     fallbackFn: () => Promise<T>,
   ): Promise<T>;
-  getSchedulingAlgorithm(): 'ml' | 'weighted' | 'round-robin';
-  getMetricsStrategy(): 'real-time' | 'cached' | 'minimal';
+  getSchedulingAlgorithm(): "ml" | "weighted" | "round-robin";
+  getMetricsStrategy(): "real-time" | "cached" | "minimal";
   setLevel(level: DegradationLevel): void;
 }
 
@@ -136,7 +136,11 @@ export interface RateLimitCheck {
 }
 
 export interface ISchedulerRateLimiter {
-  checkRateLimit(taskId: string, userId: string, nodeId: string): Promise<RateLimitCheck>;
+  checkRateLimit(
+    taskId: string,
+    userId: string,
+    nodeId: string,
+  ): Promise<RateLimitCheck>;
   recordTaskScheduled(userId: string, nodeId: string): Promise<void>;
   recordTaskCompleted(nodeId: string): Promise<void>;
   getCurrentUsage(userId: string, nodeId: string): Promise<any>;

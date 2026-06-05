@@ -1,1 +1,5 @@
-export { type ConnectionType,ResilientWebSocketClient, type WebSocketClientConfig } from './client';
+export {
+  type ConnectionType,
+  ResilientWebSocketClient,
+  type WebSocketClientConfig,
+} from "./client";

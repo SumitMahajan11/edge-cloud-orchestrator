@@ -8,7 +8,12 @@
         "hide": true,
         "iconColor": "rgba(0, 211, 255, 1)",
         "name": "Annotations & Alerts",
-        "target": { "limit": 100, "matchAny": false, "tags": [], "type": "dashboard" },
+        "target": {
+          "limit": 100,
+          "matchAny": false,
+          "tags": [],
+          "type": "dashboard"
+        },
         "type": "dashboard"
       }
     ]
@@ -20,15 +25,42 @@
   "links": [],
   "liveNow": false,
   "panels": [
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 }, "id": 1, "title": "ROW 1 — SYSTEM HEALTH", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 0 },
+      "id": 1,
+      "title": "ROW 1 — SYSTEM HEALTH",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
-      "fieldConfig": { "defaults": { "color": { "mode": "thresholds" }, "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": null }, { "color": "green", "value": 99.9 }] }, "unit": "percent" } },
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "thresholds" },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "red", "value": null },
+              { "color": "green", "value": 99.9 }
+            ]
+          },
+          "unit": "percent"
+        }
+      },
       "gridPos": { "h": 4, "w": 4, "x": 0, "y": 1 },
       "id": 2,
-      "options": { "colorMode": "value", "graphMode": "area", "justifyMode": "auto", "reduceOptions": { "calcs": ["mean"] } },
+      "options": {
+        "colorMode": "value",
+        "graphMode": "area",
+        "justifyMode": "auto",
+        "reduceOptions": { "calcs": ["mean"] }
+      },
       "title": "API Uptime (30d)",
-      "targets": [{ "expr": "avg_over_time(up{job=\"orchestrator-api\"}[30d]) * 100", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "avg_over_time(up{job=\"orchestrator-api\"}[30d]) * 100",
+          "refId": "A"
+        }
+      ],
       "type": "stat"
     },
     {
@@ -37,7 +69,12 @@
       "id": 3,
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
       "title": "Tasks Completed (24h)",
-      "targets": [{ "expr": "sum(increase(edgecloud_task_completed_total{tenant=~\"$tenant\"}[24h]))", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(increase(edgecloud_task_completed_total{tenant=~\"$tenant\"}[24h]))",
+          "refId": "A"
+        }
+      ],
       "type": "stat"
     },
     {
@@ -46,16 +83,26 @@
       "id": 4,
       "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
       "title": "Active Edge Nodes",
-      "targets": [{ "expr": "sum(edgecloud_node_status{status=\"online\", region=~\"$region\"})", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(edgecloud_node_status{status=\"online\", region=~\"$region\"})",
+          "refId": "A"
+        }
+      ],
       "type": "stat"
     },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 4, "w": 4, "x": 12, "y": 1 },
       "id": 5,
-      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "textMode": "value" },
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "textMode": "value"
+      },
       "title": "ML Model Version",
-      "targets": [{ "expr": "edgecloud_ml_model_info", "format": "table", "refId": "A" }],
+      "targets": [
+        { "expr": "edgecloud_ml_model_info", "format": "table", "refId": "A" }
+      ],
       "type": "stat"
     },
     {
@@ -66,7 +113,12 @@
       "type": "alertlist",
       "options": { "show": "current", "stateFilter": ["firing"] }
     },
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 }, "id": 7, "title": "ROW 2 — SCHEDULING PERFORMANCE", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 5 },
+      "id": 7,
+      "title": "ROW 2 — SCHEDULING PERFORMANCE",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "fieldConfig": { "defaults": { "unit": "s" } },
@@ -74,9 +126,21 @@
       "id": 8,
       "title": "Scheduling Latency (p50/p95/p99)",
       "targets": [
-        { "expr": "histogram_quantile(0.50, sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket{tenant=~\"$tenant\"}[1h])))", "legendFormat": "p50", "refId": "A" },
-        { "expr": "histogram_quantile(0.95, sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket{tenant=~\"$tenant\"}[1h])))", "legendFormat": "p95", "refId": "B" },
-        { "expr": "histogram_quantile(0.99, sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket{tenant=~\"$tenant\"}[1h])))", "legendFormat": "p99", "refId": "C" }
+        {
+          "expr": "histogram_quantile(0.50, sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket{tenant=~\"$tenant\"}[1h])))",
+          "legendFormat": "p50",
+          "refId": "A"
+        },
+        {
+          "expr": "histogram_quantile(0.95, sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket{tenant=~\"$tenant\"}[1h])))",
+          "legendFormat": "p95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket{tenant=~\"$tenant\"}[1h])))",
+          "legendFormat": "p99",
+          "refId": "C"
+        }
       ],
       "type": "timeseries"
     },
@@ -85,7 +149,12 @@
       "gridPos": { "h": 8, "w": 8, "x": 12, "y": 6 },
       "id": 9,
       "title": "Tasks Scheduled/sec",
-      "targets": [{ "expr": "sum(rate(edgecloud_scheduler_decisions_total{tenant=~\"$tenant\"}[5m]))", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(rate(edgecloud_scheduler_decisions_total{tenant=~\"$tenant\"}[5m]))",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -93,7 +162,12 @@
       "gridPos": { "h": 8, "w": 4, "x": 20, "y": 6 },
       "id": 10,
       "title": "Queue Depth (PENDING)",
-      "targets": [{ "expr": "sum(edgecloud_scheduler_queue_depth{tenant=~\"$tenant\"})", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(edgecloud_scheduler_queue_depth{tenant=~\"$tenant\"})",
+          "refId": "A"
+        }
+      ],
       "type": "gauge"
     },
     {
@@ -101,7 +175,12 @@
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 14 },
       "id": 11,
       "title": "ML Fallback Rate",
-      "targets": [{ "expr": "sum(rate(edgecloud_ml_fallback_total[1h])) / sum(rate(edgecloud_scheduler_decisions_total[1h])) * 100", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(rate(edgecloud_ml_fallback_total[1h])) / sum(rate(edgecloud_scheduler_decisions_total[1h])) * 100",
+          "refId": "A"
+        }
+      ],
       "type": "stat",
       "fieldConfig": { "defaults": { "unit": "percent" } }
     },
@@ -110,16 +189,33 @@
       "gridPos": { "h": 8, "w": 18, "x": 6, "y": 14 },
       "id": 12,
       "title": "Scheduling Latency Heatmap",
-      "targets": [{ "expr": "sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket[1h]))", "format": "heatmap", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum by (le) (rate(edgecloud_scheduler_scheduling_latency_seconds_bucket[1h]))",
+          "format": "heatmap",
+          "refId": "A"
+        }
+      ],
       "type": "heatmap"
     },
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 }, "id": 13, "title": "ROW 3 — EDGE NODE FLEET", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 22 },
+      "id": 13,
+      "title": "ROW 3 — EDGE NODE FLEET",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 23 },
       "id": 14,
       "title": "Top 20 Nodes by Task Completion",
-      "targets": [{ "expr": "topk(20, sum by (node_id) (increase(edgecloud_task_completed_total[24h])))", "format": "table", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "topk(20, sum by (node_id) (increase(edgecloud_task_completed_total[24h])))",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
       "type": "table"
     },
     {
@@ -127,7 +223,13 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 23 },
       "id": 15,
       "title": "Problem Nodes (Bottom 10 Success Rate)",
-      "targets": [{ "expr": "bottomk(10, sum by (node_id) (rate(edgecloud_task_completed_total{status=\"completed\"}[1h])) / sum by (node_id) (rate(edgecloud_scheduler_decisions_total[1h])))", "format": "table", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "bottomk(10, sum by (node_id) (rate(edgecloud_task_completed_total{status=\"completed\"}[1h])) / sum by (node_id) (rate(edgecloud_scheduler_decisions_total[1h])))",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
       "type": "table"
     },
     {
@@ -135,7 +237,13 @@
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 31 },
       "id": 16,
       "title": "Nodes by Status",
-      "targets": [{ "expr": "sum by (status) (edgecloud_node_status{region=~\"$region\"})", "refId": "A", "legendFormat": "{{status}}" }],
+      "targets": [
+        {
+          "expr": "sum by (status) (edgecloud_node_status{region=~\"$region\"})",
+          "refId": "A",
+          "legendFormat": "{{status}}"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -144,18 +252,33 @@
       "id": 17,
       "title": "Fleet Utilization (Avg CPU/Mem)",
       "targets": [
-        { "expr": "avg(edgecloud_node_cpu_usage_ratio{region=~\"$region\"})", "legendFormat": "CPU", "refId": "A" },
-        { "expr": "avg(edgecloud_node_memory_usage_ratio{region=~\"$region\"})", "legendFormat": "Memory", "refId": "B" }
+        {
+          "expr": "avg(edgecloud_node_cpu_usage_ratio{region=~\"$region\"})",
+          "legendFormat": "CPU",
+          "refId": "A"
+        },
+        {
+          "expr": "avg(edgecloud_node_memory_usage_ratio{region=~\"$region\"})",
+          "legendFormat": "Memory",
+          "refId": "B"
+        }
       ],
       "type": "timeseries"
     },
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 }, "id": 18, "title": "ROW 4 — ML PIPELINE", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 39 },
+      "id": 18,
+      "title": "ROW 4 — ML PIPELINE",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 12, "x": 0, "y": 40 },
       "id": 19,
       "title": "ML Fallback Total Rate",
-      "targets": [{ "expr": "rate(edgecloud_ml_fallback_total[1h])", "refId": "A" }],
+      "targets": [
+        { "expr": "rate(edgecloud_ml_fallback_total[1h])", "refId": "A" }
+      ],
       "type": "timeseries"
     },
     {
@@ -163,7 +286,12 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 40 },
       "id": 20,
       "title": "ML Prediction Error (p99)",
-      "targets": [{ "expr": "histogram_quantile(0.99, sum by (le) (rate(edgecloud_ml_prediction_error_seconds_bucket[1h])))", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le) (rate(edgecloud_ml_prediction_error_seconds_bucket[1h])))",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -171,9 +299,21 @@
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 48 },
       "id": 21,
       "title": "Last Model Update",
-      "targets": [{ "expr": "time() - edgecloud_ml_model_update_timestamp", "refId": "A" }],
+      "targets": [
+        { "expr": "time() - edgecloud_ml_model_update_timestamp", "refId": "A" }
+      ],
       "type": "stat",
-      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "steps": [{ "color": "green", "value": null }, { "color": "red", "value": 604800 }] } } }
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": null },
+              { "color": "red", "value": 604800 }
+            ]
+          }
+        }
+      }
     },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
@@ -188,16 +328,29 @@
       "gridPos": { "h": 8, "w": 9, "x": 15, "y": 48 },
       "id": 23,
       "title": "Bandit Exploration Rate",
-      "targets": [{ "expr": "edgecloud_ml_bandit_exploration_rate", "refId": "A" }],
+      "targets": [
+        { "expr": "edgecloud_ml_bandit_exploration_rate", "refId": "A" }
+      ],
       "type": "timeseries"
     },
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 56 }, "id": 24, "title": "ROW 5 — API AND DATABASE", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 56 },
+      "id": 24,
+      "title": "ROW 5 — API AND DATABASE",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 57 },
       "id": 25,
       "title": "HTTP Requests by Status",
-      "targets": [{ "expr": "sum by (status) (rate(edgecloud_http_requests_total[5m]))", "legendFormat": "{{status}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum by (status) (rate(edgecloud_http_requests_total[5m]))",
+          "legendFormat": "{{status}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -205,7 +358,13 @@
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 57 },
       "id": 26,
       "title": "HTTP p99 Latency by Route",
-      "targets": [{ "expr": "histogram_quantile(0.99, sum by (le, route) (rate(edgecloud_http_request_duration_seconds_bucket[5m])))", "legendFormat": "{{route}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, route) (rate(edgecloud_http_request_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{route}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -213,7 +372,13 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 57 },
       "id": 27,
       "title": "DB Query Duration (p99)",
-      "targets": [{ "expr": "histogram_quantile(0.99, sum by (le, operation) (rate(edgecloud_database_query_duration_seconds_bucket[5m])))", "legendFormat": "{{operation}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum by (le, operation) (rate(edgecloud_database_query_duration_seconds_bucket[5m])))",
+          "legendFormat": "{{operation}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -221,7 +386,12 @@
       "gridPos": { "h": 4, "w": 12, "x": 0, "y": 65 },
       "id": 28,
       "title": "DB Connection Pool Utilization",
-      "targets": [{ "expr": "edgecloud_database_connections{state=\"active\"} / sum(edgecloud_database_connections) * 100", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "edgecloud_database_connections{state=\"active\"} / sum(edgecloud_database_connections) * 100",
+          "refId": "A"
+        }
+      ],
       "type": "gauge",
       "fieldConfig": { "defaults": { "unit": "percent" } }
     },
@@ -230,16 +400,32 @@
       "gridPos": { "h": 8, "w": 12, "x": 12, "y": 65 },
       "id": 29,
       "title": "Cache Hit Rate",
-      "targets": [{ "expr": "rate(edgecloud_cache_hits_total[5m]) / (rate(edgecloud_cache_hits_total[5m]) + rate(edgecloud_cache_misses_total[5m])) * 100", "legendFormat": "Hit Rate", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "rate(edgecloud_cache_hits_total[5m]) / (rate(edgecloud_cache_hits_total[5m]) + rate(edgecloud_cache_misses_total[5m])) * 100",
+          "legendFormat": "Hit Rate",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 73 }, "id": 30, "title": "ROW 6 — CARBON AND COST", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 73 },
+      "id": 30,
+      "title": "ROW 6 — CARBON AND COST",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 74 },
       "id": 31,
       "title": "Total gCO2 Saved Today",
-      "targets": [{ "expr": "sum(increase(edgecloud_carbon_saved_total[24h]))", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(increase(edgecloud_carbon_saved_total[24h]))",
+          "refId": "A"
+        }
+      ],
       "type": "stat",
       "fieldConfig": { "defaults": { "unit": "massg" } }
     },
@@ -248,7 +434,13 @@
       "gridPos": { "h": 8, "w": 9, "x": 6, "y": 74 },
       "id": 32,
       "title": "Carbon Intensity by Region",
-      "targets": [{ "expr": "edgecloud_carbon_intensity{region=~\"$region\"}", "legendFormat": "{{region}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "edgecloud_carbon_intensity{region=~\"$region\"}",
+          "legendFormat": "{{region}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -256,7 +448,13 @@
       "gridPos": { "h": 8, "w": 9, "x": 15, "y": 74 },
       "id": 33,
       "title": "Tasks by Carbon Tier",
-      "targets": [{ "expr": "sum by (tier) (increase(edgecloud_carbon_saved_total[1h]))", "legendFormat": "{{tier}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum by (tier) (increase(edgecloud_carbon_saved_total[1h]))",
+          "legendFormat": "{{tier}}",
+          "refId": "A"
+        }
+      ],
       "type": "barchart"
     },
     {
@@ -264,17 +462,30 @@
       "gridPos": { "h": 4, "w": 6, "x": 0, "y": 78 },
       "id": 34,
       "title": "Estimated Hourly Cost",
-      "targets": [{ "expr": "sum(edgecloud_estimated_compute_cost_hourly)", "refId": "A" }],
+      "targets": [
+        { "expr": "sum(edgecloud_estimated_compute_cost_hourly)", "refId": "A" }
+      ],
       "type": "stat",
       "fieldConfig": { "defaults": { "unit": "currencyUSD" } }
     },
-    { "gridPos": { "h": 1, "w": 24, "x": 0, "y": 82 }, "id": 35, "title": "ROW 7 — ERRORS AND ALERTS", "type": "row" },
+    {
+      "gridPos": { "h": 1, "w": 24, "x": 0, "y": 82 },
+      "id": 35,
+      "title": "ROW 7 — ERRORS AND ALERTS",
+      "type": "row"
+    },
     {
       "datasource": { "type": "prometheus", "uid": "${datasource}" },
       "gridPos": { "h": 8, "w": 8, "x": 0, "y": 83 },
       "id": 36,
       "title": "API Errors by Code",
-      "targets": [{ "expr": "sum by (code) (rate(edgecloud_api_errors_total[5m]))", "legendFormat": "{{code}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum by (code) (rate(edgecloud_api_errors_total[5m]))",
+          "legendFormat": "{{code}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -282,7 +493,13 @@
       "gridPos": { "h": 8, "w": 8, "x": 8, "y": 83 },
       "id": 37,
       "title": "Saga Compensations",
-      "targets": [{ "expr": "sum by (reason) (rate(edgecloud_saga_compensations_total[5m]))", "legendFormat": "{{reason}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum by (reason) (rate(edgecloud_saga_compensations_total[5m]))",
+          "legendFormat": "{{reason}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     },
     {
@@ -290,7 +507,13 @@
       "gridPos": { "h": 8, "w": 8, "x": 16, "y": 83 },
       "id": 38,
       "title": "Webhook Failures",
-      "targets": [{ "expr": "sum(increase(edgecloud_webhook_delivery_failures[1h]))", "format": "table", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum(increase(edgecloud_webhook_delivery_failures[1h]))",
+          "format": "table",
+          "refId": "A"
+        }
+      ],
       "type": "table"
     },
     {
@@ -298,7 +521,13 @@
       "gridPos": { "h": 4, "w": 24, "x": 0, "y": 91 },
       "id": 39,
       "title": "Circuit Breaker State Changes",
-      "targets": [{ "expr": "sum by (service) (increase(edgecloud_circuit_breaker_opened_total[1h]))", "legendFormat": "{{service}}", "refId": "A" }],
+      "targets": [
+        {
+          "expr": "sum by (service) (increase(edgecloud_circuit_breaker_opened_total[1h]))",
+          "legendFormat": "{{service}}",
+          "refId": "A"
+        }
+      ],
       "type": "timeseries"
     }
   ],
@@ -307,9 +536,42 @@
   "tags": ["operations", "edge", "ml", "carbon"],
   "templating": {
     "list": [
-      { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "definition": "label_values(edgecloud_task_completed_total, tenant)", "includeAll": true, "label": "Tenant", "multi": true, "name": "tenant", "query": { "query": "label_values(edgecloud_task_completed_total, tenant)", "refId": "StandardVariableQuery" }, "refresh": 1, "type": "query" },
-      { "datasource": { "type": "prometheus", "uid": "${datasource}" }, "definition": "label_values(edgecloud_node_status, region)", "includeAll": true, "label": "Region", "multi": true, "name": "region", "query": { "query": "label_values(edgecloud_node_status, region)", "refId": "StandardVariableQuery" }, "refresh": 1, "type": "query" },
-      { "hide": 2, "label": "Data Source", "name": "datasource", "query": "prometheus", "refresh": 1, "type": "datasource" }
+      {
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(edgecloud_task_completed_total, tenant)",
+        "includeAll": true,
+        "label": "Tenant",
+        "multi": true,
+        "name": "tenant",
+        "query": {
+          "query": "label_values(edgecloud_task_completed_total, tenant)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "datasource": { "type": "prometheus", "uid": "${datasource}" },
+        "definition": "label_values(edgecloud_node_status, region)",
+        "includeAll": true,
+        "label": "Region",
+        "multi": true,
+        "name": "region",
+        "query": {
+          "query": "label_values(edgecloud_node_status, region)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "type": "query"
+      },
+      {
+        "hide": 2,
+        "label": "Data Source",
+        "name": "datasource",
+        "query": "prometheus",
+        "refresh": 1,
+        "type": "datasource"
+      }
     ]
   },
   "time": { "from": "now-6h", "to": "now" },

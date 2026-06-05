@@ -1,17 +1,18 @@
 import 'reflect-metadata';
+import '@fastify/swagger';
 import { initTracing } from '@edgecloud/observability';
 initTracing('api', process.env.npm_package_version || '1.0.0');
 import { env } from './config/env';
-import { 
-  initTelemetry, 
-  createLogger, 
+import {
+  initTelemetry,
+  createLogger,
   fastifyLoggingPlugin,
-  SecretManagerFactory, 
+  SecretManagerFactory,
   SecretManager,
   GracefulShutdown,
   HealthCheck,
   RedisFactory,
-  API_CONSTANTS
+  API_CONSTANTS,
 } from '@edgecloud/shared-kernel';
 initTelemetry('orchestrator-api');
 
@@ -20,7 +21,7 @@ export let secretManager: SecretManager = SecretManagerFactory.create();
 
 /**
  * Global Error Handlers
- * 
+ *
  * EADDRINUSE is the only exception we handle specifically because it is a common
  * infrastructure collision that occurs during startup before any application state
  * is corrupted. All other errors must be allowed to crash the process to prevent
@@ -28,22 +29,30 @@ export let secretManager: SecretManager = SecretManagerFactory.create();
  */
 process.on('uncaughtException', (err: any) => {
   if (err.code === 'EADDRINUSE') {
-    logger.fatal({ port: env.PORT }, 'Port already in use. Please ensure no other instances of the API are running.');
+    logger.fatal(
+      { port: env.PORT },
+      'Port already in use. Please ensure no other instances of the API are running.',
+    );
     process.exit(1);
   }
-  
+
   // For all other errors, we log and re-throw to allow normal crash behavior
   // which surfaces the stack trace and triggers a supervisor restart.
-  logger.fatal({ err }, 'Uncaught exception detected - crashing process to ensure integrity');
+  logger.fatal(
+    { err },
+    'Uncaught exception detected - crashing process to ensure integrity',
+  );
   throw err;
 });
 
 process.on('unhandledRejection', (reason: any) => {
   // Treat unhandled rejections as fatal to maintain system integrity
-  logger.fatal({ reason }, 'Unhandled rejection detected - crashing process to ensure integrity');
+  logger.fatal(
+    { reason },
+    'Unhandled rejection detected - crashing process to ensure integrity',
+  );
   throw reason;
 });
-
 
 import cookie from '@fastify/cookie';
 import cors from '@fastify/cors';
@@ -79,7 +88,6 @@ import { ConsistencyCheckerJob } from './jobs/consistency-checker';
 import { AuthService } from './services/auth.service';
 import { RateLimitService } from './services/rate-limit.service';
 
-
 // Global instances (initialized in start)
 export let prisma: PrismaClient;
 export let redis: any;
@@ -91,7 +99,6 @@ export let priorityScheduler: PriorityScheduler;
 export let backpressureController: BackpressureController;
 export let gracefulDegradation: GracefulDegradationService;
 export let schedulerRateLimiter: SchedulerRateLimiter;
-
 
 let lastRedisHealthy: number = Date.now();
 let webhookRetryJob: WebhookRetryJob;
@@ -110,54 +117,53 @@ const app = Fastify({
 import { authState } from './initializers/auth-state';
 
 // Auth middleware indirection to allow early route registration
-app.decorate('authenticate', function(this: any, request: any, reply: any) {
+app.decorate('authenticate', function (this: any, request: any, reply: any) {
   return authState.authenticate(request, reply);
 });
 
-app.decorate('requireRole', function(this: any, ...roles: any[]) {
+app.decorate('requireRole', function (this: any, ...roles: any[]) {
   return authState.requireRole(...roles);
 });
 
-app.decorate('requirePermission', function(this: any, permission: string) {
+app.decorate('requirePermission', function (this: any, permission: string) {
   return authState.requirePermission(permission);
 });
 
 /**
  * Global 'Default Deny' Authentication Hook
- * 
+ *
  * This hook runs before any route-level preHandlers.
  * It enforces authentication for all routes unless they are explicitly
  * marked as public in their route configuration.
  */
-  app.addHook('preHandler', async (request, reply) => {
-    // 1. Check if route is explicitly marked as public
-    const isPublic = request.routeOptions.config?.public === true;
-    if (isPublic) return;
+app.addHook('preHandler', async (request, reply) => {
+  // 1. Check if route is explicitly marked as public
+  const isPublic = request.routeOptions.config?.public === true;
+  if (isPublic) return;
 
-    // 2. Public health and documentation routes (bypass by path pattern)
-    const url = request.url;
-    if (
-      url.startsWith('/health') || 
-      url === '/version' || 
-      url.startsWith('/docs') ||
-      url.startsWith('/ws')
-    ) {
-      return;
-    }
+  // 2. Public health and documentation routes (bypass by path pattern)
+  const url = request.url;
+  if (
+    url.startsWith('/health') ||
+    url === '/version' ||
+    url.startsWith('/docs') ||
+    url.startsWith('/ws')
+  ) {
+    return;
+  }
 
-    // 3. Default Deny: Authenticate if not explicitly public
-    // This ensures that any newly added routes are secure by default.
-    try {
-      await (app as any).authenticate(request, reply);
-    } catch (err: any) {
-      request.log.error({ err, url }, 'Global authentication hook failed');
-      return reply.status(401).send({ 
-        error: 'Authentication required',
-        message: 'This endpoint is protected by Default Deny policy.'
-      });
-    }
-  });
-
+  // 3. Default Deny: Authenticate if not explicitly public
+  // This ensures that any newly added routes are secure by default.
+  try {
+    await (app as any).authenticate(request, reply);
+  } catch (err: any) {
+    request.log.error({ err, url }, 'Global authentication hook failed');
+    return reply.status(401).send({
+      error: 'Authentication required',
+      message: 'This endpoint is protected by Default Deny policy.',
+    });
+  }
+});
 
 app.addHook('onRequest', async (request: any, reply: any) => {
   if (!request || !request.headers) return;
@@ -167,7 +173,8 @@ app.addHook('onRequest', async (request: any, reply: any) => {
   const url = request.url || '';
   const urlParts = url.split('/');
   const urlVersion = urlParts.find((p: string) => /^v\d+$/.test(p));
-  const requestedVersion = (headerVersion as string) || urlVersion || defaultVersion;
+  const requestedVersion =
+    (headerVersion as string) || urlVersion || defaultVersion;
 
   if (!supportedVersions.includes(requestedVersion)) {
     return reply.code(400).send({
@@ -190,7 +197,6 @@ app.addHook('onSend', async (request: any, reply: any, payload: any) => {
   return payload;
 });
 
-
 app.decorateRequest('apiVersion', '');
 
 // Register global schemas for $ref resolution
@@ -206,11 +212,7 @@ app.addHook('onError', async (request, _reply, error) => {
   console.error(`GLOBAL ERROR [${method} ${url}]:`, error);
 });
 
-
 // Development mode flag
-
-
-
 
 // Register plugins
 async function registerPlugins() {
@@ -220,8 +222,8 @@ async function registerPlugins() {
       directives: {
         defaultSrc: ["'none'"],
         scriptSrc: ["'self'"],
-        connectSrc: ["'self'", "wss://*"],
-        imgSrc: ["'self'", "data:"],
+        connectSrc: ["'self'", 'wss://*'],
+        imgSrc: ["'self'", 'data:'],
         styleSrc: ["'self'", "'unsafe-inline'"],
         frameAncestors: ["'none'"],
         upgradeInsecureRequests: [],
@@ -268,8 +270,9 @@ async function registerPlugins() {
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   });
 
-  const jwtSecret = await secretManager.getSecret('JWT_SECRET') || '';
-  const jwtExpiresIn = await secretManager.getSecret('JWT_EXPIRES_IN') || '15m';
+  const jwtSecret = (await secretManager.getSecret('JWT_SECRET')) || '';
+  const jwtExpiresIn =
+    (await secretManager.getSecret('JWT_EXPIRES_IN')) || '15m';
 
   await app.register(cookie, {
     secret: jwtSecret,
@@ -282,8 +285,13 @@ async function registerPlugins() {
     },
   });
 
-  const rateLimitWindow = parseInt(await secretManager.getSecret('RATE_LIMIT_WINDOW_MS') || '60000', 10);
-  const redisUrlForRateLimit = !env.FORCE_MOCK_REDIS ? await secretManager.getSecret('REDIS_URL') : null;
+  const rateLimitWindow = parseInt(
+    (await secretManager.getSecret('RATE_LIMIT_WINDOW_MS')) || '60000',
+    10,
+  );
+  const redisUrlForRateLimit = !env.FORCE_MOCK_REDIS
+    ? await secretManager.getSecret('REDIS_URL')
+    : null;
 
   await app.register(rateLimit, {
     max: async () => {
@@ -302,8 +310,8 @@ async function registerPlugins() {
       'x-ratelimit-limit': true,
       'x-ratelimit-remaining': true,
       'x-ratelimit-reset': true,
-      'retry-after': true
-    }
+      'retry-after': true,
+    },
   });
 
   // WebSocket
@@ -325,7 +333,8 @@ async function registerPlugins() {
     openapi: {
       info: {
         title: 'Edge-Cloud Orchestrator API',
-        description: 'Production API documentation for the Edge-Cloud Orchestrator Control Plane',
+        description:
+          'Production API documentation for the Edge-Cloud Orchestrator Control Plane',
         version: '1.0.0',
       },
       components: {
@@ -337,14 +346,13 @@ async function registerPlugins() {
           },
         },
       },
-    }
+    },
   });
 
   const swaggerUi = await import('@fastify/swagger-ui');
   await app.register(swaggerUi.default, {
     routePrefix: '/docs',
   });
-
 
   // HTTP request metrics hook
   app.addHook('onResponse', async (request, reply) => {
@@ -380,27 +388,27 @@ async function registerPlugins() {
     }
   });
 
-
   // Global services decoration (Directly on root app to ensure propagation)
   const isMockPrisma = (prisma as any)?.isMock;
-  const { prismaForTenant, enterWithTenantContext } = await import('@edgecloud/shared-kernel');
+  const { prismaForTenant, enterWithTenantContext } =
+    await import('@edgecloud/shared-kernel');
   const scopedPrisma = isMockPrisma ? prisma : prismaForTenant(prisma);
-  
+
   if (!app.hasDecorator('prisma')) {
     app.decorate('prisma', {
-      getter: () => isMockPrisma ? prisma : prismaForTenant(prisma)
+      getter: () => (isMockPrisma ? prisma : prismaForTenant(prisma)),
     });
   }
-  
+
   if (!app.hasDecorator('redis')) {
     app.decorate('redis', {
-      getter: () => redis
+      getter: () => redis,
     });
   }
 
   // Request-level tenant-scoped prisma decorator
   app.decorateRequest('tPrisma', {
-    getter: function(this: any) {
+    getter: function (this: any) {
       const tenantId = this.user?.tenantId;
       const prismaInstance = this.server.prisma;
       enterWithTenantContext(tenantId || undefined);
@@ -408,13 +416,13 @@ async function registerPlugins() {
         return prismaForTenant(prismaInstance, tenantId);
       }
       return prismaInstance;
-    }
+    },
   });
-  
+
   // 1. Instantiate Auth/RateLimit Services
   const authService = new AuthService(scopedPrisma);
   const rateLimitService = new RateLimitService(redis);
-  
+
   // 2. Decorate instance with services
   if (!app.hasDecorator('authService')) {
     app.decorate('authService', authService);
@@ -422,9 +430,10 @@ async function registerPlugins() {
   if (!app.hasDecorator('rateLimitService')) {
     app.decorate('rateLimitService', rateLimitService);
   }
-  
+
   // 3. Update auth state indirection
-  const { authenticate, requireRole, requirePermission } = await import('./middleware/auth.middleware.js');
+  const { authenticate, requireRole, requirePermission } =
+    await import('./middleware/auth.middleware.js');
   authState.authenticate = authenticate;
   authState.requireRole = requireRole;
   authState.requirePermission = requirePermission;
@@ -432,14 +441,11 @@ async function registerPlugins() {
   // Register error handler globally
   app.setErrorHandler(globalErrorHandler);
 
-
-
-
-
-  
   // Global request ID middleware and standardized logging
-  await app.register(fastifyLoggingPlugin, { logger, serviceName: 'orchestrator-api' });
-
+  await app.register(fastifyLoggingPlugin, {
+    logger,
+    serviceName: 'orchestrator-api',
+  });
 
   // Decorate services on fastify instance
   const decorateIfMissing = (name: string, value: any) => {
@@ -455,7 +461,6 @@ async function registerPlugins() {
   decorateIfMissing('backpressureController', backpressureController);
   decorateIfMissing('gracefulDegradation', gracefulDegradation);
   decorateIfMissing('schedulerRateLimiter', schedulerRateLimiter);
-
 }
 
 // Register routes
@@ -488,11 +493,11 @@ async function registerRoutes() {
     const yamlLib = await import('yaml');
     logger.info('Generating OpenAPI Spec (v2 Only)...');
     await app.ready();
-    
+
     const fullSpec = (app as any).swagger();
-    const v2Spec: any = { 
-      ...fullSpec, 
-      paths: {} 
+    const v2Spec: any = {
+      ...fullSpec,
+      paths: {},
     };
 
     // Filter for /v2/ routes and sort them alphabetically for determinism
@@ -506,23 +511,28 @@ async function registerRoutes() {
     const yamlOutput = yamlLib.stringify(v2Spec);
     const targetPath = path.resolve(__dirname, '../openapi-v2.yml');
     fs.writeFileSync(targetPath, yamlOutput);
-    
+
     if (yamlOutput.includes('runtime')) {
-      logger.info({ path: targetPath }, 'OpenAPI Spec (v2 Only) generated successfully');
+      logger.info(
+        { path: targetPath },
+        'OpenAPI Spec (v2 Only) generated successfully',
+      );
     } else {
-      console.warn('WARNING: Generated OpenAPI Spec does not contain "runtime" field. Possible schema mismatch.');
-      logger.info({ path: targetPath, size: yamlOutput.length }, 'Spec written successfully');
+      console.warn(
+        'WARNING: Generated OpenAPI Spec does not contain "runtime" field. Possible schema mismatch.',
+      );
+      logger.info(
+        { path: targetPath, size: yamlOutput.length },
+        'Spec written successfully',
+      );
     }
 
     if (env.EXIT_AFTER_GEN) {
       process.exit(0);
     }
-
   }
 
-
   await app.register(staticPlugin, {
-
     root: frontendDist,
     prefix: '/',
     wildcard: false,
@@ -542,157 +552,177 @@ async function registerRoutes() {
   });
 
   // Health checks
-  app.get('/health', {
-    schema: {
-      tags: ['system'],
-      summary: 'Liveness check',
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            version: { type: 'string' }
-          }
-        }
-      }
-    }
-  }, async () => HealthCheck.getLiveness());
-
-  app.get('/health/live', {
-    schema: {
-      tags: ['system'],
-      summary: 'Enhanced liveness check with Redis monitoring',
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            version: { type: 'string' },
-            reason: { type: 'string' }
-          }
+  app.get(
+    '/health',
+    {
+      schema: {
+        tags: ['system'],
+        summary: 'Liveness check',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+              version: { type: 'string' },
+            },
+          },
         },
-        503: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            reason: { type: 'string' }
-          }
-        }
-      }
-    }
-  }, async (_request, reply) => {
-    const liveness = HealthCheck.getLiveness();
-    // Fail liveness if Redis has been unreachable for > 30s
-    if (redis && !(redis as any).isMock && Date.now() - lastRedisHealthy > 30000) {
-      void reply.status(503);
-      return { ...liveness, status: 'error', reason: 'Redis unreachable' };
-    }
-    return liveness;
-  });
+      },
+    },
+    async () => HealthCheck.getLiveness(),
+  );
 
-  app.get('/health/ready', {
-    schema: {
-      tags: ['system'],
-      summary: 'Readiness check (DB + Redis + Circuit Breakers)',
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            services: {
-              type: 'object',
-              properties: {
-                db: { 
-                  type: 'object',
-                  properties: {
-                    status: { type: 'string' },
-                    latency: { type: 'string' },
-                    circuit: { type: 'string' }
-                  }
+  app.get(
+    '/health/live',
+    {
+      schema: {
+        tags: ['system'],
+        summary: 'Enhanced liveness check with Redis monitoring',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+              version: { type: 'string' },
+              reason: { type: 'string' },
+            },
+          },
+          503: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+              reason: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (_request, reply) => {
+      const liveness = HealthCheck.getLiveness();
+      // Fail liveness if Redis has been unreachable for > 30s
+      if (
+        redis &&
+        !(redis as any).isMock &&
+        Date.now() - lastRedisHealthy > 30000
+      ) {
+        void reply.status(503);
+        return { ...liveness, status: 'error', reason: 'Redis unreachable' };
+      }
+      return liveness;
+    },
+  );
+
+  app.get(
+    '/health/ready',
+    {
+      schema: {
+        tags: ['system'],
+        summary: 'Readiness check (DB + Redis + Circuit Breakers)',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+              services: {
+                type: 'object',
+                properties: {
+                  db: {
+                    type: 'object',
+                    properties: {
+                      status: { type: 'string' },
+                      latency: { type: 'string' },
+                      circuit: { type: 'string' },
+                    },
+                  },
+                  redis: {
+                    type: 'object',
+                    properties: {
+                      status: { type: 'string' },
+                      latency: { type: 'string' },
+                    },
+                  },
                 },
-                redis: { 
-                  type: 'object',
-                  properties: {
-                    status: { type: 'string' },
-                    latency: { type: 'string' }
-                  }
-                }
-              }
-            }
-          }
+              },
+            },
+          },
+          503: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+              services: { type: 'object' },
+            },
+          },
         },
-        503: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' },
-            services: { type: 'object' }
-          }
+      },
+    },
+    async (_request, reply) => {
+      const startDb = Date.now();
+      let dbStatus = 'healthy';
+      let dbLatency = '0ms';
+      const dbCircuit = app.dbCircuitBreaker?.getState() || 'CLOSED';
+
+      if (dbCircuit === 'OPEN') {
+        dbStatus = 'degraded';
+      } else {
+        try {
+          await prisma.$queryRaw`SELECT 1`;
+          dbLatency = `${Date.now() - startDb}ms`;
+        } catch (e) {
+          dbStatus = 'unhealthy';
         }
       }
-    }
-  }, async (_request, reply) => {
-    const startDb = Date.now();
-    let dbStatus = 'healthy';
-    let dbLatency = '0ms';
-    const dbCircuit = app.dbCircuitBreaker?.getState() || 'CLOSED';
 
-    if (dbCircuit === 'OPEN') {
-      dbStatus = 'degraded';
-    } else {
+      const startRedis = Date.now();
+      let redisStatus = 'healthy';
+      let redisLatency = '0ms';
       try {
-        await prisma.$queryRaw`SELECT 1`;
-        dbLatency = `${Date.now() - startDb}ms`;
-      } catch (e) {
-        dbStatus = 'unhealthy';
+        await redis.ping();
+        redisLatency = `${Date.now() - startRedis}ms`;
+      } catch {
+        redisStatus = 'unhealthy';
       }
-    }
 
-    const startRedis = Date.now();
-    let redisStatus = 'healthy';
-    let redisLatency = '0ms';
-    try {
-      await redis.ping();
-      redisLatency = `${Date.now() - startRedis}ms`;
-    } catch {
-      redisStatus = 'unhealthy';
-    }
+      const isReady = dbStatus === 'healthy' && redisStatus === 'healthy';
+      const response = {
+        status: isReady ? 'ready' : 'not_ready',
+        timestamp: new Date().toISOString(),
+        services: {
+          db: { status: dbStatus, latency: dbLatency, circuit: dbCircuit },
+          redis: { status: redisStatus, latency: redisLatency },
+        },
+      };
 
-    const isReady = dbStatus === 'healthy' && redisStatus === 'healthy';
-    const response = {
-      status: isReady ? 'ready' : 'not_ready',
-      timestamp: new Date().toISOString(),
-      services: {
-        db: { status: dbStatus, latency: dbLatency, circuit: dbCircuit },
-        redis: { status: redisStatus, latency: redisLatency }
+      if (!isReady) {
+        void reply.status(503);
       }
-    };
+      return response;
+    },
+  );
 
-    if (!isReady) {
-      void reply.status(503);
-    }
-    return response;
-  });
-
-  app.get('/health/startup', {
-    schema: {
-      tags: ['system'],
-      summary: 'Startup check',
-      response: {
-        200: {
-          type: 'object',
-          properties: {
-            status: { type: 'string' },
-            timestamp: { type: 'string' }
-          }
-        }
-      }
-    }
-  }, async () => HealthCheck.getStartup());
+  app.get(
+    '/health/startup',
+    {
+      schema: {
+        tags: ['system'],
+        summary: 'Startup check',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              status: { type: 'string' },
+              timestamp: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async () => HealthCheck.getStartup(),
+  );
 
   app.get('/version', async () => ({
     service: 'edge-cloud-orchestrator-api',
@@ -709,31 +739,50 @@ export async function init(overrides: any = {}) {
   process.stdout.write('[index.ts] init() ENTERED!\n');
   logger.info('API init() called');
 
-  const secretManagerInstance = overrides.secretManager || SecretManagerFactory.create();
+  const secretManagerInstance =
+    overrides.secretManager || SecretManagerFactory.create();
   secretManager = secretManagerInstance;
 
   // Validate configuration before starting
   // Environment validation is handled by config/env.ts on import
 
-  const jwtSecretStr = await secretManagerInstance.getSecret('JWT_SECRET') || env.JWT_SECRET || '';
+  const jwtSecretStr =
+    (await secretManagerInstance.getSecret('JWT_SECRET')) ||
+    env.JWT_SECRET ||
+    '';
   if (jwtSecretStr.length < 32) {
-    logger.fatal('JWT_SECRET must be at least 32 characters long for cryptographic security');
+    logger.fatal(
+      'JWT_SECRET must be at least 32 characters long for cryptographic security',
+    );
     process.exit(1);
   }
 
   const weakPatterns = ['demo', 'test', 'secret', 'password', '123456'];
-  if (weakPatterns.some(p => jwtSecretStr.toLowerCase().includes(p))) {
+  if (weakPatterns.some((p) => jwtSecretStr.toLowerCase().includes(p))) {
     if (env.NODE_ENV === 'production') {
-      logger.fatal('JWT_SECRET contains a weak pattern and is forbidden in production');
+      logger.fatal(
+        'JWT_SECRET contains a weak pattern and is forbidden in production',
+      );
       process.exit(1);
     } else {
-      logger.warn('JWT_SECRET contains a weak pattern - acceptable ONLY for local development');
+      logger.warn(
+        'JWT_SECRET contains a weak pattern - acceptable ONLY for local development',
+      );
     }
   }
 
-  const dbUrl = await secretManagerInstance.getSecret('DATABASE_URL') || env.DATABASE_URL || '';
-  if (env.NODE_ENV === 'production' && !dbUrl.includes('sslmode=') && !dbUrl.includes('ssl=true')) {
-    logger.fatal('DATABASE_URL must use SSL in production (e.g., sslmode=require)');
+  const dbUrl =
+    (await secretManagerInstance.getSecret('DATABASE_URL')) ||
+    env.DATABASE_URL ||
+    '';
+  if (
+    env.NODE_ENV === 'production' &&
+    !dbUrl.includes('sslmode=') &&
+    !dbUrl.includes('ssl=true')
+  ) {
+    logger.fatal(
+      'DATABASE_URL must use SSL in production (e.g., sslmode=require)',
+    );
     process.exit(1);
   }
 
@@ -759,16 +808,21 @@ export async function init(overrides: any = {}) {
   const redisUrl = await secretManager.getSecret('REDIS_URL');
   const redisSentinels = await secretManager.getSecret('REDIS_SENTINELS');
   const forceMockRedis = env.FORCE_MOCK_REDIS;
-  
-  logger.info({ redisUrl, redisSentinels, forceMockRedis, forceMock }, 'Redis/DB configuration detection');
+
+  logger.info(
+    { redisUrl, redisSentinels, forceMockRedis, forceMock },
+    'Redis/DB configuration detection',
+  );
 
   let redisPingInterval: NodeJS.Timeout | null = null;
   if ((redisUrl || redisSentinels) && !forceMockRedis) {
     const { SLAMonitor } = await import('./services/sla-monitor.js');
     redis = await RedisFactory.createClient(secretManager);
-    
+
     // Track Redis health for liveness probe
-    redis.on('ready', () => { lastRedisHealthy = Date.now(); });
+    redis.on('ready', () => {
+      lastRedisHealthy = Date.now();
+    });
     redisPingInterval = setInterval(async () => {
       try {
         await redis.ping();
@@ -785,14 +839,26 @@ export async function init(overrides: any = {}) {
   } else {
     logger.info('Using mock Redis for development');
     const mockStorage = new Map<string, any>();
-    const zsets = new Map<string, { member: string, score: number }[]>();
-    
+    const zsets = new Map<string, { member: string; score: number }[]>();
+
     const baseMockRedis = {
       isMock: true,
       get: async (key: string) => mockStorage.get(key) || null,
-      set: async (key: string, value: any, ..._args: any[]) => { mockStorage.set(key, value); return 'OK'; },
-      setex: async (key: string, _s: number, value: any) => { mockStorage.set(key, value); return 'OK'; },
-      del: async (...keys: string[]) => { keys.forEach(k => { mockStorage.delete(k); zsets.delete(k); }); return keys.length; },
+      set: async (key: string, value: any, ..._args: any[]) => {
+        mockStorage.set(key, value);
+        return 'OK';
+      },
+      setex: async (key: string, _s: number, value: any) => {
+        mockStorage.set(key, value);
+        return 'OK';
+      },
+      del: async (...keys: string[]) => {
+        keys.forEach((k) => {
+          mockStorage.delete(k);
+          zsets.delete(k);
+        });
+        return keys.length;
+      },
       ping: async () => 'PONG',
       publish: async () => 0,
       subscribe: async () => {},
@@ -804,32 +870,53 @@ export async function init(overrides: any = {}) {
       defineCommand: () => {},
       zrange: async (key: string, start: number, stop: number) => {
         const set = zsets.get(key) || [];
-        const result = set.sort((a, b) => a.score - b.score).slice(start, stop === -1 ? undefined : stop + 1).map(i => i.member);
-        logger.debug({ key, start, stop, count: result.length }, '[Redis Mock] zrange');
+        const result = set
+          .sort((a, b) => a.score - b.score)
+          .slice(start, stop === -1 ? undefined : stop + 1)
+          .map((i) => i.member);
+        logger.debug(
+          { key, start, stop, count: result.length },
+          '[Redis Mock] zrange',
+        );
         return result;
       },
       zrevrange: async (key: string, start: number, stop: number) => {
         const set = zsets.get(key) || [];
-        const result = set.sort((a, b) => b.score - a.score).slice(start, stop === -1 ? undefined : stop + 1).map(i => i.member);
-        logger.info({ key, start, stop, count: result.length, first: result[0] }, '[Redis Mock] zrevrange');
+        const result = set
+          .sort((a, b) => b.score - a.score)
+          .slice(start, stop === -1 ? undefined : stop + 1)
+          .map((i) => i.member);
+        logger.info(
+          { key, start, stop, count: result.length, first: result[0] },
+          '[Redis Mock] zrevrange',
+        );
         return result;
       },
-      zrangebyscore: async (key: string, min: number | string, max: number | string) => {
+      zrangebyscore: async (
+        key: string,
+        min: number | string,
+        max: number | string,
+      ) => {
         const set = zsets.get(key) || [];
         const minVal = typeof min === 'string' ? -Infinity : min;
         const maxVal = typeof max === 'string' ? Infinity : max;
-        return set.filter(i => i.score >= minVal && i.score <= maxVal).map(i => i.member);
+        return set
+          .filter((i) => i.score >= minVal && i.score <= maxVal)
+          .map((i) => i.member);
       },
       zpopmin: async (key: string, count: number = 1) => {
         const set = zsets.get(key) || [];
         set.sort((a, b) => a.score - b.score);
         const popped = set.splice(0, count);
         const result: (string | number)[] = [];
-        popped.forEach(p => {
+        popped.forEach((p) => {
           result.push(p.member);
           result.push(p.score);
         });
-        logger.debug({ key, count, popped: popped.length }, '[Redis Mock] zpopmin');
+        logger.debug(
+          { key, count, popped: popped.length },
+          '[Redis Mock] zpopmin',
+        );
         return result;
       },
       zcard: async (key: string) => {
@@ -838,34 +925,45 @@ export async function init(overrides: any = {}) {
       zadd: async (key: string, score: number, member: string) => {
         logger.info({ key, score, member }, '[Redis Mock] zadd');
         let set = zsets.get(key);
-        if (!set) { set = []; zsets.set(key, set); }
-        const existing = set.find(i => i.member === member);
-        if (existing) { existing.score = score; } else { set.push({ member, score }); }
+        if (!set) {
+          set = [];
+          zsets.set(key, set);
+        }
+        const existing = set.find((i) => i.member === member);
+        if (existing) {
+          existing.score = score;
+        } else {
+          set.push({ member, score });
+        }
         return 1;
       },
       zrem: async (key: string, ...members: string[]) => {
         const set = zsets.get(key) || [];
         const initialLen = set.length;
         const memberSet = new Set(members);
-        const filtered = set.filter(i => !memberSet.has(i.member));
+        const filtered = set.filter((i) => !memberSet.has(i.member));
         zsets.set(key, filtered);
         return initialLen - filtered.length;
       },
       zrank: async (key: string, member: string) => {
         const set = zsets.get(key) || [];
-        const index = set.sort((a, b) => a.score - b.score).findIndex(i => i.member === member);
+        const index = set
+          .sort((a, b) => a.score - b.score)
+          .findIndex((i) => i.member === member);
         return index === -1 ? null : index;
       },
       zrevrank: async (key: string, member: string) => {
         const set = zsets.get(key) || [];
-        const index = set.sort((a, b) => b.score - a.score).findIndex(i => i.member === member);
+        const index = set
+          .sort((a, b) => b.score - a.score)
+          .findIndex((i) => i.member === member);
         return index === -1 ? null : index;
       },
       zremrangebyscore: async (key: string, min: number, max: number) => {
         const set = zsets.get(key);
         if (!set) return 0;
         const initialLen = set.length;
-        const newSet = set.filter(i => i.score < min || i.score > max);
+        const newSet = set.filter((i) => i.score < min || i.score > max);
         zsets.set(key, newSet);
         return initialLen - newSet.length;
       },
@@ -893,12 +991,40 @@ export async function init(overrides: any = {}) {
         const cmds: any[] = [];
         const p: any = { exec: async () => cmds.map(() => [null, 0]) };
         [
-          'get', 'set', 'setex', 'del', 'incr', 'decr', 'incrby', 'expire', 'ttl', 
-          'zadd', 'zrem', 'zrange', 'zrevrange', 'zrangebyscore', 'zcard', 
-          'zremrangebyscore', 'zrank', 'zrevrank', 'lrange', 'lpush', 'rpush', 
-          'llen', 'lrem', 'hset', 'hget', 'hdel', 'evalsha', 'eval', 'script'
-        ].forEach(fn => {
-          p[fn] = (..._args: any[]) => { cmds.push(fn); return p; };
+          'get',
+          'set',
+          'setex',
+          'del',
+          'incr',
+          'decr',
+          'incrby',
+          'expire',
+          'ttl',
+          'zadd',
+          'zrem',
+          'zrange',
+          'zrevrange',
+          'zrangebyscore',
+          'zcard',
+          'zremrangebyscore',
+          'zrank',
+          'zrevrank',
+          'lrange',
+          'lpush',
+          'rpush',
+          'llen',
+          'lrem',
+          'hset',
+          'hget',
+          'hdel',
+          'evalsha',
+          'eval',
+          'script',
+        ].forEach((fn) => {
+          p[fn] = (..._args: any[]) => {
+            cmds.push(fn);
+            return p;
+          };
         });
         return p;
       },
@@ -908,25 +1034,32 @@ export async function init(overrides: any = {}) {
     redis = new Proxy(baseMockRedis, {
       get: (target, prop: string) => {
         logger.debug({ prop }, '[Redis Proxy] Accessing property');
-        if (prop in target || typeof prop === 'symbol' || prop.startsWith('_')) {
+        if (
+          prop in target ||
+          typeof prop === 'symbol' ||
+          prop.startsWith('_')
+        ) {
           return (target as any)[prop];
         }
-        logger.warn({ command: prop }, 'Redis command called on mock but not implemented - returning undefined stub');
+        logger.warn(
+          { command: prop },
+          'Redis command called on mock but not implemented - returning undefined stub',
+        );
         return async () => undefined;
-      }
+      },
     }) as any;
     const { SLAMonitor } = await import('./services/sla-monitor.js');
     new SLAMonitor(prisma, redis);
 
     // Mock LeaderElection to always be leader in mock mode
     const { LeaderElection } = await import('@edgecloud/shared-kernel');
-    LeaderElection.prototype.start = async function(id: string) {
+    LeaderElection.prototype.start = async function (id: string) {
       console.log(`[MockLeaderElection] start called for ${id}`);
       (this as any).isLeader = true;
       this.emit('leadership-acquired');
       return true;
     };
-    LeaderElection.prototype.isCurrentlyLeader = function() {
+    LeaderElection.prototype.isCurrentlyLeader = function () {
       // console.log('[MockLeaderElection] isCurrentlyLeader called - returning true');
       return true;
     };
@@ -935,7 +1068,7 @@ export async function init(overrides: any = {}) {
   wsManager = new WebSocketManager(logger, redis);
   const { setWebSocketManager } = await import('./utils/circuit-breakers.js');
   setWebSocketManager(wsManager);
-  
+
   heartbeatMonitor = new HeartbeatMonitor(prisma, redis, wsManager, logger);
   idempotencyService = new IdempotencyService(prisma, redis, logger);
   priorityScheduler = new PriorityScheduler(redis, logger);
@@ -959,7 +1092,7 @@ export async function init(overrides: any = {}) {
     await registerPlugins();
 
     await registerRoutes();
-    
+
     // Initialize monitors/schedulers
     await heartbeatMonitor.start();
     await backpressureController.start();
@@ -968,7 +1101,7 @@ export async function init(overrides: any = {}) {
     await taskScheduler.start();
     webhookRetryJob.start();
     consistencyCheckerJob.start();
-    
+
     await initializeServices(app, prisma, redis, logger, idempotencyService);
 
     // Monitor mock DB size
@@ -988,36 +1121,72 @@ export async function init(overrides: any = {}) {
       if (redisPingInterval) {
         clearInterval(redisPingInterval);
       }
-      
+
       // Stop local jobs
       if (webhookRetryJob) {
-        try { webhookRetryJob.stop(); } catch (e) { logger.error(e, 'Error stopping webhookRetryJob'); }
+        try {
+          webhookRetryJob.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping webhookRetryJob');
+        }
       }
       if (consistencyCheckerJob) {
-        try { consistencyCheckerJob.stop(); } catch (e) { logger.error(e, 'Error stopping consistencyCheckerJob'); }
+        try {
+          consistencyCheckerJob.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping consistencyCheckerJob');
+        }
       }
 
       // Stop exported monitors/schedulers
       if (heartbeatMonitor) {
-        try { heartbeatMonitor.stop(); } catch (e) { logger.error(e, 'Error stopping heartbeatMonitor'); }
+        try {
+          heartbeatMonitor.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping heartbeatMonitor');
+        }
       }
       if (backpressureController) {
-        try { backpressureController.stop(); } catch (e) { logger.error(e, 'Error stopping backpressureController'); }
+        try {
+          backpressureController.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping backpressureController');
+        }
       }
       if (schedulerRateLimiter) {
-        try { schedulerRateLimiter.stop(); } catch (e) { logger.error(e, 'Error stopping schedulerRateLimiter'); }
+        try {
+          schedulerRateLimiter.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping schedulerRateLimiter');
+        }
       }
       if (priorityScheduler) {
-        try { priorityScheduler.stop(); } catch (e) { logger.error(e, 'Error stopping priorityScheduler'); }
+        try {
+          priorityScheduler.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping priorityScheduler');
+        }
       }
       if (gracefulDegradation) {
-        try { gracefulDegradation.stop(); } catch (e) { logger.error(e, 'Error stopping gracefulDegradation'); }
+        try {
+          gracefulDegradation.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping gracefulDegradation');
+        }
       }
       if (taskScheduler) {
-        try { taskScheduler.stop(); } catch (e) { logger.error(e, 'Error stopping taskScheduler'); }
+        try {
+          taskScheduler.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping taskScheduler');
+        }
       }
       if (wsManager) {
-        try { wsManager.close(); } catch (e) { logger.error(e, 'Error closing wsManager'); }
+        try {
+          wsManager.close();
+        } catch (e) {
+          logger.error(e, 'Error closing wsManager');
+        }
       }
 
       // Stop other advanced services
@@ -1029,7 +1198,11 @@ export async function init(overrides: any = {}) {
 
       // Disconnect DB/Redis
       if (prisma) {
-        try { await prisma.$disconnect(); } catch (e) { logger.error(e, 'Error disconnecting prisma'); }
+        try {
+          await prisma.$disconnect();
+        } catch (e) {
+          logger.error(e, 'Error disconnecting prisma');
+        }
       }
       if (redis) {
         try {
@@ -1043,7 +1216,7 @@ export async function init(overrides: any = {}) {
         }
       }
     });
-    
+
     return app;
   } catch (err) {
     console.error('API INITIALIZATION ERROR:', err);
@@ -1062,18 +1235,22 @@ export async function start() {
     const host = env.HOST;
 
     await app.listen({ port, host });
-    
+
     // Initialize shutdown manager and register handlers
     GracefulShutdown.init();
-    GracefulShutdown.registerHandler('app', async () => { await app.close(); });
-    GracefulShutdown.registerHandler('services', async () => { await shutdownServices(logger); });
+    GracefulShutdown.registerHandler('app', async () => {
+      await app.close();
+    });
+    GracefulShutdown.registerHandler('services', async () => {
+      await shutdownServices(logger);
+    });
     GracefulShutdown.registerHandler('db', async () => {
       if (prisma) await prisma.$disconnect();
       if (redis) redis.disconnect();
     });
 
     HealthCheck.setReady(true);
-    
+
     logger.info(`🚀 API Gateway running on http://${host}:${port}`);
   } catch (err) {
     logger.error(err, 'Failed to start API Gateway');
@@ -1081,12 +1258,9 @@ export async function start() {
   }
 }
 
-
-
-
 // Start the application if not being imported for tests
 if (env.NODE_ENV !== 'test' && !env.VITEST) {
-  start().catch(err => {
+  start().catch((err) => {
     logger.error(err, 'Failed to start API Gateway');
     process.exit(1);
   });

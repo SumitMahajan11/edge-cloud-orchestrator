@@ -1,14 +1,17 @@
 # Runbook: High Scheduling Latency
 
 ## ALERT CONDITION
+
 - **Metric**: `edgecloud_api_scheduling_duration_seconds` (p99)
 - **Threshold**: `> 0.05s` (50ms) for 5 minutes.
 - **Grafana Panel**: "Orchestrator Performance -> Scheduling Latency"
 
 ## IMPACT
+
 Users experience delays when submitting new tasks. System throughput is reduced, potentially leading to task backlog and SLA violations.
 
 ## DIAGNOSIS STEPS
+
 1. **Check ML Fallback Rate**:
    Identify if the ML model is failing and reverting to rule-based scheduling, which can be slower if high-dimensional.
    - **Query**: `sum(rate(edgecloud_ml_fallback_total[5m]))`
@@ -28,6 +31,7 @@ Users experience delays when submitting new tasks. System throughput is reduced,
    - **Query**: `SELECT count(*) FROM "Node" WHERE status = 'ACTIVE';`
 
 ## RESOLUTION
+
 1. **Switch to Rule-Based Mode (Emergency Lever)**:
    If the ML model is suspected to be the bottleneck, force the system into rule-based mode.
    - **Step**: Update the ConfigMap or Environment Variable `ML_SCHEDULING_ENABLED=false` and restart the API pods.
@@ -42,9 +46,11 @@ Users experience delays when submitting new tasks. System throughput is reduced,
    - **Command**: `kubectl exec -it redis-0 -- redis-cli DEL task:queue`
 
 ## ESCALATION
+
 - **Level 2**: Contact Backend Engineering if slow queries persist after database indexing check.
 - **Level 3**: Contact Data Science if `ml-scheduler` is consistently slower than the rule-based alternative.
 
 ## POST-INCIDENT
+
 - Review `TaskScheduler` logs for `processQueue` duration.
 - Audit `Node` table indexes: `CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_node_status_resources ON "Node"(status, cpu_available, mem_available);`

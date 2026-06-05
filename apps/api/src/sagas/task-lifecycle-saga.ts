@@ -74,7 +74,11 @@ export function createTaskLifecycleSaga(
   logger: Logger,
   idempotencyService: any,
   redis: any,
-  onOutcome?: (taskId: string, durationMs: number, status: 'COMPLETED' | 'FAILED') => Promise<void>,
+  onOutcome?: (
+    taskId: string,
+    durationMs: number,
+    status: 'COMPLETED' | 'FAILED',
+  ) => Promise<void>,
   // kafkaProducer removed as it was unused
 ): SagaDefinition<TaskSagaContext> {
   // Step 1: Validate Task
@@ -115,10 +119,17 @@ export function createTaskLifecycleSaga(
         resourceId: context.taskId,
       });
 
-      if (check.isDuplicate) {return;}
-      
-      logger.debug({ taskId: context.taskId }, 'Validation step compensation (no-op)');
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+      if (check.isDuplicate) {
+        return;
+      }
+
+      logger.debug(
+        { taskId: context.taskId },
+        'Validation step compensation (no-op)',
+      );
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
     },
   };
 
@@ -185,12 +196,17 @@ export function createTaskLifecycleSaga(
       });
 
       if (check.isDuplicate) {
-        logger.debug({ taskId: context.taskId }, 'ReserveNodeResources compensation already executed');
+        logger.debug(
+          { taskId: context.taskId },
+          'ReserveNodeResources compensation already executed',
+        );
         return;
       }
 
       if (!context.nodeId) {
-        await idempotencyService.complete(idempotencyKey, { status: 'skipped_no_node' });
+        await idempotencyService.complete(idempotencyKey, {
+          status: 'skipped_no_node',
+        });
         return;
       }
 
@@ -212,7 +228,9 @@ export function createTaskLifecycleSaga(
         });
       }
 
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
     },
   };
 
@@ -247,17 +265,27 @@ export function createTaskLifecycleSaga(
         resourceId: context.taskId,
       });
 
-      if (check.isDuplicate) {return;}
+      if (check.isDuplicate) {
+        return;
+      }
 
-      logger.info({ taskId: context.taskId }, 'Cancelling TaskExecution record');
+      logger.info(
+        { taskId: context.taskId },
+        'Cancelling TaskExecution record',
+      );
 
       // Mark TaskExecution as CANCELLED
       await prisma.taskExecution.updateMany({
-        where: { taskId: context.taskId, status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] } },
+        where: {
+          taskId: context.taskId,
+          status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] },
+        },
         data: { status: 'CANCELLED' },
       });
 
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
     },
   };
 
@@ -292,9 +320,14 @@ export function createTaskLifecycleSaga(
         resourceId: context.taskId,
       });
 
-      if (check.isDuplicate) {return;}
+      if (check.isDuplicate) {
+        return;
+      }
 
-      logger.info({ taskId: context.taskId }, 'Reverting task status to PENDING');
+      logger.info(
+        { taskId: context.taskId },
+        'Reverting task status to PENDING',
+      );
 
       // Revert to previous status (PENDING)
       await prisma.task.update({
@@ -306,7 +339,9 @@ export function createTaskLifecycleSaga(
         },
       });
 
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
     },
   };
 
@@ -385,7 +420,9 @@ export function createTaskLifecycleSaga(
         resourceId: context.taskId,
       });
 
-      if (check.isDuplicate) {return;}
+      if (check.isDuplicate) {
+        return;
+      }
 
       logger.info({ taskId: context.taskId }, 'Sending cancellation to agent');
 
@@ -404,7 +441,10 @@ export function createTaskLifecycleSaga(
               ),
           );
         } catch (error) {
-          logger.warn({ taskId: context.taskId, error }, 'Failed to cancel task on node agent during compensation');
+          logger.warn(
+            { taskId: context.taskId, error },
+            'Failed to cancel task on node agent during compensation',
+          );
         }
       }
 
@@ -414,7 +454,9 @@ export function createTaskLifecycleSaga(
         data: { status: 'CANCELLED', completedAt: new Date() },
       });
 
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
     },
   };
 
@@ -427,15 +469,15 @@ export function createTaskLifecycleSaga(
         const heartbeatKey = `task:heartbeat:${context.taskId}`;
         await redis.set(heartbeatKey, 'ACTIVE', 'PX', 60000); // 1 minute initial window
       }
-      
+
       await prisma.taskExecution.updateMany({
         where: { taskId: context.taskId, status: 'RUNNING' },
         data: {
           metadata: {
             monitorStartedAt: new Date().toISOString(),
             heartbeatTimeoutMs: 60000,
-          } as any
-        }
+          } as any,
+        },
       });
 
       return {};
@@ -448,16 +490,20 @@ export function createTaskLifecycleSaga(
         resourceId: context.taskId,
       });
 
-      if (check.isDuplicate) {return;}
+      if (check.isDuplicate) {
+        return;
+      }
 
       logger.info({ taskId: context.taskId }, 'Cancelling heartbeat monitor');
-      
+
       if (redis) {
         await redis.del(`task:heartbeat:${context.taskId}`);
       }
 
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
-    }
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
+    },
   };
 
   // Step 7: Complete Task
@@ -487,15 +533,22 @@ export function createTaskLifecycleSaga(
       });
 
       if (onOutcome) {
-        onOutcome(context.taskId, context.duration || 0, 'COMPLETED').catch(err => 
-          logger.error({ taskId: context.taskId, err }, 'Failed to report outcome to drift detector')
+        onOutcome(context.taskId, context.duration || 0, 'COMPLETED').catch(
+          (err) =>
+            logger.error(
+              { taskId: context.taskId, err },
+              'Failed to report outcome to drift detector',
+            ),
         );
       }
 
       return { completedAt: new Date().toISOString() };
     },
     compensate: async (context) => {
-      logger.info({ taskId: context.taskId }, '[Saga] Compensating CompleteTask');
+      logger.info(
+        { taskId: context.taskId },
+        '[Saga] Compensating CompleteTask',
+      );
       const idempotencyKey = `compensate:CompleteTask:${context.taskId}`;
       const check = await idempotencyService.checkAndRecord({
         idempotencyKey,
@@ -503,10 +556,14 @@ export function createTaskLifecycleSaga(
         resourceId: context.taskId,
       });
 
-      if (check.isDuplicate) {return;}
-      
+      if (check.isDuplicate) {
+        return;
+      }
+
       logger.debug('Completion step compensation (no-op)');
-      await idempotencyService.complete(idempotencyKey, { status: 'completed' });
+      await idempotencyService.complete(idempotencyKey, {
+        status: 'completed',
+      });
     },
   };
 

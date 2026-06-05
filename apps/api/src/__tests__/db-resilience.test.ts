@@ -11,7 +11,7 @@ describe('Database Resilience & Observability', () => {
   beforeEach(async () => {
     // Reset prometheus register to avoid duplicate metric errors
     register.clear();
-    
+
     app = Fastify({ logger: true });
     // Mock the logger to be spiable
     app.log.warn = vi.fn();
@@ -19,7 +19,7 @@ describe('Database Resilience & Observability', () => {
     app.log.info = vi.fn();
 
     basePrisma = mockPrisma;
-    
+
     vi.spyOn(basePrisma, '$queryRaw').mockImplementation(async () => {
       return [{ 1: 1 }];
     });
@@ -52,8 +52,8 @@ describe('Database Resilience & Observability', () => {
         timestamp: new Date().toISOString(),
         services: {
           db: { status: dbStatus, latency: dbLatency, circuit: dbCircuit },
-          redis: { status: 'healthy', latency: '0ms' }
-        }
+          redis: { status: 'healthy', latency: '0ms' },
+        },
       };
     });
 
@@ -67,12 +67,16 @@ describe('Database Resilience & Observability', () => {
   });
 
   it('should record query metrics on successful execution', async () => {
-    vi.spyOn(basePrisma.user, 'findFirst').mockResolvedValue({ id: '1' } as any);
+    vi.spyOn(basePrisma.user, 'findFirst').mockResolvedValue({
+      id: '1',
+    } as any);
     await app.prisma.user.findFirst();
-    
+
     const metrics = await register.getMetricsAsJSON();
-    const durationMetric = metrics.find(m => m.name === 'db_query_duration_seconds');
-    
+    const durationMetric = metrics.find(
+      (m) => m.name === 'db_query_duration_seconds',
+    );
+
     expect(durationMetric).toBeDefined();
   });
 
@@ -83,11 +87,15 @@ describe('Database Resilience & Observability', () => {
 
     // The threshold is 5 in our implementation
     for (let i = 0; i < 5; i++) {
-      await expect(app.prisma.user.findFirst()).rejects.toThrow('Database connection lost');
+      await expect(app.prisma.user.findFirst()).rejects.toThrow(
+        'Database connection lost',
+      );
     }
 
     // The 6th call should be blocked by the circuit breaker
-    await expect(app.prisma.user.findFirst()).rejects.toThrow(/Circuit breaker 'database' is OPEN/);
+    await expect(app.prisma.user.findFirst()).rejects.toThrow(
+      /Circuit breaker 'database' is OPEN/,
+    );
     expect(app.dbCircuitBreaker.getState()).toBe('OPEN');
   });
 
@@ -98,7 +106,7 @@ describe('Database Resilience & Observability', () => {
 
     const response = await app.inject({
       method: 'GET',
-      url: '/health/ready'
+      url: '/health/ready',
     });
 
     expect(response.statusCode).toBe(503);
@@ -110,18 +118,20 @@ describe('Database Resilience & Observability', () => {
 
   it('should log a warning for slow queries', async () => {
     const logSpy = vi.spyOn(app.log, 'warn');
-    
+
     // Mock a slow query (threshold is 100ms in our implementation)
     vi.spyOn(basePrisma.user, 'findFirst').mockImplementation(async () => {
-      await new Promise(resolve => setTimeout(resolve, 150));
+      await new Promise((resolve) => setTimeout(resolve, 150));
       return { id: '1' } as any;
     });
 
     await app.prisma.user.findFirst();
-    
-    expect(logSpy).toHaveBeenCalledWith(expect.objectContaining({
-      msg: 'Slow database query detected',
-      duration: expect.stringMatching(/0\.1/)
-    }));
+
+    expect(logSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        msg: 'Slow database query detected',
+        duration: expect.stringMatching(/0\.1/),
+      }),
+    );
   });
 });

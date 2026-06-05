@@ -113,7 +113,7 @@ export class AutoHealer extends EventEmitter {
     this.logger = logger;
     this.config = { ...DEFAULT_CONFIG, ...config };
     this.instanceId = `healer-${Math.random().toString(36).substring(2, 9)}`;
-    
+
     this.leaderElection = new LeaderElection(redis, logger, {
       lockKey: SCHEDULER_CONSTANTS.HEALER_LOCK_KEY,
       ttl: SCHEDULER_CONSTANTS.LEADER_LOCK_TTL_MS,
@@ -129,7 +129,10 @@ export class AutoHealer extends EventEmitter {
     this.subscribeToAlerts();
 
     // Start leader election
-    await this.leaderElection.start(this.instanceId, SCHEDULER_CONSTANTS.LEADER_LOCK_TTL_MS);
+    await this.leaderElection.start(
+      this.instanceId,
+      SCHEDULER_CONSTANTS.LEADER_LOCK_TTL_MS,
+    );
 
     // Periodic health check
     this.alertCheckInterval = setInterval(() => {
@@ -632,7 +635,7 @@ export class AutoHealer extends EventEmitter {
       const stdout = await this.spawnWithTimeout(
         'kubectl',
         ['get', 'pods', '-n', namespace, '-o', 'json'],
-        `check pod health in ${namespace}`
+        `check pod health in ${namespace}`,
       );
 
       const pods = JSON.parse(stdout);
@@ -642,10 +645,18 @@ export class AutoHealer extends EventEmitter {
           if (status.state?.waiting?.reason === 'CrashLoopBackOff') {
             const serviceName = pod.metadata?.labels?.app || pod.metadata?.name;
             if (serviceName) {
-              this.logger.warn({ serviceName, pod: pod.metadata.name }, 'Detected CrashLoopBackOff');
+              this.logger.warn(
+                { serviceName, pod: pod.metadata.name },
+                'Detected CrashLoopBackOff',
+              );
               await this.initiateHealing('restart-service', {
-                labels: { alertname: 'ServiceCrashLooping', service: serviceName },
-                annotations: { summary: `Service ${serviceName} is crashlooping in ${namespace}` },
+                labels: {
+                  alertname: 'ServiceCrashLooping',
+                  service: serviceName,
+                },
+                annotations: {
+                  summary: `Service ${serviceName} is crashlooping in ${namespace}`,
+                },
                 state: 'firing',
                 activeAt: new Date().toISOString(),
                 value: '1',
@@ -655,7 +666,10 @@ export class AutoHealer extends EventEmitter {
         }
       }
     } catch (error) {
-      this.logger.error({ error }, 'Failed to check service health via Kubernetes');
+      this.logger.error(
+        { error },
+        'Failed to check service health via Kubernetes',
+      );
     }
   }
 
@@ -667,11 +681,13 @@ export class AutoHealer extends EventEmitter {
 
     if (queueLength > 100) {
       this.logger.warn({ queueLength }, 'High queue depth detected');
-      
+
       // Trigger scaling for the task-service if queue is backed up
       await this.initiateHealing('scale-up', {
         labels: { alertname: 'QueueBacklog', service: 'task-service' },
-        annotations: { summary: `Task queue depth is ${queueLength}, exceeding threshold of 100` },
+        annotations: {
+          summary: `Task queue depth is ${queueLength}, exceeding threshold of 100`,
+        },
         state: 'firing',
         activeAt: new Date().toISOString(),
         value: queueLength.toString(),
@@ -697,8 +713,11 @@ export class AutoHealer extends EventEmitter {
       });
 
       if (executionCount < task.maxRetries) {
-        this.logger.info({ taskId: task.id, executionCount, maxRetries: task.maxRetries }, 'Retrying failed task');
-        
+        this.logger.info(
+          { taskId: task.id, executionCount, maxRetries: task.maxRetries },
+          'Retrying failed task',
+        );
+
         // Reset to PENDING for re-scheduling
         await this.prisma.task.update({
           where: { id: task.id },
@@ -711,10 +730,16 @@ export class AutoHealer extends EventEmitter {
 
         // Add back to queue
         await this.redis.zadd('task:queue', Date.now(), task.id);
-        this.emit('task_retried', { taskId: task.id, attempt: executionCount + 1 });
+        this.emit('task_retried', {
+          taskId: task.id,
+          attempt: executionCount + 1,
+        });
       } else {
-        this.logger.warn({ taskId: task.id, executionCount }, 'Task reached max retries, marking as FAILED_PERMANENT');
-        
+        this.logger.warn(
+          { taskId: task.id, executionCount },
+          'Task reached max retries, marking as FAILED_PERMANENT',
+        );
+
         await this.prisma.task.update({
           where: { id: task.id },
           data: {

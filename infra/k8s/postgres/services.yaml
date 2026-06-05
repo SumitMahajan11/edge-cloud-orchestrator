@@ -19,7 +19,7 @@ metadata:
 spec:
   selector:
     app: postgres
-    # Note: Includes primary too unless pods are labeled. 
+    # Note: Includes primary too unless pods are labeled.
     # For read scaling, this is often acceptable.
   ports:
     - port: 5432

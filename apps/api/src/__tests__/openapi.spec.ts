@@ -30,10 +30,10 @@ describe('OpenAPI Specification Contract', () => {
   it('should have schemas for core routes', () => {
     // Check /v2/tasks GET
     expect(openapi.paths['/v2/tasks/'].get.responses['200']).toBeDefined();
-    
+
     // Check /v2/nodes GET
     expect(openapi.paths['/v2/nodes/'].get.responses['200']).toBeDefined();
-    
+
     // Check /v2/auth/login POST has request body
     expect(openapi.paths['/v2/auth/login'].post.requestBody).toBeDefined();
   });

@@ -15,18 +15,24 @@ describe('TaskScheduler Audit Model', () => {
   beforeEach(() => {
     mockPrisma = {
       task: {
-        update: vi.fn().mockImplementation((args) => Promise.resolve({ 
-          id: args.where.id, 
-          maxRetries: 3, 
-          status: args.data.status || 'PENDING',
-          submittedAt: new Date() 
-        })),
+        update: vi.fn().mockImplementation((args) =>
+          Promise.resolve({
+            id: args.where.id,
+            maxRetries: 3,
+            status: args.data.status || 'PENDING',
+            submittedAt: new Date(),
+          }),
+        ),
         findUnique: vi.fn(),
         create: vi.fn(),
       },
       taskExecution: {
         findFirst: vi.fn(),
-        create: vi.fn().mockImplementation(({ data }) => Promise.resolve({ id: `exec-${data.attemptNumber}`, ...data })),
+        create: vi
+          .fn()
+          .mockImplementation(({ data }) =>
+            Promise.resolve({ id: `exec-${data.attemptNumber}`, ...data }),
+          ),
         update: vi.fn(),
         count: vi.fn(),
       },
@@ -67,20 +73,20 @@ describe('TaskScheduler Audit Model', () => {
       mockPrisma as any,
       mockRedis as any,
       mockWsManager as any,
-      mockLogger as any
+      mockLogger as any,
     );
   });
 
   it('should maintain 1 Task but create multiple TaskExecutions on failure', async () => {
-    const task = { 
-      id: 'task-1', 
-      name: 'Audit Test Task', 
-      maxRetries: 3, 
+    const task = {
+      id: 'task-1',
+      name: 'Audit Test Task',
+      maxRetries: 3,
       status: 'PENDING',
       policy: 'auto',
       type: 'COMPUTE',
       input: {},
-      submittedAt: new Date()
+      submittedAt: new Date(),
     };
     const node = { id: 'node-1', url: 'http://node-1' };
 
@@ -92,49 +98,68 @@ describe('TaskScheduler Audit Model', () => {
 
     // Verify task.create was NOT called (no cloning)
     expect(mockPrisma.task.create).not.toHaveBeenCalled();
-    
+
     // Verify initial execution (attempt 1) was created via fallback
-    expect(mockPrisma.taskExecution.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ attemptNumber: 1, status: 'PENDING' })
-    }));
-    
+    expect(mockPrisma.taskExecution.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({ attemptNumber: 1, status: 'PENDING' }),
+      }),
+    );
+
     // Verify next execution (attempt 2) was created as a retry
-    expect(mockPrisma.taskExecution.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ attemptNumber: 2, status: 'PENDING', retryOf: 'exec-1' })
-    }));
+    expect(mockPrisma.taskExecution.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          attemptNumber: 2,
+          status: 'PENDING',
+          retryOf: 'exec-1',
+        }),
+      }),
+    );
 
     // --- FAILURE 2 ---
     // Reset mocks for second run
-    mockPrisma.taskExecution.findFirst.mockResolvedValueOnce({ id: 'exec-2', attemptNumber: 2 });
+    mockPrisma.taskExecution.findFirst.mockResolvedValueOnce({
+      id: 'exec-2',
+      attemptNumber: 2,
+    });
     vi.mocked(axios.post).mockRejectedValueOnce(new Error('Second failure'));
-    
+
     await (scheduler as any).assignTask(task, node);
 
     // Still no task cloning
     expect(mockPrisma.task.create).not.toHaveBeenCalled();
 
     // Verify execution 3 (retry) was created
-    expect(mockPrisma.taskExecution.create).toHaveBeenCalledWith(expect.objectContaining({
-      data: expect.objectContaining({ attemptNumber: 3, status: 'PENDING', retryOf: 'exec-2' })
-    }));
+    expect(mockPrisma.taskExecution.create).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          attemptNumber: 3,
+          status: 'PENDING',
+          retryOf: 'exec-2',
+        }),
+      }),
+    );
 
     // --- FINAL ASSERTIONS ---
-    // Total executions created: 
+    // Total executions created:
     // 1 (initial fallback) + 1 (retry 1) + 1 (retry 2) = 3
     const executionCreates = mockPrisma.taskExecution.create.mock.calls;
     expect(executionCreates.length).toBe(3);
-    
+
     expect(executionCreates[0][0].data.attemptNumber).toBe(1);
     expect(executionCreates[1][0].data.attemptNumber).toBe(2);
     expect(executionCreates[1][0].data.retryOf).toBe('exec-1');
-    
+
     expect(executionCreates[2][0].data.attemptNumber).toBe(3);
     expect(executionCreates[2][0].data.retryOf).toBe('exec-2');
-    
+
     // Task status should be back to PENDING for the next try
-    expect(mockPrisma.task.update).toHaveBeenLastCalledWith(expect.objectContaining({
-      where: { id: 'task-1' },
-      data: expect.objectContaining({ status: 'PENDING' })
-    }));
+    expect(mockPrisma.task.update).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        where: { id: 'task-1' },
+        data: expect.objectContaining({ status: 'PENDING' }),
+      }),
+    );
   });
 });

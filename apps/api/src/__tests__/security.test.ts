@@ -1,5 +1,8 @@
 import { FastifyInstance } from 'fastify';
-import { configureForProductionTest, restoreTestEnvironment } from './helpers/production-env.js';
+import {
+  configureForProductionTest,
+  restoreTestEnvironment,
+} from './helpers/production-env.js';
 import { mockLeaderElectionToAlwaysLead } from './helpers/mock-leader-election.js';
 
 describe('Security Configuration', () => {
@@ -10,20 +13,22 @@ describe('Security Configuration', () => {
   beforeAll(async () => {
     // Set environment variables for production test
     savedEnv = configureForProductionTest();
-    
+
     // Mock BEFORE init() so services don't try to acquire real Redis locks:
     cleanupLeaderElection = await mockLeaderElectionToAlwaysLead();
-    
+
     const mockSecretManager = {
       getSecret: async (key: string) => {
         if (key === 'JWT_SECRET') return 'a'.repeat(32);
         if (key === 'ENCRYPTION_KEY') return 'b'.repeat(32);
-        if (key === 'DATABASE_URL') return 'postgresql://localhost:5432/test?sslmode=require';
-        if (key === 'ALLOWED_ORIGINS') return 'http://localhost:5173,http://localhost:3000';
+        if (key === 'DATABASE_URL')
+          return 'postgresql://localhost:5432/test?sslmode=require';
+        if (key === 'ALLOWED_ORIGINS')
+          return 'http://localhost:5173,http://localhost:3000';
         if (key === 'JWT_EXPIRES_IN') return '15m';
         if (key === 'RATE_LIMIT_WINDOW_MS') return '60000';
         return process.env[key] || null;
-      }
+      },
     };
 
     // Initialize the app (registers plugins and routes)
@@ -57,7 +62,7 @@ describe('Security Configuration', () => {
       expect(csp).toContain("img-src 'self' data:");
       expect(csp).toContain("style-src 'self' 'unsafe-inline'");
       expect(csp).toContain("frame-ancestors 'none'");
-      expect(csp).toContain("upgrade-insecure-requests");
+      expect(csp).toContain('upgrade-insecure-requests');
     });
   });
 
@@ -72,7 +77,9 @@ describe('Security Configuration', () => {
         },
       });
 
-      expect(response.headers['access-control-allow-origin']).toBe(allowedOrigin);
+      expect(response.headers['access-control-allow-origin']).toBe(
+        allowedOrigin,
+      );
     });
 
     it('should return 403 or block requests from an unlisted origin', async () => {
@@ -95,7 +102,7 @@ describe('Security Configuration', () => {
       const response = await apiApp.inject({
         method: 'GET',
         url: '/health',
-        remoteAddress: '1.2.3.4' // Not in allowList
+        remoteAddress: '1.2.3.4', // Not in allowList
       });
 
       expect(response.headers['x-ratelimit-limit']).toBeDefined();

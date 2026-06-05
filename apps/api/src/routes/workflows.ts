@@ -14,7 +14,10 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         tags: ['workflows'],
         summary: 'List workflows',
@@ -38,7 +41,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -47,7 +50,10 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
   fastify.get<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['workflows'],
@@ -71,7 +77,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Workflow not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -83,7 +89,10 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: z.infer<typeof createWorkflowSchema> }>(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CREATE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CREATE),
+      ],
       schema: {
         body: zodToFastifySchema(createWorkflowSchema),
         tags: ['workflows'],
@@ -98,12 +107,12 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
         // Validate DAG
         const { DAGExecutor } = await import('@edgecloud/shared-kernel');
         const dagExecutor = new DAGExecutor();
-        
+
         const workflowNodes = nodes.map((node) => ({
           id: node.id,
           stepName: node.name,
           taskSpec: (node.config as any) || {},
-          dependsOn: edges.filter((e) => e.to === node.id).map((e) => e.from)
+          dependsOn: edges.filter((e) => e.to === node.id).map((e) => e.from),
         }));
 
         const validation = dagExecutor.validate(workflowNodes as any);
@@ -113,17 +122,20 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
               code: 'INVALID_DAG',
               message: `Invalid DAG: ${validation.errors.join(', ')}`,
               requestId: request.id,
-            }
+            },
           });
         }
       } catch (err: any) {
-        request.log.error({ err: err.message, stack: err.stack }, 'DAG Validation failed with error');
+        request.log.error(
+          { err: err.message, stack: err.stack },
+          'DAG Validation failed with error',
+        );
         return reply.status(500).send({
           error: {
             code: 'INTERNAL_ERROR',
             message: 'An unexpected server error occurred',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -153,7 +165,10 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
   }>(
     '/:id/execute',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CREATE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CREATE),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: zodToFastifySchema(executeWorkflowSchema),
@@ -175,11 +190,14 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Workflow not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
-      const executionId = await (fastify as any).workflowEngine.executeWorkflow(id, request.user!.tenantId!);
+      const executionId = await (fastify as any).workflowEngine.executeWorkflow(
+        id,
+        request.user!.tenantId!,
+      );
 
       return reply.status(202).send({
         executionId,
@@ -192,7 +210,10 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
   fastify.get<{ Params: { executionId: string } }>(
     '/executions/:executionId',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: {
           type: 'object',
@@ -208,12 +229,12 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const execution = await request.tPrisma.workflowExecution.findUnique({
         where: { id: request.params.executionId },
-        include: { 
+        include: {
           workflow: true,
           taskRuns: {
             include: { task: true },
-            orderBy: { startedAt: 'asc' }
-          }
+            orderBy: { startedAt: 'asc' },
+          },
         },
       });
 
@@ -223,7 +244,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
             code: 'NOT_FOUND',
             message: 'Execution not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -231,4 +252,3 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
     },
   );
 }
-

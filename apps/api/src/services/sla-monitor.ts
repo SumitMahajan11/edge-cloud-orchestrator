@@ -87,11 +87,7 @@ export class SLAMonitor {
   private redis: Redis;
   private targets: SLATarget[];
 
-  constructor(
-    prisma: PrismaClient,
-    redis: Redis,
-    targets?: SLATarget[],
-  ) {
+  constructor(prisma: PrismaClient, redis: Redis, targets?: SLATarget[]) {
     this.prisma = prisma;
     this.redis = redis;
     this.targets = targets || DEFAULT_SLA_TARGETS;

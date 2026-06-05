@@ -1,10 +1,10 @@
-import { PrismaClient } from '@prisma/client';
-import Redis from 'ioredis';
-import { createLogger, IMetricsCollector } from '@edgecloud/shared-kernel';
+import { PrismaClient } from "@prisma/client";
+import Redis from "ioredis";
+import { createLogger, IMetricsCollector } from "@edgecloud/shared-kernel";
 
-import { IncrementalUpdater } from '../training/incremental-updater';
+import { IncrementalUpdater } from "../training/incremental-updater";
 
-const logger = createLogger('ml-outcome-collector');
+const logger = createLogger("ml-outcome-collector");
 export interface TaskOutcome {
   taskId: string;
   nodeId: string;
@@ -13,13 +13,13 @@ export interface TaskOutcome {
   actualLatency: number;
   predictedCpuUsage: number;
   actualCpuUsage: number;
-  outcome: 'SUCCESS' | 'FAILED' | 'TIMEOUT' | 'OOM';
+  outcome: "SUCCESS" | "FAILED" | "TIMEOUT" | "OOM";
   timestamp: Date;
 }
 
 export class OutcomeCollector {
-  private readonly bufferKey = 'ml:outcomes';
-  private readonly rewardKeyPrefix = 'ml:node:';
+  private readonly bufferKey = "ml:outcomes";
+  private readonly rewardKeyPrefix = "ml:node:";
   private flushInterval: NodeJS.Timeout | null = null;
   private readonly ALPHA = 0.1; // Learning rate for bandit reward
 
@@ -27,12 +27,12 @@ export class OutcomeCollector {
     private prisma: PrismaClient,
     private redis: Redis,
     private metrics: IMetricsCollector,
-    private updater: IncrementalUpdater
+    private updater: IncrementalUpdater,
   ) {}
 
   async start() {
     this.flushInterval = setInterval(() => this.flush(), 60000);
-    logger.info('OutcomeCollector started with 60s flush interval');
+    logger.info("OutcomeCollector started with 60s flush interval");
   }
 
   async stop() {
@@ -40,44 +40,49 @@ export class OutcomeCollector {
       clearInterval(this.flushInterval);
     }
     await this.flush();
-    logger.info('OutcomeCollector stopped');
+    logger.info("OutcomeCollector stopped");
   }
 
   async recordOutcome(outcome: TaskOutcome) {
     const payload = JSON.stringify(outcome);
-    
+
     // 1. Buffer in Redis (Sorted Set)
     await this.redis.zadd(this.bufferKey, outcome.timestamp.getTime(), payload);
-    
+
     // 2. Update Contextual Bandit Reward
     await this.updateBanditReward(outcome.nodeId, outcome.outcome);
-    
+
     // 3. Trigger Incremental Update Check
     await this.updater.onOutcomeRecorded();
-    
+
     // 4. Update Metrics
     const size = await this.redis.zcard(this.bufferKey);
-    this.metrics.recordMetric('ml_outcome_buffer_size', size);
-    
-    const latencyError = Math.abs(outcome.predictedLatency - outcome.actualLatency);
-    this.metrics.recordMetric('ml_prediction_error', latencyError);
+    this.metrics.recordMetric("ml_outcome_buffer_size", size);
+
+    const latencyError = Math.abs(
+      outcome.predictedLatency - outcome.actualLatency,
+    );
+    this.metrics.recordMetric("ml_prediction_error", latencyError);
   }
 
   private async updateBanditReward(nodeId: string, outcome: string) {
     const key = `${this.rewardKeyPrefix}${nodeId}:reward`;
-    const rewardValue = outcome === 'SUCCESS' ? 1.0 : 0.0;
-    
+    const rewardValue = outcome === "SUCCESS" ? 1.0 : 0.0;
+
     const currentRewardStr = await this.redis.get(key);
     const oldReward = currentRewardStr ? parseFloat(currentRewardStr) : 0.5;
-    
+
     // Running average: newReward = oldReward * (1 - alpha) + rewardValue * alpha
     const newReward = oldReward * (1 - this.ALPHA) + rewardValue * this.ALPHA;
-    
+
     await this.redis.set(key, newReward.toString());
   }
 
   private isSqlite(): boolean {
-    return !!process.env.DATABASE_URL?.startsWith('file:') || !!process.env.DATABASE_URL?.includes('.db');
+    return (
+      !!process.env.DATABASE_URL?.startsWith("file:") ||
+      !!process.env.DATABASE_URL?.includes(".db")
+    );
   }
 
   async flush() {
@@ -87,19 +92,19 @@ export class OutcomeCollector {
 
       logger.info(`Flushing ${outcomes.length} outcomes to PostgreSQL`);
 
-      const parsedOutcomes = outcomes.map(o => JSON.parse(o) as TaskOutcome);
+      const parsedOutcomes = outcomes.map((o) => JSON.parse(o) as TaskOutcome);
       const isSqlite = this.isSqlite();
 
       // Use transaction to ensure consistency
       await this.prisma.outcomeLog.createMany({
-        data: parsedOutcomes.map(o => {
+        data: parsedOutcomes.map((o) => {
           let decision = o.schedulingDecision;
           if (isSqlite) {
-            if (typeof decision !== 'string') {
+            if (typeof decision !== "string") {
               decision = JSON.stringify(decision);
             }
           } else {
-            if (typeof decision === 'string') {
+            if (typeof decision === "string") {
               try {
                 decision = JSON.parse(decision);
               } catch (e) {
@@ -123,9 +128,9 @@ export class OutcomeCollector {
       });
       await this.redis.del(this.bufferKey);
 
-      logger.info('Successfully flushed outcomes to PostgreSQL');
+      logger.info("Successfully flushed outcomes to PostgreSQL");
     } catch (error) {
-      logger.error({ error }, 'Failed to flush outcomes to PostgreSQL');
+      logger.error({ error }, "Failed to flush outcomes to PostgreSQL");
     }
   }
 
@@ -140,7 +145,7 @@ export class OutcomeCollector {
     return {
       outcomesBuffered,
       banditExplorationRate: 0.1, // Fixed for now
-      predictionErrorP99Ms: 45 // Fixed for now
+      predictionErrorP99Ms: 45, // Fixed for now
     };
   }
 }

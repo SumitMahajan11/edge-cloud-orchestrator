@@ -2,13 +2,14 @@
 
 **Status**: Accepted  
 **Date**: 2026-04-14  
-**Authors**: Engineering Team  
+**Authors**: Engineering Team
 
 ---
 
 ## Context
 
 The Edge-Cloud Orchestrator previously maintained two parallel distributed consensus/locking mechanisms:
+
 1. **RAFT (via `raft-consensus`)**: A custom implementation of the RAFT consensus algorithm used for state replication and leader election in the scheduler.
 2. **Redlock (via Redis)**: Used for distributed mutexes and simple locking in various microservices.
 
@@ -20,13 +21,13 @@ We have decided to **standardize on Redlock** for leader election across the ent
 
 ### Comparison
 
-| Feature | RAFT (Custom) | Redlock (Redis) |
-|---|---|---|
-| **Consistency** | Strong (Linearizable) | Probabilistic (Strong enough for leases) |
-| **Complexity** | High (Custom network protocol, log handling) | Low (Leverages existing Redis infra) |
-| **Infrastructure** | Requires dedicated cluster/ports | Reuses core Redis dependency |
-| **Performance** | High latency for consensus | Low latency for locks |
-| **Maintainability** | Low (Internal custom code) | High (Standard industry pattern) |
+| Feature             | RAFT (Custom)                                | Redlock (Redis)                          |
+| ------------------- | -------------------------------------------- | ---------------------------------------- |
+| **Consistency**     | Strong (Linearizable)                        | Probabilistic (Strong enough for leases) |
+| **Complexity**      | High (Custom network protocol, log handling) | Low (Leverages existing Redis infra)     |
+| **Infrastructure**  | Requires dedicated cluster/ports             | Reuses core Redis dependency             |
+| **Performance**     | High latency for consensus                   | Low latency for locks                    |
+| **Maintainability** | Low (Internal custom code)                   | High (Standard industry pattern)         |
 
 ### Why Redlock for THIS system?
 
@@ -43,6 +44,7 @@ We have decided to **standardize on Redlock** for leader election across the ent
 ## Verification
 
 The new strategy was verified by:
+
 1. Refactoring `scheduler-service` to use `LeaderElection`.
 2. Verifying that only one instance registers as the leader in Prometheus (`is_leader` gauge).
 3. Simulating leader crash and verifying that another instance picks up the lease within the TTL window.

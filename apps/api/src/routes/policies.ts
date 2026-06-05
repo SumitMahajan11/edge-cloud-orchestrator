@@ -19,7 +19,10 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
       schema: {
         tags: ['policies'],
         summary: 'List available scheduling policies',
@@ -27,10 +30,26 @@ export default async function policyRoutes(fastify: FastifyInstance) {
     },
     async (_request, _reply) => {
       const policies = [
-        { id: 'balanced', name: 'Balanced', description: 'Equal weight to all factors' },
-        { id: 'cost', name: 'Cost Optimized', description: 'Minimize infrastructure spend' },
-        { id: 'latency', name: 'Latency Optimized', description: 'Minimize response time' },
-        { id: 'ml', name: 'ML Enhanced', description: 'Predictive placement using ML' },
+        {
+          id: 'balanced',
+          name: 'Balanced',
+          description: 'Equal weight to all factors',
+        },
+        {
+          id: 'cost',
+          name: 'Cost Optimized',
+          description: 'Minimize infrastructure spend',
+        },
+        {
+          id: 'latency',
+          name: 'Latency Optimized',
+          description: 'Minimize response time',
+        },
+        {
+          id: 'ml',
+          name: 'ML Enhanced',
+          description: 'Predictive placement using ML',
+        },
       ];
 
       return {
@@ -44,7 +63,10 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/active',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
       schema: {
         tags: ['policies'],
         summary: 'Get the currently active scheduling policy',
@@ -62,7 +84,10 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.patch<{ Body: z.infer<typeof PolicySchema> }>(
     '/active',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_MANAGE),
+      ],
       schema: {
         body: zodToFastifySchema(PolicySchema),
         tags: ['policies'],
@@ -71,7 +96,7 @@ export default async function policyRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       const { policy } = request.body;
-      
+
       // In a real app, we would update this in DB or Redis
       return {
         success: true,
@@ -85,7 +110,10 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/config',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
       schema: {
         tags: ['policies'],
         summary: 'Get detailed configuration for all policies',
@@ -104,7 +132,10 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/thresholds',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
       schema: {
         tags: ['policies'],
         summary: 'Get system health thresholds',
@@ -123,7 +154,10 @@ export default async function policyRoutes(fastify: FastifyInstance) {
   fastify.patch<{ Body: z.infer<typeof ThresholdsSchema> }>(
     '/thresholds',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_MANAGE),
+      ],
       schema: {
         body: zodToFastifySchema(ThresholdsSchema),
         tags: ['policies'],

@@ -11,7 +11,7 @@ export class WebhookRetryJob {
     private prisma: PrismaClient,
     private logger: Logger,
     private readonly intervalMs: number = 60000,
-    private readonly maxRetries: number = 5
+    private readonly maxRetries: number = 5,
   ) {}
 
   /**
@@ -28,7 +28,10 @@ export class WebhookRetryJob {
       });
     }, this.intervalMs);
 
-    this.logger.info({ intervalMs: this.intervalMs }, 'Webhook retry job started');
+    this.logger.info(
+      { intervalMs: this.intervalMs },
+      'Webhook retry job started',
+    );
   }
 
   /**
@@ -58,19 +61,19 @@ export class WebhookRetryJob {
         where: {
           status: 'FAILED',
           retryCount: { lt: this.maxRetries },
-          OR: [
-            { nextRetryAt: { lte: now } },
-            { nextRetryAt: null }
-          ]
+          OR: [{ nextRetryAt: { lte: now } }, { nextRetryAt: null }],
         },
         include: {
-          webhook: true
+          webhook: true,
         },
-        take: 50 // Process in batches
+        take: 50, // Process in batches
       });
 
       if (failedDeliveries.length > 0) {
-        this.logger.info({ count: failedDeliveries.length }, 'Processing failed webhook deliveries');
+        this.logger.info(
+          { count: failedDeliveries.length },
+          'Processing failed webhook deliveries',
+        );
       }
 
       for (const delivery of failedDeliveries) {
@@ -90,7 +93,10 @@ export class WebhookRetryJob {
     const { webhook, payload, event } = delivery;
 
     if (!webhook || !webhook.enabled) {
-      this.logger.warn({ deliveryId: delivery.id, webhookId: delivery.webhookId }, 'Webhook disabled or missing, skipping retry');
+      this.logger.warn(
+        { deliveryId: delivery.id, webhookId: delivery.webhookId },
+        'Webhook disabled or missing, skipping retry',
+      );
       return;
     }
 
@@ -104,13 +110,16 @@ export class WebhookRetryJob {
     const { SSRFProtection } = await import('../utils/ssrf-protection.js');
     const isSafe = await SSRFProtection.isSafeUrl(webhook.url);
     if (!isSafe) {
-      this.logger.error({ deliveryId: delivery.id, url: webhook.url }, 'Blocked unsafe webhook URL (SSRF Protection)');
+      this.logger.error(
+        { deliveryId: delivery.id, url: webhook.url },
+        'Blocked unsafe webhook URL (SSRF Protection)',
+      );
       await this.prisma.webhookDelivery.update({
         where: { id: delivery.id },
         data: {
           status: 'FAILED',
-          response: 'Security Error: Unsafe destination URL blocked.'
-        }
+          response: 'Security Error: Unsafe destination URL blocked.',
+        },
       });
       return;
     }
@@ -122,9 +131,9 @@ export class WebhookRetryJob {
           'X-Webhook-Signature': signature,
           'X-Webhook-Event': event,
           'X-Webhook-Delivery-Id': delivery.id,
-          'User-Agent': 'EdgeCloud-Webhook-Manager/2.0'
+          'User-Agent': 'EdgeCloud-Webhook-Manager/2.0',
         },
-        timeout: 10000 // 10s timeout
+        timeout: 10000, // 10s timeout
       });
 
       await this.prisma.webhookDelivery.update({
@@ -132,17 +141,26 @@ export class WebhookRetryJob {
         data: {
           status: 'DELIVERED',
           statusCode: response.status,
-          response: typeof response.data === 'string' ? response.data : JSON.stringify(response.data),
-          deliveredAt: new Date()
-        }
+          response:
+            typeof response.data === 'string'
+              ? response.data
+              : JSON.stringify(response.data),
+          deliveredAt: new Date(),
+        },
       });
 
-      this.logger.info({ deliveryId: delivery.id, webhookId: webhook.id }, 'Webhook delivery successful on retry');
+      this.logger.info(
+        { deliveryId: delivery.id, webhookId: webhook.id },
+        'Webhook delivery successful on retry',
+      );
     } catch (error: any) {
       const nextRetryCount = delivery.retryCount + 1;
       const statusCode = error.response?.status;
       const responseData = error.response?.data;
-      const errorMessage = typeof responseData === 'string' ? responseData : JSON.stringify(responseData) || error.message;
+      const errorMessage =
+        typeof responseData === 'string'
+          ? responseData
+          : JSON.stringify(responseData) || error.message;
 
       if (nextRetryCount >= this.maxRetries) {
         // Max retries exhausted
@@ -153,8 +171,8 @@ export class WebhookRetryJob {
               status: 'DEAD_LETTERED',
               retryCount: nextRetryCount,
               statusCode,
-              response: errorMessage
-            }
+              response: errorMessage,
+            },
           }),
           this.prisma.auditLog.create({
             data: {
@@ -167,13 +185,16 @@ export class WebhookRetryJob {
                 event: delivery.event,
                 finalError: errorMessage,
                 finalStatus: statusCode,
-                attempts: nextRetryCount
-              }
-            }
-          })
+                attempts: nextRetryCount,
+              },
+            },
+          }),
         ]);
 
-        this.logger.error({ deliveryId: delivery.id, webhookId: webhook.id }, 'Webhook delivery exhausted all retries');
+        this.logger.error(
+          { deliveryId: delivery.id, webhookId: webhook.id },
+          'Webhook delivery exhausted all retries',
+        );
       } else {
         // Calculate exponential backoff: 2^retryCount * 60s, capped at 1 hour
         const backoffMinutes = Math.pow(2, nextRetryCount);
@@ -186,13 +207,13 @@ export class WebhookRetryJob {
             retryCount: nextRetryCount,
             nextRetryAt,
             statusCode,
-            response: errorMessage
-          }
+            response: errorMessage,
+          },
         });
 
         this.logger.warn(
           { deliveryId: delivery.id, nextRetryAt, retryCount: nextRetryCount },
-          'Webhook delivery failed, scheduled next retry'
+          'Webhook delivery failed, scheduled next retry',
         );
       }
     }

@@ -1,31 +1,27 @@
-import { env } from './config/env';
-import { 
+import { env } from "./config/env";
+import {
   initTelemetry,
   createLogger,
   createExpressLoggingMiddleware,
   withExtractedContext,
   tracer,
   SpanKind,
-  SpanStatusCode
-} from '@edgecloud/shared-kernel';
-initTelemetry('edge-agent');
+  SpanStatusCode,
+} from "@edgecloud/shared-kernel";
+initTelemetry("edge-agent");
 
-const logger = createLogger('edge-agent');
+const logger = createLogger("edge-agent");
 
-import express from 'express';
-import cors from 'cors';
-import https from 'https';
-import http from 'http';
-import fs from 'fs';
-import 'express-async-errors';
-import si from 'systeminformation';
-import { 
-  CertManager, 
-  verifySignature, 
-  validateTaskPayload 
-} from './security';
-import { DockerSandbox } from './sandbox';
-import { AgentConfig, NodeStats, TaskPayload } from './types';
+import express from "express";
+import cors from "cors";
+import https from "https";
+import http from "http";
+import fs from "fs";
+import "express-async-errors";
+import si from "systeminformation";
+import { CertManager, verifySignature, validateTaskPayload } from "./security";
+import { DockerSandbox } from "./sandbox";
+import { AgentConfig, NodeStats, TaskPayload } from "./types";
 
 const app = express();
 
@@ -61,7 +57,7 @@ async function initConfig() {
     RATE_LIMIT_WINDOW_MS: env.RATE_LIMIT_WINDOW_MS,
     RATE_LIMIT_MAX: env.RATE_LIMIT_MAX,
     REQUEST_SIGNATURE_SECRET: env.REQUEST_SIGNATURE_SECRET,
-    CORS_ORIGINS: env.CORS_ORIGINS.split(','),
+    CORS_ORIGINS: env.CORS_ORIGINS.split(","),
     IMAGE_ALLOWLIST_REGEX: env.IMAGE_ALLOWLIST_REGEX,
     DOCKER_HOST: env.DOCKER_HOST,
   };
@@ -74,13 +70,15 @@ async function initConfig() {
 app.use(createExpressLoggingMiddleware(logger));
 
 // Security Middleware
-app.use(express.json({ limit: '1MB' })); // Payload size limit
+app.use(express.json({ limit: "1MB" })); // Payload size limit
 app.use((req, res, next) => {
-  const signature = req.headers['x-signature'] as string;
-  if (req.method === 'POST' && req.path === '/run-task') {
-    if (!verifySignature(req.body, signature, config.REQUEST_SIGNATURE_SECRET)) {
+  const signature = req.headers["x-signature"] as string;
+  if (req.method === "POST" && req.path === "/run-task") {
+    if (
+      !verifySignature(req.body, signature, config.REQUEST_SIGNATURE_SECRET)
+    ) {
       logger.warn(`Invalid signature on /run-task from ${req.ip}`);
-      res.status(401).json({ error: 'Invalid HMAC signature' });
+      res.status(401).json({ error: "Invalid HMAC signature" });
       return;
     }
   }
@@ -88,11 +86,15 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', nodeId: config.NODE_ID, timestamp: new Date().toISOString() });
+app.get("/health", (req, res) => {
+  res.json({
+    status: "healthy",
+    nodeId: config.NODE_ID,
+    timestamp: new Date().toISOString(),
+  });
 });
 
-app.get('/metrics', async (req, res) => {
+app.get("/metrics", async (req, res) => {
   const [cpu, mem] = await Promise.all([si.currentLoad(), si.mem()]);
   nodeStats.cpuUsage = Math.round(cpu.currentLoad);
   nodeStats.memoryUsage = Math.round((mem.used / mem.total) * 100);
@@ -101,10 +103,10 @@ app.get('/metrics', async (req, res) => {
   res.json({ ...nodeStats, nodeId: config.NODE_ID });
 });
 
-app.post('/run-task', async (req, res) => {
+app.post("/run-task", async (req, res) => {
   await withExtractedContext(req.headers, async () => {
     const payload = req.body as TaskPayload;
-    
+
     const validation = validateTaskPayload(payload, config);
     if (!validation.valid) {
       res.status(400).json({ error: validation.error });
@@ -113,56 +115,64 @@ app.post('/run-task', async (req, res) => {
 
     nodeStats.tasksRunning++;
     logger.info(`Starting task ${payload.taskId} - Image: ${payload.image}`);
-    
-    const result = await tracer.startActiveSpan('agent:run_task', {
-      kind: SpanKind.SERVER,
-      attributes: {
-        'task.id': payload.taskId,
-        'task.image': payload.image,
-        'node.id': config.NODE_ID,
-      }
-    }, async (span) => {
-      try {
-        const res = await sandbox.runTask(payload);
-        span.setStatus({ code: SpanStatusCode.OK });
-        return res;
-      } catch (err: any) {
-        span.recordException(err);
-        span.setStatus({ code: SpanStatusCode.ERROR });
-        throw err;
-      } finally {
-        span.end();
-      }
-    });
-    
+
+    const result = await tracer.startActiveSpan(
+      "agent:run_task",
+      {
+        kind: SpanKind.SERVER,
+        attributes: {
+          "task.id": payload.taskId,
+          "task.image": payload.image,
+          "node.id": config.NODE_ID,
+        },
+      },
+      async (span) => {
+        try {
+          const res = await sandbox.runTask(payload);
+          span.setStatus({ code: SpanStatusCode.OK });
+          return res;
+        } catch (err: any) {
+          span.recordException(err);
+          span.setStatus({ code: SpanStatusCode.ERROR });
+          throw err;
+        } finally {
+          span.end();
+        }
+      },
+    );
+
     nodeStats.tasksRunning--;
-    if (result.status === 'completed') nodeStats.tasksCompleted++; else nodeStats.tasksFailed++;
-    
+    if (result.status === "completed") nodeStats.tasksCompleted++;
+    else nodeStats.tasksFailed++;
+
     res.json(result);
   });
 });
 
 let server: http.Server | https.Server;
 
-app.post('/admin/rotate-cert', async (req, res) => {
+app.post("/admin/rotate-cert", async (req, res) => {
   const { cert, key, ca } = req.body;
   if (!cert || !key) {
-    res.status(400).json({ error: 'Missing cert or key' });
+    res.status(400).json({ error: "Missing cert or key" });
     return;
   }
 
   try {
     certManager.updateCerts(cert, key, ca);
-    
+
     if (config.ENABLE_MTLS && server instanceof https.Server) {
       const options = certManager.getSecureContextOptions();
       if (options) {
         server.setSecureContext(options);
-        logger.info('HTTPS Secure Context hot-swapped successfully');
+        logger.info("HTTPS Secure Context hot-swapped successfully");
       }
     }
-    
-    res.json({ status: 'success', message: 'Certificates updated and hot-swapped.' });
+
+    res.json({
+      status: "success",
+      message: "Certificates updated and hot-swapped.",
+    });
   } catch (err: any) {
     res.status(500).json({ error: err.message });
   }
@@ -175,17 +185,21 @@ export async function startAgent() {
 
   if (config.ENABLE_MTLS) {
     const options = certManager.getSecureContextOptions();
-    if (!options) throw new Error('mTLS enabled but no options generated');
-    
+    if (!options) throw new Error("mTLS enabled but no options generated");
+
     server = https.createServer(options, app);
-    logger.info(`Agent ${config.NODE_ID} starting HTTPS (mTLS) server on port ${config.PORT}`);
+    logger.info(
+      `Agent ${config.NODE_ID} starting HTTPS (mTLS) server on port ${config.PORT}`,
+    );
   } else {
     server = http.createServer(app);
-    logger.info(`Agent ${config.NODE_ID} starting HTTP server on port ${config.PORT}`);
+    logger.info(
+      `Agent ${config.NODE_ID} starting HTTP server on port ${config.PORT}`,
+    );
   }
 
   await new Promise<void>((resolve) => {
-    server.listen(config.PORT, '0.0.0.0', () => {
+    server.listen(config.PORT, "0.0.0.0", () => {
       logger.info(`Agent ${config.NODE_ID} is ready`);
       resolve();
     });
@@ -194,9 +208,9 @@ export async function startAgent() {
   return { server, sandbox, config };
 }
 
-if (env.NODE_ENV !== 'test' && !env.VITEST) {
-  startAgent().catch(err => {
-    logger.fatal('Failed to start agent:', err);
+if (env.NODE_ENV !== "test" && !env.VITEST) {
+  startAgent().catch((err) => {
+    logger.fatal("Failed to start agent:", err);
     process.exit(1);
   });
 }

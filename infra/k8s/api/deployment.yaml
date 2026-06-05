@@ -9,10 +9,10 @@ metadata:
   name: edge-cloud-config
   namespace: edge-cloud-orchestrator
 data:
-  NODE_ENV: 'production'
-  LOG_LEVEL: 'info'
-  REDIS_SENTINELS: 'redis-sentinel:26379'
-  REDIS_SENTINEL_NAME: 'mymaster'
+  NODE_ENV: "production"
+  LOG_LEVEL: "info"
+  REDIS_SENTINELS: "redis-sentinel:26379"
+  REDIS_SENTINEL_NAME: "mymaster"
 
 ---
 apiVersion: v1
@@ -22,10 +22,10 @@ metadata:
   namespace: edge-cloud-orchestrator
 type: Opaque
 stringData:
-  DATABASE_URL: 'EXTERNAL_SECRET_REPLACED'
-  REDIS_PASSWORD: 'EXTERNAL_SECRET_REPLACED'
-  RABBITMQ_URL: 'EXTERNAL_SECRET_REPLACED'
-  JWT_SECRET: 'EXTERNAL_SECRET_REPLACED'
+  DATABASE_URL: "EXTERNAL_SECRET_REPLACED"
+  REDIS_PASSWORD: "EXTERNAL_SECRET_REPLACED"
+  RABBITMQ_URL: "EXTERNAL_SECRET_REPLACED"
+  JWT_SECRET: "EXTERNAL_SECRET_REPLACED"
 
 ---
 apiVersion: apps/v1
@@ -138,7 +138,7 @@ spec:
             - containerPort: 4001
           env:
             - name: ORCHESTRATOR_URL
-              value: 'http://backend:3000/api'
+              value: "http://backend:3000/api"
           volumeMounts:
             - name: docker-sock
               mountPath: /var/run/docker.sock

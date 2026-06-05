@@ -6,7 +6,10 @@
  *   beforeAll(() => configureForProductionTest());
  *   afterAll(() => restoreTestEnvironment(savedEnv));
  */
-export function configureForProductionTest(): Record<string, string | undefined> {
+export function configureForProductionTest(): Record<
+  string,
+  string | undefined
+> {
   const saved = { ...process.env };
 
   // Simulate production environment
@@ -27,7 +30,9 @@ export function configureForProductionTest(): Record<string, string | undefined>
   return saved;
 }
 
-export function restoreTestEnvironment(saved: Record<string, string | undefined>): void {
+export function restoreTestEnvironment(
+  saved: Record<string, string | undefined>,
+): void {
   // Restore all original values
   for (const [key, value] of Object.entries(saved)) {
     if (value === undefined) {

@@ -47,12 +47,9 @@ const retryTaskSchema = z.object({
 
 // Type aliases for route validation (Note: Using 'any' in handlers for now to satisfy complex Fastify/Zod constraints)
 
-
 // ============================================================================
 // Response Type Interfaces
 // ============================================================================
-
-
 
 // ============================================================================
 // Route Implementation
@@ -109,7 +106,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CREATE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CREATE),
+      ],
       schema: {
         body: zodToFastifySchema(createTaskSchema),
         tags: ['tasks'],
@@ -131,7 +131,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
               code: 'NODE_UNAVAILABLE',
               message: 'Node not available',
               requestId: request.id,
-            }
+            },
           });
         }
       }
@@ -186,7 +186,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcastToTenant(task.tenantId as TenantId, 'task:created', task);
+      fastify.wsManager.broadcastToTenant(
+        task.tenantId as TenantId,
+        'task:created',
+        task,
+      );
 
       // Build HATEOAS links
       const taskWithLinks = {
@@ -195,7 +199,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       };
 
       return reply.status(201).send(taskWithLinks);
-    }
+    },
   );
 
   // ==========================================================================
@@ -237,7 +241,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         querystring: zodToFastifySchema(taskQuerySchema),
         tags: ['tasks'],
@@ -306,7 +313,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           last: { href: `/api/v1/tasks?page=${totalPages}&limit=${limit}` },
         },
       };
-    }
+    },
   );
 
   // ==========================================================================
@@ -357,7 +364,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -387,7 +397,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             message: 'Task not found',
             details: { taskId: id },
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -443,7 +453,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/:id/cancel',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CANCEL)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CANCEL),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: zodToFastifySchema(cancelTaskSchema),
@@ -472,7 +485,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             code: 'TASK_NOT_FOUND',
             message: 'Task not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -487,7 +500,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
               allowedTransitions: [],
             },
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -565,11 +578,15 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Broadcast
-      fastify.wsManager.broadcastToTenant(task.tenantId as TenantId, 'task:cancelled', {
-        id,
-        reason,
-        previousStatus,
-      });
+      fastify.wsManager.broadcastToTenant(
+        task.tenantId as TenantId,
+        'task:cancelled',
+        {
+          id,
+          reason,
+          previousStatus,
+        },
+      );
 
       return {
         ...updatedTask,
@@ -579,7 +596,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         execution: updatedExecution,
         _links: buildTaskLinks(id),
       };
-    }
+    },
   );
 
   // ==========================================================================
@@ -631,7 +648,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.post(
     '/:id/retry',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_ADMIN)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_ADMIN),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         body: zodToFastifySchema(retryTaskSchema),
@@ -661,7 +681,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             code: 'TASK_NOT_FOUND',
             message: 'Task not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -676,7 +696,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
               retryableStates,
             },
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -695,7 +715,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
               maxRetries: originalTask.maxRetries,
             },
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -753,13 +773,17 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
 
       // Broadcast
       if (updatedTask) {
-        fastify.wsManager.broadcastToTenant(updatedTask.tenantId as TenantId, 'task:created', updatedTask);
+        fastify.wsManager.broadcastToTenant(
+          updatedTask.tenantId as TenantId,
+          'task:created',
+          updatedTask,
+        );
       }
 
       return reply.status(201).send({
         _links: buildTaskLinks(id),
       });
-    }
+    },
   );
 
   // ==========================================================================
@@ -814,7 +838,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id/logs',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: zodToFastifySchema(taskLogsQuerySchema),
@@ -824,23 +851,16 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
     },
     async (request) => {
       const { id } = request.params as { id: string };
-      const {
-        level,
-        executionId,
-        source,
-        from,
-        to,
-        limit,
-        offset,
-      } = request.query as {
-        level?: string;
-        executionId?: string;
-        source?: string;
-        from?: string;
-        to?: string;
-        limit: number;
-        offset: number;
-      };
+      const { level, executionId, source, from, to, limit, offset } =
+        request.query as {
+          level?: string;
+          executionId?: string;
+          source?: string;
+          from?: string;
+          to?: string;
+          limit: number;
+          offset: number;
+        };
 
       // Verify task exists
       const task = await request.tPrisma.task.findUnique({
@@ -849,7 +869,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       if (!task) {
-        throw { statusCode: 404, message: 'Task not found', code: 'TASK_NOT_FOUND' };
+        throw {
+          statusCode: 404,
+          message: 'Task not found',
+          code: 'TASK_NOT_FOUND',
+        };
       }
 
       const where: any = {
@@ -946,7 +970,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/:id/history',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: zodToFastifySchema(taskHistoryQuerySchema),
@@ -960,7 +987,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
       const { includeExecutions, includeLogs, limit } = request.query;
 
-      const task = await (request.tPrisma).task.findUnique({
+      const task = await request.tPrisma.task.findUnique({
         where: { id },
         include: {
           node: { select: { id: true, name: true, region: true } },
@@ -986,12 +1013,12 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             code: 'TASK_NOT_FOUND',
             message: 'Task not found',
             requestId: request.id,
-          }
+          },
         });
       }
 
       // Build timeline from logs
-      const timelineLogs = await (request.tPrisma).taskLog.findMany({
+      const timelineLogs = await request.tPrisma.taskLog.findMany({
         where: {
           taskId: id,
           source: 'scheduler',
@@ -1031,9 +1058,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           priority: task.priority,
           target: task.target,
           node: task.node,
-          input: (task).input,
-          metadata: (task).metadata,
-          maxRetries: (task).maxRetries,
+          input: task.input,
+          metadata: task.metadata,
+          maxRetries: task.maxRetries,
           submittedAt: task.submittedAt,
         },
         executions: includeExecutions ? executions : [],
@@ -1060,44 +1087,42 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         tags: ['tasks'],
         summary: 'Get task statistics',
       },
     },
     async (request: any) => {
-      const [
-        byStatus,
-        byPriority,
-        byType,
-        avgDuration,
-        recentTasks,
-      ] = await Promise.all([
-        (request.tPrisma).task.groupBy({
-          by: ['status'],
-          _count: true,
-        }),
-        (request.tPrisma).task.groupBy({
-          by: ['priority'],
-          _count: true,
-        }),
-        (request.tPrisma).task.groupBy({
-          by: ['type'],
-          _count: true,
-        }),
-        (request.tPrisma).taskExecution.aggregate({
-          where: { 
-            status: 'COMPLETED'
-          },
-          _avg: { durationMs: true },
-        }),
-        (request.tPrisma).task.count({
-          where: {
-            submittedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
-          },
-        }),
-      ]);
+      const [byStatus, byPriority, byType, avgDuration, recentTasks] =
+        await Promise.all([
+          request.tPrisma.task.groupBy({
+            by: ['status'],
+            _count: true,
+          }),
+          request.tPrisma.task.groupBy({
+            by: ['priority'],
+            _count: true,
+          }),
+          request.tPrisma.task.groupBy({
+            by: ['type'],
+            _count: true,
+          }),
+          request.tPrisma.taskExecution.aggregate({
+            where: {
+              status: 'COMPLETED',
+            },
+            _avg: { durationMs: true },
+          }),
+          request.tPrisma.task.count({
+            where: {
+              submittedAt: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+            },
+          }),
+        ]);
 
       return {
         byStatus: byStatus.reduce(
@@ -1108,11 +1133,16 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           (acc: any, p: any) => ({ ...acc, [p.priority]: p._count }),
           {},
         ),
-        byType: byType.reduce((acc: any, t: any) => ({ ...acc, [t.type]: t._count }), {}),
+        byType: byType.reduce(
+          (acc: any, t: any) => ({ ...acc, [t.type]: t._count }),
+          {},
+        ),
         avgDurationMs: avgDuration._avg.durationMs ?? 0,
         recentTasks24h: recentTasks,
-        queueDepth: byStatus.find((s: any) => s.status === 'PENDING')?._count ?? 0,
-        runningCount: byStatus.find((s: any) => s.status === 'RUNNING')?._count ?? 0,
+        queueDepth:
+          byStatus.find((s: any) => s.status === 'PENDING')?._count ?? 0,
+        runningCount:
+          byStatus.find((s: any) => s.status === 'RUNNING')?._count ?? 0,
       };
     },
   );
@@ -1131,5 +1161,3 @@ function buildTaskLinks(taskId: string) {
     retry: { href: `/api/v1/tasks/${taskId}/retry`, method: 'POST' },
   };
 }
-
-

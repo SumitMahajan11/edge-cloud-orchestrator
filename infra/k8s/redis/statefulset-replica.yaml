@@ -17,54 +17,54 @@ spec:
         role: replica
     spec:
       containers:
-      - name: redis
-        image: bitnami/redis:7.2
-        env:
-        - name: ALLOW_EMPTY_PASSWORD
-          value: "yes"
-        - name: REDIS_REPLICATION_MODE
-          value: replica
-        - name: REDIS_MASTER_HOST
-          value: redis-master
-        ports:
-        - containerPort: 6379
-          name: redis
+        - name: redis
+          image: bitnami/redis:7.2
+          env:
+            - name: ALLOW_EMPTY_PASSWORD
+              value: "yes"
+            - name: REDIS_REPLICATION_MODE
+              value: replica
+            - name: REDIS_MASTER_HOST
+              value: redis-master
+          ports:
+            - containerPort: 6379
+              name: redis
+          resources:
+            requests:
+              cpu: 100m
+              memory: 256Mi
+            limits:
+              cpu: 500m
+              memory: 512Mi
+          livenessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          readinessProbe:
+            exec:
+              command:
+                - redis-cli
+                - ping
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: redis-data
+              mountPath: /bitnami/redis/data
+            - name: config
+              mountPath: /opt/bitnami/redis/conf/redis.conf
+              subPath: redis.conf
+      volumes:
+        - name: config
+          configMap:
+            name: redis-config
+  volumeClaimTemplates:
+    - metadata:
+        name: redis-data
+      spec:
+        accessModes: ["ReadWriteOnce"]
         resources:
           requests:
-            cpu: 100m
-            memory: 256Mi
-          limits:
-            cpu: 500m
-            memory: 512Mi
-        livenessProbe:
-          exec:
-            command:
-            - redis-cli
-            - ping
-          initialDelaySeconds: 30
-          periodSeconds: 10
-        readinessProbe:
-          exec:
-            command:
-            - redis-cli
-            - ping
-          initialDelaySeconds: 5
-          periodSeconds: 10
-        volumeMounts:
-        - name: redis-data
-          mountPath: /bitnami/redis/data
-        - name: config
-          mountPath: /opt/bitnami/redis/conf/redis.conf
-          subPath: redis.conf
-      volumes:
-      - name: config
-        configMap:
-          name: redis-config
-  volumeClaimTemplates:
-  - metadata:
-      name: redis-data
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi
+            storage: 10Gi

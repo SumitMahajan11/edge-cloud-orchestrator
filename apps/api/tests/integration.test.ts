@@ -1,6 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
 
-
 /**
  * Integration Tests for Edge-Cloud Orchestrator
  *

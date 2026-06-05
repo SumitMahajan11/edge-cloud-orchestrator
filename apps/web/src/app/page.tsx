@@ -1,34 +1,34 @@
-'use client'
+"use client";
 
-import { motion } from 'framer-motion'
-import { StatCards } from '@/components/dashboard/StatCards'
-import { SchedulingFeed } from '@/components/dashboard/SchedulingFeed'
-import { NodeMapSection } from '@/components/dashboard/NodeMapSection'
-import { TaskDistributionAndNodeStatus } from '@/components/dashboard/TaskDistributionAndNodeStatus'
-import { RecentActivity } from '@/components/dashboard/RecentActivity'
-import { SystemAlertsBanner } from '@/components/dashboard/SystemAlertsBanner'
-import { useSystemMetrics } from '@/hooks/useMetrics'
-import { useNodes } from '@/hooks/useNodes'
+import { motion } from "framer-motion";
+import { StatCards } from "@/components/dashboard/StatCards";
+import { SchedulingFeed } from "@/components/dashboard/SchedulingFeed";
+import { NodeMapSection } from "@/components/dashboard/NodeMapSection";
+import { TaskDistributionAndNodeStatus } from "@/components/dashboard/TaskDistributionAndNodeStatus";
+import { RecentActivity } from "@/components/dashboard/RecentActivity";
+import { SystemAlertsBanner } from "@/components/dashboard/SystemAlertsBanner";
+import { useSystemMetrics } from "@/hooks/useMetrics";
+import { useNodes } from "@/hooks/useNodes";
 
 /**
  * Mission-control dashboard composed of six sections.
  * Ported from legacy Vite app and optimized for Next.js 14.
  */
 export default function DashboardPage() {
-  const { data: metrics, isLoading: metricsLoading } = useSystemMetrics()
-  const { data: nodes, isLoading: nodesLoading } = useNodes()
+  const { data: metrics, isLoading: metricsLoading } = useSystemMetrics();
+  const { data: nodes, isLoading: nodesLoading } = useNodes();
 
   if (metricsLoading || nodesLoading) {
     return (
       <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
-  if (!metrics || !nodes) return null
+  if (!metrics || !nodes) return null;
 
-  const cpuHistory = metrics.cpuHistory || []
+  const cpuHistory = metrics.cpuHistory || [];
 
   return (
     <motion.div
@@ -57,5 +57,5 @@ export default function DashboardPage() {
       {/* Section E — Recent activity */}
       <RecentActivity />
     </motion.div>
-  )
+  );
 }
