@@ -1,112 +1,88 @@
 # Contributing to Edge-Cloud Orchestrator
 
-Welcome! This document will help you get started with local development.
+## Prerequisites
+- Node.js 20+
+- pnpm 9+
+- Rust stable toolchain
+- Docker Desktop
+- PostgreSQL 15+ (or use Docker Compose)
+- Redis 7+ (or Docker Compose)
 
-## 🚀 Quick Start
+## Getting started
+1. **Clone**:
+   ```bash
+   git clone https://github.com/SumitMahajan11/edge-cloud-orchestrator
+   ```
+2. **Install**:
+   ```bash
+   pnpm install
+   ```
+3. **Copy env**:
+   ```bash
+   cp apps/api/.env.example apps/api/.env
+   ```
+   *Note: Key variables include `DATABASE_URL` (PostgreSQL connection string), `REDIS_URL` (Redis connection string), `JWT_SECRET` (secret key for signing JWT tokens), and `ENCRYPTION_KEY` (32-character key for data encryption).*
+4. **Start deps**:
+   ```bash
+   docker compose -f infra/docker/docker-compose.dev.yml up -d
+   ```
+5. **Run migrations**:
+   ```bash
+   pnpm --filter @edgecloud/api exec prisma migrate dev
+   ```
+6. **Start API**:
+   ```bash
+   pnpm --filter @edgecloud/api dev
+   ```
+7. **Start web**:
+   ```bash
+   pnpm --filter @edgecloud/web dev
+   ```
 
-The fastest way to get started is to use the unified dev script:
+## Running tests
+- **Unit**: `pnpm test`
+- **Contract**: `npx vitest run --project contract`
+- **E2E**: `npx vitest run tests/e2e/`
+- **Integration**: `npx vitest run tests/integration/`
+- **Rust agent**: `cd apps/agent && cargo test`
 
-### Windows
+## Code standards
+- TypeScript strict mode must be enabled; no `any` is allowed except for documented exceptions.
+- **ESLint**: `pnpm lint` (must yield 0 problems before opening a PR).
+- **TSC**: `pnpm typecheck` (must yield 0 source errors).
+- **Pino logger**: always format logs as `logger.info({context}, 'message')` — with the context object as the first parameter.
+- Never import directly between components in `apps/` — use modular code in `packages/` only.
+- Never commit `.env` files, production secrets, `coverage/` outputs, `dist/` builds, or `*.log` files.
 
-```powershell
-./scripts/dev.ps1
-```
+## Branch naming
+- `feature/short-description`
+- `fix/short-description`
+- `chore/short-description`
 
-### Linux / macOS
+## Commit messages
+Follow Conventional Commits:
+- `feat: add carbon intensity endpoint`
+- `fix: correct broadcastToTenant argument order`
+- `chore: update .gitignore`
+- `docs: add v4.2.0 CHANGELOG entry`
 
-```bash
-bash scripts/dev.sh
-```
+## Pull request checklist
+- [ ] pnpm lint passes (0 problems)
+- [ ] pnpm typecheck passes (0 source errors)
+- [ ] pnpm test passes (all suites)
+- [ ] New feature has unit tests
+- [ ] Security-relevant changes have security tests
+- [ ] CHANGELOG.md updated if user-facing
 
-This single command will:
+## Adding a new workspace package
+1. `mkdir packages/my-package`
+2. Copy `packages/shared-kernel/package.json` to use as a template.
+3. Set the name field to `@edgecloud/my-package`.
+4. Add the directory to `pnpm-workspace.yaml`.
+5. Run `pnpm install` to link the new workspace package.
+6. Add a local `tsconfig.json` extending `../../tsconfig.base.json`.
 
-1. Check for prerequisites (Node.js 22, pnpm 9, Docker, Rust).
-2. Set up your `.env` file.
-3. Start infrastructure services (Postgres, Redis, Vault, etc.) via Docker.
-4. Run database migrations and seed realistic data.
-5. Start all applications in parallel watch mode.
-
----
-
-## 🏗 Architecture Overview
-
-- **`apps/api`**: Fastify-based backend. Handles scheduling, orchestration, and API requests.
-- **`apps/web`**: Next.js frontend dashboard.
-- **`apps/agent`**: Rust-based edge agent (runs on edge nodes).
-- **`packages/shared-kernel`**: Shared TypeScript types and utilities.
-- **`packages/ml-scheduler`**: TensorFlow.js based scheduling engine.
-- **`packages/mock-agent`**: Node.js based agent for easy local testing.
-
----
-
-## 🧪 Running Tests
-
-We use Vitest for all TypeScript testing.
-
-### Unit & Integration Tests
-
-```bash
-pnpm test          # Run all unit tests
-pnpm test:integration # Run integration tests (requires infra)
-```
-
-### End-to-End Tests
-
-```bash
-pnpm test:smoke    # Run smoke tests
-```
-
-### Load Tests
-
-```bash
-pnpm test:load     # Run k6 load tests
-```
-
----
-
-## 🛠 Common Workflows
-
-### Adding a New API Endpoint
-
-1. Define the Zod schema for request/response in `apps/api/src/schemas/`.
-2. Create the route handler in `apps/api/src/routes/`.
-3. Register the route in `apps/api/src/index.ts`.
-4. Update the OpenAPI spec: `pnpm --filter @edgecloud/api gen:openapi`.
-
-### Adding a New Database Model
-
-1. Edit `apps/api/prisma/schema.prisma`.
-2. Generate the migration: `pnpm --filter @edgecloud/api migrate`.
-3. Update the seed script in `apps/api/src/database/seed.ts` if needed.
-
----
-
-## 💅 Code Style
-
-- **Linting**: We use ESLint. Run `pnpm lint`.
-- **Formatting**: We use Prettier. Run `pnpm format:write`.
-- Both are enforced via Husky pre-commit hooks.
-
----
-
-## 🐞 Debugging
-
-### VSCode Launch Configurations
-
-Open the **Run and Debug** side bar in VSCode to find pre-configured launch targets for the API and Web applications.
-
-### Log Levels
-
-Adjust log levels via the `LOG_LEVEL` environment variable in your `.env` file:
-
-- `debug`, `info`, `warn`, `error`
-
----
-
-## 🚢 Pull Request Process
-
-1. Create a branch: `git checkout -b feat/your-feature`.
-2. Ensure all tests pass: `pnpm test:all`.
-3. Commit using conventional commits: `feat: add something awesome`.
-4. Open a PR and wait for review.
-5. CI must pass (Lint, Typecheck, Tests) before merging.
+## What must never be committed
+- `.env` files or any file containing real secrets
+- `coverage/`, `dist/`, `target/`, `target_clippy/`
+- `*.log`, `*.tmp`, scratch files, AI session state

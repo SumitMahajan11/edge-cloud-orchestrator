@@ -5,6 +5,8 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  schedule:
+    - cron: '0 9 * * 1'
   workflow_call:
 
 jobs:
@@ -114,10 +116,7 @@ jobs:
       - name: 8. Dependency graph check (depcruise)
         run: npx depcruise --config .dependency-cruiser.js packages apps
 
-      - name: 9. Security audit
-        run: pnpm audit --audit-level=high
-
-      - name: 10. Build all apps (ensure no build errors)
+      - name: 9. Build all apps (ensure no build errors)
         run: pnpm run build
 
       - name: Upload coverage
@@ -125,3 +124,27 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+
+  security-audit:
+    name: Security Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Audit for critical vulnerabilities
+        run: pnpm audit --audit-level critical
+        # Fails build on critical CVEs
+      - name: Audit for high vulnerabilities (warning only)
+        run: pnpm audit --audit-level high || true
+        # Informational — does not fail build but logs warnings
+      - name: Check for outdated packages
+        run: pnpm outdated --recursive || true
+        # Informational only

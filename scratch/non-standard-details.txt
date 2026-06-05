@@ -1,0 +1,198 @@
+[
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\index.ts",
+    "line": 138,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { \r\n        error: 'Authentication required',\r\n        message: 'This endpoint is protected by Default Deny policy.',\r\n        details: error.message\r\n      });\r\n    }\r\n  }",
+    "codeSnippet": "app.addHook('preHandler', async (request, reply) => {\r\n    // 1. Check if route is explicitly marked"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\index.ts",
+    "line": 161,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { \r\n        error: 'Authentication required',\r\n        message: 'This endpoint is protected by Default Deny policy.',\r\n        details: error.message\r\n      }",
+    "codeSnippet": "reply.status(401).send({ \r\n        error: 'Authentication required',\r\n        message: 'This endpoin"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\index.ts",
+    "line": 170,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n      error: 'unsupported_version',\r\n      message: `API version ${requestedVersion} is not supported.`,\r\n      supported: supportedVersions,\r\n    });\r\n  }\r\n\r\n  (request as any).apiVersion = requestedVersion;\r\n}",
+    "codeSnippet": "app.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {\r\n  if (!request |"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\index.ts",
+    "line": 181,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n      error: 'unsupported_version',\r\n      message: `API version ${requestedVersion} is not supported.`,\r\n      supported: supportedVersions,\r\n    }",
+    "codeSnippet": "reply.code(400).send({\r\n      error: 'unsupported_version',\r\n      message: `API version ${requested"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 49,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { error: 'Authentication required' }",
+    "codeSnippet": "reply.status(401).send({ error: 'Authentication required' })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 70,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { error: 'Token issued in the future' }",
+    "codeSnippet": "reply.status(401).send({ error: 'Token issued in the future' })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 79,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { error: 'Access token has been revoked' }",
+    "codeSnippet": "reply.status(401).send({ error: 'Access token has been revoked' })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 98,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { \r\n      error: 'Authentication failed', \r\n      message: error.message,\r\n      // In tests, include more info\r\n      ...(process.env.NODE_ENV === 'test' ? { details: error.message } : {})\r\n    }",
+    "codeSnippet": "reply.status(401).send({ \r\n      error: 'Authentication failed', \r\n      message: error.message,\r\n  "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 110,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { error: 'Authentication required' }",
+    "codeSnippet": "reply.status(401).send({ error: 'Authentication required' })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 126,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 403: expected { error: { code, message, requestId } }, got: { error: 'Insufficient permissions' }",
+    "codeSnippet": "reply.status(403).send({ error: 'Insufficient permissions' })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 134,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: { error: 'Authentication required' }",
+    "codeSnippet": "reply.status(401).send({ error: 'Authentication required' })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\auth.middleware.ts",
+    "line": 153,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 403: expected { error: { code, message, requestId } }, got: { \r\n        error: 'Insufficient permissions',\r\n        code: 'FORBIDDEN',\r\n        required: permission\r\n      }",
+    "codeSnippet": "reply.status(403).send({ \r\n        error: 'Insufficient permissions',\r\n        code: 'FORBIDDEN',\r\n "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\authorize.ts",
+    "line": 36,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Authentication required',\r\n        code: 'AUTH_REQUIRED',\r\n      }",
+    "codeSnippet": "reply.status(401).send({\r\n        error: 'Authentication required',\r\n        code: 'AUTH_REQUIRED',\r"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\authorize.ts",
+    "line": 70,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Authentication required',\r\n        code: 'AUTH_REQUIRED',\r\n      }",
+    "codeSnippet": "reply.status(401).send({\r\n        error: 'Authentication required',\r\n        code: 'AUTH_REQUIRED',\r"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\authorize.ts",
+    "line": 92,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 403: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Insufficient permissions',\r\n        code: 'FORBIDDEN',\r\n        required: permission,\r\n      }",
+    "codeSnippet": "reply.status(403).send({\r\n        error: 'Insufficient permissions',\r\n        code: 'FORBIDDEN',\r\n  "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\authorize.ts",
+    "line": 127,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Authentication required',\r\n        code: 'AUTH_REQUIRED',\r\n      }",
+    "codeSnippet": "reply.status(401).send({\r\n        error: 'Authentication required',\r\n        code: 'AUTH_REQUIRED',\r"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\authorize.ts",
+    "line": 138,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Resource ID required',\r\n        code: 'INVALID_PARAM',\r\n      }",
+    "codeSnippet": "reply.status(400).send({\r\n        error: 'Resource ID required',\r\n        code: 'INVALID_PARAM',\r\n  "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\middleware\\authorize.ts",
+    "line": 147,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 404: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Resource not found',\r\n        code: 'NOT_FOUND',\r\n      }",
+    "codeSnippet": "reply.status(404).send({\r\n        error: 'Resource not found',\r\n        code: 'NOT_FOUND',\r\n      })"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\plugins\\version-negotiation.ts",
+    "line": 23,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n        error: 'unsupported_version',\r\n        message: `API version ${requestedVersion} is not supported.`,\r\n        supported: supportedVersions,\r\n      });\r\n    }\r\n\r\n    // Ensure header matches URL version if both provided\r\n    if (headerVersion && urlVersion && headerVersion !== urlVersion) {\r\n      request.log.warn({ headerVersion, urlVersion }, 'API version mismatch between header and URL');\r\n      \r\n      return reply.code(400).send({\r\n        error: 'version_mismatch',\r\n        message: `API version in X-API-Version header (${headerVersion}) does not match URL version (${urlVersion}).`,\r\n      });\r\n    }\r\n\r\n    // Decorate request with identified version\r\n    request.apiVersion = requestedVersion;\r\n    request.log.debug({ apiVersion: request.apiVersion }, 'Set request.apiVersion');\r\n  }",
+    "codeSnippet": "fastify.addHook('onRequest', async (request: FastifyRequest, reply: FastifyReply) => {\r\n    const he"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\plugins\\version-negotiation.ts",
+    "line": 38,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n        error: 'unsupported_version',\r\n        message: `API version ${requestedVersion} is not supported.`,\r\n        supported: supportedVersions,\r\n      }",
+    "codeSnippet": "reply.code(400).send({\r\n        error: 'unsupported_version',\r\n        message: `API version ${reque"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\plugins\\version-negotiation.ts",
+    "line": 49,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n        error: 'version_mismatch',\r\n        message: `API version in X-API-Version header (${headerVersion}) does not match URL version (${urlVersion}).`,\r\n      }",
+    "codeSnippet": "reply.code(400).send({\r\n        error: 'version_mismatch',\r\n        message: `API version in X-API-V"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\routes\\admin.ts",
+    "line": 600,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 403: expected { error: { code, message, requestId } }, got: { code: 'FORBIDDEN', message: 'Tenant-scoped tokens cannot republish events' }",
+    "codeSnippet": "reply.status(403).send({ code: 'FORBIDDEN', message: 'Tenant-scoped tokens cannot republish events' "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\services\\mtls-authentication.ts",
+    "line": 1109,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Client certificate required',\r\n        code: 'MTLS_REQUIRED',\r\n      });\r\n    }\r\n\r\n    // Validate certificate\r\n    const certPem = `-----BEGIN [REDACTED]-----\\n${clientCert.raw.toString('base64')}\\n-----END [REDACTED]-----`;\r\n    const validation = await validator.validateClientCertificate(certPem);\r\n\r\n    if (!validation.valid) {\r\n      return reply.status(401).send({\r\n        error: 'Invalid client certificate',\r\n        code: 'MTLS_INVALID',\r\n        reason: validation.error,\r\n      });\r\n    }\r\n\r\n    // Attach node identity to request\r\n    (request as FastifyRequest & { node?: { id: string; certificateSerial: string; certificateExpiresAt: Date } }).node = {\r\n      id: validation.nodeId!,\r\n      certificateSerial: validation.serialNumber!,\r\n      certificateExpiresAt: validation.expiresAt!,\r\n    };\r\n  }",
+    "codeSnippet": "fastify.addHook('onRequest', async (request, reply) => {\r\n    // Skip mTLS for health checks and reg"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\services\\mtls-authentication.ts",
+    "line": 1128,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Client certificate required',\r\n        code: 'MTLS_REQUIRED',\r\n      }",
+    "codeSnippet": "reply.status(401).send({\r\n        error: 'Client certificate required',\r\n        code: 'MTLS_REQUIRE"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\services\\mtls-authentication.ts",
+    "line": 1139,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 401: expected { error: { code, message, requestId } }, got: {\r\n        error: 'Invalid client certificate',\r\n        code: 'MTLS_INVALID',\r\n        reason: validation.error,\r\n      }",
+    "codeSnippet": "reply.status(401).send({\r\n        error: 'Invalid client certificate',\r\n        code: 'MTLS_INVALID'"
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\services\\mtls-authentication.ts",
+    "line": 1217,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 403: expected { error: { code, message, requestId } }, got: {\r\n          error: 'Cannot rotate certificate for different node',\r\n        });\r\n      }\r\n\r\n      const body = request.body as { csr: string } | undefined;\r\n      if (!body || !body.csr) {\r\n        return reply.status(400).send({\r\n          error: 'CSR is required',\r\n        });\r\n      }\r\n      const { csr } = body;\r\n      const rotationService = new CertificateRotationService(\r\n        caManager,\r\n        prisma,\r\n        logger,\r\n      );\r\n\r\n      const result = await rotationService.rotateCertificate(\r\n        nodeId,\r\n        csr,\r\n        node.certificateSerial,\r\n      );\r\n\r\n      return reply.send(result);\r\n    },",
+    "codeSnippet": "fastify.post(\r\n    '/api/nodes/:nodeId/certificate/rotate',\r\n    async (request, reply) => {\r\n      "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\services\\mtls-authentication.ts",
+    "line": 1226,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 403: expected { error: { code, message, requestId } }, got: {\r\n          error: 'Cannot rotate certificate for different node',\r\n        }",
+    "codeSnippet": "reply.status(403).send({\r\n          error: 'Cannot rotate certificate for different node',\r\n        "
+  },
+  {
+    "file": "D:\\Projects\\Cloud1\\edge-cloud-orchestrator\\apps\\api\\src\\services\\mtls-authentication.ts",
+    "line": 1233,
+    "type": "non_standard_response",
+    "message": "Non-standard error response for status 400: expected { error: { code, message, requestId } }, got: {\r\n          error: 'CSR is required',\r\n        }",
+    "codeSnippet": "reply.status(400).send({\r\n          error: 'CSR is required',\r\n        })"
+  }
+]

@@ -273,27 +273,3 @@ export async function safeExec(
     });
   });
 }
-
-/**
- * Execute a command and return only stdout (convenience wrapper)
- */
-export async function safeExecOutput(
-  command: string,
-  args: string[],
-  timeoutMs: number = 30000,
-): Promise<string> {
-  const result = await safeExec(command, args, {}, timeoutMs);
-  return result.stdout;
-}
-
-/**
- * Check if a command exists and is executable
- */
-export async function commandExists(command: string): Promise<boolean> {
-  try {
-    await safeExec('which', [command], {}, 5000);
-    return true;
-  } catch {
-    return false;
-  }
-}

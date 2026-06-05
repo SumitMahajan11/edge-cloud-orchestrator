@@ -199,20 +199,6 @@ export async function initializeServices(
   logger.info('Service initialization complete');
 }
 
-/**
- * Get status of all services
- */
-export function getServiceStatus() {
-  return {
-    autoHealer: autoHealer !== null,
-    healthMonitor: healthMonitor !== null,
-    slaMonitor: slaMonitor !== null,
-    costOptimizer: costOptimizer !== null,
-    sagaOrchestrator: sagaOrchestrator !== null,
-    kubernetesOperator: k8sOperator !== null,
-    modelStorage: modelStorage !== null,
-  };
-}
 
 /**
  * Graceful shutdown of services
