@@ -8,6 +8,7 @@
 
 import { FastifyRequest, FastifyReply } from 'fastify';
 import type { UserRole } from '../types/fastify';
+import { RolePermissions, type Permission } from '@edgecloud/shared-kernel';
 
 export class AuthorizationError extends Error {
   constructor(
@@ -86,20 +87,23 @@ export function requirePermissions(...permissions: string[]) {
       return;
     }
 
-    // TODO: Implement permission system when available
-    // For now, rely on role-based checks
-    const userPermissions = (request.user as any).permissions || [];
+    const userPermissions: Permission[] =
+      request.user.permissions?.length
+        ? (request.user.permissions as Permission[])
+        : (RolePermissions as Record<string, Permission[]>)[request.user.role] ?? [];
 
-    const hasPermission = permissions.every((perm) =>
-      userPermissions.includes(perm),
+    const hasPermission = permissions.every((p) =>
+      userPermissions.includes(p as Permission)
     );
 
     if (!hasPermission) {
-      throw new AuthorizationError(
-        `Missing required permissions: ${permissions.join(', ')}`,
-        [],
-        request.user.role,
-      );
+      return reply.status(403).send({
+        error: {
+          code: 'FORBIDDEN',
+          message: 'Insufficient permissions',
+          statusCode: 403,
+        }
+      });
     }
   };
 }

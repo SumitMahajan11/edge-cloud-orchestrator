@@ -40,5 +40,4 @@ const v1Routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(alertRoutes, { prefix: '/alerts' });
 };
 
-export default v1Routes;
 export { v1Routes };
