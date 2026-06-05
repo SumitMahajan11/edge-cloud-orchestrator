@@ -3,81 +3,86 @@
  * Coordinates orchestrators across multiple geographic regions
  */
 
-import type { Task } from '../../types'
-import { logger } from '../logger'
+import type { Task } from "../../types";
+import { logger } from "../logger";
 
 // Types
 export interface Region {
-  id: string
-  name: string
-  location: { latitude: number; longitude: number }
-  timezone: string
-  orchestratorUrl: string
-  status: 'active' | 'degraded' | 'offline'
-  nodeCount: number
-  capacity: RegionCapacity
-  latency: Map<string, number> // Latency to other regions
+  id: string;
+  name: string;
+  location: { latitude: number; longitude: number };
+  timezone: string;
+  orchestratorUrl: string;
+  status: "active" | "degraded" | "offline";
+  nodeCount: number;
+  capacity: RegionCapacity;
+  latency: Map<string, number>; // Latency to other regions
 }
 
 export interface RegionCapacity {
-  totalCpu: number
-  totalMemory: number
-  availableCpu: number
-  availableMemory: number
-  maxTasks: number
-  runningTasks: number
+  totalCpu: number;
+  totalMemory: number;
+  availableCpu: number;
+  availableMemory: number;
+  maxTasks: number;
+  runningTasks: number;
 }
 
 export interface RegionTask {
-  taskId: string
-  sourceRegion: string
-  targetRegion: string
-  status: 'pending' | 'dispatched' | 'acknowledged' | 'completed' | 'failed'
-  dispatchedAt?: number
-  completedAt?: number
-  result?: unknown
+  taskId: string;
+  sourceRegion: string;
+  targetRegion: string;
+  status: "pending" | "dispatched" | "acknowledged" | "completed" | "failed";
+  dispatchedAt?: number;
+  completedAt?: number;
+  result?: unknown;
 }
 
 export interface CrossRegionSync {
-  sourceRegion: string
-  targetRegion: string
-  lastSync: number
-  syncType: 'full' | 'incremental'
-  status: 'syncing' | 'completed' | 'failed'
-  itemsSynced: number
+  sourceRegion: string;
+  targetRegion: string;
+  lastSync: number;
+  syncType: "full" | "incremental";
+  status: "syncing" | "completed" | "failed";
+  itemsSynced: number;
 }
 
 export interface RegionPolicy {
-  name: string
-  dataResidency: string[] // Regions where data must stay
-  failoverRegions: string[] // Preferred failover targets
-  latencyThreshold: number // Max acceptable latency in ms
-  costOptimization: boolean
+  name: string;
+  dataResidency: string[]; // Regions where data must stay
+  failoverRegions: string[]; // Preferred failover targets
+  latencyThreshold: number; // Max acceptable latency in ms
+  costOptimization: boolean;
 }
 
 export interface MultiRegionConfig {
-  localRegion: string
-  syncInterval: number
-  heartbeatInterval: number
-  failoverTimeout: number
-  maxCrossRegionLatency: number
+  localRegion: string;
+  syncInterval: number;
+  heartbeatInterval: number;
+  failoverTimeout: number;
+  maxCrossRegionLatency: number;
 }
 
-type RegionEvent = 'region.added' | 'region.offline' | 'region.failed_over' | 'task.dispatched' | 'sync.completed'
-type RegionCallback = (event: RegionEvent, data: unknown) => void
+type RegionEvent =
+  | "region.added"
+  | "region.offline"
+  | "region.failed_over"
+  | "task.dispatched"
+  | "sync.completed";
+type RegionCallback = (event: RegionEvent, data: unknown) => void;
 
 /**
  * Multi-Region Coordinator
  */
 export class MultiRegionCoordinator {
-  private config: MultiRegionConfig
-  private regions: Map<string, Region> = new Map()
-  private crossRegionTasks: Map<string, RegionTask> = new Map()
-  private syncStatus: Map<string, CrossRegionSync> = new Map()
-  private policies: Map<string, RegionPolicy> = new Map()
-  private callbacks: Map<RegionEvent, Set<RegionCallback>> = new Map()
-  private heartbeatTimer: ReturnType<typeof setInterval> | null = null
-  private syncTimer: ReturnType<typeof setInterval> | null = null
+  private config: MultiRegionConfig;
+  private regions: Map<string, Region> = new Map();
+  private crossRegionTasks: Map<string, RegionTask> = new Map();
+  private syncStatus: Map<string, CrossRegionSync> = new Map();
+  private policies: Map<string, RegionPolicy> = new Map();
+  private callbacks: Map<RegionEvent, Set<RegionCallback>> = new Map();
+  private heartbeatTimer: ReturnType<typeof setInterval> | null = null;
+  private syncTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(config: Partial<MultiRegionConfig> & { localRegion: string }) {
     this.config = {
@@ -86,51 +91,55 @@ export class MultiRegionCoordinator {
       failoverTimeout: 60000,
       maxCrossRegionLatency: 200,
       ...config,
-    }
+    };
   }
 
   /**
    * Register a region
    */
-  registerRegion(region: Omit<Region, 'latency'>): void {
+  registerRegion(region: Omit<Region, "latency">): void {
     const fullRegion: Region = {
       ...region,
       latency: new Map(),
-    }
+    };
 
-    this.regions.set(region.id, fullRegion)
-    this.emit('region.added', region)
+    this.regions.set(region.id, fullRegion);
+    this.emit("region.added", region);
 
-    logger.info('Region registered', {
+    logger.info("Region registered", {
       regionId: region.id,
       name: region.name,
       location: region.location,
-    })
+    });
 
     // Measure latency to other regions
-    void this.measureLatency(region.id)
+    void this.measureLatency(region.id);
   }
 
   /**
    * Measure latency between regions
    */
   private async measureLatency(regionId: string): Promise<void> {
-    const region = this.regions.get(regionId)
-    if (!region) {return}
+    const region = this.regions.get(regionId);
+    if (!region) {
+      return;
+    }
 
     for (const [otherId, otherRegion] of this.regions) {
-      if (otherId === regionId) {continue}
+      if (otherId === regionId) {
+        continue;
+      }
 
       // Simulate latency measurement (in production, would ping actual endpoints)
       const distance = this.calculateDistance(
         region.location,
-        otherRegion.location
-      )
+        otherRegion.location,
+      );
 
       // Rough estimate: 1ms per 200km + base latency
-      const estimatedLatency = Math.round(distance / 200) + 10
-      region.latency.set(otherId, estimatedLatency)
-      otherRegion.latency.set(regionId, estimatedLatency)
+      const estimatedLatency = Math.round(distance / 200) + 10;
+      region.latency.set(otherId, estimatedLatency);
+      otherRegion.latency.set(regionId, estimatedLatency);
     }
   }
 
@@ -139,19 +148,21 @@ export class MultiRegionCoordinator {
    */
   private calculateDistance(
     p1: { latitude: number; longitude: number },
-    p2: { latitude: number; longitude: number }
+    p2: { latitude: number; longitude: number },
   ): number {
-    const R = 6371 // Earth radius in km
-    const dLat = this.toRad(p2.latitude - p1.latitude)
-    const dLon = this.toRad(p2.longitude - p1.longitude)
-    const a = Math.sin(dLat / 2) ** 2 +
-      Math.cos(this.toRad(p1.latitude)) * Math.cos(this.toRad(p2.latitude)) *
-      Math.sin(dLon / 2) ** 2
-    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    const R = 6371; // Earth radius in km
+    const dLat = this.toRad(p2.latitude - p1.latitude);
+    const dLon = this.toRad(p2.longitude - p1.longitude);
+    const a =
+      Math.sin(dLat / 2) ** 2 +
+      Math.cos(this.toRad(p1.latitude)) *
+        Math.cos(this.toRad(p2.latitude)) *
+        Math.sin(dLon / 2) ** 2;
+    return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
   }
 
   private toRad(deg: number): number {
-    return deg * (Math.PI / 180)
+    return deg * (Math.PI / 180);
   }
 
   /**
@@ -159,75 +170,82 @@ export class MultiRegionCoordinator {
    */
   selectRegionForTask(
     task: Task,
-    userLocation?: { latitude: number; longitude: number }
+    userLocation?: { latitude: number; longitude: number },
   ): { regionId: string; reason: string } | null {
-    const policy = this.policies.get(task.type) || this.getDefaultPolicy()
+    const policy = this.policies.get(task.type) || this.getDefaultPolicy();
 
     // Filter active regions
-    const activeRegions = Array.from(this.regions.values())
-      .filter((r) => r.status === 'active')
+    const activeRegions = Array.from(this.regions.values()).filter(
+      (r) => r.status === "active",
+    );
 
     if (activeRegions.length === 0) {
-      logger.warn('No active regions available')
-      return null
+      logger.warn("No active regions available");
+      return null;
     }
 
     // Check data residency constraints
-    let candidates = activeRegions
+    let candidates = activeRegions;
     if (policy.dataResidency.length > 0) {
-      candidates = candidates.filter((r) => policy.dataResidency.includes(r.id))
+      candidates = candidates.filter((r) =>
+        policy.dataResidency.includes(r.id),
+      );
     }
 
     // Check latency threshold
     if (userLocation) {
       candidates = candidates.filter((r) => {
-        const distance = this.calculateDistance(userLocation, r.location)
-        const estimatedLatency = distance / 200 + 10
-        return estimatedLatency <= policy.latencyThreshold
-      })
+        const distance = this.calculateDistance(userLocation, r.location);
+        const estimatedLatency = distance / 200 + 10;
+        return estimatedLatency <= policy.latencyThreshold;
+      });
     }
 
     if (candidates.length === 0) {
       // Fall back to nearest region
       if (userLocation) {
-        const nearest = this.findNearestRegion(userLocation, activeRegions)
-        return nearest ? { regionId: nearest.id, reason: 'Nearest available region' } : null
+        const nearest = this.findNearestRegion(userLocation, activeRegions);
+        return nearest
+          ? { regionId: nearest.id, reason: "Nearest available region" }
+          : null;
       }
-      return { regionId: activeRegions[0]?.id || '', reason: 'Default region' }
+      return { regionId: activeRegions[0]?.id || "", reason: "Default region" };
     }
 
     // Score candidates
     const scored = candidates.map((region) => {
-      let score = 0
+      let score = 0;
 
       // Capacity score
-      const capacityRatio = region.capacity.availableCpu / Math.max(region.capacity.totalCpu, 1)
-      score += capacityRatio * 30
+      const capacityRatio =
+        region.capacity.availableCpu / Math.max(region.capacity.totalCpu, 1);
+      score += capacityRatio * 30;
 
       // Latency score (if user location)
       if (userLocation) {
-        const distance = this.calculateDistance(userLocation, region.location)
-        const latencyScore = Math.max(0, 100 - distance / 50)
-        score += latencyScore * 0.4
+        const distance = this.calculateDistance(userLocation, region.location);
+        const latencyScore = Math.max(0, 100 - distance / 50);
+        score += latencyScore * 0.4;
       }
 
       // Load score
-      const loadRatio = region.capacity.runningTasks / Math.max(region.capacity.maxTasks, 1)
-      score += (1 - loadRatio) * 30
+      const loadRatio =
+        region.capacity.runningTasks / Math.max(region.capacity.maxTasks, 1);
+      score += (1 - loadRatio) * 30;
 
-      return { region, score }
-    })
+      return { region, score };
+    });
 
-    scored.sort((a, b) => b.score - a.score)
-    const best = scored[0]
+    scored.sort((a, b) => b.score - a.score);
+    const best = scored[0];
     if (!best) {
-      return { regionId: activeRegions[0]?.id || '', reason: 'Default region' }
+      return { regionId: activeRegions[0]?.id || "", reason: "Default region" };
     }
 
     return {
       regionId: best.region.id,
       reason: `Best score: ${best.score.toFixed(1)}`,
-    }
+    };
   }
 
   /**
@@ -235,93 +253,119 @@ export class MultiRegionCoordinator {
    */
   private findNearestRegion(
     location: { latitude: number; longitude: number },
-    regions: Region[]
+    regions: Region[],
   ): Region | null {
-    if (regions.length === 0) {return null}
+    if (regions.length === 0) {
+      return null;
+    }
 
-    const first = regions[0]
-    if (!first) {return null}
-    let nearest = first
-    let minDistance = this.calculateDistance(location, first.location)
+    const first = regions[0];
+    if (!first) {
+      return null;
+    }
+    let nearest = first;
+    let minDistance = this.calculateDistance(location, first.location);
 
     for (const region of regions.slice(1)) {
-      const distance = this.calculateDistance(location, region.location)
+      const distance = this.calculateDistance(location, region.location);
       if (distance < minDistance) {
-        minDistance = distance
-        nearest = region
+        minDistance = distance;
+        nearest = region;
       }
     }
 
-    return nearest || null
+    return nearest || null;
   }
 
   /**
    * Dispatch task to another region
    */
-  async dispatchToRegion(task: Task, targetRegionId: string): Promise<RegionTask> {
-    const targetRegion = this.regions.get(targetRegionId)
-    if (!targetRegion || targetRegion.status !== 'active') {
-      throw new Error(`Target region ${targetRegionId} not available`)
+  async dispatchToRegion(
+    task: Task,
+    targetRegionId: string,
+  ): Promise<RegionTask> {
+    const targetRegion = this.regions.get(targetRegionId);
+    if (!targetRegion || targetRegion.status !== "active") {
+      throw new Error(`Target region ${targetRegionId} not available`);
     }
 
     const regionTask: RegionTask = {
       taskId: task.id,
       sourceRegion: this.config.localRegion,
       targetRegion: targetRegionId,
-      status: 'dispatched',
+      status: "dispatched",
       dispatchedAt: Date.now(),
-    }
+    };
 
-    this.crossRegionTasks.set(task.id, regionTask)
-    this.emit('task.dispatched', { taskId: task.id, targetRegion: targetRegionId })
-
-    logger.info('Task dispatched to region', {
+    this.crossRegionTasks.set(task.id, regionTask);
+    this.emit("task.dispatched", {
       taskId: task.id,
       targetRegion: targetRegionId,
-    })
+    });
+
+    logger.info("Task dispatched to region", {
+      taskId: task.id,
+      targetRegion: targetRegionId,
+    });
 
     // Simulate dispatch (in production, would call remote orchestrator)
     setTimeout(() => {
-      regionTask.status = 'acknowledged'
-    }, 100)
+      regionTask.status = "acknowledged";
+    }, 100);
 
-    return regionTask
+    return regionTask;
   }
 
   /**
    * Handle region failure
    */
   async handleRegionFailure(failedRegionId: string): Promise<void> {
-    const failedRegion = this.regions.get(failedRegionId)
-    if (!failedRegion) {return}
+    const failedRegion = this.regions.get(failedRegionId);
+    if (!failedRegion) {
+      return;
+    }
 
-    failedRegion.status = 'offline'
-    this.emit('region.offline', { regionId: failedRegionId })
+    failedRegion.status = "offline";
+    this.emit("region.offline", { regionId: failedRegionId });
 
-    logger.error('Region failure detected', new Error('Region offline'), { regionId: failedRegionId })
+    logger.error("Region failure detected", new Error("Region offline"), {
+      regionId: failedRegionId,
+    });
 
     // Find failover targets
-    const policy = this.policies.get('default') || this.getDefaultPolicy()
+    const policy = this.policies.get("default") || this.getDefaultPolicy();
     const failoverTargets = policy.failoverRegions
       .map((id) => this.regions.get(id))
-      .filter((r) => r && r.status === 'active')
+      .filter((r) => r && r.status === "active");
 
     if (failoverTargets.length === 0) {
-      logger.error('No failover targets available for failed region', new Error('No failover'), { failedRegionId })
-      return
+      logger.error(
+        "No failover targets available for failed region",
+        new Error("No failover"),
+        { failedRegionId },
+      );
+      return;
     }
 
     // Migrate tasks from failed region
-    const affectedTasks = Array.from(this.crossRegionTasks.values())
-      .filter((t) => t.targetRegion === failedRegionId && t.status !== 'completed')
+    const affectedTasks = Array.from(this.crossRegionTasks.values()).filter(
+      (t) => t.targetRegion === failedRegionId && t.status !== "completed",
+    );
 
     for (const task of affectedTasks) {
-      const target = failoverTargets[0]
+      const target = failoverTargets[0];
       if (target) {
-        task.targetRegion = target.id
-        task.status = 'dispatched'
-        this.emit('region.failed_over', { taskId: task.taskId, fromRegion: failedRegionId, toRegion: target.id })
-        logger.info('Task failed over', { taskId: task.taskId, toRegion: target.id })
+        task.targetRegion = target.id;
+        task.status = "dispatched";
+        this.emit("region.failed_over", {
+          taskId: task.taskId,
+          fromRegion: failedRegionId,
+          toRegion: target.id,
+        });
+        logger.info("Task failed over", {
+          taskId: task.taskId,
+          toRegion: target.id,
+        });
       }
     }
   }
@@ -331,50 +375,57 @@ export class MultiRegionCoordinator {
    */
   private getDefaultPolicy(): RegionPolicy {
     return {
-      name: 'default',
+      name: "default",
       dataResidency: [],
-      failoverRegions: Array.from(this.regions.keys()).filter((id) => id !== this.config.localRegion),
+      failoverRegions: Array.from(this.regions.keys()).filter(
+        (id) => id !== this.config.localRegion,
+      ),
       latencyThreshold: this.config.maxCrossRegionLatency,
       costOptimization: false,
-    }
+    };
   }
 
   /**
    * Set region policy
    */
   setPolicy(taskType: string, policy: RegionPolicy): void {
-    this.policies.set(taskType, policy)
-    logger.info('Region policy set', { taskType, policy: policy.name })
+    this.policies.set(taskType, policy);
+    logger.info("Region policy set", { taskType, policy: policy.name });
   }
 
   /**
    * Get region info
    */
   getRegion(regionId: string): Region | undefined {
-    return this.regions.get(regionId)
+    return this.regions.get(regionId);
   }
 
   /**
    * Get all regions
    */
   getAllRegions(): Region[] {
-    return Array.from(this.regions.values())
+    return Array.from(this.regions.values());
   }
 
   /**
    * Get active regions
    */
   getActiveRegions(): Region[] {
-    return Array.from(this.regions.values()).filter((r) => r.status === 'active')
+    return Array.from(this.regions.values()).filter(
+      (r) => r.status === "active",
+    );
   }
 
   /**
    * Update region capacity
    */
-  updateRegionCapacity(regionId: string, capacity: Partial<RegionCapacity>): void {
-    const region = this.regions.get(regionId)
+  updateRegionCapacity(
+    regionId: string,
+    capacity: Partial<RegionCapacity>,
+  ): void {
+    const region = this.regions.get(regionId);
     if (region) {
-      region.capacity = { ...region.capacity, ...capacity }
+      region.capacity = { ...region.capacity, ...capacity };
     }
   }
 
@@ -382,14 +433,14 @@ export class MultiRegionCoordinator {
    * Get cross-region task status
    */
   getCrossRegionTask(taskId: string): RegionTask | undefined {
-    return this.crossRegionTasks.get(taskId)
+    return this.crossRegionTasks.get(taskId);
   }
 
   /**
    * Get sync status
    */
   getSyncStatus(): CrossRegionSync[] {
-    return Array.from(this.syncStatus.values())
+    return Array.from(this.syncStatus.values());
   }
 
   /**
@@ -398,13 +449,13 @@ export class MultiRegionCoordinator {
   startMonitoring(): void {
     // Heartbeat timer
     this.heartbeatTimer = setInterval(() => {
-      this.checkRegionHealth()
-    }, this.config.heartbeatInterval)
+      this.checkRegionHealth();
+    }, this.config.heartbeatInterval);
 
     // Sync timer
     this.syncTimer = setInterval(() => {
-      this.syncRegions()
-    }, this.config.syncInterval)
+      this.syncRegions();
+    }, this.config.syncInterval);
   }
 
   /**
@@ -412,12 +463,12 @@ export class MultiRegionCoordinator {
    */
   stopMonitoring(): void {
     if (this.heartbeatTimer) {
-      clearInterval(this.heartbeatTimer)
-      this.heartbeatTimer = null
+      clearInterval(this.heartbeatTimer);
+      this.heartbeatTimer = null;
     }
     if (this.syncTimer) {
-      clearInterval(this.syncTimer)
-      this.syncTimer = null
+      clearInterval(this.syncTimer);
+      this.syncTimer = null;
     }
   }
 
@@ -426,13 +477,15 @@ export class MultiRegionCoordinator {
    */
   private checkRegionHealth(): void {
     for (const region of this.regions.values()) {
-      if (region.id === this.config.localRegion) {continue}
+      if (region.id === this.config.localRegion) {
+        continue;
+      }
 
       // Simulate health check (in production, would ping actual endpoints)
-      const isHealthy = Math.random() > 0.05 // 95% uptime simulation
+      const isHealthy = Math.random() > 0.05; // 95% uptime simulation
 
-      if (!isHealthy && region.status === 'active') {
-        void this.handleRegionFailure(region.id)
+      if (!isHealthy && region.status === "active") {
+        void this.handleRegionFailure(region.id);
       }
     }
   }
@@ -442,26 +495,30 @@ export class MultiRegionCoordinator {
    */
   private syncRegions(): void {
     for (const region of this.regions.values()) {
-      if (region.id === this.config.localRegion) {continue}
-      if (region.status !== 'active') {continue}
+      if (region.id === this.config.localRegion) {
+        continue;
+      }
+      if (region.status !== "active") {
+        continue;
+      }
 
       const sync: CrossRegionSync = {
         sourceRegion: this.config.localRegion,
         targetRegion: region.id,
         lastSync: Date.now(),
-        syncType: 'incremental',
-        status: 'syncing',
+        syncType: "incremental",
+        status: "syncing",
         itemsSynced: 0,
-      }
+      };
 
-      this.syncStatus.set(`${this.config.localRegion}-${region.id}`, sync)
+      this.syncStatus.set(`${this.config.localRegion}-${region.id}`, sync);
 
       // Simulate sync (in production, would send actual data)
       setTimeout(() => {
-        sync.status = 'completed'
-        sync.itemsSynced = Math.floor(Math.random() * 100)
-        this.emit('sync.completed', sync)
-      }, 100)
+        sync.status = "completed";
+        sync.itemsSynced = Math.floor(Math.random() * 100);
+        this.emit("sync.completed", sync);
+      }, 100);
     }
   }
 
@@ -469,24 +526,28 @@ export class MultiRegionCoordinator {
    * Get statistics
    */
   getStats(): {
-    totalRegions: number
-    activeRegions: number
-    offlineRegions: number
-    crossRegionTasks: number
-    avgLatency: number
+    totalRegions: number;
+    activeRegions: number;
+    offlineRegions: number;
+    crossRegionTasks: number;
+    avgLatency: number;
   } {
-    let active = 0
-    let offline = 0
-    let totalLatency = 0
-    let latencyCount = 0
+    let active = 0;
+    let offline = 0;
+    let totalLatency = 0;
+    let latencyCount = 0;
 
     for (const region of this.regions.values()) {
-      if (region.status === 'active') {active++}
-      if (region.status === 'offline') {offline++}
+      if (region.status === "active") {
+        active++;
+      }
+      if (region.status === "offline") {
+        offline++;
+      }
 
       for (const latency of region.latency.values()) {
-        totalLatency += latency
-        latencyCount++
+        totalLatency += latency;
+        latencyCount++;
       }
     }
 
@@ -496,7 +557,7 @@ export class MultiRegionCoordinator {
       offlineRegions: offline,
       crossRegionTasks: this.crossRegionTasks.size,
       avgLatency: latencyCount > 0 ? totalLatency / latencyCount : 0,
-    }
+    };
   }
 
   /**
@@ -504,32 +565,36 @@ export class MultiRegionCoordinator {
    */
   on(event: RegionEvent, callback: RegionCallback): () => void {
     if (!this.callbacks.has(event)) {
-      this.callbacks.set(event, new Set())
+      this.callbacks.set(event, new Set());
     }
-    this.callbacks.get(event)!.add(callback)
+    this.callbacks.get(event)!.add(callback);
 
     return () => {
-      this.callbacks.get(event)?.delete(callback)
-    }
+      this.callbacks.get(event)?.delete(callback);
+    };
   }
 
   private emit(event: RegionEvent, data: unknown): void {
     this.callbacks.get(event)?.forEach((cb) => {
       try {
-        cb(event, data)
+        cb(event, data);
       } catch (error) {
-        logger.error('Multi-region callback error', error as Error)
+        logger.error("Multi-region callback error", error as Error);
       }
-    })
+    });
   }
 }
 
 /**
  * Create multi-region coordinator
  */
-export function createMultiRegionCoordinator(config: Partial<MultiRegionConfig> & { localRegion: string }): MultiRegionCoordinator {
-  return new MultiRegionCoordinator(config)
+export function createMultiRegionCoordinator(
+  config: Partial<MultiRegionConfig> & { localRegion: string },
+): MultiRegionCoordinator {
+  return new MultiRegionCoordinator(config);
 }
 
 // Default instance
-export const multiRegionCoordinator = new MultiRegionCoordinator({ localRegion: 'us-east' })
+export const multiRegionCoordinator = new MultiRegionCoordinator({
+  localRegion: "us-east",
+});

@@ -14,12 +14,12 @@ paths:
   /health/redis:
     get:
       responses:
-        "200":
+        '200':
           description: Default Response
   /ws:
     get:
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/auth/register:
     post:
@@ -39,9 +39,9 @@ paths:
                   type: string
                   minLength: 8
                   allOf:
-                    - pattern: "[A-Z]"
-                    - pattern: "[a-z]"
-                    - pattern: "[0-9]"
+                    - pattern: '[A-Z]'
+                    - pattern: '[a-z]'
+                    - pattern: '[0-9]'
                 name:
                   type: string
                   minLength: 2
@@ -53,7 +53,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/auth/login:
     post:
@@ -78,7 +78,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/auth/refresh:
     post:
@@ -99,7 +99,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/auth/logout:
     post:
@@ -107,7 +107,7 @@ paths:
       tags:
         - auth
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -122,7 +122,7 @@ paths:
       tags:
         - auth
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -199,7 +199,7 @@ paths:
           name: sortOrder
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -349,7 +349,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "201":
+        '201':
           description: Default Response
           content:
             application/json:
@@ -416,7 +416,7 @@ paths:
                   - specs
                   - lastHeartbeat
                 additionalProperties: false
-        "409":
+        '409':
           description: Default Response
           content:
             application/json:
@@ -438,7 +438,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -505,7 +505,7 @@ paths:
                   - specs
                   - lastHeartbeat
                 additionalProperties: false
-        "404":
+        '404':
           description: Default Response
           content:
             application/json:
@@ -567,7 +567,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
     delete:
       summary: Deregister an edge node
@@ -581,7 +581,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/nodes/{id}/heartbeat:
     post:
@@ -620,7 +620,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/nodes/{id}/metrics:
     get:
@@ -653,7 +653,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/nodes/{id}/maintenance:
     post:
@@ -679,7 +679,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/nodes/{id}/scheduling-history:
     get:
@@ -700,7 +700,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/tasks/:
     get:
@@ -792,7 +792,7 @@ paths:
           name: to
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -828,7 +828,7 @@ paths:
                                 - not: {}
                                 - type: string
                                   format: uuid
-                            - type: "null"
+                            - type: 'null'
                         submittedAt:
                           type: string
                           format: date-time
@@ -838,20 +838,20 @@ paths:
                                 - not: {}
                                 - type: string
                                   format: date-time
-                            - type: "null"
+                            - type: 'null'
                         completedAt:
                           anyOf:
                             - anyOf:
                                 - not: {}
                                 - type: string
                                   format: date-time
-                            - type: "null"
+                            - type: 'null'
                         error:
                           anyOf:
                             - anyOf:
                                 - not: {}
                                 - type: string
-                            - type: "null"
+                            - type: 'null'
                         metadata:
                           type: object
                           additionalProperties: {}
@@ -947,7 +947,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "201":
+        '201':
           description: Default Response
           content:
             application/json:
@@ -978,7 +978,7 @@ paths:
                           - not: {}
                           - type: string
                             format: uuid
-                      - type: "null"
+                      - type: 'null'
                   submittedAt:
                     type: string
                     format: date-time
@@ -988,20 +988,20 @@ paths:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   completedAt:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   error:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
-                      - type: "null"
+                      - type: 'null'
                   metadata:
                     type: object
                     additionalProperties: {}
@@ -1013,7 +1013,7 @@ paths:
                   - priority
                   - submittedAt
                 additionalProperties: false
-        "409":
+        '409':
           description: Default Response
           content:
             application/json:
@@ -1035,7 +1035,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -1066,7 +1066,7 @@ paths:
                           - not: {}
                           - type: string
                             format: uuid
-                      - type: "null"
+                      - type: 'null'
                   submittedAt:
                     type: string
                     format: date-time
@@ -1076,20 +1076,20 @@ paths:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   completedAt:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   error:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
-                      - type: "null"
+                      - type: 'null'
                   metadata:
                     type: object
                     additionalProperties: {}
@@ -1101,7 +1101,7 @@ paths:
                   - priority
                   - submittedAt
                 additionalProperties: false
-        "404":
+        '404':
           description: Default Response
           content:
             application/json:
@@ -1123,7 +1123,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/tasks/{id}/cancel:
     post:
@@ -1138,7 +1138,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/tasks/{id}/retry:
     post:
@@ -1153,7 +1153,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/tasks/{id}/logs:
     get:
@@ -1179,7 +1179,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/tasks/stats:
     get:
@@ -1187,7 +1187,7 @@ paths:
       tags:
         - tasks
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/workflows/:
     get:
@@ -1195,7 +1195,7 @@ paths:
       tags:
         - workflows
       responses:
-        "200":
+        '200':
           description: Default Response
     post:
       summary: Create a new workflow
@@ -1306,7 +1306,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/workflows/{id}:
     get:
@@ -1321,7 +1321,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/workflows/{id}/execute:
     post:
@@ -1346,7 +1346,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/workflows/executions/{executionId}:
     get:
@@ -1360,7 +1360,7 @@ paths:
           name: executionId
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/webhooks/:
     get:
@@ -1368,7 +1368,7 @@ paths:
       tags:
         - webhooks
       responses:
-        "200":
+        '200':
           description: Default Response
     post:
       summary: Create a webhook
@@ -1406,7 +1406,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/webhooks/{id}:
     patch:
@@ -1446,7 +1446,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
     delete:
       summary: Delete a webhook
@@ -1460,7 +1460,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/webhooks/{id}/deliveries:
     get:
@@ -1481,7 +1481,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/webhooks/{id}/redeliver/{deliveryId}:
     post:
@@ -1500,7 +1500,7 @@ paths:
           name: deliveryId
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/metrics/system:
     get:
@@ -1508,7 +1508,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/metrics/:
     get:
@@ -1516,7 +1516,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/metrics/requests:
     get:
@@ -1524,7 +1524,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/metrics/nodes:
     get:
@@ -1532,7 +1532,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/metrics/prometheus:
     get:
@@ -1541,7 +1541,7 @@ paths:
         - metrics
       description: Returns metrics in Prometheus exposition format
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/fl/models:
     get:
@@ -1549,7 +1549,7 @@ paths:
       tags:
         - federated-learning
       responses:
-        "200":
+        '200':
           description: Default Response
     post:
       summary: Register a FL model
@@ -1588,7 +1588,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/fl/models/{id}:
     get:
@@ -1603,7 +1603,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/fl/models/{id}/weights:
     post:
@@ -1618,7 +1618,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
     get:
       summary: Download weights for a FL model
@@ -1632,7 +1632,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/fl/sessions:
     post:
@@ -1701,7 +1701,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/fl/sessions/{id}:
     get:
@@ -1716,7 +1716,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/fl/sessions/{id}/stop:
     post:
@@ -1731,7 +1731,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/cost/summary:
     get:
@@ -1739,7 +1739,7 @@ paths:
       tags:
         - cost
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/cost/records:
     get:
@@ -1782,7 +1782,7 @@ paths:
           name: granularity
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/cost/by-node:
     get:
@@ -1790,7 +1790,7 @@ paths:
       tags:
         - cost
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/cost/projections:
     get:
@@ -1798,7 +1798,7 @@ paths:
       tags:
         - cost
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/carbon/summary:
     get:
@@ -1806,7 +1806,7 @@ paths:
       tags:
         - carbon
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/carbon/metrics:
     get:
@@ -1843,7 +1843,7 @@ paths:
           name: granularity
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/carbon/by-region:
     get:
@@ -1851,7 +1851,7 @@ paths:
       tags:
         - carbon
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/carbon/record:
     post:
@@ -1880,7 +1880,7 @@ paths:
                 - carbonKg
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/audit-logs:
     get:
@@ -1905,7 +1905,7 @@ paths:
           name: limit
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/users:
     get:
@@ -1913,7 +1913,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/users/{id}/role:
     patch:
@@ -1942,7 +1942,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/users/{id}/deactivate:
     post:
@@ -1956,7 +1956,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/health:
     get:
@@ -1964,7 +1964,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/cleanup:
     post:
@@ -1988,7 +1988,7 @@ paths:
                 - types
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/ml/retrain:
     post:
@@ -1996,7 +1996,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/dlq/stats:
     get:
@@ -2004,7 +2004,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/dlq/events:
     get:
@@ -2040,7 +2040,7 @@ paths:
           name: offset
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/dlq/events/{id}/retry:
     post:
@@ -2054,7 +2054,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/admin/dlq/purge:
     post:
@@ -2071,7 +2071,7 @@ paths:
                   type: number
                   default: 7
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/alerts/:
     get:
@@ -2089,14 +2089,14 @@ paths:
           name: severity
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
     delete:
       summary: Clear alert history
       tags:
         - alerts
       responses:
-        "200":
+        '200':
           description: Default Response
   /v1/alerts/test:
     post:
@@ -2125,7 +2125,7 @@ paths:
                   type: string
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/auth/register:
     post:
@@ -2145,9 +2145,9 @@ paths:
                   type: string
                   minLength: 8
                   allOf:
-                    - pattern: "[A-Z]"
-                    - pattern: "[a-z]"
-                    - pattern: "[0-9]"
+                    - pattern: '[A-Z]'
+                    - pattern: '[a-z]'
+                    - pattern: '[0-9]'
                 name:
                   type: string
                   minLength: 2
@@ -2159,7 +2159,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/auth/login:
     post:
@@ -2184,7 +2184,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/auth/refresh:
     post:
@@ -2205,7 +2205,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/auth/logout:
     post:
@@ -2213,7 +2213,7 @@ paths:
       tags:
         - auth
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -2228,7 +2228,7 @@ paths:
       tags:
         - auth
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -2305,7 +2305,7 @@ paths:
           name: sortOrder
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -2455,7 +2455,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "201":
+        '201':
           description: Default Response
           content:
             application/json:
@@ -2522,7 +2522,7 @@ paths:
                   - specs
                   - lastHeartbeat
                 additionalProperties: false
-        "409":
+        '409':
           description: Default Response
           content:
             application/json:
@@ -2544,7 +2544,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -2611,7 +2611,7 @@ paths:
                   - specs
                   - lastHeartbeat
                 additionalProperties: false
-        "404":
+        '404':
           description: Default Response
           content:
             application/json:
@@ -2673,7 +2673,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
     delete:
       summary: Deregister an edge node
@@ -2687,7 +2687,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/nodes/{id}/heartbeat:
     post:
@@ -2726,7 +2726,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/nodes/{id}/metrics:
     get:
@@ -2759,7 +2759,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/nodes/{id}/maintenance:
     post:
@@ -2785,7 +2785,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/nodes/{id}/scheduling-history:
     get:
@@ -2806,7 +2806,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/tasks/:
     get:
@@ -2898,7 +2898,7 @@ paths:
           name: to
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -2934,7 +2934,7 @@ paths:
                                 - not: {}
                                 - type: string
                                   format: uuid
-                            - type: "null"
+                            - type: 'null'
                         submittedAt:
                           type: string
                           format: date-time
@@ -2944,20 +2944,20 @@ paths:
                                 - not: {}
                                 - type: string
                                   format: date-time
-                            - type: "null"
+                            - type: 'null'
                         completedAt:
                           anyOf:
                             - anyOf:
                                 - not: {}
                                 - type: string
                                   format: date-time
-                            - type: "null"
+                            - type: 'null'
                         error:
                           anyOf:
                             - anyOf:
                                 - not: {}
                                 - type: string
-                            - type: "null"
+                            - type: 'null'
                         metadata:
                           type: object
                           additionalProperties: {}
@@ -3053,7 +3053,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "201":
+        '201':
           description: Default Response
           content:
             application/json:
@@ -3084,7 +3084,7 @@ paths:
                           - not: {}
                           - type: string
                             format: uuid
-                      - type: "null"
+                      - type: 'null'
                   submittedAt:
                     type: string
                     format: date-time
@@ -3094,20 +3094,20 @@ paths:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   completedAt:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   error:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
-                      - type: "null"
+                      - type: 'null'
                   metadata:
                     type: object
                     additionalProperties: {}
@@ -3119,7 +3119,7 @@ paths:
                   - priority
                   - submittedAt
                 additionalProperties: false
-        "409":
+        '409':
           description: Default Response
           content:
             application/json:
@@ -3141,7 +3141,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -3172,7 +3172,7 @@ paths:
                           - not: {}
                           - type: string
                             format: uuid
-                      - type: "null"
+                      - type: 'null'
                   submittedAt:
                     type: string
                     format: date-time
@@ -3182,20 +3182,20 @@ paths:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   completedAt:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
                             format: date-time
-                      - type: "null"
+                      - type: 'null'
                   error:
                     anyOf:
                       - anyOf:
                           - not: {}
                           - type: string
-                      - type: "null"
+                      - type: 'null'
                   metadata:
                     type: object
                     additionalProperties: {}
@@ -3207,7 +3207,7 @@ paths:
                   - priority
                   - submittedAt
                 additionalProperties: false
-        "404":
+        '404':
           description: Default Response
           content:
             application/json:
@@ -3229,7 +3229,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/tasks/{id}/cancel:
     post:
@@ -3244,7 +3244,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/tasks/{id}/retry:
     post:
@@ -3259,7 +3259,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/tasks/{id}/logs:
     get:
@@ -3285,7 +3285,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/tasks/stats:
     get:
@@ -3293,7 +3293,7 @@ paths:
       tags:
         - tasks
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/workflows/:
     get:
@@ -3301,7 +3301,7 @@ paths:
       tags:
         - workflows
       responses:
-        "200":
+        '200':
           description: Default Response
     post:
       summary: Create a new workflow
@@ -3412,7 +3412,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/workflows/{id}:
     get:
@@ -3427,7 +3427,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/workflows/{id}/execute:
     post:
@@ -3452,7 +3452,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/workflows/executions/{executionId}:
     get:
@@ -3466,7 +3466,7 @@ paths:
           name: executionId
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/webhooks/:
     get:
@@ -3474,7 +3474,7 @@ paths:
       tags:
         - webhooks
       responses:
-        "200":
+        '200':
           description: Default Response
     post:
       summary: Create a webhook
@@ -3512,7 +3512,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/webhooks/{id}:
     patch:
@@ -3552,7 +3552,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
     delete:
       summary: Delete a webhook
@@ -3566,7 +3566,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/webhooks/{id}/deliveries:
     get:
@@ -3587,7 +3587,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/webhooks/{id}/redeliver/{deliveryId}:
     post:
@@ -3606,7 +3606,7 @@ paths:
           name: deliveryId
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/metrics/system:
     get:
@@ -3614,7 +3614,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/metrics/:
     get:
@@ -3622,7 +3622,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/metrics/requests:
     get:
@@ -3630,7 +3630,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/metrics/nodes:
     get:
@@ -3638,7 +3638,7 @@ paths:
       tags:
         - metrics
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/metrics/prometheus:
     get:
@@ -3647,7 +3647,7 @@ paths:
         - metrics
       description: Returns metrics in Prometheus exposition format
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/fl/models:
     get:
@@ -3655,7 +3655,7 @@ paths:
       tags:
         - federated-learning
       responses:
-        "200":
+        '200':
           description: Default Response
     post:
       summary: Register a FL model
@@ -3694,7 +3694,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/fl/models/{id}:
     get:
@@ -3709,7 +3709,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/fl/models/{id}/weights:
     post:
@@ -3724,7 +3724,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
     get:
       summary: Download weights for a FL model
@@ -3738,7 +3738,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/fl/sessions:
     post:
@@ -3807,7 +3807,7 @@ paths:
               additionalProperties: false
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/fl/sessions/{id}:
     get:
@@ -3822,7 +3822,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/fl/sessions/{id}/stop:
     post:
@@ -3837,7 +3837,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/cost/summary:
     get:
@@ -3845,7 +3845,7 @@ paths:
       tags:
         - cost
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/cost/records:
     get:
@@ -3888,7 +3888,7 @@ paths:
           name: granularity
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/cost/by-node:
     get:
@@ -3896,7 +3896,7 @@ paths:
       tags:
         - cost
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/cost/projections:
     get:
@@ -3904,7 +3904,7 @@ paths:
       tags:
         - cost
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/carbon/summary:
     get:
@@ -3912,7 +3912,7 @@ paths:
       tags:
         - carbon
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/carbon/metrics:
     get:
@@ -3949,7 +3949,7 @@ paths:
           name: granularity
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/carbon/by-region:
     get:
@@ -3957,7 +3957,7 @@ paths:
       tags:
         - carbon
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/carbon/record:
     post:
@@ -3986,7 +3986,7 @@ paths:
                 - carbonKg
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/audit-logs:
     get:
@@ -4011,7 +4011,7 @@ paths:
           name: limit
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/users:
     get:
@@ -4019,7 +4019,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/users/{id}/role:
     patch:
@@ -4048,7 +4048,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/users/{id}/deactivate:
     post:
@@ -4062,7 +4062,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/health:
     get:
@@ -4070,7 +4070,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/cleanup:
     post:
@@ -4094,7 +4094,7 @@ paths:
                 - types
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/ml/retrain:
     post:
@@ -4102,7 +4102,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/dlq/stats:
     get:
@@ -4110,7 +4110,7 @@ paths:
       tags:
         - admin
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/dlq/events:
     get:
@@ -4146,7 +4146,7 @@ paths:
           name: offset
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/dlq/events/{id}/retry:
     post:
@@ -4160,7 +4160,7 @@ paths:
           name: id
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/admin/dlq/purge:
     post:
@@ -4177,7 +4177,7 @@ paths:
                   type: number
                   default: 7
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/alerts/:
     get:
@@ -4195,14 +4195,14 @@ paths:
           name: severity
           required: false
       responses:
-        "200":
+        '200':
           description: Default Response
     delete:
       summary: Clear alert history
       tags:
         - alerts
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/alerts/test:
     post:
@@ -4231,12 +4231,12 @@ paths:
                   type: string
         required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /v2/status:
     get:
       responses:
-        "200":
+        '200':
           description: Default Response
   /{*}:
     get:
@@ -4244,10 +4244,10 @@ paths:
         - schema:
             type: string
           in: path
-          name: "*"
+          name: '*'
           required: true
       responses:
-        "200":
+        '200':
           description: Default Response
   /health:
     get:
@@ -4255,7 +4255,7 @@ paths:
       tags:
         - system
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -4274,7 +4274,7 @@ paths:
       tags:
         - system
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -4289,7 +4289,7 @@ paths:
                     type: string
                   reason:
                     type: string
-        "503":
+        '503':
           description: Default Response
           content:
             application/json:
@@ -4308,7 +4308,7 @@ paths:
       tags:
         - system
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -4332,7 +4332,7 @@ paths:
       tags:
         - system
       responses:
-        "200":
+        '200':
           description: Default Response
           content:
             application/json:
@@ -4346,7 +4346,7 @@ paths:
   /version:
     get:
       responses:
-        "200":
+        '200':
           description: Default Response
 servers:
   - url: http://localhost:3090

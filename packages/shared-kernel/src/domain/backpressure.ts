@@ -1,4 +1,4 @@
-import { BackpressureDecision, Priority, SystemLoad } from '../types/domain.js';
+import { BackpressureDecision, Priority, SystemLoad } from "../types/domain.js";
 
 export interface BackpressureConfig {
   maxQueueDepth: number;
@@ -10,20 +10,20 @@ export interface BackpressureConfig {
 export function evaluateBackpressure(
   metrics: SystemLoad,
   priority: Priority,
-  config: BackpressureConfig
+  config: BackpressureConfig,
 ): BackpressureDecision {
   const loadScore = calculateLoadScore(metrics, config);
 
-  if (priority === 'CRITICAL') {
+  if (priority === "CRITICAL") {
     return {
       shouldThrottle: false,
       shouldShed: false,
       throttleFactor: 1,
-      reason: 'Critical priority bypasses throttling',
+      reason: "Critical priority bypasses throttling",
     };
   }
 
-  if (loadScore >= config.loadShedThreshold && priority !== 'HIGH') {
+  if (loadScore >= config.loadShedThreshold && priority !== "HIGH") {
     return {
       shouldThrottle: true,
       shouldShed: true,
@@ -32,8 +32,11 @@ export function evaluateBackpressure(
     };
   }
 
-  if (loadScore >= config.throttleThreshold && priority !== 'HIGH') {
-    const throttleFactor = 1 - (loadScore - config.throttleThreshold) / (config.loadShedThreshold - config.throttleThreshold);
+  if (loadScore >= config.throttleThreshold && priority !== "HIGH") {
+    const throttleFactor =
+      1 -
+      (loadScore - config.throttleThreshold) /
+        (config.loadShedThreshold - config.throttleThreshold);
     return {
       shouldThrottle: true,
       shouldShed: false,
@@ -46,11 +49,14 @@ export function evaluateBackpressure(
     shouldThrottle: false,
     shouldShed: false,
     throttleFactor: 1,
-    reason: 'Normal operation',
+    reason: "Normal operation",
   };
 }
 
-export function calculateLoadScore(metrics: SystemLoad, config: BackpressureConfig): number {
+export function calculateLoadScore(
+  metrics: SystemLoad,
+  config: BackpressureConfig,
+): number {
   const weights = {
     queueDepth: 0.4,
     concurrentTasks: 0.3,
@@ -59,7 +65,10 @@ export function calculateLoadScore(metrics: SystemLoad, config: BackpressureConf
 
   const normalized = {
     queueDepth: Math.min(metrics.queueDepth / config.maxQueueDepth, 1),
-    concurrentTasks: Math.min(metrics.concurrentTasks / config.maxConcurrentTasks, 1),
+    concurrentTasks: Math.min(
+      metrics.concurrentTasks / config.maxConcurrentTasks,
+      1,
+    ),
     avgNodeLoad: metrics.avgNodeLoad,
   };
 

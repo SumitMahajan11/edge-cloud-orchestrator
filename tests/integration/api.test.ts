@@ -1,6 +1,6 @@
-import axios, { AxiosInstance } from 'axios';
-import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
-import { setupTestApp, teardownTestApp, TestContext } from './helpers';
+import axios, { AxiosInstance } from "axios";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { setupTestApp, teardownTestApp, TestContext } from "./helpers";
 
 /**
  * Integration Tests for Edge-Cloud Orchestrator
@@ -13,9 +13,9 @@ import { setupTestApp, teardownTestApp, TestContext } from './helpers';
  * - Edge Agent communication
  */
 
-const EDGE_AGENT_URL = process.env.EDGE_AGENT_URL || 'http://localhost:4001';
+const EDGE_AGENT_URL = process.env.EDGE_AGENT_URL || "http://localhost:4001";
 
-describe('Integration Tests', () => {
+describe("Integration Tests", () => {
   let ctx: TestContext;
   let apiClient: AxiosInstance;
   let authToken: string;
@@ -27,16 +27,17 @@ describe('Integration Tests', () => {
     ctx = await setupTestApp();
 
     const rewriteUrl = (url: string, headers: any = {}) => {
-      const version = headers['x-api-version'] || headers['X-API-Version'] || 'v1';
-      if (url.startsWith('/api/')) {
-        return url.replace('/api/', `/${version}/`);
+      const version =
+        headers["x-api-version"] || headers["X-API-Version"] || "v1";
+      if (url.startsWith("/api/")) {
+        return url.replace("/api/", `/${version}/`);
       }
       return url;
     };
 
     apiClient = {
       defaults: {
-        headers: {}
+        headers: {},
       },
       async get(url: string, config?: any) {
         const headers = {
@@ -44,12 +45,14 @@ describe('Integration Tests', () => {
           ...config?.headers,
         };
         const response = await ctx.app.inject({
-          method: 'GET',
+          method: "GET",
           url: rewriteUrl(url, headers),
           headers,
         });
         if (response.statusCode >= 400) {
-          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          const err: any = new Error(
+            `Request failed with status code ${response.statusCode}`,
+          );
           err.response = {
             status: response.statusCode,
             data: response.json(),
@@ -68,14 +71,18 @@ describe('Integration Tests', () => {
           ...config?.headers,
         };
         const response = await ctx.app.inject({
-          method: 'POST',
+          method: "POST",
           url: rewriteUrl(url, headers),
           headers,
           payload: body,
         });
         if (response.statusCode >= 400) {
-          console.log(`[apiClient.post] error response status: ${response.statusCode}, body: ${response.body}`);
-          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          console.log(
+            `[apiClient.post] error response status: ${response.statusCode}, body: ${response.body}`,
+          );
+          const err: any = new Error(
+            `Request failed with status code ${response.statusCode}`,
+          );
           err.response = {
             status: response.statusCode,
             data: response.json(),
@@ -94,13 +101,15 @@ describe('Integration Tests', () => {
           ...config?.headers,
         };
         const response = await ctx.app.inject({
-          method: 'PATCH',
+          method: "PATCH",
           url: rewriteUrl(url, headers),
           headers,
           payload: body,
         });
         if (response.statusCode >= 400) {
-          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          const err: any = new Error(
+            `Request failed with status code ${response.statusCode}`,
+          );
           err.response = {
             status: response.statusCode,
             data: response.json(),
@@ -119,12 +128,14 @@ describe('Integration Tests', () => {
           ...config?.headers,
         };
         const response = await ctx.app.inject({
-          method: 'DELETE',
+          method: "DELETE",
           url: rewriteUrl(url, headers),
           headers,
         });
         if (response.statusCode >= 400) {
-          const err: any = new Error(`Request failed with status code ${response.statusCode}`);
+          const err: any = new Error(
+            `Request failed with status code ${response.statusCode}`,
+          );
           err.response = {
             status: response.statusCode,
             data: response.json(),
@@ -146,31 +157,31 @@ describe('Integration Tests', () => {
     }
   });
 
-  describe('Health Checks', () => {
-    it('should have healthy API server', async () => {
-      const response = await apiClient.get('/health');
+  describe("Health Checks", () => {
+    it("should have healthy API server", async () => {
+      const response = await apiClient.get("/health");
       expect(response.status).toBe(200);
-      expect(response.data.status).toBe('ok');
+      expect(response.data.status).toBe("ok");
     });
 
-    it('should have healthy edge agent', async () => {
+    it("should have healthy edge agent", async () => {
       try {
         const response = await axios.get(`${EDGE_AGENT_URL}/health`);
         expect(response.status).toBe(200);
-        expect(response.data.status).toBe('healthy');
+        expect(response.data.status).toBe("healthy");
       } catch (error) {
         // Edge agent might not be running in CI
-        console.log('Edge agent not available, skipping');
+        console.log("Edge agent not available, skipping");
       }
     });
   });
 
-  describe('Authentication Flow', () => {
-    it('should register a new user', async () => {
-      const response = await apiClient.post('/api/auth/register', {
+  describe("Authentication Flow", () => {
+    it("should register a new user", async () => {
+      const response = await apiClient.post("/api/auth/register", {
         email: `test-${Date.now()}@example.com`,
-        password: 'TestPassword123!',
-        name: 'Test User',
+        password: "TestPassword123!",
+        name: "Test User",
       });
 
       expect(response.status).toBe(201);
@@ -179,10 +190,10 @@ describe('Integration Tests', () => {
       expect(response.data.user.email).toBeDefined();
     });
 
-    it('should login with valid credentials', async () => {
-      const response = await apiClient.post('/api/auth/login', {
-        email: 'admin@example.com',
-        password: 'admin123',
+    it("should login with valid credentials", async () => {
+      const response = await apiClient.post("/api/auth/login", {
+        email: "admin@example.com",
+        password: "admin123",
       });
 
       expect(response.status).toBe(200);
@@ -193,25 +204,25 @@ describe('Integration Tests', () => {
       refreshToken = response.data.refreshToken;
     });
 
-    it('should reject invalid credentials', async () => {
+    it("should reject invalid credentials", async () => {
       try {
-        await apiClient.post('/api/auth/login', {
-          email: 'admin@example.com',
-          password: 'wrongpassword',
+        await apiClient.post("/api/auth/login", {
+          email: "admin@example.com",
+          password: "wrongpassword",
         });
-        expect.fail('Should have thrown an error');
+        expect.fail("Should have thrown an error");
       } catch (error: any) {
         expect(error.response.status).toBe(401);
       }
     });
 
-    it('should refresh token', async () => {
+    it("should refresh token", async () => {
       if (!refreshToken) {
-        console.log('No refresh token, skipping');
+        console.log("No refresh token, skipping");
         return;
       }
 
-      const response = await apiClient.post('/api/auth/refresh', {
+      const response = await apiClient.post("/api/auth/refresh", {
         refreshToken,
       });
 
@@ -221,13 +232,13 @@ describe('Integration Tests', () => {
       authToken = response.data.token;
     });
 
-    it('should get current user', async () => {
+    it("should get current user", async () => {
       if (!authToken) {
-        console.log('No auth token, skipping');
+        console.log("No auth token, skipping");
         return;
       }
 
-      const response = await apiClient.get('/api/auth/me', {
+      const response = await apiClient.get("/api/auth/me", {
         headers: { Authorization: `Bearer ${authToken}` },
       });
 
@@ -236,27 +247,27 @@ describe('Integration Tests', () => {
     });
   });
 
-  describe('Node Management', () => {
+  describe("Node Management", () => {
     beforeEach(() => {
       if (authToken) {
         apiClient.defaults.headers.Authorization = `Bearer ${authToken}`;
       }
     });
 
-    it('should list nodes', async () => {
-      const response = await apiClient.get('/api/nodes');
+    it("should list nodes", async () => {
+      const response = await apiClient.get("/api/nodes");
 
       expect(response.status).toBe(200);
       expect(response.data.data).toBeDefined();
       expect(Array.isArray(response.data.data)).toBe(true);
     });
 
-    it('should create a node', async () => {
-      const response = await apiClient.post('/api/nodes', {
+    it("should create a node", async () => {
+      const response = await apiClient.post("/api/nodes", {
         name: `test-node-${Date.now()}`,
-        location: 'Test Location',
-        region: 'us-east-1',
-        ipAddress: '192.168.1.100',
+        location: "Test Location",
+        region: "us-east-1",
+        ipAddress: "192.168.1.100",
         port: 4001,
         cpuCores: 4,
         memoryGB: 16,
@@ -270,9 +281,9 @@ describe('Integration Tests', () => {
       testNodeId = response.data.id;
     });
 
-    it('should get node by ID', async () => {
+    it("should get node by ID", async () => {
       if (!testNodeId) {
-        console.log('No test node ID, skipping');
+        console.log("No test node ID, skipping");
         return;
       }
 
@@ -282,9 +293,9 @@ describe('Integration Tests', () => {
       expect(response.data.id).toBe(testNodeId);
     });
 
-    it('should update node', async () => {
+    it("should update node", async () => {
       if (!testNodeId) {
-        console.log('No test node ID, skipping');
+        console.log("No test node ID, skipping");
         return;
       }
 
@@ -297,9 +308,9 @@ describe('Integration Tests', () => {
       expect(response.data.maxTasks).toBe(20);
     });
 
-    it('should get node metrics', async () => {
+    it("should get node metrics", async () => {
       if (!testNodeId) {
-        console.log('No test node ID, skipping');
+        console.log("No test node ID, skipping");
         return;
       }
 
@@ -310,28 +321,28 @@ describe('Integration Tests', () => {
     });
   });
 
-  describe('Task Management', () => {
+  describe("Task Management", () => {
     beforeEach(() => {
       if (authToken) {
         apiClient.defaults.headers.Authorization = `Bearer ${authToken}`;
       }
     });
 
-    it('should list tasks', async () => {
-      const response = await apiClient.get('/api/tasks');
+    it("should list tasks", async () => {
+      const response = await apiClient.get("/api/tasks");
 
       expect(response.status).toBe(200);
       expect(response.data.data).toBeDefined();
       expect(Array.isArray(response.data.data)).toBe(true);
     });
 
-    it('should create a task', async () => {
-      const response = await apiClient.post('/api/tasks', {
+    it("should create a task", async () => {
+      const response = await apiClient.post("/api/tasks", {
         name: `test-task-${Date.now()}`,
-        type: 'MODEL_INFERENCE',
-        priority: 'MEDIUM',
-        image: 'ubuntu:latest',
-        input: { model: 'test-model', data: 'test-data' },
+        type: "MODEL_INFERENCE",
+        priority: "MEDIUM",
+        image: "ubuntu:latest",
+        input: { model: "test-model", data: "test-data" },
       });
 
       expect(response.status).toBe(201);
@@ -340,16 +351,16 @@ describe('Integration Tests', () => {
       testTaskId = response.data.id;
     });
 
-    it('should get task stats', async () => {
-      const response = await apiClient.get('/api/tasks/stats');
+    it("should get task stats", async () => {
+      const response = await apiClient.get("/api/tasks/stats");
 
       expect(response.status).toBe(200);
       expect(response.data.byStatus).toBeDefined();
     });
 
-    it('should get task by ID', async () => {
+    it("should get task by ID", async () => {
       if (!testTaskId) {
-        console.log('No test task ID, skipping');
+        console.log("No test task ID, skipping");
         return;
       }
 
@@ -359,81 +370,81 @@ describe('Integration Tests', () => {
       expect(response.data.id).toBe(testTaskId);
     });
 
-    it('should cancel a task', async () => {
+    it("should cancel a task", async () => {
       if (!testTaskId) {
-        console.log('No test task ID, skipping');
+        console.log("No test task ID, skipping");
         return;
       }
 
       const response = await apiClient.post(`/api/tasks/${testTaskId}/cancel`);
 
       expect(response.status).toBe(200);
-      expect(response.data.status).toBe('CANCELLED');
+      expect(response.data.status).toBe("CANCELLED");
     });
   });
 
-  describe('Metrics & Monitoring', () => {
+  describe("Metrics & Monitoring", () => {
     beforeEach(() => {
       if (authToken) {
         apiClient.defaults.headers.Authorization = `Bearer ${authToken}`;
       }
     });
 
-    it('should get system metrics', async () => {
-      const response = await apiClient.get('/api/metrics');
+    it("should get system metrics", async () => {
+      const response = await apiClient.get("/api/metrics");
 
       expect(response.status).toBe(200);
       expect(response.data).toBeDefined();
     });
 
-    it('should get request metrics', async () => {
-      const response = await apiClient.get('/api/metrics/requests');
+    it("should get request metrics", async () => {
+      const response = await apiClient.get("/api/metrics/requests");
 
       expect(response.status).toBe(200);
     });
 
-    it('should get node metrics summary', async () => {
-      const response = await apiClient.get('/api/metrics/nodes');
+    it("should get node metrics summary", async () => {
+      const response = await apiClient.get("/api/metrics/nodes");
 
       expect(response.status).toBe(200);
     });
   });
 
-  describe('Cost & Carbon Tracking', () => {
+  describe("Cost & Carbon Tracking", () => {
     beforeEach(() => {
       if (authToken) {
         apiClient.defaults.headers.Authorization = `Bearer ${authToken}`;
       }
     });
 
-    it('should get cost summary', async () => {
-      const response = await apiClient.get('/api/cost/summary');
+    it("should get cost summary", async () => {
+      const response = await apiClient.get("/api/cost/summary");
 
       expect(response.status).toBe(200);
     });
 
-    it('should get cost by node', async () => {
-      const response = await apiClient.get('/api/cost/by-node');
+    it("should get cost by node", async () => {
+      const response = await apiClient.get("/api/cost/by-node");
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.data)).toBe(true);
     });
 
-    it('should get carbon summary', async () => {
-      const response = await apiClient.get('/api/carbon/summary');
+    it("should get carbon summary", async () => {
+      const response = await apiClient.get("/api/carbon/summary");
 
       expect(response.status).toBe(200);
     });
 
-    it('should get carbon by region', async () => {
-      const response = await apiClient.get('/api/carbon/by-region');
+    it("should get carbon by region", async () => {
+      const response = await apiClient.get("/api/carbon/by-region");
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.data)).toBe(true);
     });
   });
 
-  describe('Webhook Management', () => {
+  describe("Webhook Management", () => {
     let webhookId: string;
 
     beforeEach(() => {
@@ -442,18 +453,18 @@ describe('Integration Tests', () => {
       }
     });
 
-    it('should list webhooks', async () => {
-      const response = await apiClient.get('/api/webhooks');
+    it("should list webhooks", async () => {
+      const response = await apiClient.get("/api/webhooks");
 
       expect(response.status).toBe(200);
       expect(Array.isArray(response.data.data)).toBe(true);
     });
 
-    it('should create a webhook', async () => {
-      const response = await apiClient.post('/api/webhooks', {
+    it("should create a webhook", async () => {
+      const response = await apiClient.post("/api/webhooks", {
         name: `test-webhook-${Date.now()}`,
-        url: 'https://example.com/webhook',
-        events: ['task.completed', 'node.offline'],
+        url: "https://example.com/webhook",
+        events: ["task.completed", "node.offline"],
         enabled: true,
       });
 
@@ -463,9 +474,9 @@ describe('Integration Tests', () => {
       webhookId = response.data.id;
     });
 
-    it('should delete a webhook', async () => {
+    it("should delete a webhook", async () => {
       if (!webhookId) {
-        console.log('No webhook ID, skipping');
+        console.log("No webhook ID, skipping");
         return;
       }
 
@@ -475,10 +486,12 @@ describe('Integration Tests', () => {
     });
   });
 
-  describe('Rate Limiting', () => {
-    it('should enforce rate limits', async () => {
-      const { backpressureController } = await import('../../apps/api/src/index.ts');
-      const originalGetAdaptiveRateLimit = backpressureController.getAdaptiveRateLimit;
+  describe("Rate Limiting", () => {
+    it("should enforce rate limits", async () => {
+      const { backpressureController } =
+        await import("../../apps/api/src/index.ts");
+      const originalGetAdaptiveRateLimit =
+        backpressureController.getAdaptiveRateLimit;
       backpressureController.getAdaptiveRateLimit = async () => 5;
 
       try {
@@ -486,14 +499,18 @@ describe('Integration Tests', () => {
 
         // Make many requests quickly from a non-localhost IP
         for (let i = 0; i < 150; i++) {
-          requests.push(ctx.app.inject({
-            method: 'GET',
-            url: '/v1/nodes',
-            remoteAddress: '192.168.1.5',
-            headers: {
-              Authorization: `Bearer ${ctx.accessToken}`,
-            }
-          }).then((res) => ({ status: res.statusCode })));
+          requests.push(
+            ctx.app
+              .inject({
+                method: "GET",
+                url: "/v1/nodes",
+                remoteAddress: "192.168.1.5",
+                headers: {
+                  Authorization: `Bearer ${ctx.accessToken}`,
+                },
+              })
+              .then((res) => ({ status: res.statusCode })),
+          );
         }
 
         const responses = await Promise.all(requests);
@@ -502,29 +519,30 @@ describe('Integration Tests', () => {
         // Should have some rate limited responses
         expect(rateLimited.length).toBeGreaterThan(0);
       } finally {
-        backpressureController.getAdaptiveRateLimit = originalGetAdaptiveRateLimit;
+        backpressureController.getAdaptiveRateLimit =
+          originalGetAdaptiveRateLimit;
       }
     }, 30000);
   });
 
-  describe('Error Handling', () => {
-    it('should return 404 for non-existent node', async () => {
+  describe("Error Handling", () => {
+    it("should return 404 for non-existent node", async () => {
       try {
-        await apiClient.get('/api/nodes/00000000-0000-0000-0000-000000000000');
-        expect.fail('Should have thrown an error');
+        await apiClient.get("/api/nodes/00000000-0000-0000-0000-000000000000");
+        expect.fail("Should have thrown an error");
       } catch (error: any) {
         expect(error.response.status).toBe(404);
       }
     });
 
-    it('should return 401 for missing auth', async () => {
+    it("should return 401 for missing auth", async () => {
       try {
         // Temporarily clear default Authorization header to test missing auth
         const oldAuth = apiClient.defaults.headers.Authorization;
         delete apiClient.defaults.headers.Authorization;
         try {
-          await apiClient.get('/api/admin/users');
-          expect.fail('Should have thrown an error');
+          await apiClient.get("/api/admin/users");
+          expect.fail("Should have thrown an error");
         } finally {
           if (oldAuth) {
             apiClient.defaults.headers.Authorization = oldAuth;
@@ -535,26 +553,26 @@ describe('Integration Tests', () => {
       }
     });
 
-    it('should return 400 for invalid input', async () => {
+    it("should return 400 for invalid input", async () => {
       if (!authToken) {
-        console.log('No auth token, skipping');
+        console.log("No auth token, skipping");
         return;
       }
 
       try {
-        await apiClient.post('/api/nodes', {
+        await apiClient.post("/api/nodes", {
           // Missing required fields
-          name: 'test',
+          name: "test",
         });
-        expect.fail('Should have thrown an error');
+        expect.fail("Should have thrown an error");
       } catch (error: any) {
         expect(error.response.status).toBe(400);
       }
     });
   });
 
-  describe('Edge Agent Communication', () => {
-    it('should get edge agent metrics', async () => {
+  describe("Edge Agent Communication", () => {
+    it("should get edge agent metrics", async () => {
       try {
         const response = await axios.get(`${EDGE_AGENT_URL}/metrics`);
 
@@ -563,18 +581,18 @@ describe('Integration Tests', () => {
         expect(response.data.cpuUsage).toBeDefined();
         expect(response.data.memoryUsage).toBeDefined();
       } catch (error) {
-        console.log('Edge agent not available, skipping');
+        console.log("Edge agent not available, skipping");
       }
     });
 
-    it('should ping edge agent', async () => {
+    it("should ping edge agent", async () => {
       try {
         const response = await axios.get(`${EDGE_AGENT_URL}/ping`);
 
         expect(response.status).toBe(200);
         expect(response.data.pong).toBe(true);
       } catch (error) {
-        console.log('Edge agent not available, skipping');
+        console.log("Edge agent not available, skipping");
       }
     });
   });

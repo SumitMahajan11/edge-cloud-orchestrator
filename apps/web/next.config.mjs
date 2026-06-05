@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
-  transpilePackages: ['@edgecloud/api-client'],
+  transpilePackages: ["@edgecloud/api-client"],
   eslint: {
     ignoreDuringBuilds: true,
   },

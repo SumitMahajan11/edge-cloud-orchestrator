@@ -47,25 +47,25 @@ export class AuthService {
   async generateTokens(
     user: Omit<UserPayload, 'permissions'>,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
     const permissions = this.getPermissionsForRole(user.role);
     const jti = uuidv4();
-    
+
     const accessToken = jwt.sign(
-      { 
-        id: user.id, 
-        email: user.email, 
-        role: user.role, 
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
         tenantId: user.tenantId,
         permissions,
-        jti
+        jti,
       },
       this.jwtSecret,
-      { 
+      {
         expiresIn: this.jwtExpiresIn as any,
         issuer: this.jwtIssuer,
-        audience: this.jwtAudience
+        audience: this.jwtAudience,
       },
     );
 
@@ -99,7 +99,7 @@ export class AuthService {
   async rotateRefreshToken(
     oldRefreshToken: string,
     ipAddress: string,
-    userAgent: string
+    userAgent: string,
   ): Promise<{ accessToken: string; refreshToken: string; expiresAt: Date }> {
     const hashedOldToken = this.hashToken(oldRefreshToken);
     const session = await this.prisma.userSession.findUnique({
@@ -133,14 +133,16 @@ export class AuthService {
             sessionId: session.id,
             ipAddress,
             userAgent,
-            alertType: 'TOKEN_THEFT_ATTEMPT'
+            alertType: 'TOKEN_THEFT_ATTEMPT',
           } as any,
           ipAddress,
           userAgent,
         },
       });
 
-      throw new Error('Refresh token reuse detected. All sessions invalidated for security.');
+      throw new Error(
+        'Refresh token reuse detected. All sessions invalidated for security.',
+      );
     }
 
     if (session.expiresAt < new Date()) {
@@ -157,7 +159,11 @@ export class AuthService {
       permissions: this.getPermissionsForRole(session.user.role),
     };
 
-    const newTokens = await this.generateTokens(userPayload, ipAddress, userAgent);
+    const newTokens = await this.generateTokens(
+      userPayload,
+      ipAddress,
+      userAgent,
+    );
 
     // Invalidate OLD session immediately (Rotation)
     await this.prisma.userSession.update({
@@ -171,7 +177,7 @@ export class AuthService {
         `revoked_token:${session.accessTokenJti}`,
         'revoked',
         'EX',
-        3600 // 1 hour TTL is enough for 15min access tokens
+        3600, // 1 hour TTL is enough for 15min access tokens
       );
     }
 
@@ -198,7 +204,7 @@ export class AuthService {
           `revoked_token:${session.accessTokenJti}`,
           'revoked',
           'EX',
-          3600
+          3600,
         );
       }
     }
@@ -225,7 +231,7 @@ export class AuthService {
           `revoked_token:${session.accessTokenJti}`,
           'revoked',
           'EX',
-          3600
+          3600,
         );
       }
       await pipeline.exec();
@@ -251,7 +257,7 @@ export class AuthService {
           `revoked_token:${session.accessTokenJti}`,
           'revoked',
           'EX',
-          3600
+          3600,
         );
       }
     }
@@ -262,10 +268,10 @@ export class AuthService {
    */
   async listUserSessions(userId: string): Promise<any[]> {
     return this.prisma.userSession.findMany({
-      where: { 
+      where: {
         userId,
         revoked: false,
-        expiresAt: { gte: new Date() }
+        expiresAt: { gte: new Date() },
       },
       select: {
         id: true,

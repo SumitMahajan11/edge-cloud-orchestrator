@@ -1,31 +1,38 @@
-import React, { Component } from 'react'
-import type { ErrorInfo, ReactNode } from 'react'
-import { AlertTriangle, RefreshCw, Home, Bug, ShieldAlert, Terminal } from 'lucide-react'
-import { logger } from '../../lib/logger'
-import { Button } from '../ui/button'
+import React, { Component } from "react";
+import type { ErrorInfo, ReactNode } from "react";
+import {
+  AlertTriangle,
+  RefreshCw,
+  Home,
+  Bug,
+  ShieldAlert,
+  Terminal,
+} from "lucide-react";
+import { logger } from "../../lib/logger";
+import { Button } from "../ui/button";
 
 interface Props {
-  children: ReactNode
-  fallback?: ReactNode
-  onError?: (error: Error, errorInfo: ErrorInfo) => void
+  children: ReactNode;
+  fallback?: ReactNode;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void;
 }
 
 interface State {
-  hasError: boolean
-  error: Error | null
-  errorInfo: ErrorInfo | null
-  errorId: string | null
+  hasError: boolean;
+  error: Error | null;
+  errorInfo: ErrorInfo | null;
+  errorId: string | null;
 }
 
 class ErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
-    super(props)
+    super(props);
     this.state = {
       hasError: false,
       error: null,
       errorInfo: null,
       errorId: null,
-    }
+    };
   }
 
   static getDerivedStateFromError(error: Error): Partial<State> {
@@ -33,15 +40,15 @@ class ErrorBoundary extends Component<Props, State> {
       hasError: true,
       error,
       errorId: `ERR-${Math.random().toString(36).substring(2, 10).toUpperCase()}`,
-    }
+    };
   }
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo): void {
-    logger.error('Critical Mission Control Failure', error, {
+    logger.error("Critical Mission Control Failure", error, {
       componentStack: errorInfo.componentStack,
-    })
-    this.setState({ errorInfo })
-    this.props.onError?.(error, errorInfo)
+    });
+    this.setState({ errorInfo });
+    this.props.onError?.(error, errorInfo);
   }
 
   handleRetry = (): void => {
@@ -50,15 +57,15 @@ class ErrorBoundary extends Component<Props, State> {
       error: null,
       errorInfo: null,
       errorId: null,
-    })
-  }
+    });
+  };
 
   handleGoHome = (): void => {
-    window.location.href = '/'
-  }
+    window.location.href = "/";
+  };
 
   handleReportBug = (): void => {
-    const { error, errorInfo, errorId } = this.state
+    const { error, errorInfo, errorId } = this.state;
     const bugReport = {
       errorId,
       message: error?.message,
@@ -67,24 +74,26 @@ class ErrorBoundary extends Component<Props, State> {
       timestamp: new Date().toISOString(),
       userAgent: navigator.userAgent,
       url: window.location.href,
-    }
+    };
 
-    void navigator.clipboard.writeText(JSON.stringify(bugReport, null, 2))
-    alert('Telemetry dump copied to clipboard. Please include this in your report.')
-  }
+    void navigator.clipboard.writeText(JSON.stringify(bugReport, null, 2));
+    alert(
+      "Telemetry dump copied to clipboard. Please include this in your report.",
+    );
+  };
 
   render(): ReactNode {
-    const { hasError, error, errorId, errorInfo } = this.state
-    const { children, fallback } = this.props
+    const { hasError, error, errorId, errorInfo } = this.state;
+    const { children, fallback } = this.props;
 
     if (hasError) {
-      if (fallback) return fallback
+      if (fallback) return fallback;
 
       return (
         <div className="min-h-screen bg-[#050508] text-foreground flex items-center justify-center p-6 font-mono relative overflow-hidden">
           {/* Background Grid Pattern */}
           <div className="absolute inset-0 opacity-10 pointer-events-none bg-grid" />
-          
+
           {/* Scanline Effect */}
           <div className="absolute inset-0 pointer-events-none bg-scanlines opacity-[0.03]" />
 
@@ -94,7 +103,9 @@ class ErrorBoundary extends Component<Props, State> {
               <div className="bg-destructive/10 border-b border-destructive/30 px-4 py-2 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-destructive">
                   <ShieldAlert className="h-4 w-4" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">System Panic</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">
+                    System Panic
+                  </span>
                 </div>
                 <div className="text-[10px] text-muted-foreground">
                   FAULT_ID: {errorId}
@@ -107,10 +118,12 @@ class ErrorBoundary extends Component<Props, State> {
                     <AlertTriangle className="h-8 w-8 text-destructive animate-pulse" />
                   </div>
                   <div className="space-y-2">
-                    <h2 className="text-xl font-bold tracking-tight">Mission Control Failure</h2>
+                    <h2 className="text-xl font-bold tracking-tight">
+                      Mission Control Failure
+                    </h2>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      A critical error has occurred in the orchestrator interface. 
-                      Subsystem telemetry has been interrupted.
+                      A critical error has occurred in the orchestrator
+                      interface. Subsystem telemetry has been interrupted.
                     </p>
                   </div>
                 </div>
@@ -124,9 +137,11 @@ class ErrorBoundary extends Component<Props, State> {
                     {error?.name}: {error?.message}
                   </div>
                   <pre className="text-[10px] text-muted-foreground/80 overflow-x-auto whitespace-pre-wrap max-h-40 scrollbar-thin">
-                    {errorInfo?.componentStack || error?.stack || 'No trace available.'}
+                    {errorInfo?.componentStack ||
+                      error?.stack ||
+                      "No trace available."}
                   </pre>
-                  
+
                   {/* Subtle corner decor */}
                   <div className="absolute top-0 right-0 p-1">
                     <div className="w-2 h-2 border-t border-r border-destructive/30" />
@@ -173,34 +188,34 @@ class ErrorBoundary extends Component<Props, State> {
             </div>
           </div>
         </div>
-      )
+      );
     }
 
-    return children
+    return children;
   }
 }
 
 export function withErrorBoundary<P extends object>(
   WrappedComponent: React.ComponentType<P>,
-  fallback?: ReactNode
+  fallback?: ReactNode,
 ): React.FC<P> {
   return function WithErrorBoundaryWrapper(props: P) {
     return (
       <ErrorBoundary fallback={fallback}>
         <WrappedComponent {...props} />
       </ErrorBoundary>
-    )
-  }
+    );
+  };
 }
 
 export function useAsyncError(): (error: Error) => void {
-  const [, setError] = React.useState<Error | null>(null)
+  const [, setError] = React.useState<Error | null>(null);
 
   return (error: Error) => {
     setError(() => {
-      throw error
-    })
-  }
+      throw error;
+    });
+  };
 }
 
-export { ErrorBoundary }
+export { ErrorBoundary };

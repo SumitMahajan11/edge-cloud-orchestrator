@@ -1,0 +1,23 @@
+.next
+dist
+node_modules
+coverage
+*.db
+*.sqlite
+brain
+scratch
+tmp
+tests/tmp
+
+# Ignored directories
+infra/k8s
+apps/web/.next
+
+# Ignored files
+*.json
+*.txt
+*.log
+*.yml
+*.yaml
+*.sh
+*.ps1

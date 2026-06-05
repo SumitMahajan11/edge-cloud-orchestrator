@@ -1,5 +1,5 @@
 export interface HealthStatus {
-  status: 'ok' | 'error' | 'starting';
+  status: "ok" | "error" | "starting";
   version: string;
   timestamp: string;
   details?: Record<string, any>;
@@ -16,19 +16,21 @@ export class HealthCheck {
 
   public static getLiveness(): HealthStatus {
     return {
-      status: 'ok',
-      version: process.env.APP_VERSION || 'unknown',
-      timestamp: new Date().toISOString()
+      status: "ok",
+      version: process.env.APP_VERSION || "unknown",
+      timestamp: new Date().toISOString(),
     };
   }
 
-  public static getReadiness(checks: Record<string, () => Promise<boolean>> = {}): Promise<HealthStatus> {
+  public static getReadiness(
+    checks: Record<string, () => Promise<boolean>> = {},
+  ): Promise<HealthStatus> {
     return new Promise(async (resolve) => {
       if (!this.isReady) {
         return resolve({
-          status: 'starting',
-          version: process.env.APP_VERSION || 'unknown',
-          timestamp: new Date().toISOString()
+          status: "starting",
+          version: process.env.APP_VERSION || "unknown",
+          timestamp: new Date().toISOString(),
         });
       }
 
@@ -46,19 +48,19 @@ export class HealthCheck {
       }
 
       resolve({
-        status: overallOk ? 'ok' : 'error',
-        version: process.env.APP_VERSION || 'unknown',
+        status: overallOk ? "ok" : "error",
+        version: process.env.APP_VERSION || "unknown",
         timestamp: new Date().toISOString(),
-        details: results
+        details: results,
       });
     });
   }
 
   public static getStartup(): HealthStatus {
     return {
-      status: this.isStarting ? 'starting' : 'ok',
-      version: process.env.APP_VERSION || 'unknown',
-      timestamp: new Date().toISOString()
+      status: this.isStarting ? "starting" : "ok",
+      version: process.env.APP_VERSION || "unknown",
+      timestamp: new Date().toISOString(),
     };
   }
 }

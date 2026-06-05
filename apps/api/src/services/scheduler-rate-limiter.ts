@@ -198,7 +198,10 @@ export class SchedulerRateLimiter extends EventEmitter {
         currentUsage: usage,
       };
     } catch (err) {
-      this.logger.error(err, 'Redis error in checkRateLimit, switching to fallback mode');
+      this.logger.error(
+        err,
+        'Redis error in checkRateLimit, switching to fallback mode',
+      );
       this.redisAvailable = false;
       this.startRecoveryCheck();
       return this.checkFallbackRateLimit(nodeId);
@@ -210,9 +213,10 @@ export class SchedulerRateLimiter extends EventEmitter {
     const oneMinuteAgo = now - 60000;
 
     let timestamps = this.fallbackNodeLogs.get(nodeId) || [];
-    timestamps = timestamps.filter(t => t > oneMinuteAgo);
+    timestamps = timestamps.filter((t) => t > oneMinuteAgo);
 
-    if (timestamps.length >= 10) { // conservative limit of 10 tasks/min
+    if (timestamps.length >= 10) {
+      // conservative limit of 10 tasks/min
       return {
         allowed: false,
         reason: 'Rate limit exceeded (Fallback Mode)',
@@ -222,8 +226,8 @@ export class SchedulerRateLimiter extends EventEmitter {
           userTasksPerHour: 0,
           nodeTasksPerMinute: timestamps.length,
           pendingGlobal: 0,
-          pendingPerNode: { [nodeId]: timestamps.length }
-        }
+          pendingPerNode: { [nodeId]: timestamps.length },
+        },
       };
     }
 
@@ -239,8 +243,8 @@ export class SchedulerRateLimiter extends EventEmitter {
         userTasksPerHour: 0,
         nodeTasksPerMinute: timestamps.length,
         pendingGlobal: 0,
-        pendingPerNode: { [nodeId]: timestamps.length }
-      }
+        pendingPerNode: { [nodeId]: timestamps.length },
+      },
     };
   }
 
@@ -266,7 +270,10 @@ export class SchedulerRateLimiter extends EventEmitter {
    */
   async recordTaskScheduled(userId: string, nodeId: string): Promise<void> {
     if (!this.redisAvailable) {
-      this.logger.debug({ userId, nodeId }, 'Bypassing Redis recordTaskScheduled in fallback mode');
+      this.logger.debug(
+        { userId, nodeId },
+        'Bypassing Redis recordTaskScheduled in fallback mode',
+      );
       return;
     }
     try {
@@ -283,7 +290,10 @@ export class SchedulerRateLimiter extends EventEmitter {
 
       // User per-hour counter
       pipeline.incr(`${REDIS_KEYS.userTasksPerHour(userId)}:${hourKey}`);
-      pipeline.expire(`${REDIS_KEYS.userTasksPerHour(userId)}:${hourKey}`, 7200);
+      pipeline.expire(
+        `${REDIS_KEYS.userTasksPerHour(userId)}:${hourKey}`,
+        7200,
+      );
 
       // Node per-minute counter
       pipeline.incr(`${REDIS_KEYS.nodeTasksPerMinute(nodeId)}:${minuteKey}`);
@@ -300,7 +310,10 @@ export class SchedulerRateLimiter extends EventEmitter {
 
       this.logger.debug({ userId, nodeId }, 'Recorded task scheduling');
     } catch (err) {
-      this.logger.error(err, 'Redis error in recordTaskScheduled, switching to fallback mode');
+      this.logger.error(
+        err,
+        'Redis error in recordTaskScheduled, switching to fallback mode',
+      );
       this.redisAvailable = false;
       this.startRecoveryCheck();
     }
@@ -321,7 +334,10 @@ export class SchedulerRateLimiter extends EventEmitter {
 
       await pipeline.exec();
     } catch (err) {
-      this.logger.error(err, 'Redis error in recordTaskCompleted, switching to fallback mode');
+      this.logger.error(
+        err,
+        'Redis error in recordTaskCompleted, switching to fallback mode',
+      );
       this.redisAvailable = false;
       this.startRecoveryCheck();
     }
@@ -366,7 +382,7 @@ export class SchedulerRateLimiter extends EventEmitter {
       const now = Date.now();
       const oneMinuteAgo = now - 60000;
       for (const [nodeId, timestamps] of this.fallbackNodeLogs.entries()) {
-        const activeTimestamps = timestamps.filter(t => t > oneMinuteAgo);
+        const activeTimestamps = timestamps.filter((t) => t > oneMinuteAgo);
         if (activeTimestamps.length > 0) {
           result[nodeId] = activeTimestamps.length;
         }
@@ -390,7 +406,10 @@ export class SchedulerRateLimiter extends EventEmitter {
 
       return result;
     } catch (err) {
-      this.logger.error(err, 'Redis error in getNodeRateLimits, switching to fallback mode');
+      this.logger.error(
+        err,
+        'Redis error in getNodeRateLimits, switching to fallback mode',
+      );
       this.redisAvailable = false;
       this.startRecoveryCheck();
       return this.getNodeRateLimits();

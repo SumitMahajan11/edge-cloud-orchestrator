@@ -1,7 +1,7 @@
-import { createLogger, IMetricsCollector } from '@edgecloud/shared-kernel';
-import { PrismaClient } from '@prisma/client';
+import { createLogger, IMetricsCollector } from "@edgecloud/shared-kernel";
+import { PrismaClient } from "@prisma/client";
 
-const logger = createLogger('ml-drift-detector');
+const logger = createLogger("ml-drift-detector");
 
 export interface PredictionOutcome {
   taskId: string;
@@ -24,7 +24,7 @@ export class DriftDetector {
 
   constructor(
     private metrics: IMetricsCollector,
-    private prisma?: PrismaClient
+    private prisma?: PrismaClient,
   ) {}
 
   onDrift(callback: (mae: number) => void): void {
@@ -42,14 +42,20 @@ export class DriftDetector {
 
     if (this.rollingMAE >= this.FATAL_THRESHOLD) {
       if (!this.mlSuppressed) {
-        logger.error({ mae: this.rollingMAE, threshold: this.FATAL_THRESHOLD }, 'CRITICAL DRIFT: ML model performance degraded above fatal threshold. Disabling ML scheduler.');
+        logger.error(
+          { mae: this.rollingMAE, threshold: this.FATAL_THRESHOLD },
+          "CRITICAL DRIFT: ML model performance degraded above fatal threshold. Disabling ML scheduler.",
+        );
         this.mlSuppressed = true;
         this.onDriftCallback?.(this.rollingMAE);
       }
     } else if (this.rollingMAE >= this.WARN_THRESHOLD) {
-      logger.warn({ mae: this.rollingMAE, threshold: this.WARN_THRESHOLD }, 'Model drift warning: Performance degrading. Triggering retraining.');
+      logger.warn(
+        { mae: this.rollingMAE, threshold: this.WARN_THRESHOLD },
+        "Model drift warning: Performance degrading. Triggering retraining.",
+      );
       this.onDriftCallback?.(this.rollingMAE);
-      this.mlSuppressed = false; 
+      this.mlSuppressed = false;
     } else {
       this.mlSuppressed = false;
     }
@@ -82,24 +88,30 @@ export class DriftDetector {
         featureDrift: {
           latency: 0,
           cpuUsage: 0,
-          memoryUsage: 0
+          memoryUsage: 0,
         },
-        recommendation: this.rollingMAE >= this.FATAL_THRESHOLD ? 'RETRAIN' : 'STABLE'
+        recommendation:
+          this.rollingMAE >= this.FATAL_THRESHOLD ? "RETRAIN" : "STABLE",
       };
     }
 
     try {
       const baseline = await this.prisma.outcomeLog.findMany({
         take: 100,
-        orderBy: { timestamp: 'asc' }
+        orderBy: { timestamp: "asc" },
       });
 
       const current = await this.prisma.outcomeLog.findMany({
         take: 50,
-        orderBy: { timestamp: 'desc' }
+        orderBy: { timestamp: "desc" },
       });
 
-      if (!baseline || baseline.length < 100 || !current || current.length === 0) {
+      if (
+        !baseline ||
+        baseline.length < 100 ||
+        !current ||
+        current.length === 0
+      ) {
         return {
           driftScore: 0,
           isDrifting: false,
@@ -107,9 +119,9 @@ export class DriftDetector {
           featureDrift: {
             latency: 0,
             cpuUsage: 0,
-            memoryUsage: 0
+            memoryUsage: 0,
           },
-          recommendation: 'INSUFFICIENT_DATA'
+          recommendation: "INSUFFICIENT_DATA",
         };
       }
 
@@ -118,7 +130,7 @@ export class DriftDetector {
         let count = 0;
         for (const item of data) {
           const val = item[field1] !== undefined ? item[field1] : item[field2];
-          if (typeof val === 'number') {
+          if (typeof val === "number") {
             sum += val;
             count++;
           }
@@ -126,26 +138,42 @@ export class DriftDetector {
         return count > 0 ? sum / count : 0;
       };
 
-      const baselineCpu = getMean(baseline, 'actualCpuUsage', 'predictedCpuUsage');
-      const currentCpu = getMean(current, 'actualCpuUsage', 'predictedCpuUsage');
+      const baselineCpu = getMean(
+        baseline,
+        "actualCpuUsage",
+        "predictedCpuUsage",
+      );
+      const currentCpu = getMean(
+        current,
+        "actualCpuUsage",
+        "predictedCpuUsage",
+      );
       const cpuDrift = Math.abs(currentCpu - baselineCpu);
 
-      const baselineMem = getMean(baseline, 'actualMemoryUsage', 'predictedMemoryUsage');
-      const currentMem = getMean(current, 'actualMemoryUsage', 'predictedMemoryUsage');
+      const baselineMem = getMean(
+        baseline,
+        "actualMemoryUsage",
+        "predictedMemoryUsage",
+      );
+      const currentMem = getMean(
+        current,
+        "actualMemoryUsage",
+        "predictedMemoryUsage",
+      );
       const memDrift = Math.abs(currentMem - baselineMem);
 
-      const baselineLat = getMean(baseline, 'actualLatencyMs', 'actualLatency');
-      const currentLat = getMean(current, 'actualLatencyMs', 'actualLatency');
+      const baselineLat = getMean(baseline, "actualLatencyMs", "actualLatency");
+      const currentLat = getMean(current, "actualLatencyMs", "actualLatency");
       const latencyDrift = Math.abs(currentLat - baselineLat) / 100;
 
       const driftScore = Math.max(cpuDrift, memDrift, latencyDrift);
       const isDrifting = driftScore >= 0.25;
-      
-      let recommendation = 'STABLE';
+
+      let recommendation = "STABLE";
       if (driftScore >= 0.25) {
-        recommendation = 'RETRAIN';
+        recommendation = "RETRAIN";
       } else if (driftScore >= 0.1) {
-        recommendation = 'WARNING';
+        recommendation = "WARNING";
       }
 
       return {
@@ -155,9 +183,9 @@ export class DriftDetector {
         featureDrift: {
           latency: latencyDrift,
           cpuUsage: cpuDrift,
-          memoryUsage: memDrift
+          memoryUsage: memDrift,
         },
-        recommendation
+        recommendation,
       };
     } catch (err) {
       return {
@@ -167,9 +195,9 @@ export class DriftDetector {
         featureDrift: {
           latency: 0,
           cpuUsage: 0,
-          memoryUsage: 0
+          memoryUsage: 0,
         },
-        recommendation: 'STABLE'
+        recommendation: "STABLE",
       };
     }
   }

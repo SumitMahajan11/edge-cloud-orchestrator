@@ -1,7 +1,12 @@
-export type { 
-  Anomaly, 
+export type {
+  Anomaly,
   AnomalyBaseline,
-  AnomalyDetectorConfig, 
+  AnomalyDetectorConfig,
   AnomalyModel,
-  MetricDataPoint} from './AIAnomalyDetector'
-export { AIAnomalyDetector, aiAnomalyDetector,createAIAnomalyDetector } from './AIAnomalyDetector'
+  MetricDataPoint,
+} from "./AIAnomalyDetector";
+export {
+  AIAnomalyDetector,
+  aiAnomalyDetector,
+  createAIAnomalyDetector,
+} from "./AIAnomalyDetector";

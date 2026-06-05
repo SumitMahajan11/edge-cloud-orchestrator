@@ -7,6 +7,7 @@
 ## Context
 
 Edge-Cloud Orchestrator requires asynchronous event coordination for:
+
 - `task.created` → Scheduler picks up task → `task.scheduled`
 - `node.registered` → Load balancer updates → `node.ready`
 - `task.completed` → Metrics aggregation → Cost calculation
@@ -15,12 +16,14 @@ Edge-Cloud Orchestrator requires asynchronous event coordination for:
 Two primary options were evaluated:
 
 ### Apache Kafka
+
 - Industry-standard distributed event streaming platform
 - High throughput (millions of events/sec)
 - Strong durability guarantees (disk-based persistence)
 - Complex operational model (ZooKeeper/KRaft, broker elections, partition management)
 
 ### Redis Streams
+
 - Lightweight event streaming built into Redis
 - Consumer groups with offset tracking
 - Exactly-once semantics with proper acknowledgment
@@ -55,12 +58,14 @@ Two primary options were evaluated:
 ## Consequences
 
 ### Positive
+
 - ✅ **Operational Simplicity** — No ZooKeeper, no broker elections, no partition rebalancing
 - ✅ **Lower Latency** — Same process/container as cache, in-memory processing
 - ✅ **Reduced Infrastructure** — One Redis deployment vs. separate Kafka cluster
 - ✅ **Faster Development** — Simpler API, easier local development (single Redis container)
 
 ### Negative
+
 - ⚠️ **Throughput Ceiling** — Not suitable if event rate exceeds 10k events/sec (then Kafka needed)
 - ⚠️ **Single Point of Failure** — Single Redis instance is SPOF (mitigated with Redis Sentinel)
 - ⚠️ **Limited Retention** — Memory-based storage (mitigated with MAXLEN to cap stream size)
@@ -88,6 +93,7 @@ Two primary options were evaluated:
 ## Implementation Details
 
 ### Stream Naming Convention
+
 ```
 tasks.commands      # Task lifecycle events
 tasks.events        # Task state changes
@@ -100,15 +106,38 @@ system.alerts       # System alerts
 ```
 
 ### Consumer Group Pattern
+
 ```typescript
 // Each service has its own consumer group
-await redis.xgroup('CREATE', 'tasks.commands', 'scheduler-group', '0', 'MKSTREAM');
-await redis.xgroup('CREATE', 'tasks.commands', 'metrics-group', '0', 'MKSTREAM');
+await redis.xgroup(
+  "CREATE",
+  "tasks.commands",
+  "scheduler-group",
+  "0",
+  "MKSTREAM",
+);
+await redis.xgroup(
+  "CREATE",
+  "tasks.commands",
+  "metrics-group",
+  "0",
+  "MKSTREAM",
+);
 ```
 
 ### Exactly-Once Processing
+
 ```typescript
-const [id, messages] = await redis.xreadgroup('GROUP', group, consumer, 'BLOCK', 5000, 'STREAMS', stream, '>');
+const [id, messages] = await redis.xreadgroup(
+  "GROUP",
+  group,
+  consumer,
+  "BLOCK",
+  5000,
+  "STREAMS",
+  stream,
+  ">",
+);
 // Process message
 await handler(message);
 // Acknowledge after successful processing
@@ -118,6 +147,7 @@ await redis.xack(stream, group, id);
 ## Revisit Triggers
 
 This decision should be revisited when:
+
 - Event throughput consistently exceeds 10,000 events/sec
 - Need for complex event processing (windowing, joins, aggregations)
 - Multi-region event replication required

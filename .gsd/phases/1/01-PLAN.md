@@ -65,7 +65,8 @@ Fix TS5101 baseUrl deprecation, enable strict mode across all packages, and reso
 </verification>
 
 <success_criteria>
+
 - [ ] TypeScript configuration modernized
 - [ ] Strict mode enabled everywhere
 - [ ] Base codebase is type-safe
-</success_criteria>
+      </success_criteria>

@@ -8,74 +8,74 @@ alerting:
   alertmanagers:
     - static_configs:
         - targets:
-          - alertmanager:9093
+            - alertmanager:9093
 
 rule_files:
   - "/etc/prometheus/alert_rules.yml"
 
 scrape_configs:
   # Prometheus self-monitoring
-  - job_name: 'prometheus'
+  - job_name: "prometheus"
     static_configs:
-      - targets: ['localhost:9090']
+      - targets: ["localhost:9090"]
 
   # EdgeCloud Aggregated Metrics (from Infra)
-  - job_name: 'edgecloud-aggregated'
+  - job_name: "edgecloud-aggregated"
     static_configs:
-      - targets: ['metrics-service:3005']
+      - targets: ["metrics-service:3005"]
     scrape_interval: 10s
     scrape_timeout: 5s
 
   # EdgeCloud Orchestrator (from Cloud1)
-  - job_name: 'edge-cloud-orchestrator'
+  - job_name: "edge-cloud-orchestrator"
     static_configs:
-      - targets: ['orchestrator:3000']
-    metrics_path: '/metrics'
+      - targets: ["orchestrator:3000"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
 
   # Edge Agents (from Cloud1)
-  - job_name: 'edge-agents'
+  - job_name: "edge-agents"
     static_configs:
-      - targets: ['edge-agent-1:4001', 'edge-agent-2:4002', 'edge-agent-3:4003']
-    metrics_path: '/metrics'
+      - targets: ["edge-agent-1:4001", "edge-agent-2:4002", "edge-agent-3:4003"]
+    metrics_path: "/metrics"
     scrape_interval: 10s
 
   # Infrastructure (Merged)
-  - job_name: 'node-exporter'
+  - job_name: "node-exporter"
     static_configs:
-      - targets: ['node-exporter:9100']
+      - targets: ["node-exporter:9100"]
     scrape_interval: 15s
 
-  - job_name: 'cadvisor'
+  - job_name: "cadvisor"
     static_configs:
-      - targets: ['cadvisor:8080']
+      - targets: ["cadvisor:8080"]
     scrape_interval: 15s
 
   # Backend Services (from Infra)
-  - job_name: 'postgres'
+  - job_name: "postgres"
     static_configs:
-      - targets: ['postgres-exporter:9187']
+      - targets: ["postgres-exporter:9187"]
     scrape_interval: 15s
 
-  - job_name: 'redis'
+  - job_name: "redis"
     static_configs:
-      - targets: ['redis-exporter:9121']
+      - targets: ["redis-exporter:9121"]
     scrape_interval: 15s
 
-  - job_name: 'vault'
+  - job_name: "vault"
     static_configs:
-      - targets: ['vault:8200']
+      - targets: ["vault:8200"]
     metrics_path: /v1/sys/metrics
     params:
-      format: ['prometheus']
+      format: ["prometheus"]
     scrape_interval: 15s
 
   # Nginx API Gateway Metrics
-  - job_name: 'nginx-api-gateway'
+  - job_name: "nginx-api-gateway"
     static_configs:
-      - targets: ['nginx-exporter:9113']
+      - targets: ["nginx-exporter:9113"]
     scrape_interval: 10s
-    metrics_path: '/metrics'
+    metrics_path: "/metrics"
     # Track rate limiting metrics:
     # - nginx_http_requests_total (by status code)
     # - nginx_limiting_requests_total (rate-limited requests)

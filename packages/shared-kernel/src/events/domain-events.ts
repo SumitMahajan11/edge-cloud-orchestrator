@@ -11,7 +11,7 @@ export interface DomainEvent {
 
 // Task Events
 export interface TaskCreatedEvent extends DomainEvent {
-  eventType: 'TaskCreated';
+  eventType: "TaskCreated";
   taskId: string;
   name: string;
   type: string;
@@ -21,7 +21,7 @@ export interface TaskCreatedEvent extends DomainEvent {
 }
 
 export interface TaskScheduledEvent extends DomainEvent {
-  eventType: 'TaskScheduled';
+  eventType: "TaskScheduled";
   taskId: string;
   nodeId: string;
   score: number;
@@ -29,14 +29,14 @@ export interface TaskScheduledEvent extends DomainEvent {
 }
 
 export interface TaskStartedEvent extends DomainEvent {
-  eventType: 'TaskStarted';
+  eventType: "TaskStarted";
   taskId: string;
   nodeId: string;
   startedAt: Date;
 }
 
 export interface TaskCompletedEvent extends DomainEvent {
-  eventType: 'TaskCompleted';
+  eventType: "TaskCompleted";
   taskId: string;
   nodeId: string;
   executionTimeMs: number;
@@ -46,7 +46,7 @@ export interface TaskCompletedEvent extends DomainEvent {
 }
 
 export interface TaskFailedEvent extends DomainEvent {
-  eventType: 'TaskFailed';
+  eventType: "TaskFailed";
   taskId: string;
   nodeId: string;
   error: string;
@@ -56,7 +56,7 @@ export interface TaskFailedEvent extends DomainEvent {
 }
 
 export interface TaskCancelledEvent extends DomainEvent {
-  eventType: 'TaskCancelled';
+  eventType: "TaskCancelled";
   taskId: string;
   reason: string;
   cancelledAt: Date;
@@ -64,7 +64,7 @@ export interface TaskCancelledEvent extends DomainEvent {
 
 // Node Events
 export interface NodeRegisteredEvent extends DomainEvent {
-  eventType: 'NodeRegistered';
+  eventType: "NodeRegistered";
   nodeId: string;
   name: string;
   region: string;
@@ -72,7 +72,7 @@ export interface NodeRegisteredEvent extends DomainEvent {
 }
 
 export interface NodeStatusChangedEvent extends DomainEvent {
-  eventType: 'NodeStatusChanged';
+  eventType: "NodeStatusChanged";
   nodeId: string;
   previousStatus: string;
   newStatus: string;
@@ -80,7 +80,7 @@ export interface NodeStatusChangedEvent extends DomainEvent {
 }
 
 export interface NodeHeartbeatEvent extends DomainEvent {
-  eventType: 'NodeHeartbeat';
+  eventType: "NodeHeartbeat";
   nodeId: string;
   metrics: {
     cpuUsage: number;
@@ -91,7 +91,7 @@ export interface NodeHeartbeatEvent extends DomainEvent {
 }
 
 export interface NodeFailedEvent extends DomainEvent {
-  eventType: 'NodeFailed';
+  eventType: "NodeFailed";
   nodeId: string;
   error: string;
   tasksAffected: string[];
@@ -99,7 +99,7 @@ export interface NodeFailedEvent extends DomainEvent {
 
 // Scheduling Events
 export interface SchedulingDecisionEvent extends DomainEvent {
-  eventType: 'SchedulingDecision';
+  eventType: "SchedulingDecision";
   taskId: string;
   nodeId: string;
   score: number;
@@ -109,9 +109,13 @@ export interface SchedulingDecisionEvent extends DomainEvent {
 
 // System Events
 export interface SystemAlertEvent extends DomainEvent {
-  eventType: 'SystemAlert';
-  alertType: 'HIGH_LATENCY' | 'NODE_FAILURE' | 'QUEUE_BACKLOG' | 'RESOURCE_EXHAUSTION';
-  severity: 'WARNING' | 'CRITICAL';
+  eventType: "SystemAlert";
+  alertType:
+    | "HIGH_LATENCY"
+    | "NODE_FAILURE"
+    | "QUEUE_BACKLOG"
+    | "RESOURCE_EXHAUSTION";
+  severity: "WARNING" | "CRITICAL";
   message: string;
   details: Record<string, unknown>;
 }

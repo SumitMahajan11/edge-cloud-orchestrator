@@ -1,4 +1,4 @@
-import { Permissions,v1Contracts } from '@edgecloud/shared-kernel';
+import { Permissions, v1Contracts } from '@edgecloud/shared-kernel';
 import { Task, TaskExecution } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import type { TenantId } from '../types/fastify.js';
@@ -8,33 +8,39 @@ import { deprecated } from '../utils/deprecation';
 import { zodToFastifySchema } from '../utils/zod-schema';
 
 /**
-  * Transform flat Prisma task model to versioned API response schema
-  */
- function transformTask(task: Task & { executions?: TaskExecution[] }) {
-   if (!task) {return null;}
- 
-   const metadata = typeof task.metadata === 'string' 
-     ? JSON.parse(task.metadata) as Record<string, unknown>
-     : (task.metadata as Record<string, unknown> || {});
- 
-   return {
-     ...task,
-     status: (task.status || 'PENDING').toUpperCase(),
-     priority: (task.priority || 'MEDIUM').toUpperCase(),
-     submittedAt: task.submittedAt.toISOString(),
-     startedAt: (task.executions?.[0]?.startedAt || null)?.toISOString() || null,
-     completedAt: (task.executions?.[0]?.completedAt || null)?.toISOString() || null,
-     image: task.image || '',
-     specs: (metadata.specs as Record<string, unknown>) || null,
-     runtime: task.runtime,
-     affinity: task.affinity,
-     traceId: task.traceId,
-     retryCount: Array.isArray(task.executions) ? Math.max(0, task.executions.length - 1) : 0,
-     metadata: metadata
-   };
- }
- 
- export default async function taskRoutes(fastify: FastifyInstance) {
+ * Transform flat Prisma task model to versioned API response schema
+ */
+function transformTask(task: Task & { executions?: TaskExecution[] }) {
+  if (!task) {
+    return null;
+  }
+
+  const metadata =
+    typeof task.metadata === 'string'
+      ? (JSON.parse(task.metadata) as Record<string, unknown>)
+      : (task.metadata as Record<string, unknown>) || {};
+
+  return {
+    ...task,
+    status: (task.status || 'PENDING').toUpperCase(),
+    priority: (task.priority || 'MEDIUM').toUpperCase(),
+    submittedAt: task.submittedAt.toISOString(),
+    startedAt: (task.executions?.[0]?.startedAt || null)?.toISOString() || null,
+    completedAt:
+      (task.executions?.[0]?.completedAt || null)?.toISOString() || null,
+    image: task.image || '',
+    specs: (metadata.specs as Record<string, unknown>) || null,
+    runtime: task.runtime,
+    affinity: task.affinity,
+    traceId: task.traceId,
+    retryCount: Array.isArray(task.executions)
+      ? Math.max(0, task.executions.length - 1)
+      : 0,
+    metadata: metadata,
+  };
+}
+
+export default async function taskRoutes(fastify: FastifyInstance) {
   // Global hook for this plugin to surface rate limiter degradation
   fastify.addHook('onSend', async (_request, reply, payload) => {
     if (fastify.schedulerRateLimiter?.isDegraded()) {
@@ -47,7 +53,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.get<{ Querystring: v1Contracts.TaskQueryV1 }>(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         querystring: zodToFastifySchema(v1Contracts.TaskQueryV1Schema),
         tags: ['tasks'],
@@ -56,7 +65,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
           200: {
             type: 'object',
             properties: {
-              data: { type: 'array', items: zodToFastifySchema(v1Contracts.TaskV1ResponseSchema) },
+              data: {
+                type: 'array',
+                items: zodToFastifySchema(v1Contracts.TaskV1ResponseSchema),
+              },
               pagination: {
                 type: 'object',
                 properties: {
@@ -71,7 +83,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
         },
       },
     },
-    async (request: FastifyRequest<{ Querystring: v1Contracts.TaskQueryV1 }>, _reply) => {
+    async (
+      request: FastifyRequest<{ Querystring: v1Contracts.TaskQueryV1 }>,
+      _reply,
+    ) => {
       const {
         status,
         type,
@@ -134,7 +149,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.get<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -162,13 +180,13 @@ import { zodToFastifySchema } from '../utils/zod-schema';
       });
 
       if (!task) {
-        return reply.status(404).send({ 
+        return reply.status(404).send({
           error: {
             code: 'RESOURCE_NOT_FOUND',
             message: 'Task not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -180,7 +198,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.get<{ Params: { id: string } }>(
     '/:id/scheduling-decision',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -189,8 +210,8 @@ import { zodToFastifySchema } from '../utils/zod-schema';
     },
     async (request, reply) => {
       const decision = await request.tPrisma.schedulingDecision.findFirst({
-        where: { 
-          taskId: request.params.id
+        where: {
+          taskId: request.params.id,
         },
       });
 
@@ -200,8 +221,8 @@ import { zodToFastifySchema } from '../utils/zod-schema';
             code: 'DECISION_NOT_FOUND',
             message: 'Scheduling decision not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -213,9 +234,13 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.post<{ Body: v1Contracts.CreateTaskV1 }>(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CREATE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CREATE),
+      ],
       preValidation: async (request: any, reply: any) => {
-        const { TaskInputSchema, TaskMetadataSchema } = await import('@edgecloud/shared-kernel');
+        const { TaskInputSchema, TaskMetadataSchema } =
+          await import('@edgecloud/shared-kernel');
         if (request.body?.input) {
           const res = TaskInputSchema.safeParse(request.body.input);
           if (!res.success) {
@@ -224,7 +249,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
                 code: 'BAD_REQUEST',
                 message: `Invalid input payload: ${res.error.issues[0]?.message}`,
                 requestId: request.id,
-              }
+              },
             });
           }
         }
@@ -236,7 +261,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
                 code: 'BAD_REQUEST',
                 message: `Invalid metadata payload: ${res.error.issues[0]?.message}`,
                 requestId: request.id,
-              }
+              },
             });
           }
         }
@@ -252,14 +277,17 @@ import { zodToFastifySchema } from '../utils/zod-schema';
         },
       },
     },
-    async (request: FastifyRequest<{ Body: v1Contracts.CreateTaskV1 }>, reply) => {
+    async (
+      request: FastifyRequest<{ Body: v1Contracts.CreateTaskV1 }>,
+      reply,
+    ) => {
       const data = request.body as any;
 
       // If nodeId specified, verify node is available
       if (data.nodeId) {
         const node = await request.tPrisma.edgeNode.findFirst({
           where: { id: data.nodeId as string },
-          include: { metrics: { take: 1, orderBy: { timestamp: 'desc' } } }
+          include: { metrics: { take: 1, orderBy: { timestamp: 'desc' } } },
         });
 
         if (node && node.metrics && node.metrics.length > 0) {
@@ -273,7 +301,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
               code: 'BAD_REQUEST',
               message: 'Node not available',
               requestId: request.id,
-            }
+            },
           });
         }
       }
@@ -289,7 +317,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
           nodeId: data.nodeId ?? null,
           policy: 'manual',
           reason: 'Manually submitted',
-          input: (data.input || {}),
+          input: data.input || {},
           metadata: {
             ...(data.metadata || {}),
             specs: data.specs,
@@ -338,7 +366,11 @@ import { zodToFastifySchema } from '../utils/zod-schema';
 
       // Broadcast via WebSocket
       fastify.log.info({ taskId: task.id }, 'Broadcasting task:created');
-      fastify.wsManager.broadcastToTenant(task.tenantId as TenantId, 'task:created', task);
+      fastify.wsManager.broadcastToTenant(
+        task.tenantId as TenantId,
+        'task:created',
+        task,
+      );
 
       return reply.status(201).send(transformTask(task));
     },
@@ -348,7 +380,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.post<{ Params: { id: string } }>(
     '/:id/cancel',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_CANCEL)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CANCEL),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -366,8 +401,8 @@ import { zodToFastifySchema } from '../utils/zod-schema';
             code: 'TASK_NOT_FOUND',
             message: 'Task not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -377,7 +412,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
             code: 'INVALID_TASK_STATE',
             message: 'Task cannot be cancelled in its current state',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -389,7 +424,11 @@ import { zodToFastifySchema } from '../utils/zod-schema';
       });
 
       // Broadcast via WebSocket
-      fastify.wsManager.broadcastToTenant(updated.tenantId as TenantId, 'task:cancelled', updated);
+      fastify.wsManager.broadcastToTenant(
+        updated.tenantId as TenantId,
+        'task:cancelled',
+        updated,
+      );
 
       return updated;
     },
@@ -399,7 +438,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.post<{ Params: { id: string } }>(
     '/:id/retry',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_ADMIN)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_ADMIN),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['tasks'],
@@ -417,8 +459,8 @@ import { zodToFastifySchema } from '../utils/zod-schema';
             code: 'RESOURCE_NOT_FOUND',
             message: 'Task not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -428,7 +470,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
             code: 'BAD_REQUEST',
             message: 'Only failed tasks can be retried',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -442,11 +484,13 @@ import { zodToFastifySchema } from '../utils/zod-schema';
             code: 'BAD_REQUEST',
             message: 'Max retries exceeded',
             requestId: request.id,
-          }
+          },
         });
       }
 
-      const previousExecution = await (request.tPrisma as any).taskExecution.findFirst({
+      const previousExecution = await (
+        request.tPrisma as any
+      ).taskExecution.findFirst({
         where: { taskId: id },
         orderBy: { attemptNumber: 'desc' },
       });
@@ -478,18 +522,27 @@ import { zodToFastifySchema } from '../utils/zod-schema';
           executions: { orderBy: { attemptNumber: 'desc' }, take: 1 },
         },
       });
-      
+
       const tUpdatedTask = updatedTask;
 
       if (!tUpdatedTask) {
-        return reply.status(404).send({ error: 'Task not found after creation' });
+        return reply
+          .status(404)
+          .send({ error: 'Task not found after creation' });
       }
 
       await fastify.taskScheduler.enqueue(tUpdatedTask as any);
-      fastify.wsManager.broadcastToTenant(tUpdatedTask.tenantId as TenantId, 'task:created', tUpdatedTask);
+      fastify.wsManager.broadcastToTenant(
+        tUpdatedTask.tenantId as TenantId,
+        'task:created',
+        tUpdatedTask,
+      );
 
       // Record metric
-      fastify.taskScheduler.recordTaskSubmission(tUpdatedTask.priority, request.user!.tenantId!);
+      fastify.taskScheduler.recordTaskSubmission(
+        tUpdatedTask.priority,
+        request.user!.tenantId!,
+      );
 
       return reply.status(201).send(tUpdatedTask);
     },
@@ -502,7 +555,10 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   }>(
     '/:id/logs',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: zodToFastifySchema(tasksLogsQuerySchema),
@@ -510,7 +566,13 @@ import { zodToFastifySchema } from '../utils/zod-schema';
         summary: 'Get task logs',
       },
     },
-    async (request: FastifyRequest<{ Params: { id: string }; Querystring: { level?: string; limit?: number } }>, _reply) => {
+    async (
+      request: FastifyRequest<{
+        Params: { id: string };
+        Querystring: { level?: string; limit?: number };
+      }>,
+      _reply,
+    ) => {
       const { id } = request.params;
       const { level, limit = 100 } = request.query;
 
@@ -532,7 +594,7 @@ import { zodToFastifySchema } from '../utils/zod-schema';
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -541,50 +603,55 @@ import { zodToFastifySchema } from '../utils/zod-schema';
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         tags: ['tasks'],
         summary: 'Get task statistics (Deprecated)',
       },
     },
     deprecated(
-      { 
-        deprecationDate: '2026-04-14', 
-        sunsetDate: '2026-10-14', 
-        link: 'https://docs.edgecloud.com/api/v2/stats' 
+      {
+        deprecationDate: '2026-04-14',
+        sunsetDate: '2026-10-14',
+        link: 'https://docs.edgecloud.com/api/v2/stats',
       },
       async (request, _reply) => {
         const stats = await request.tPrisma.task.groupBy({
-        where: {},
-        by: ['status'],
-        _count: true,
-      });
+          where: {},
+          by: ['status'],
+          _count: true,
+        });
 
-      const byPriority = await request.tPrisma.task.groupBy({
-        where: {},
-        by: ['priority'],
-        _count: true,
-      });
+        const byPriority = await request.tPrisma.task.groupBy({
+          where: {},
+          by: ['priority'],
+          _count: true,
+        });
 
-      const byType = await request.tPrisma.task.groupBy({
-        where: {},
-        by: ['type'],
-        _count: true,
-      });
+        const byType = await request.tPrisma.task.groupBy({
+          where: {},
+          by: ['type'],
+          _count: true,
+        });
 
-      return {
-        byStatus: stats.reduce(
-          (acc: any, s: any) => ({ ...acc, [s.status]: s._count }),
-          {},
-        ),
-        byPriority: byPriority.reduce(
-          (acc: any, p: any) => ({ ...acc, [p.priority]: p._count }),
-          {},
-        ),
-        byType: byType.reduce((acc: any, t: any) => ({ ...acc, [t.type]: t._count }), {}),
-      };
-    })
+        return {
+          byStatus: stats.reduce(
+            (acc: any, s: any) => ({ ...acc, [s.status]: s._count }),
+            {},
+          ),
+          byPriority: byPriority.reduce(
+            (acc: any, p: any) => ({ ...acc, [p.priority]: p._count }),
+            {},
+          ),
+          byType: byType.reduce(
+            (acc: any, t: any) => ({ ...acc, [t.type]: t._count }),
+            {},
+          ),
+        };
+      },
+    ),
   );
 }
-
-

@@ -8,7 +8,10 @@ export default async function schedulerRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/metrics',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
       schema: {
         tags: ['scheduler'],
         summary: 'Get scheduler-specific metrics',
@@ -21,8 +24,8 @@ export default async function schedulerRoutes(fastify: FastifyInstance) {
               throughput: { type: 'number' },
               efficiency: { type: 'number' },
             },
-          }
-        }
+          },
+        },
       },
     },
     async (_request, _reply) => {
@@ -39,7 +42,10 @@ export default async function schedulerRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/decisions',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.SCHEDULER_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
       schema: {
         tags: ['scheduler'],
         summary: 'Get recent scheduling decisions',
@@ -47,9 +53,14 @@ export default async function schedulerRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const { nodeId, limit = 50 } = request.query as { nodeId?: string; limit?: number };
-      
-      const decisions = await (fastify as any).prisma.schedulingDecision.findMany({
+      const { nodeId, limit = 50 } = request.query as {
+        nodeId?: string;
+        limit?: number;
+      };
+
+      const decisions = await (
+        fastify as any
+      ).prisma.schedulingDecision.findMany({
         where: {
           tenantId: (request.user as any).tenantId,
           ...(nodeId && { selectedNodeId: nodeId }),
@@ -67,7 +78,7 @@ export default async function schedulerRoutes(fastify: FastifyInstance) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );

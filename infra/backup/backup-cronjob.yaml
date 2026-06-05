@@ -7,7 +7,7 @@ metadata:
     app: edgecloud
     component: backup
 spec:
-  schedule: "0 */6 * * *"  # Every 6 hours
+  schedule: "0 */6 * * *" # Every 6 hours
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -20,93 +20,93 @@ spec:
             component: backup
         spec:
           containers:
-          - name: backup
-            image: postgres:16-alpine
-            env:
-            - name: PGHOST
-              valueFrom:
-                secretKeyRef:
-                  name: db-credentials
-                  key: host
-            - name: PGUSER
-              valueFrom:
-                secretKeyRef:
-                  name: db-credentials
-                  key: username
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: db-credentials
-                  key: password
-            - name: PGDATABASE
-              value: edge_cloud
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: aws-credentials
-                  key: access-key-id
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: aws-credentials
-                  key: secret-access-key
-            - name: AWS_DEFAULT_REGION
-              value: "us-east-1"
-            command:
-            - /bin/sh
-            - -c
-            - |
-              set -e
-              
-              BACKUP_FILE="backup_$(date +%Y%m%d_%H%M%S).sql.gz"
-              
-              echo "Starting database backup: $BACKUP_FILE"
-              
-              # Create backup
-              pg_dump | gzip > /backups/$BACKUP_FILE
-              
-              # Verify backup was created
-              if [ ! -f /backups/$BACKUP_FILE ]; then
-                echo "ERROR: Backup file was not created"
-                exit 1
-              fi
-              
-              BACKUP_SIZE=$(stat -c%s /backups/$BACKUP_FILE)
-              echo "Backup size: $BACKUP_SIZE bytes"
-              
-              # Upload to S3
-              aws s3 cp /backups/$BACKUP_FILE s3://edgecloud-backups/database/$BACKUP_FILE \
-                --storage-class STANDARD_IA
-              
-              # Verify upload
-              aws s3 ls s3://edgecloud-backups/database/$BACKUP_FILE
-              
-              # Cleanup old backups (keep 7 days)
-              echo "Cleaning up old backups..."
-              aws s3 ls s3://edgecloud-backups/database/ | \
-                awk '$1 < "'$(date -d '7 days ago' +%Y-%m-%d)'" {print $4}' | \
-                while read file; do
-                  if [ -n "$file" ]; then
-                    echo "Removing old backup: $file"
-                    aws s3 rm s3://edgecloud-backups/database/$file
+            - name: backup
+              image: postgres:16-alpine
+              env:
+                - name: PGHOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-credentials
+                      key: host
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-credentials
+                      key: username
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: db-credentials
+                      key: password
+                - name: PGDATABASE
+                  value: edge_cloud
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: access-key-id
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: aws-credentials
+                      key: secret-access-key
+                - name: AWS_DEFAULT_REGION
+                  value: "us-east-1"
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  set -e
+
+                  BACKUP_FILE="backup_$(date +%Y%m%d_%H%M%S).sql.gz"
+
+                  echo "Starting database backup: $BACKUP_FILE"
+
+                  # Create backup
+                  pg_dump | gzip > /backups/$BACKUP_FILE
+
+                  # Verify backup was created
+                  if [ ! -f /backups/$BACKUP_FILE ]; then
+                    echo "ERROR: Backup file was not created"
+                    exit 1
                   fi
-                done
-              
-              echo "Backup completed successfully: $BACKUP_FILE"
-            volumeMounts:
-            - name: backups
-              mountPath: /backups
-            resources:
-              requests:
-                memory: "256Mi"
-                cpu: "100m"
-              limits:
-                memory: "512Mi"
-                cpu: "500m"
+
+                  BACKUP_SIZE=$(stat -c%s /backups/$BACKUP_FILE)
+                  echo "Backup size: $BACKUP_SIZE bytes"
+
+                  # Upload to S3
+                  aws s3 cp /backups/$BACKUP_FILE s3://edgecloud-backups/database/$BACKUP_FILE \
+                    --storage-class STANDARD_IA
+
+                  # Verify upload
+                  aws s3 ls s3://edgecloud-backups/database/$BACKUP_FILE
+
+                  # Cleanup old backups (keep 7 days)
+                  echo "Cleaning up old backups..."
+                  aws s3 ls s3://edgecloud-backups/database/ | \
+                    awk '$1 < "'$(date -d '7 days ago' +%Y-%m-%d)'" {print $4}' | \
+                    while read file; do
+                      if [ -n "$file" ]; then
+                        echo "Removing old backup: $file"
+                        aws s3 rm s3://edgecloud-backups/database/$file
+                      fi
+                    done
+
+                  echo "Backup completed successfully: $BACKUP_FILE"
+              volumeMounts:
+                - name: backups
+                  mountPath: /backups
+              resources:
+                requests:
+                  memory: "256Mi"
+                  cpu: "100m"
+                limits:
+                  memory: "512Mi"
+                  cpu: "500m"
           volumes:
-          - name: backups
-            emptyDir:
-              sizeLimit: 10Gi
+            - name: backups
+              emptyDir:
+                sizeLimit: 10Gi
           restartPolicy: OnFailure
           serviceAccountName: backup-sa
 ---
@@ -128,10 +128,10 @@ metadata:
     app: edgecloud
     component: backup
 rules:
-- apiGroups: [""]
-  resources: ["secrets"]
-  resourceNames: ["db-credentials", "aws-credentials"]
-  verbs: ["get"]
+  - apiGroups: [""]
+    resources: ["secrets"]
+    resourceNames: ["db-credentials", "aws-credentials"]
+    verbs: ["get"]
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
@@ -146,9 +146,9 @@ roleRef:
   kind: Role
   name: backup-role
 subjects:
-- kind: ServiceAccount
-  name: backup-sa
-  namespace: edgecloud
+  - kind: ServiceAccount
+    name: backup-sa
+    namespace: edgecloud
 ---
 # Velero Schedule for full cluster backups
 apiVersion: velero.io/v1
@@ -160,15 +160,15 @@ metadata:
     app: edgecloud
     component: backup
 spec:
-  schedule: "0 2 * * *"  # Daily at 2 AM
+  schedule: "0 2 * * *" # Daily at 2 AM
   template:
     includedNamespaces:
-    - edgecloud
-    - monitoring
+      - edgecloud
+      - monitoring
     excludedResources:
-    - events
-    - pods
-    ttl: 720h0m0s  # 30 days retention
+      - events
+      - pods
+    ttl: 720h0m0s # 30 days retention
     storageLocation: aws-backups
     volumeSnapshotLocations:
-    - aws-snapshots
+      - aws-snapshots

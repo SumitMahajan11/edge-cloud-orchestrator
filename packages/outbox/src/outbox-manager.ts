@@ -1,8 +1,8 @@
-import { EventEmitter } from 'eventemitter3';
-import { Message,Producer } from 'kafkajs';
+import { EventEmitter } from "eventemitter3";
+import { Message, Producer } from "kafkajs";
 
 // Define types locally to avoid direct Prisma dependency
-export type OutboxStatus = 'PENDING' | 'PROCESSING' | 'PUBLISHED' | 'FAILED';
+export type OutboxStatus = "PENDING" | "PROCESSING" | "PUBLISHED" | "FAILED";
 
 export interface OutboxConfig {
   pollingIntervalMs: number;
@@ -68,7 +68,7 @@ export class OutboxManager extends EventEmitter {
   constructor(
     prisma: PrismaClientLike,
     producer: Producer,
-    config: Partial<OutboxConfig> = {}
+    config: Partial<OutboxConfig> = {},
   ) {
     super();
     this.prisma = prisma;
@@ -89,7 +89,7 @@ export class OutboxManager extends EventEmitter {
    */
   async storeEvent(
     tx: PrismaClientLike,
-    event: OutboxEventInput
+    event: OutboxEventInput,
   ): Promise<OutboxEvent> {
     return tx.outboxEvent.create({
       data: {
@@ -97,7 +97,7 @@ export class OutboxManager extends EventEmitter {
         eventType: event.eventType,
         payload: event.payload,
         headers: event.headers || null,
-        status: 'PENDING',
+        status: "PENDING",
         attempts: 0,
         maxAttempts: this.config.maxAttempts,
       },
@@ -109,28 +109,30 @@ export class OutboxManager extends EventEmitter {
    */
   async storeEvents(
     tx: PrismaClientLike,
-    events: OutboxEventInput[]
+    events: OutboxEventInput[],
   ): Promise<OutboxEvent[]> {
-    return tx.outboxEvent.createMany({
-      data: events.map((e) => ({
-        aggregateId: e.aggregateId,
-        eventType: e.eventType,
-        payload: e.payload,
-        headers: e.headers || null,
-        status: 'PENDING' as OutboxStatus,
-        attempts: 0,
-        maxAttempts: this.config.maxAttempts,
-      })),
-    }).then(() => 
-      tx.outboxEvent.findMany({
-        where: {
-          aggregateId: { in: events.map((e) => e.aggregateId) },
-          status: 'PENDING',
-        },
-        orderBy: { createdAt: 'desc' },
-        take: events.length,
+    return tx.outboxEvent
+      .createMany({
+        data: events.map((e) => ({
+          aggregateId: e.aggregateId,
+          eventType: e.eventType,
+          payload: e.payload,
+          headers: e.headers || null,
+          status: "PENDING" as OutboxStatus,
+          attempts: 0,
+          maxAttempts: this.config.maxAttempts,
+        })),
       })
-    ) as Promise<OutboxEvent[]>;
+      .then(() =>
+        tx.outboxEvent.findMany({
+          where: {
+            aggregateId: { in: events.map((e) => e.aggregateId) },
+            status: "PENDING",
+          },
+          orderBy: { createdAt: "desc" },
+          take: events.length,
+        }),
+      ) as Promise<OutboxEvent[]>;
   }
 
   /**
@@ -145,7 +147,7 @@ export class OutboxManager extends EventEmitter {
       void this.processPendingEvents();
     }, this.config.pollingIntervalMs);
 
-    this.emit('started');
+    this.emit("started");
   }
 
   /**
@@ -162,7 +164,7 @@ export class OutboxManager extends EventEmitter {
       await new Promise((resolve) => setTimeout(resolve, 100));
     }
 
-    this.emit('stopped');
+    this.emit("stopped");
   }
 
   /**
@@ -182,13 +184,13 @@ export class OutboxManager extends EventEmitter {
         return;
       }
 
-      this.emit('processing', { count: events.length });
+      this.emit("processing", { count: events.length });
 
       for (const event of events) {
         await this.processEvent(event);
       }
     } catch (error) {
-      this.emit('error', { error, phase: 'processPendingEvents' });
+      this.emit("error", { error, phase: "processPendingEvents" });
     } finally {
       this.isProcessing = false;
     }
@@ -200,13 +202,10 @@ export class OutboxManager extends EventEmitter {
   private async fetchPendingEvents(): Promise<OutboxEvent[]> {
     return this.prisma.outboxEvent.findMany({
       where: {
-        status: 'PENDING',
-        OR: [
-          { nextRetryAt: null },
-          { nextRetryAt: { lte: new Date() } },
-        ],
+        status: "PENDING",
+        OR: [{ nextRetryAt: null }, { nextRetryAt: { lte: new Date() } }],
       },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
       take: this.config.batchSize,
     }) as Promise<OutboxEvent[]>;
   }
@@ -218,22 +217,24 @@ export class OutboxManager extends EventEmitter {
     // Mark as processing
     await this.prisma.outboxEvent.update({
       where: { id: event.id },
-      data: { status: 'PROCESSING' as OutboxStatus },
+      data: { status: "PROCESSING" as OutboxStatus },
     });
 
     try {
-      const topic = this.topicMapping.get(event.eventType) || this.inferTopic(event.eventType);
+      const topic =
+        this.topicMapping.get(event.eventType) ||
+        this.inferTopic(event.eventType);
 
       const message: Message = {
         key: event.aggregateId,
         value: JSON.stringify(event.payload),
         headers: {
-          'event-type': event.eventType,
-          'event-id': event.id,
-          'aggregate-id': event.aggregateId,
-          'idempotency-key': event.id, // Prevent duplicate processing
-          'timestamp': new Date().toISOString(),
-          ...(event.headers as Record<string, string> || {}),
+          "event-type": event.eventType,
+          "event-id": event.id,
+          "aggregate-id": event.aggregateId,
+          "idempotency-key": event.id, // Prevent duplicate processing
+          timestamp: new Date().toISOString(),
+          ...((event.headers as Record<string, string>) || {}),
         },
       };
 
@@ -246,12 +247,12 @@ export class OutboxManager extends EventEmitter {
       await this.prisma.outboxEvent.update({
         where: { id: event.id },
         data: {
-          status: 'PUBLISHED' as OutboxStatus,
+          status: "PUBLISHED" as OutboxStatus,
           processedAt: new Date(),
         },
       });
 
-      this.emit('published', { eventId: event.id, eventType: event.eventType });
+      this.emit("published", { eventId: event.id, eventType: event.eventType });
     } catch (error) {
       await this.handlePublishError(event, error as Error);
     }
@@ -260,7 +261,10 @@ export class OutboxManager extends EventEmitter {
   /**
    * Handle publishing errors with retry logic
    */
-  private async handlePublishError(event: OutboxEvent, error: Error): Promise<void> {
+  private async handlePublishError(
+    event: OutboxEvent,
+    error: Error,
+  ): Promise<void> {
     const attempts = event.attempts + 1;
     const shouldRetry = attempts < event.maxAttempts;
 
@@ -271,13 +275,13 @@ export class OutboxManager extends EventEmitter {
       await this.prisma.outboxEvent.update({
         where: { id: event.id },
         data: {
-          status: 'PENDING' as OutboxStatus,
+          status: "PENDING" as OutboxStatus,
           attempts,
           nextRetryAt,
         },
       });
 
-      this.emit('retry', {
+      this.emit("retry", {
         eventId: event.id,
         attempt: attempts,
         nextRetryAt,
@@ -287,12 +291,12 @@ export class OutboxManager extends EventEmitter {
       await this.prisma.outboxEvent.update({
         where: { id: event.id },
         data: {
-          status: 'FAILED' as OutboxStatus,
+          status: "FAILED" as OutboxStatus,
           attempts,
         },
       });
 
-      this.emit('failed', {
+      this.emit("failed", {
         eventId: event.id,
         eventType: event.eventType,
         attempts,
@@ -307,7 +311,10 @@ export class OutboxManager extends EventEmitter {
   private calculateBackoff(attempt: number): number {
     const baseDelay = this.config.retryBaseDelayMs;
     const maxDelay = this.config.retryMaxDelayMs;
-    const exponentialDelay = Math.min(baseDelay * Math.pow(2, attempt), maxDelay);
+    const exponentialDelay = Math.min(
+      baseDelay * Math.pow(2, attempt),
+      maxDelay,
+    );
     const jitter = Math.random() * 0.1 * exponentialDelay;
     return Math.floor(exponentialDelay + jitter);
   }
@@ -317,7 +324,9 @@ export class OutboxManager extends EventEmitter {
    */
   private inferTopic(eventType: string): string {
     // Convert event type like "TaskCreated" to "tasks.events"
-    const entity = eventType.replace(/^(Created|Updated|Deleted|Failed|Completed)/, '').toLowerCase();
+    const entity = eventType
+      .replace(/^(Created|Updated|Deleted|Failed|Completed)/, "")
+      .toLowerCase();
     return `${entity}.events`;
   }
 
@@ -331,17 +340,18 @@ export class OutboxManager extends EventEmitter {
     failed: number;
     oldestPending?: Date;
   }> {
-    const [pending, processing, published, failed, oldestPending] = await Promise.all([
-      this.prisma.outboxEvent.count({ where: { status: 'PENDING' } }),
-      this.prisma.outboxEvent.count({ where: { status: 'PROCESSING' } }),
-      this.prisma.outboxEvent.count({ where: { status: 'PUBLISHED' } }),
-      this.prisma.outboxEvent.count({ where: { status: 'FAILED' } }),
-      this.prisma.outboxEvent.findFirst({
-        where: { status: 'PENDING' },
-        orderBy: { createdAt: 'asc' },
-        select: { createdAt: true },
-      }),
-    ]);
+    const [pending, processing, published, failed, oldestPending] =
+      await Promise.all([
+        this.prisma.outboxEvent.count({ where: { status: "PENDING" } }),
+        this.prisma.outboxEvent.count({ where: { status: "PROCESSING" } }),
+        this.prisma.outboxEvent.count({ where: { status: "PUBLISHED" } }),
+        this.prisma.outboxEvent.count({ where: { status: "FAILED" } }),
+        this.prisma.outboxEvent.findFirst({
+          where: { status: "PENDING" },
+          orderBy: { createdAt: "asc" },
+          select: { createdAt: true },
+        }),
+      ]);
 
     return {
       pending,
@@ -357,19 +367,19 @@ export class OutboxManager extends EventEmitter {
    */
   async retryFailed(eventIds?: string[]): Promise<number> {
     const where = eventIds
-      ? { id: { in: eventIds }, status: 'FAILED' as OutboxStatus }
-      : { status: 'FAILED' as OutboxStatus };
+      ? { id: { in: eventIds }, status: "FAILED" as OutboxStatus }
+      : { status: "FAILED" as OutboxStatus };
 
     const result = await this.prisma.outboxEvent.updateMany({
       where,
       data: {
-        status: 'PENDING' as OutboxStatus,
+        status: "PENDING" as OutboxStatus,
         attempts: 0,
         nextRetryAt: null,
       },
     });
 
-    this.emit('retry_requested', { count: result.count });
+    this.emit("retry_requested", { count: result.count });
     return result.count;
   }
 }

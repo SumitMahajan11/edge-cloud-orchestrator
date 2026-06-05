@@ -19,7 +19,6 @@ When a task reaches its `maxDurationSeconds` limit:
 1. **SIGTERM (Grace Period)**: Container receives `SIGTERM` signal
    - Application has 15 seconds to gracefully shut down
    - Clean up resources, save state, close connections
-   
 2. **SIGKILL (Force Termination)**: If container is still running after 15 seconds
    - Container is forcefully killed with `SIGKILL`
    - Exit code: `137` (128 + 9, where 9 is SIGKILL signal number)
@@ -56,6 +55,7 @@ curl -X POST http://api.edgecloud.io/tasks \
 ### Timeout Examples
 
 #### Example 1: Quick Task (1 minute)
+
 ```json
 {
   "image": "alpine:latest",
@@ -65,6 +65,7 @@ curl -X POST http://api.edgecloud.io/tasks \
 ```
 
 #### Example 2: Data Processing (30 minutes)
+
 ```json
 {
   "image": "python:3.11",
@@ -78,6 +79,7 @@ curl -X POST http://api.edgecloud.io/tasks \
 ```
 
 #### Example 3: Long-Running ML Training (4 hours)
+
 ```json
 {
   "image": "tensorflow/tensorflow:latest-gpu",
@@ -93,12 +95,14 @@ curl -X POST http://api.edgecloud.io/tasks \
 ### Monitoring Timeouts
 
 #### Check Task Status
+
 ```bash
 curl http://api.edgecloud.io/tasks/<task-id> \
   -H "Authorization: Bearer <token>"
 ```
 
 Response for timed-out task:
+
 ```json
 {
   "id": "task-123",
@@ -115,12 +119,14 @@ Response for timed-out task:
 ```
 
 #### View Task Logs
+
 ```bash
 curl http://api.edgecloud.io/tasks/<task-id>/logs \
   -H "Authorization: Bearer <token>"
 ```
 
 Timeout logs:
+
 ```
 [WARN] Task task-123 exceeded max duration (600s), sending SIGTERM
 [WARN] Task task-123 did not stop after SIGTERM, sending SIGKILL
@@ -147,27 +153,26 @@ Tasks that timeout can be automatically retried:
 
 ### Best Practices
 
-1. **Set Realistic Timeouts**: 
+1. **Set Realistic Timeouts**:
    - Test tasks locally to determine actual execution time
    - Add 20-30% buffer for variability
-   
 2. **Implement Graceful Shutdown**:
+
    ```python
    import signal
    import sys
-   
+
    def cleanup(signum, frame):
        print("Received SIGTERM, cleaning up...")
        save_checkpoint()
        sys.exit(0)
-   
+
    signal.signal(signal.SIGTERM, cleanup)
    ```
 
 3. **Use Checkpoints for Long Tasks**:
    - Save progress periodically
    - Resume from checkpoint on retry
-   
 4. **Monitor Timeout Metrics**:
    - Track timeout rate per task type
    - Adjust `maxDurationSeconds` based on historical data
@@ -175,16 +180,19 @@ Tasks that timeout can be automatically retried:
 ### Troubleshooting
 
 #### Task Keeps Timing Out
+
 1. Check if timeout is too low for the workload
 2. Profile task execution time locally
 3. Increase `maxDurationSeconds` or optimize the task
 
 #### Container Not Responding to SIGTERM
+
 1. Ensure application handles SIGTERM properly
 2. Check for blocked I/O operations
 3. Add signal handlers for graceful shutdown
 
 #### Exit Code 137
+
 - Indicates container was killed by SIGKILL
 - Usually means task ignored SIGTERM or took >15s to shut down
 - Review application shutdown logic

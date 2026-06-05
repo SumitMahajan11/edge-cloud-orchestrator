@@ -1,6 +1,6 @@
 /**
  * Event Versioning System
- * 
+ *
  * Ensures backward compatibility for Kafka events.
  * Supports:
  * - Event versioning
@@ -8,7 +8,7 @@
  * - Version-based routing
  */
 
-import type { Logger } from 'pino';
+import type { Logger } from "pino";
 
 // ============================================================================
 // Types
@@ -47,16 +47,16 @@ export interface VersionRegistry {
 // ============================================================================
 
 export const EVENT_VERSIONS = {
-  TASK_CREATED: { current: 'v2', supported: ['v1', 'v2'] },
-  TASK_SCHEDULED: { current: 'v2', supported: ['v1', 'v2'] },
-  TASK_COMPLETED: { current: 'v2', supported: ['v1', 'v2'] },
-  TASK_FAILED: { current: 'v2', supported: ['v1', 'v2'] },
-  NODE_REGISTERED: { current: 'v1', supported: ['v1'] },
-  NODE_HEARTBEAT: { current: 'v2', supported: ['v1', 'v2'] },
-  NODE_STATUS_CHANGED: { current: 'v1', supported: ['v1'] },
-  SAGA_STARTED: { current: 'v1', supported: ['v1'] },
-  SAGA_STEP_COMPLETED: { current: 'v1', supported: ['v1'] },
-  SAGA_COMPENSATED: { current: 'v1', supported: ['v1'] },
+  TASK_CREATED: { current: "v2", supported: ["v1", "v2"] },
+  TASK_SCHEDULED: { current: "v2", supported: ["v1", "v2"] },
+  TASK_COMPLETED: { current: "v2", supported: ["v1", "v2"] },
+  TASK_FAILED: { current: "v2", supported: ["v1", "v2"] },
+  NODE_REGISTERED: { current: "v1", supported: ["v1"] },
+  NODE_HEARTBEAT: { current: "v2", supported: ["v1", "v2"] },
+  NODE_STATUS_CHANGED: { current: "v1", supported: ["v1"] },
+  SAGA_STARTED: { current: "v1", supported: ["v1"] },
+  SAGA_STEP_COMPLETED: { current: "v1", supported: ["v1"] },
+  SAGA_COMPENSATED: { current: "v1", supported: ["v1"] },
 } as const;
 
 // ============================================================================
@@ -78,28 +78,28 @@ export class EventVersioningService {
   private initializeRegistry(): void {
     // Task Created
     this.registerSchema({
-      version: 'v1',
-      eventType: 'TaskCreated',
+      version: "v1",
+      eventType: "TaskCreated",
       schema: {
-        taskId: 'string',
-        name: 'string',
-        type: 'string',
-        priority: 'string',
+        taskId: "string",
+        name: "string",
+        type: "string",
+        priority: "string",
       },
     });
 
     this.registerSchema({
-      version: 'v2',
-      eventType: 'TaskCreated',
+      version: "v2",
+      eventType: "TaskCreated",
       schema: {
-        taskId: 'string',
-        name: 'string',
-        type: 'string',
-        priority: 'string',
-        requirements: 'object?', // Added in v2
-        deadline: 'string?', // Added in v2
+        taskId: "string",
+        name: "string",
+        type: "string",
+        priority: "string",
+        requirements: "object?", // Added in v2
+        deadline: "string?", // Added in v2
       },
-      upconvertFrom: 'v1',
+      upconvertFrom: "v1",
       upconverter: (oldEvent) => ({
         ...oldEvent,
         payload: {
@@ -112,27 +112,27 @@ export class EventVersioningService {
 
     // Task Completed
     this.registerSchema({
-      version: 'v1',
-      eventType: 'TaskCompleted',
+      version: "v1",
+      eventType: "TaskCompleted",
       schema: {
-        taskId: 'string',
-        nodeId: 'string',
-        output: 'object?',
+        taskId: "string",
+        nodeId: "string",
+        output: "object?",
       },
     });
 
     this.registerSchema({
-      version: 'v2',
-      eventType: 'TaskCompleted',
+      version: "v2",
+      eventType: "TaskCompleted",
       schema: {
-        taskId: 'string',
-        nodeId: 'string',
-        output: 'object?',
-        duration: 'number?', // Added in v2
-        cost: 'number?', // Added in v2
-        metrics: 'object?', // Added in v2
+        taskId: "string",
+        nodeId: "string",
+        output: "object?",
+        duration: "number?", // Added in v2
+        cost: "number?", // Added in v2
+        metrics: "object?", // Added in v2
       },
-      upconvertFrom: 'v1',
+      upconvertFrom: "v1",
       upconverter: (oldEvent) => ({
         ...oldEvent,
         payload: {
@@ -146,34 +146,35 @@ export class EventVersioningService {
 
     // Node Heartbeat
     this.registerSchema({
-      version: 'v1',
-      eventType: 'NodeHeartbeat',
+      version: "v1",
+      eventType: "NodeHeartbeat",
       schema: {
-        nodeId: 'string',
-        status: 'string',
-        cpuUsage: 'number',
-        memoryUsage: 'number',
+        nodeId: "string",
+        status: "string",
+        cpuUsage: "number",
+        memoryUsage: "number",
       },
     });
 
     this.registerSchema({
-      version: 'v2',
-      eventType: 'NodeHeartbeat',
+      version: "v2",
+      eventType: "NodeHeartbeat",
       schema: {
-        nodeId: 'string',
-        status: 'string',
-        metrics: { // Nested metrics in v2
-          cpu: 'number',
-          memory: 'number',
-          disk: 'number?',
-          network: 'object?',
+        nodeId: "string",
+        status: "string",
+        metrics: {
+          // Nested metrics in v2
+          cpu: "number",
+          memory: "number",
+          disk: "number?",
+          network: "object?",
         },
         tasks: {
-          running: 'number',
-          queued: 'number?',
+          running: "number",
+          queued: "number?",
         },
       },
-      upconvertFrom: 'v1',
+      upconvertFrom: "v1",
       upconverter: (oldEvent) => ({
         ...oldEvent,
         payload: {
@@ -207,7 +208,12 @@ export class EventVersioningService {
     this.registry[schema.eventType]!.supportedVersions.push(schema.version);
 
     // Update current version if newer
-    if (this.compareVersions(schema.version, this.registry[schema.eventType]!.currentVersion) > 0) {
+    if (
+      this.compareVersions(
+        schema.version,
+        this.registry[schema.eventType]!.currentVersion,
+      ) > 0
+    ) {
       this.registry[schema.eventType]!.currentVersion = schema.version;
     }
   }
@@ -219,14 +225,14 @@ export class EventVersioningService {
     eventType: string,
     payload: Record<string, unknown>,
     source: string,
-    metadata?: Record<string, unknown>
+    metadata?: Record<string, unknown>,
   ): VersionedEvent {
     const registration = this.registry[eventType];
     if (!registration) {
-      this.logger.warn({ eventType }, 'Unknown event type, using v1');
+      this.logger.warn({ eventType }, "Unknown event type, using v1");
     }
 
-    const version = registration?.currentVersion || 'v1';
+    const version = registration?.currentVersion || "v1";
 
     return {
       eventId: this.generateEventId(),
@@ -259,15 +265,15 @@ export class EventVersioningService {
     if (schema.deprecated) {
       this.logger.warn(
         { eventType: event.eventType, version: event.version },
-        `Deprecated event: ${schema.deprecationMessage}`
+        `Deprecated event: ${schema.deprecationMessage}`,
       );
     }
 
     // Basic validation (in production, use JSON Schema validator)
     for (const [field, type] of Object.entries(schema.schema)) {
       const typeStr = String(type);
-      const isOptional = typeStr.endsWith('?');
-      const actualType = typeStr.replace('?', '');
+      const isOptional = typeStr.endsWith("?");
+      const actualType = typeStr.replace("?", "");
 
       if (!(field in event.payload)) {
         if (!isOptional) {
@@ -278,9 +284,11 @@ export class EventVersioningService {
 
       const value = event.payload[field];
       if (value !== null && value !== undefined) {
-        const actualTypeName = Array.isArray(value) ? 'array' : typeof value;
-        if (actualType !== actualTypeName && actualType !== 'object') {
-          errors.push(`Field ${field} has wrong type: expected ${actualType}, got ${actualTypeName}`);
+        const actualTypeName = Array.isArray(value) ? "array" : typeof value;
+        if (actualType !== actualTypeName && actualType !== "object") {
+          errors.push(
+            `Field ${field} has wrong type: expected ${actualType}, got ${actualTypeName}`,
+          );
         }
       }
     }
@@ -291,7 +299,10 @@ export class EventVersioningService {
   /**
    * Convert event to a specific version
    */
-  convertToVersion(event: VersionedEvent, targetVersion: string): VersionedEvent {
+  convertToVersion(
+    event: VersionedEvent,
+    targetVersion: string,
+  ): VersionedEvent {
     if (event.version === targetVersion) {
       return event;
     }
@@ -306,7 +317,9 @@ export class EventVersioningService {
     const targetSchema = registration.schemas[targetVersion];
 
     if (!sourceSchema || !targetSchema) {
-      throw new Error(`Cannot convert from ${event.version} to ${targetVersion}`);
+      throw new Error(
+        `Cannot convert from ${event.version} to ${targetVersion}`,
+      );
     }
 
     // Apply upconverters
@@ -320,9 +333,10 @@ export class EventVersioningService {
       }
 
       converted = schema.upconverter!(converted);
-      currentVersion = Object.keys(registration.schemas).find(
-        (v) => registration.schemas[v]!.upconvertFrom === currentVersion
-      ) || targetVersion;
+      currentVersion =
+        Object.keys(registration.schemas).find(
+          (v) => registration.schemas[v]!.upconvertFrom === currentVersion,
+        ) || targetVersion;
     }
 
     return converted;
@@ -340,7 +354,7 @@ export class EventVersioningService {
    * Get current version for event type
    */
   getCurrentVersion(eventType: string): string {
-    return this.registry[eventType]?.currentVersion || 'v1';
+    return this.registry[eventType]?.currentVersion || "v1";
   }
 
   // Private helpers
@@ -350,8 +364,8 @@ export class EventVersioningService {
   }
 
   private compareVersions(a: string, b: string): number {
-    const numA = parseInt(a.replace('v', ''), 10);
-    const numB = parseInt(b.replace('v', ''), 10);
+    const numA = parseInt(a.replace("v", ""), 10);
+    const numB = parseInt(b.replace("v", ""), 10);
     return numA - numB;
   }
 }

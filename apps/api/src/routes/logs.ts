@@ -17,7 +17,10 @@ export default async function logRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         querystring: zodToFastifySchema(LogQuerySchema),
         tags: ['logs'],
@@ -52,7 +55,7 @@ export default async function logRoutes(fastify: FastifyInstance) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -61,7 +64,10 @@ export default async function logRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/stats',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.TASK_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_READ),
+      ],
       schema: {
         tags: ['logs'],
         summary: 'Get log statistics',
@@ -72,12 +78,12 @@ export default async function logRoutes(fastify: FastifyInstance) {
 
       const [total, errors] = await Promise.all([
         fastify.prisma.taskLog.count({ where: { tenantId } }),
-        fastify.prisma.taskLog.count({ 
-          where: { 
-            tenantId, 
+        fastify.prisma.taskLog.count({
+          where: {
+            tenantId,
             level: 'ERROR',
-            timestamp: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) }
-          } 
+            timestamp: { gte: new Date(Date.now() - 24 * 60 * 60 * 1000) },
+          },
         }),
       ]);
 

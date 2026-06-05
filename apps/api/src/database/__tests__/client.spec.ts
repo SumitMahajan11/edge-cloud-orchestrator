@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 
-
 // Mock PrismaClient
 vi.mock('@prisma/client', () => ({
   PrismaClient: vi.fn().mockImplementation((options) => {
@@ -19,11 +18,13 @@ vi.mock('@prisma/client', () => ({
 let mockEnv = {
   DATABASE_URL: 'postgresql://primary:5432/db',
   DATABASE_READ_URL: 'postgresql://replica:5432/db',
-  NODE_ENV: 'test'
+  NODE_ENV: 'test',
 };
 
 vi.mock('../../config/env', () => ({
-  get env() { return mockEnv; }
+  get env() {
+    return mockEnv;
+  },
 }));
 
 describe('PrismaClientWithReplicas', () => {
@@ -32,7 +33,7 @@ describe('PrismaClientWithReplicas', () => {
     mockEnv = {
       DATABASE_URL: 'postgresql://primary:5432/db',
       DATABASE_READ_URL: 'postgresql://replica:5432/db',
-      NODE_ENV: 'test'
+      NODE_ENV: 'test',
     };
     // Clear global singleton
     (global as any).prisma = undefined;
@@ -87,7 +88,6 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should pass health check when both connections work', async () => {
-
     const { prisma } = await import('../client.js');
 
     const health = await prisma.healthCheck();
@@ -97,7 +97,6 @@ describe('PrismaClientWithReplicas', () => {
   });
 
   it('should expose $transaction on primary client', async () => {
-
     const { prisma } = await import('../client.js');
 
     const transactionFn = vi.fn();

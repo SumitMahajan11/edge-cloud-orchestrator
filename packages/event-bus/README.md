@@ -12,20 +12,22 @@ pnpm add @edgecloud/event-bus
 
 ## Exports
 
-| Export           | Type     | Description                              |
-|------------------|----------|------------------------------------------|
-| `EventBus`       | class    | Kafka producer/consumer wrapper          |
-| `DeadLetterQueue`| class    | DLQ with retry and poison-pill handling  |
-| `EventSchema`    | type     | Avro schema descriptor                   |
+| Export            | Type  | Description                             |
+| ----------------- | ----- | --------------------------------------- |
+| `EventBus`        | class | Kafka producer/consumer wrapper         |
+| `DeadLetterQueue` | class | DLQ with retry and poison-pill handling |
+| `EventSchema`     | type  | Avro schema descriptor                  |
 
 ## Usage
 
 ```typescript
-import { EventBus } from '@edgecloud/event-bus'
+import { EventBus } from "@edgecloud/event-bus";
 
-const bus = new EventBus({ brokers: ['localhost:9092'] })
-await bus.publish('tasks.submitted', { taskId: '...', nodeId: '...' })
-await bus.subscribe('tasks.submitted', async (event) => { /* ... */ })
+const bus = new EventBus({ brokers: ["localhost:9092"] });
+await bus.publish("tasks.submitted", { taskId: "...", nodeId: "..." });
+await bus.subscribe("tasks.submitted", async (event) => {
+  /* ... */
+});
 ```
 
 ## Build

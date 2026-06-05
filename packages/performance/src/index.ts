@@ -5,5 +5,5 @@ export {
   DistributedRateLimiter,
   MultiLayerCache,
   PooledDatabase,
-  type PooledDatabaseConfig
-} from './optimizations';
+  type PooledDatabaseConfig,
+} from "./optimizations";

@@ -1,74 +1,82 @@
 ---
-phase: 1
+phase: 6
 plan: 1
 wave: 1
 depends_on: []
-files_modified: ["tests/contract/v2-api-contract.test.ts", "tests/contract/schema-drift.test.ts", "tests/contract/v1-deprecation.test.ts"]
+files_modified:
+  [
+    "apps/api/prisma/schema.prisma",
+    "apps/api/src/services/task-scheduler.ts",
+    "apps/web/src/stores/websocket.ts",
+    "apps/web/src/lib/websocketClient.ts",
+  ]
 autonomous: true
 ---
 
-# Plan 1.1: Create Contract Testing Suite
+# Plan 6.1: Backend Infrastructure & Telemetry Bridges
 
 <objective>
-Implement three specific contract test files as requested to ensure API integrity, prevent schema drift, and enforce deprecation policies.
+Harden the backend infrastructure by adding geographic coordinates to edge nodes, implementing real-time scheduling decision broadcasts, and updating the frontend WebSocket client for the unified gateway.
 </objective>
 
 <context>
-- apps/api/openapi-v2.yml
-- apps/api/src/index.ts
-- tests/contract/full-suite.test.ts (reference)
+- apps/api/prisma/schema.prisma
+- apps/api/src/services/task-scheduler.ts
+- apps/web/src/stores/websocket.ts
+- apps/web/src/lib/websocketClient.ts
 </context>
 
 <tasks>
 
 <task type="auto">
-  <name>Create v2-api-contract.test.ts</name>
-  <files>tests/contract/v2-api-contract.test.ts</files>
+  <name>Add Geographic Coordinates to EdgeNode</name>
+  <files>apps/api/prisma/schema.prisma</files>
   <action>
-    Create a test file that:
-    1. Loads apps/api/openapi-v2.yml.
-    2. Initializes the Fastify server from apps/api/src/index.ts.
-    3. Iterates through all endpoints in the spec and sends requests.
-    4. Asserts that the response matches the schema (status code, body shape).
-    5. Asserts that no endpoint exists in the server that is NOT in the spec.
-    AVOID: Starting a real network server; use app.inject for performance and reliability.
+    Add `latitude` and `longitude` fields to the `EdgeNode` model in `schema.prisma`.
+    Latitude  Float?
+    Longitude Float?
+    Then run `pnpm prisma migrate dev --name add_node_coordinates` in `apps/api`.
   </action>
-  <verify>npx vitest tests/contract/v2-api-contract.test.ts</verify>
-  <done>All spec endpoints are tested and undocumented endpoints are flagged.</done>
+  <verify>npx prisma studio (check fields) or check migrations folder</verify>
+  <done>Fields added to schema and migration generated.</done>
 </task>
 
 <task type="auto">
-  <name>Create schema-drift.test.ts</name>
-  <files>tests/contract/schema-drift.test.ts</files>
+  <name>Implement Scheduling Decision Broadcast</name>
+  <files>apps/api/src/services/task-scheduler.ts</files>
   <action>
-    Create a test file that:
-    1. Generates the OpenAPI spec fresh from the running server (using app.swagger()).
-    2. Diffs it against the committed apps/api/openapi-v2.yml.
-    3. Asserts zero diff and fails loudly if there is a mismatch.
-    AVOID: Non-deterministic diffs; sort keys in both specs before comparison.
+    1. Capture `schedulingStartTime` in `scoreAndAssignWithLock`.
+    2. Broadcast `scheduler:decision` in `assignTask` after successful dispatch.
+    Include taskId, selectedNodeId, mlScore, usedML, latencyMs, carbonIntensity, and costUsd.
   </action>
-  <verify>npx vitest tests/contract/schema-drift.test.ts</verify>
-  <done>Schema drift is detected automatically.</done>
+  <verify>grep -n "scheduler:decision" apps/api/src/services/task-scheduler.ts</verify>
+  <done>Broadcast added with correct payload.</done>
 </task>
 
 <task type="auto">
-  <name>Create v1-deprecation.test.ts</name>
-  <files>tests/contract/v1-deprecation.test.ts</files>
+  <name>Harden WebSocket Client & Store</name>
+  <files>apps/web/src/stores/websocket.ts, apps/web/src/lib/websocketClient.ts</files>
   <action>
-    Create a test file that:
-    1. Sends requests to v1 endpoints.
-    2. Asserts 'Deprecation: true' and 'Sunset' headers are present.
-    3. Asserts 'Sunset' date is at least 30 days in the future.
-    4. Asserts v1 endpoints still return correct data.
+    1. In `websocketClient.ts`, ensure `4001` close code (Unauthorized) triggers a specific log or state change if needed.
+    2. In `websocketClient.ts`, verify `ws://localhost:3090/ws` is the default.
+    3. In `websocketClient.ts`, ensure `reconnectAttempts` are reset correctly.
+    4. In `useWsStore.ts`, handle the `scheduler:decision` event for query invalidation.
   </action>
-  <verify>npx vitest tests/contract/v1-deprecation.test.ts</verify>
-  <done>V1 deprecation policies are enforced.</done>
+  <verify>Check websocketClient.ts and useWsStore.ts for the changes.</verify>
+  <done>WS client hardened and store updated for new events.</done>
 </task>
 
 </tasks>
 
+<verification>
+- [ ] EdgeNode has latitude/longitude fields.
+- [ ] scheduler:decision event is broadcasted.
+- [ ] WS client connects to port 3090 with token.
+</verification>
+
 <success_criteria>
-- [x] v2-api-contract.test.ts passes
-- [x] schema-drift.test.ts passes
-- [x] v1-deprecation.test.ts passes
-</success_criteria>
+
+- [ ] Backend supports geographic telemetry.
+- [ ] Real-time scheduling decisions are visible to the system.
+- [ ] Frontend WebSocket communication is stable and port-aligned.
+      </success_criteria>

@@ -1,31 +1,36 @@
-import { Search, LayoutGrid, Rows } from 'lucide-react'
-import { Input } from '../ui/input'
+import { Search, LayoutGrid, Rows } from "lucide-react";
+import { Input } from "../ui/input";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '../ui/select'
-import { Tabs, TabsList, TabsTrigger } from '../ui/tabs'
-import { cn } from '../../lib/utils'
+} from "../ui/select";
+import { Tabs, TabsList, TabsTrigger } from "../ui/tabs";
+import { cn } from "../../lib/utils";
 
-export type NodeStatusFilter = 'all' | 'online' | 'degraded' | 'offline' | 'draining'
-export type NodeSortKey = 'cpu' | 'memory' | 'latency' | 'tasks' | 'heartbeat'
-export type NodeViewMode = 'table' | 'grid'
+export type NodeStatusFilter =
+  | "all"
+  | "online"
+  | "degraded"
+  | "offline"
+  | "draining";
+export type NodeSortKey = "cpu" | "memory" | "latency" | "tasks" | "heartbeat";
+export type NodeViewMode = "table" | "grid";
 
 interface NodeFilterBarProps {
-  search: string
-  onSearch: (v: string) => void
-  status: NodeStatusFilter
-  onStatus: (v: NodeStatusFilter) => void
-  region: string
-  onRegion: (v: string) => void
-  regions: string[]
-  sortBy: NodeSortKey
-  onSort: (v: NodeSortKey) => void
-  view: NodeViewMode
-  onView: (v: NodeViewMode) => void
+  search: string;
+  onSearch: (v: string) => void;
+  status: NodeStatusFilter;
+  onStatus: (v: NodeStatusFilter) => void;
+  region: string;
+  onRegion: (v: string) => void;
+  regions: string[];
+  sortBy: NodeSortKey;
+  onSort: (v: NodeSortKey) => void;
+  view: NodeViewMode;
+  onView: (v: NodeViewMode) => void;
 }
 
 export function NodeFilterBar({
@@ -55,7 +60,10 @@ export function NodeFilterBar({
       </div>
 
       {/* Status tabs */}
-      <Tabs value={status} onValueChange={(v) => onStatus(v as NodeStatusFilter)}>
+      <Tabs
+        value={status}
+        onValueChange={(v) => onStatus(v as NodeStatusFilter)}
+      >
         <TabsList>
           <TabsTrigger value="all">All</TabsTrigger>
           <TabsTrigger value="online">Online</TabsTrigger>
@@ -98,31 +106,31 @@ export function NodeFilterBar({
       <div className="inline-flex rounded-lg border border-[#1e1e2e] bg-[#0a0a0f] p-1">
         <button
           type="button"
-          onClick={() => onView('table')}
+          onClick={() => onView("table")}
           className={cn(
-            'px-2 py-1 rounded font-mono text-xs transition-colors',
-            view === 'table'
-              ? 'bg-[#00d4aa]/10 text-[#00d4aa]'
-              : 'text-muted-foreground hover:text-foreground'
+            "px-2 py-1 rounded font-mono text-xs transition-colors",
+            view === "table"
+              ? "bg-[#00d4aa]/10 text-[#00d4aa]"
+              : "text-muted-foreground hover:text-foreground",
           )}
-          aria-pressed={view === 'table'}
+          aria-pressed={view === "table"}
         >
           <Rows className="h-3.5 w-3.5" />
         </button>
         <button
           type="button"
-          onClick={() => onView('grid')}
+          onClick={() => onView("grid")}
           className={cn(
-            'px-2 py-1 rounded font-mono text-xs transition-colors',
-            view === 'grid'
-              ? 'bg-[#00d4aa]/10 text-[#00d4aa]'
-              : 'text-muted-foreground hover:text-foreground'
+            "px-2 py-1 rounded font-mono text-xs transition-colors",
+            view === "grid"
+              ? "bg-[#00d4aa]/10 text-[#00d4aa]"
+              : "text-muted-foreground hover:text-foreground",
           )}
-          aria-pressed={view === 'grid'}
+          aria-pressed={view === "grid"}
         >
           <LayoutGrid className="h-3.5 w-3.5" />
         </button>
       </div>
     </div>
-  )
+  );
 }

@@ -16,63 +16,63 @@ spec:
         app: task-service
     spec:
       containers:
-      - name: task-service
-        image: edgecloud/task-service:latest
-        ports:
-        - containerPort: 3001
-        env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3001"
-        - name: SECRET_BACKEND
-          value: "k8s"
-        - name: K8S_SECRETS_DIR
-          value: "/var/run/secrets/edgecloud"
-        volumeMounts:
-        - name: secrets-volume
-          mountPath: /var/run/secrets/edgecloud
-          readOnly: true
+        - name: task-service
+          image: edgecloud/task-service:latest
+          ports:
+            - containerPort: 3001
+          env:
+            - name: NODE_ENV
+              value: "production"
+            - name: PORT
+              value: "3001"
+            - name: SECRET_BACKEND
+              value: "k8s"
+            - name: K8S_SECRETS_DIR
+              value: "/var/run/secrets/edgecloud"
+          volumeMounts:
+            - name: secrets-volume
+              mountPath: /var/run/secrets/edgecloud
+              readOnly: true
       volumes:
-      - name: secrets-volume
-        projected:
-          sources:
-          - secret:
-              name: cockroachdb-credentials
-              items:
-              - key: username
-                path: DATABASE_USER
-              - key: password
-                path: DATABASE_PASSWORD
-          - secret:
-              name: kafka-credentials
-              items:
-              - key: brokers
-                path: KAFKA_BROKERS
-          - secret:
-              name: jwt-secrets
-              items:
-              - key: secret
-                path: JWT_SECRET
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 3001
-          initialDelaySeconds: 10
-          periodSeconds: 10
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 3001
-          initialDelaySeconds: 5
-          periodSeconds: 5
+        - name: secrets-volume
+          projected:
+            sources:
+              - secret:
+                  name: cockroachdb-credentials
+                  items:
+                    - key: username
+                      path: DATABASE_USER
+                    - key: password
+                      path: DATABASE_PASSWORD
+              - secret:
+                  name: kafka-credentials
+                  items:
+                    - key: brokers
+                      path: KAFKA_BROKERS
+              - secret:
+                  name: jwt-secrets
+                  items:
+                    - key: secret
+                      path: JWT_SECRET
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3001
+            initialDelaySeconds: 5
+            periodSeconds: 5
 ---
 apiVersion: v1
 kind: Service
@@ -83,8 +83,8 @@ spec:
   selector:
     app: task-service
   ports:
-  - port: 80
-    targetPort: 3001
+    - port: 80
+      targetPort: 3001
   type: ClusterIP
 ---
 apiVersion: autoscaling/v2
@@ -100,15 +100,15 @@ spec:
   minReplicas: 3
   maxReplicas: 10
   metrics:
-  - type: Resource
-    resource:
-      name: cpu
-      target:
-        type: Utilization
-        averageUtilization: 70
-  - type: Resource
-    resource:
-      name: memory
-      target:
-        type: Utilization
-        averageUtilization: 80
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 80

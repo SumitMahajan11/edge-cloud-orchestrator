@@ -10,8 +10,8 @@ import { trace } from '@opentelemetry/api';
 import { env } from '../config/env';
 
 // Configure log level based on environment
-const logLevel = env.LOG_LEVEL;
-const logFormat = env.LOG_FORMAT;
+const logLevel = env.LOG_LEVEL || 'info';
+const logFormat = env.LOG_FORMAT || 'json';
 
 // Create logger instance
 export const logger = pino({
@@ -20,7 +20,7 @@ export const logger = pino({
   mixin() {
     const span = trace.getActiveSpan();
     if (!span) return {};
-    
+
     const { traceId, spanId } = span.spanContext();
     return { traceId, spanId };
   },

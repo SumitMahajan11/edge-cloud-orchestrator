@@ -1,90 +1,100 @@
-'use client'
+"use client";
 
-import { format } from 'date-fns'
-import { motion } from 'framer-motion'
-import { 
-  AlertCircle, 
-  AlertTriangle, 
+import { format } from "date-fns";
+import { motion } from "framer-motion";
+import {
+  AlertCircle,
+  AlertTriangle,
   Check,
-  CheckCircle2, 
+  CheckCircle2,
   Clock,
   Filter,
-  Info, 
+  Info,
   Search,
-  ShieldAlert} from 'lucide-react'
-import { useState } from 'react'
-import { toast } from 'sonner'
+  ShieldAlert,
+} from "lucide-react";
+import { useState } from "react";
+import { toast } from "sonner";
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from '@/components/ui/table'
-import { useAcknowledgeAlert,useAlerts } from '@/hooks/useAlerts'
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useAcknowledgeAlert, useAlerts } from "@/hooks/useAlerts";
 
 export default function AlertsPage() {
-  const { data: alerts, isLoading } = useAlerts()
-  const acknowledgeMutation = useAcknowledgeAlert()
-  const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<'ALL' | 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW'>('ALL')
+  const { data: alerts, isLoading } = useAlerts();
+  const acknowledgeMutation = useAcknowledgeAlert();
+  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState<
+    "ALL" | "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
+  >("ALL");
 
   const handleAcknowledge = async (id: string) => {
     try {
-      await acknowledgeMutation.mutateAsync(id)
-      toast.success('Alert acknowledged')
+      await acknowledgeMutation.mutateAsync(id);
+      toast.success("Alert acknowledged");
     } catch (err) {
-      toast.error('Failed to acknowledge alert')
+      toast.error("Failed to acknowledge alert");
     }
-  }
+  };
 
-  const filteredAlerts = alerts?.filter((alert) => {
-    const matchesSearch = 
-      alert.title.toLowerCase().includes(search.toLowerCase()) || 
-      alert.description.toLowerCase().includes(search.toLowerCase()) ||
-      alert.source.toLowerCase().includes(search.toLowerCase())
-    
-    const matchesFilter = filter === 'ALL' || alert.severity === filter
-    
-    return matchesSearch && matchesFilter
-  }) || []
+  const filteredAlerts =
+    alerts?.filter((alert) => {
+      const matchesSearch =
+        alert.title.toLowerCase().includes(search.toLowerCase()) ||
+        alert.description.toLowerCase().includes(search.toLowerCase()) ||
+        alert.source.toLowerCase().includes(search.toLowerCase());
+
+      const matchesFilter = filter === "ALL" || alert.severity === filter;
+
+      return matchesSearch && matchesFilter;
+    }) || [];
 
   if (isLoading) {
     return (
       <div className="flex h-[calc(100vh-12rem)] items-center justify-center">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
-    )
+    );
   }
 
   const severityConfig = {
     CRITICAL: {
-      color: 'bg-red-500/10 text-red-500 border-red-500/20',
+      color: "bg-red-500/10 text-red-500 border-red-500/20",
       icon: <ShieldAlert className="h-4 w-4" />,
-      label: 'Critical'
+      label: "Critical",
     },
     HIGH: {
-      color: 'bg-orange-500/10 text-orange-500 border-orange-500/20',
+      color: "bg-orange-500/10 text-orange-500 border-orange-500/20",
       icon: <AlertCircle className="h-4 w-4" />,
-      label: 'High'
+      label: "High",
     },
     MEDIUM: {
-      color: 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20',
+      color: "bg-yellow-500/10 text-yellow-500 border-yellow-500/20",
       icon: <AlertTriangle className="h-4 w-4" />,
-      label: 'Medium'
+      label: "Medium",
     },
     LOW: {
-      color: 'bg-blue-500/10 text-blue-500 border-blue-500/20',
+      color: "bg-blue-500/10 text-blue-500 border-blue-500/20",
       icon: <Info className="h-4 w-4" />,
-      label: 'Low'
-    }
-  }
+      label: "Low",
+    },
+  };
 
   return (
     <motion.div
@@ -97,10 +107,11 @@ export default function AlertsPage() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">System Alerts</h1>
           <p className="text-muted-foreground">
-            Monitor and manage real-time infrastructure alerts and ML drift triggers.
+            Monitor and manage real-time infrastructure alerts and ML drift
+            triggers.
           </p>
         </div>
-        
+
         <div className="flex items-center gap-2">
           <div className="relative w-full md:w-64">
             <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -112,17 +123,19 @@ export default function AlertsPage() {
             />
           </div>
           <div className="flex items-center gap-1 rounded-md border bg-card p-1">
-            {(['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] as const).map((f) => (
-              <Button
-                key={f}
-                variant={filter === f ? 'secondary' : 'ghost'}
-                size="sm"
-                className="h-8 px-2 text-xs"
-                onClick={() => setFilter(f)}
-              >
-                {f}
-              </Button>
-            ))}
+            {(["ALL", "CRITICAL", "HIGH", "MEDIUM", "LOW"] as const).map(
+              (f) => (
+                <Button
+                  key={f}
+                  variant={filter === f ? "secondary" : "ghost"}
+                  size="sm"
+                  className="h-8 px-2 text-xs"
+                  onClick={() => setFilter(f)}
+                >
+                  {f}
+                </Button>
+              ),
+            )}
           </div>
         </div>
       </div>
@@ -149,7 +162,10 @@ export default function AlertsPage() {
               <TableBody>
                 {filteredAlerts.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="h-32 text-center text-muted-foreground">
+                    <TableCell
+                      colSpan={5}
+                      className="h-32 text-center text-muted-foreground"
+                    >
                       <div className="flex flex-col items-center justify-center gap-2">
                         <CheckCircle2 className="h-8 w-8 text-emerald-500/50" />
                         <p>No active alerts matching your criteria.</p>
@@ -158,10 +174,13 @@ export default function AlertsPage() {
                   </TableRow>
                 ) : (
                   filteredAlerts.map((alert) => (
-                    <TableRow key={alert.id} className="group hover:bg-muted/30">
+                    <TableRow
+                      key={alert.id}
+                      className="group hover:bg-muted/30"
+                    >
                       <TableCell>
-                        <Badge 
-                          variant="outline" 
+                        <Badge
+                          variant="outline"
                           className={`flex w-fit items-center gap-1.5 px-2 py-0.5 font-medium ${severityConfig[alert.severity].color}`}
                         >
                           {severityConfig[alert.severity].icon}
@@ -184,7 +203,7 @@ export default function AlertsPage() {
                       <TableCell>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Clock className="h-3 w-3" />
-                          {format(new Date(alert.firedAt), 'MMM d, HH:mm:ss')}
+                          {format(new Date(alert.firedAt), "MMM d, HH:mm:ss")}
                         </div>
                       </TableCell>
                       <TableCell className="text-right">
@@ -225,14 +244,24 @@ export default function AlertsPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              Alerts are automatically generated by the Edge-Cloud Orchestrator runtime based on 
-              system events, ML drift detection, and resource utilization thresholds.
+              Alerts are automatically generated by the Edge-Cloud Orchestrator
+              runtime based on system events, ML drift detection, and resource
+              utilization thresholds.
             </p>
             <ul className="list-disc pl-4 space-y-1">
-              <li>Circuit Breakers (CRITICAL): Triggered when service-to-service communication fails.</li>
-              <li>ML Drift (HIGH): Triggered when PSI or MAE thresholds are exceeded.</li>
+              <li>
+                Circuit Breakers (CRITICAL): Triggered when service-to-service
+                communication fails.
+              </li>
+              <li>
+                ML Drift (HIGH): Triggered when PSI or MAE thresholds are
+                exceeded.
+              </li>
               <li>Node Failures (HIGH): Triggered on heartbeat timeouts.</li>
-              <li>Queue Backlog (MEDIUM): Triggered when task pending depth {'>'} 50.</li>
+              <li>
+                Queue Backlog (MEDIUM): Triggered when task pending depth {">"}{" "}
+                50.
+              </li>
             </ul>
           </CardContent>
         </Card>
@@ -246,16 +275,20 @@ export default function AlertsPage() {
           </CardHeader>
           <CardContent className="space-y-4 text-sm text-muted-foreground">
             <p>
-              The alerting system is backed by a high-performance Redis store for real-time responsiveness.
+              The alerting system is backed by a high-performance Redis store
+              for real-time responsiveness.
             </p>
             <ul className="list-disc pl-4 space-y-1">
               <li>Alerts are automatically purged after 24 hours (TTL).</li>
               <li>Acknowledged alerts remain visible until the TTL expires.</li>
-              <li>Critical alerts are mirrored to the audit log for long-term compliance.</li>
+              <li>
+                Critical alerts are mirrored to the audit log for long-term
+                compliance.
+              </li>
             </ul>
           </CardContent>
         </Card>
       </div>
     </motion.div>
-  )
+  );
 }

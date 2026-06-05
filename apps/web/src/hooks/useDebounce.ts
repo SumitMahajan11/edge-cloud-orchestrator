@@ -1,8 +1,8 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect } from "react";
 
 /**
  * useDebounce hook
- * 
+ *
  * Delays updating a value until a specified time has passed.
  * Useful for debouncing API calls or expensive operations.
  */

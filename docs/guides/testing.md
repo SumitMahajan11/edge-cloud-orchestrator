@@ -3,12 +3,14 @@
 ## Quick Start
 
 ### 1. Setup Environment
+
 ```powershell
 # Run setup script
 .\setup-test-env.ps1
 ```
 
 ### 2. Start Edge Agents
+
 ```powershell
 # Option A: Run all 3 agents
 .\start-test-env.bat
@@ -21,11 +23,13 @@ npm run agent-3  # Port 4003
 ```
 
 ### 3. Start Orchestrator Dashboard
+
 ```powershell
 npm run dev
 ```
 
 ### 4. Access Dashboard
+
 Open http://localhost:5173
 
 Login: `admin@edgecloud.io` / `password`
@@ -72,6 +76,7 @@ Login: `admin@edgecloud.io` / `password`
 ## Load Testing
 
 ### Install k6
+
 ```powershell
 # Windows (Chocolatey)
 choco install k6
@@ -80,6 +85,7 @@ choco install k6
 ```
 
 ### Run Load Test
+
 ```powershell
 cd test
 k6 run load-test.js
@@ -92,6 +98,7 @@ This simulates 100 concurrent users submitting tasks.
 ## Container Images
 
 ### Build Images
+
 ```powershell
 # Image Classifier
 docker build -t edgecloud-image-classifier ./containers/image-classifier
@@ -104,6 +111,7 @@ docker build -t edgecloud-log-analyzer ./containers/log-analyzer
 ```
 
 ### Test Containers Manually
+
 ```powershell
 # Test image classifier
 docker run --rm edgecloud-image-classifier
@@ -121,14 +129,14 @@ docker run --rm edgecloud-log-analyzer
 
 ### Edge Agent Endpoints
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/health` | GET | Health check |
-| `/metrics` | GET | CPU, memory, tasks |
-| `/heartbeat` | GET | Node status |
-| `/run-task` | POST | Execute container |
-| `/tasks` | GET | List running tasks |
-| `/ping` | GET | Latency test |
+| Endpoint     | Method | Description        |
+| ------------ | ------ | ------------------ |
+| `/health`    | GET    | Health check       |
+| `/metrics`   | GET    | CPU, memory, tasks |
+| `/heartbeat` | GET    | Node status        |
+| `/run-task`  | POST   | Execute container  |
+| `/tasks`     | GET    | List running tasks |
+| `/ping`      | GET    | Latency test       |
 
 ### Example API Calls
 
@@ -154,12 +162,15 @@ curl -X POST http://localhost:4001/run-task \
 ## Troubleshooting
 
 ### Docker Not Available
+
 If Docker is not running, the system falls back to simulation mode.
 
 ### Port Already in Use
+
 Change ports in `edge-agent/package.json` scripts.
 
 ### CORS Errors
+
 Ensure orchestrator and agents are on same origin or CORS is enabled.
 
 ---
@@ -167,6 +178,7 @@ Ensure orchestrator and agents are on same origin or CORS is enabled.
 ## Production Deployment
 
 ### Cloud VMs
+
 1. Create 3+ VMs in different regions
 2. Install Docker on each
 3. Deploy edge agent: `npm start`
@@ -174,6 +186,7 @@ Ensure orchestrator and agents are on same origin or CORS is enabled.
 5. Register in orchestrator dashboard
 
 ### Kubernetes
+
 ```yaml
 # Deploy edge agents as DaemonSet
 apiVersion: apps/v1
@@ -187,10 +200,10 @@ spec:
   template:
     spec:
       containers:
-      - name: agent
-        image: edgecloud/agent:latest
-        ports:
-        - containerPort: 4001
+        - name: agent
+          image: edgecloud/agent:latest
+          ports:
+            - containerPort: 4001
 ```
 
 ---
@@ -198,15 +211,18 @@ spec:
 ## Metrics & Observability
 
 ### Prometheus Integration
+
 Add Prometheus scraping config:
+
 ```yaml
 scrape_configs:
-  - job_name: 'edge-agents'
+  - job_name: "edge-agents"
     static_configs:
-      - targets: ['localhost:4001', 'localhost:4002', 'localhost:4003']
+      - targets: ["localhost:4001", "localhost:4002", "localhost:4003"]
 ```
 
 ### Grafana Dashboard
+
 Import dashboard JSON from `monitoring/grafana-dashboard.json`
 
 ---
@@ -214,6 +230,7 @@ Import dashboard JSON from `monitoring/grafana-dashboard.json`
 ## Support
 
 For issues or questions, check:
+
 1. Agent logs in terminal windows
 2. Browser console for frontend errors
 3. Docker logs: `docker logs <container-id>`

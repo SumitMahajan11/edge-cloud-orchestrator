@@ -1,4 +1,8 @@
-import { Permissions,v1NodeContracts, validateIpAddress } from '@edgecloud/shared-kernel';
+import {
+  Permissions,
+  v1NodeContracts,
+  validateIpAddress,
+} from '@edgecloud/shared-kernel';
 import { EdgeNode } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import type { TenantId } from '../types/fastify.js';
@@ -13,44 +17,70 @@ const NodeStatus = {
   MAINTENANCE: 'MAINTENANCE',
 } as const;
 
-
-
 /**
-  * Transform flat Prisma node model to versioned API response schema
-  */
- function transformNode(node: EdgeNode & { _count?: { tasks: number } }) {
-   if (!node) {return null;}
-   
-   const { cpuCores, memoryGB, storageGB, cpuUsage, memoryUsage, tasksRunning, load, ...rest } = node as any;
-   
-   // Map to NodeV1ResponseSchema load format
-   const nodeLoad = {
-     cpuUsage: typeof cpuUsage === 'number' ? cpuUsage : (typeof load === 'number' ? load : 0),
-     memoryUsage: typeof memoryUsage === 'number' ? memoryUsage : 0,
-     activeTasks: typeof tasksRunning === 'number' ? tasksRunning : (typeof load === 'number' ? load : 0),
-   };
+ * Transform flat Prisma node model to versioned API response schema
+ */
+function transformNode(node: EdgeNode & { _count?: { tasks: number } }) {
+  if (!node) {
+    return null;
+  }
 
-   return {
-     ...rest,
-     specs: {
-       cpuCores: cpuCores || 0,
-       memoryGB: memoryGB || 0,
-       storageGB: storageGB || 0,
-     },
-     load: nodeLoad,
-     // Ensure status is uppercase as per schema
-     status: (node.status || 'OFFLINE').toUpperCase(),
-     lastHeartbeat: (node.lastHeartbeat || node.createdAt || new Date()).toISOString(),
-     taskCount: node._count?.tasks || 0,
-   };
- }
- 
- export default async function nodeRoutes(fastify: FastifyInstance) {
+  const {
+    cpuCores,
+    memoryGB,
+    storageGB,
+    cpuUsage,
+    memoryUsage,
+    tasksRunning,
+    load,
+    ...rest
+  } = node as any;
+
+  // Map to NodeV1ResponseSchema load format
+  const nodeLoad = {
+    cpuUsage:
+      typeof cpuUsage === 'number'
+        ? cpuUsage
+        : typeof load === 'number'
+          ? load
+          : 0,
+    memoryUsage: typeof memoryUsage === 'number' ? memoryUsage : 0,
+    activeTasks:
+      typeof tasksRunning === 'number'
+        ? tasksRunning
+        : typeof load === 'number'
+          ? load
+          : 0,
+  };
+
+  return {
+    ...rest,
+    specs: {
+      cpuCores: cpuCores || 0,
+      memoryGB: memoryGB || 0,
+      storageGB: storageGB || 0,
+    },
+    load: nodeLoad,
+    // Ensure status is uppercase as per schema
+    status: (node.status || 'OFFLINE').toUpperCase(),
+    lastHeartbeat: (
+      node.lastHeartbeat ||
+      node.createdAt ||
+      new Date()
+    ).toISOString(),
+    taskCount: node._count?.tasks || 0,
+  };
+}
+
+export default async function nodeRoutes(fastify: FastifyInstance) {
   // List nodes
   fastify.get<{ Querystring: v1NodeContracts.NodeQueryV1 }>(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_READ),
+      ],
       schema: {
         querystring: zodToFastifySchema(v1NodeContracts.NodeQueryV1Schema),
         tags: ['nodes'],
@@ -59,7 +89,10 @@ const NodeStatus = {
           200: {
             type: 'object',
             properties: {
-              data: { type: 'array', items: zodToFastifySchema(v1NodeContracts.NodeV1ResponseSchema) },
+              data: {
+                type: 'array',
+                items: zodToFastifySchema(v1NodeContracts.NodeV1ResponseSchema),
+              },
               pagination: {
                 type: 'object',
                 properties: {
@@ -74,7 +107,10 @@ const NodeStatus = {
         },
       },
     },
-    async (request: FastifyRequest<{ Querystring: v1NodeContracts.NodeQueryV1 }>, _reply) => {
+    async (
+      request: FastifyRequest<{ Querystring: v1NodeContracts.NodeQueryV1 }>,
+      _reply,
+    ) => {
       const { region, status, page, limit, sortBy, sortOrder } = request.query;
 
       const where: any = {
@@ -115,7 +151,10 @@ const NodeStatus = {
   fastify.get<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['nodes'],
@@ -149,8 +188,8 @@ const NodeStatus = {
             code: 'RESOURCE_NOT_FOUND',
             message: 'Node not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -178,7 +217,10 @@ const NodeStatus = {
         },
       },
     },
-    async (request: FastifyRequest<{ Body: v1NodeContracts.RegisterNodeV1 }>, reply) => {
+    async (
+      request: FastifyRequest<{ Body: v1NodeContracts.RegisterNodeV1 }>,
+      reply,
+    ) => {
       const data = request.body;
 
       // SSRF Protection for IP address
@@ -189,29 +231,27 @@ const NodeStatus = {
             code: 'VALIDATION_ERROR',
             message: `Invalid IP address: ${validation.reason}`,
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
       // Check for duplicate name within the same tenant
       const existing = await request.tPrisma.edgeNode.findFirst({
-        where: { 
-          name: data.name
+        where: {
+          name: data.name,
         },
       });
 
       if (existing) {
-        return reply
-          .status(409)
-          .send({
-            error: {
-              code: 'RESOURCE_CONFLICT',
-              message: 'Node with this name already exists in your tenant',
-              requestId: request.id,
-              timestamp: new Date().toISOString()
-            }
-          });
+        return reply.status(409).send({
+          error: {
+            code: 'RESOURCE_CONFLICT',
+            message: 'Node with this name already exists in your tenant',
+            requestId: request.id,
+            timestamp: new Date().toISOString(),
+          },
+        });
       }
 
       const node = await request.tPrisma.edgeNode.create({
@@ -290,8 +330,8 @@ const NodeStatus = {
             code: 'RESOURCE_NOT_FOUND',
             message: 'Node not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -322,7 +362,10 @@ const NodeStatus = {
   fastify.delete<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_REGISTER)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_REGISTER),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['nodes'],
@@ -344,8 +387,8 @@ const NodeStatus = {
             message: 'Cannot delete node with running tasks',
             details: { runningTasks } as any,
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -359,13 +402,13 @@ const NodeStatus = {
             code: 'RESOURCE_NOT_FOUND',
             message: 'Node not found',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
-      await request.tPrisma.edgeNode.delete({ 
-        where: { id } 
+      await request.tPrisma.edgeNode.delete({
+        where: { id },
       });
 
       // Audit log
@@ -427,7 +470,7 @@ const NodeStatus = {
 
       // Verify node belongs to user's tenant
       const node = await request.tPrisma.edgeNode.findFirst({
-        where: { id }
+        where: { id },
       });
 
       if (!node) {
@@ -436,8 +479,8 @@ const NodeStatus = {
             code: 'RESOURCE_NOT_FOUND',
             message: 'Node not found or access denied',
             requestId: request.id,
-            timestamp: new Date().toISOString()
-          }
+            timestamp: new Date().toISOString(),
+          },
         });
       }
 
@@ -469,11 +512,15 @@ const NodeStatus = {
       });
 
       // Publish to WebSocket subscribers
-      fastify.wsManager.broadcastToTenant(node.tenantId as TenantId, 'node:heartbeat', {
-        nodeId: id,
-        metrics,
-        timestamp: new Date().toISOString(),
-      });
+      fastify.wsManager.broadcastToTenant(
+        node.tenantId as TenantId,
+        'node:heartbeat',
+        {
+          nodeId: id,
+          metrics,
+          timestamp: new Date().toISOString(),
+        },
+      );
 
       return { success: true, timestamp: new Date().toISOString() };
     },
@@ -486,7 +533,10 @@ const NodeStatus = {
   }>(
     '/:id/metrics',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: {
@@ -524,7 +574,7 @@ const NodeStatus = {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -689,7 +739,10 @@ const NodeStatus = {
   fastify.get<{ Params: { id: string }; Querystring: { days?: number } }>(
     '/:id/scheduling-history',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.NODE_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_READ),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         querystring: {
@@ -705,7 +758,7 @@ const NodeStatus = {
     async (request, _reply) => {
       const { id } = request.params;
       const { days = 7 } = request.query;
-      
+
       const startDate = new Date();
       startDate.setDate(startDate.getDate() - days);
 
@@ -727,10 +780,8 @@ const NodeStatus = {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
 }
-
-

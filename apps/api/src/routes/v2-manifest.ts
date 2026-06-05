@@ -52,10 +52,9 @@ const v2Routes: FastifyPluginAsync = async (fastify) => {
   // V2 specific status
   fastify.get('/status', { config: { public: true } }, async () => ({
     status: 'v2-active',
-    message: 'Welcome to API v2. Production version stable.'
+    message: 'Welcome to API v2. Production version stable.',
   }));
 };
 
 export default v2Routes;
 export { v2Routes };
-

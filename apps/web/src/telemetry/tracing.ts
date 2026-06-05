@@ -1,23 +1,28 @@
-import { WebTracerProvider } from '@opentelemetry/sdk-trace-web';
-import { ConsoleSpanExporter, SimpleSpanProcessor, BatchSpanProcessor, ParentBasedSampler } from '@opentelemetry/sdk-trace-base';
-import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { FetchInstrumentation } from '@opentelemetry/instrumentation-fetch';
-import { XMLHttpRequestInstrumentation } from '@opentelemetry/instrumentation-xml-http-request';
-import { registerInstrumentations } from '@opentelemetry/instrumentation';
-import { Resource } from '@opentelemetry/resources';
-import { SemanticResourceAttributes } from '@opentelemetry/semantic-conventions';
-import { trace, SpanStatusCode } from '@opentelemetry/api';
-import type { Span } from '@opentelemetry/api';
-import { CompositeSampler } from './otel-sampler';
+import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import {
+  ConsoleSpanExporter,
+  SimpleSpanProcessor,
+  BatchSpanProcessor,
+  ParentBasedSampler,
+} from "@opentelemetry/sdk-trace-base";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
+import { FetchInstrumentation } from "@opentelemetry/instrumentation-fetch";
+import { XMLHttpRequestInstrumentation } from "@opentelemetry/instrumentation-xml-http-request";
+import { registerInstrumentations } from "@opentelemetry/instrumentation";
+import { Resource } from "@opentelemetry/resources";
+import { SemanticResourceAttributes } from "@opentelemetry/semantic-conventions";
+import { trace, SpanStatusCode } from "@opentelemetry/api";
+import type { Span } from "@opentelemetry/api";
+import { CompositeSampler } from "./otel-sampler";
 
-const isDev = process.env.NODE_ENV === 'development';
+const isDev = process.env.NODE_ENV === "development";
 
 /**
  * Initializes OpenTelemetry tracing for the web application.
  * Correlates frontend user actions with backend traces using traceparent propagation.
  */
 export function initTracing() {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
 
   const sampler = new ParentBasedSampler({
     root: new CompositeSampler(0.1),
@@ -26,18 +31,22 @@ export function initTracing() {
   const provider = new WebTracerProvider({
     sampler,
     resource: new Resource({
-      [SemanticResourceAttributes.SERVICE_NAME]: 'edge-cloud-dashboard',
-      [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]: process.env.NODE_ENV || 'production',
+      [SemanticResourceAttributes.SERVICE_NAME]: "edge-cloud-dashboard",
+      [SemanticResourceAttributes.DEPLOYMENT_ENVIRONMENT]:
+        process.env.NODE_ENV || "production",
     }),
   });
 
   // 1. Console Exporter for Development
   if (isDev) {
-    provider.addSpanProcessor(new SimpleSpanProcessor(new ConsoleSpanExporter()));
+    provider.addSpanProcessor(
+      new SimpleSpanProcessor(new ConsoleSpanExporter()),
+    );
   }
 
   // 2. OTLP HTTP Exporter for Production (and Dev collector)
-  const otlpEndpoint = process.env.NEXT_PUBLIC_OTLP_ENDPOINT || 'http://localhost:4318/v1/traces';
+  const otlpEndpoint =
+    process.env.NEXT_PUBLIC_OTLP_ENDPOINT || "http://localhost:4318/v1/traces";
   const otlpExporter = new OTLPTraceExporter({
     url: otlpEndpoint,
   });
@@ -56,20 +65,20 @@ export function initTracing() {
         ],
       }),
       new XMLHttpRequestInstrumentation({
-        propagateTraceHeaderCorsUrls: [
-          /localhost:3090/,
-          /.*\.edgecloud\.io/,
-        ],
+        propagateTraceHeaderCorsUrls: [/localhost:3090/, /.*\.edgecloud\.io/],
       }),
     ],
   });
 
-  console.log('🌐 Web Telemetry Initialized');
+  console.log("🌐 Web Telemetry Initialized");
 }
 
-export const tracer = trace.getTracer('edge-cloud-dashboard');
+export const tracer = trace.getTracer("edge-cloud-dashboard");
 
-export async function withSpan<T>(name: string, fn: () => Promise<T>): Promise<T> {
+export async function withSpan<T>(
+  name: string,
+  fn: () => Promise<T>,
+): Promise<T> {
   return tracer.startActiveSpan(name, async (span: Span) => {
     try {
       const result = await fn();

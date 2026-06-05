@@ -7,6 +7,7 @@
 ## Context
 
 Edge-Cloud Orchestrator needs a relational database for:
+
 - Task state management (lifecycle, scheduling, execution tracking)
 - Node registry (edge node metadata, health status, capabilities)
 - User data (authentication, roles, sessions)
@@ -15,12 +16,14 @@ Edge-Cloud Orchestrator needs a relational database for:
 Two primary options were evaluated:
 
 ### PostgreSQL 16
+
 - Mature, battle-tested open-source relational database
 - Single primary with optional read replicas
 - Rich ecosystem (backup tools, monitoring, extensions like pgvector)
 - Familiar to most engineers
 
 ### CockroachDB
+
 - Distributed SQL database with automatic sharding
 - ACID guarantees across clusters
 - Built-in multi-region support
@@ -56,12 +59,14 @@ Two primary options were evaluated:
 ## Consequences
 
 ### Positive
+
 - ✅ **Simpler Deployment** — Fewer moving parts, faster provisioning
 - ✅ **Faster Development Iteration** — Engineers familiar with PostgreSQL
 - ✅ **Lower Operational Costs** — Single instance vs. distributed cluster
 - ✅ **Rich Tooling** — Decades of ecosystem maturity
 
 ### Negative
+
 - ⚠️ **No Built-in Sharding** — Must shard at application layer if scale exceeds single-server capacity
 - ⚠️ **Future Multi-Region Federation** — Will require custom replication (logical replication, CDC tools like Debezium)
 - ⚠️ **Vertical Scaling Limits** — Eventually hit ceiling on single-node resources
@@ -85,6 +90,7 @@ Two primary options were evaluated:
 ## Revisit Triggers
 
 This decision should be revisited when:
+
 - Task queue consistently exceeds 100k pending tasks
 - Multi-region deployment becomes a requirement
 - Single PostgreSQL instance reaches resource limits (CPU, memory, IOPS)

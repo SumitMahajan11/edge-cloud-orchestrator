@@ -4,7 +4,7 @@ const prisma = new PrismaClient();
 
 async function main() {
   const tenantId = '68c7e6c3-1f1d-4f1d-8f1d-1f1d1f1d1f1d'; // Standard tenant ID from common-tenant.ts if it exists
-  
+
   // Try to find a tenant
   const tenant = await prisma.tenant.findFirst();
   if (!tenant) {
@@ -13,11 +13,36 @@ async function main() {
   }
 
   const nodes = [
-    { name: 'Edge-NYC-01', region: 'us-east', latitude: 40.7128, longitude: -74.0060 },
-    { name: 'Edge-SFO-01', region: 'us-west', latitude: 37.7749, longitude: -122.4194 },
-    { name: 'Edge-LON-01', region: 'eu-west', latitude: 51.5074, longitude: -0.1278 },
-    { name: 'Edge-FRA-01', region: 'eu-central', latitude: 50.1109, longitude: 8.6821 },
-    { name: 'Edge-SGP-01', region: 'apac-south', latitude: 1.3521, longitude: 103.8198 },
+    {
+      name: 'Edge-NYC-01',
+      region: 'us-east',
+      latitude: 40.7128,
+      longitude: -74.006,
+    },
+    {
+      name: 'Edge-SFO-01',
+      region: 'us-west',
+      latitude: 37.7749,
+      longitude: -122.4194,
+    },
+    {
+      name: 'Edge-LON-01',
+      region: 'eu-west',
+      latitude: 51.5074,
+      longitude: -0.1278,
+    },
+    {
+      name: 'Edge-FRA-01',
+      region: 'eu-central',
+      latitude: 50.1109,
+      longitude: 8.6821,
+    },
+    {
+      name: 'Edge-SGP-01',
+      region: 'apac-south',
+      latitude: 1.3521,
+      longitude: 103.8198,
+    },
   ];
 
   for (const n of nodes) {

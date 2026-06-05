@@ -1,14 +1,17 @@
 # Runbook: ML Model Degraded
 
 ## ALERT CONDITION
+
 - **Metric**: `edgecloud_ml_fallback_total` (rate) / `edgecloud_scheduling_decisions_total` (rate)
 - **Threshold**: `> 0.10` (10%) for 15 minutes.
 - **Grafana Panel**: "ML Ops -> Fallback Rate"
 
 ## IMPACT
+
 Scheduling decisions are less optimal, potentially leading to higher latency and costs. The system is operating in a "degraded" but safe mode using rule-based heuristics.
 
 ## DIAGNOSIS STEPS
+
 1. **Verify Model Path**:
    Check if the API container can access the model file.
    - **Command**: `kubectl exec -it api-<pod-id> -- ls -l /models/active/`
@@ -28,6 +31,7 @@ Scheduling decisions are less optimal, potentially leading to higher latency and
    - **Command**: `kubectl top pods -l app=api`
 
 ## RESOLUTION
+
 1. **Manually Trigger Retraining**:
    If drift is high, trigger a GitHub Action to retrain the model.
    - **Action**: Go to GitHub -> Actions -> "ML Retrain" -> "Run workflow".
@@ -43,10 +47,12 @@ Scheduling decisions are less optimal, potentially leading to higher latency and
    - **Command**: `kubectl rollout restart deployment api`
 
 ## ESCALATION
+
 - **Level 2**: Contact Data Science team if Mean Absolute Error (MAE) remains above 0.5 after retraining.
 - **Level 3**: Contact ML Platform team if model weight downloads from S3/GCS are failing.
 
 ## POST-INCIDENT
+
 - Review the `SchedulingPredictor` performance for the first 10 minutes after rollback.
 - Audit the training data pipeline for missing features or stale data.
 - Check `ModelStorageService` logs for authentication errors.

@@ -14,20 +14,25 @@ Thank you for your interest in contributing! This document outlines our developm
 To maintain high code quality and security, we enforce the following **Branch Protection Rules** on the `main` branch:
 
 ### 1. Required Status Checks
+
 All PRs must pass the following checks before they can be merged:
+
 - **Continuous Integration (CI)**: Includes linting, type-checking, unit tests (with 80%+ coverage), and integration tests.
 - **Contract Tests**: Ensures the OpenAPI spec is in sync with the implementation.
 - **Dependency Cruiser**: Validates that no architectural violations (e.g., circular dependencies or upward flow) are introduced.
 - **Security Audit**: `pnpm audit` must pass with zero high-severity vulnerabilities.
 
 ### 2. Required Reviews
+
 - At least **one approved review** is required from a maintainer.
 - Reviewers will check for adherence to the **Monorepo Dependency Architecture** (see `docs/ARCHITECTURE.md`).
 
 ### 3. Signed Commits
+
 - All commits must be **GPG-signed** to verify the author's identity.
 
 ### 4. No Force Pushes
+
 - Force pushing to `main` is strictly prohibited.
 
 ## Development Workflow
@@ -48,6 +53,7 @@ All PRs must pass the following checks before they can be merged:
 ## Security Scanning
 
 Our pipeline automatically runs weekly and on every PR:
+
 - **Trivy**: Scans Docker images for vulnerabilities.
 - **Semgrep**: Static analysis for security patterns.
 - **Gitleaks**: Scans for accidentally committed secrets.

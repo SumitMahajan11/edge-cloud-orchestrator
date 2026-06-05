@@ -1,6 +1,9 @@
 import { FastifyReply, FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
-import { enterWithTenantContext, RolePermissions } from '@edgecloud/shared-kernel';
+import {
+  enterWithTenantContext,
+  RolePermissions,
+} from '@edgecloud/shared-kernel';
 import { UserPayload, UserRole } from '../types/fastify';
 import { env } from '../config/env';
 
@@ -22,14 +25,15 @@ export async function authenticate(
           throw new Error('apiKeyService not decorated on fastify instance');
         }
         const result = await apiKeyService.validateApiKey(apiKey);
-        
+
         if (result) {
           request.user = {
             id: result.user.id,
             email: result.user.email,
             role: result.user.role,
             tenantId: result.user.tenantId,
-            permissions: result.permissions || RolePermissions[result.user.role] || [],
+            permissions:
+              result.permissions || RolePermissions[result.user.role] || [],
           };
 
           enterWithTenantContext(result.user.tenantId || undefined);
@@ -48,7 +52,7 @@ export async function authenticate(
     }) as UserPayload;
 
     // 1. Future iat check (30s tolerance)
-    if (decoded.iat && decoded.iat > (Math.floor(Date.now() / 1000) + 30)) {
+    if (decoded.iat && decoded.iat > Math.floor(Date.now() / 1000) + 30) {
       return reply.status(401).send({ error: 'Token issued in the future' });
     }
 
@@ -58,11 +62,12 @@ export async function authenticate(
       if (redis) {
         const isRevoked = await redis.get(`revoked_token:${decoded.jti}`);
         if (isRevoked) {
-          return reply.status(401).send({ error: 'Access token has been revoked' });
+          return reply
+            .status(401)
+            .send({ error: 'Access token has been revoked' });
         }
       }
     }
-
 
     request.user = {
       id: decoded.id,

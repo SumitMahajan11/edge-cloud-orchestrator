@@ -1,18 +1,11 @@
 import { PrismaClient } from '@prisma/client';
-import {
-  createHash,
-  randomBytes,
-  X509Certificate,
-  webcrypto,
-} from 'crypto';
+import { createHash, randomBytes, X509Certificate, webcrypto } from 'crypto';
 import * as x509 from '@peculiar/x509';
 import fs from 'fs/promises';
 import path from 'path';
 import type { Logger } from 'pino';
 
-import { 
-  SecretManagerFactory
-} from '@edgecloud/shared-kernel';
+import { SecretManagerFactory } from '@edgecloud/shared-kernel';
 
 interface CertificateConfig {
   validityDays: number;
@@ -133,14 +126,30 @@ export class CertificateAuthorityManager {
         hash: 'SHA-256',
       },
       true,
-      ['sign', 'verify']
+      ['sign', 'verify'],
     );
 
-    const privateKeyBuffer = await webcrypto.subtle.exportKey('pkcs8', keys.privateKey);
-    const publicKeyBuffer = await webcrypto.subtle.exportKey('spki', keys.publicKey);
+    const privateKeyBuffer = await webcrypto.subtle.exportKey(
+      'pkcs8',
+      keys.privateKey,
+    );
+    const publicKeyBuffer = await webcrypto.subtle.exportKey(
+      'spki',
+      keys.publicKey,
+    );
 
-    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privateKeyBuffer).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END PRIVATE KEY-----`;
-    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(publicKeyBuffer).toString('base64').match(/.{1,64}/g)?.join('\n')}\n-----END PUBLIC KEY-----`;
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(
+      privateKeyBuffer,
+    )
+      .toString('base64')
+      .match(/.{1,64}/g)
+      ?.join('\n')}\n-----END PRIVATE KEY-----`;
+    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(
+      publicKeyBuffer,
+    )
+      .toString('base64')
+      .match(/.{1,64}/g)
+      ?.join('\n')}\n-----END PUBLIC KEY-----`;
 
     const serialNumber = this.generateSerial('CA');
     const now = new Date();
@@ -224,7 +233,11 @@ export class CertificateAuthorityManager {
 
     // Use Vault PKI to issue a certificate instead of local signing
     const secretManager = SecretManagerFactory.create();
-    const certBundle = await secretManager.issueCertificate?.('edge-agent', nodeId, `${CERT_CONFIG.validityDays}d`);
+    const certBundle = await secretManager.issueCertificate?.(
+      'edge-agent',
+      nodeId,
+      `${CERT_CONFIG.validityDays}d`,
+    );
     if (!certBundle) {
       throw new Error('Vault PKI issueCertificate not available');
     }
@@ -250,7 +263,10 @@ export class CertificateAuthorityManager {
       },
     });
 
-    this.logger.info({ nodeId, serialNumber, expiresAt }, 'Issued agent certificate via Vault PKI');
+    this.logger.info(
+      { nodeId, serialNumber, expiresAt },
+      'Issued agent certificate via Vault PKI',
+    );
 
     return {
       nodeId,
@@ -348,16 +364,17 @@ export class CertificateAuthorityManager {
             user: {
               include: {
                 tenantUsers: {
-                  take: 1
-                }
-              }
-            }
-          }
+                  take: 1,
+                },
+              },
+            },
+          },
         });
 
         if (!t) throw new Error('Invalid bootstrap token');
         if (t.usedAt) throw new Error('Bootstrap token already used');
-        if (t.expiresAt < new Date()) throw new Error('Bootstrap token expired');
+        if (t.expiresAt < new Date())
+          throw new Error('Bootstrap token expired');
 
         return await tx.bootstrapToken.update({
           where: { token },
@@ -366,11 +383,11 @@ export class CertificateAuthorityManager {
             user: {
               include: {
                 tenantUsers: {
-                  take: 1
-                }
-              }
-            }
-          }
+                  take: 1,
+                },
+              },
+            },
+          },
         });
       });
     } catch (error: any) {
@@ -412,18 +429,30 @@ export class AgentCertificateGenerator {
       'pkcs8',
       keys.privateKey,
     );
-    const publicKeyBuffer = await webcrypto.subtle.exportKey('spki', keys.publicKey);
+    const publicKeyBuffer = await webcrypto.subtle.exportKey(
+      'spki',
+      keys.publicKey,
+    );
 
-    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(privateKeyBuffer)
+    const privateKey = `-----BEGIN PRIVATE KEY-----\n${Buffer.from(
+      privateKeyBuffer,
+    )
       .toString('base64')
       .match(/.{1,64}/g)
       ?.join('\n')}\n-----END PRIVATE KEY-----`;
-    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(publicKeyBuffer)
+    const publicKey = `-----BEGIN PUBLIC KEY-----\n${Buffer.from(
+      publicKeyBuffer,
+    )
       .toString('base64')
       .match(/.{1,64}/g)
       ?.join('\n')}\n-----END PUBLIC KEY-----`;
 
-    const csr = await this.createCSR(keys.publicKey, keys.privateKey, nodeId, region);
+    const csr = await this.createCSR(
+      keys.publicKey,
+      keys.privateKey,
+      nodeId,
+      region,
+    );
 
     return { privateKey, publicKey, csr };
   }
@@ -497,10 +526,15 @@ export class CertificateValidator {
   private prisma: PrismaClient;
   private logger: Logger;
   private caManager: CertificateAuthorityManager | undefined;
-  private crlCache: Map<string, { revoked: boolean; expiresAt: number }> = new Map();
+  private crlCache: Map<string, { revoked: boolean; expiresAt: number }> =
+    new Map();
   private crlLastRefresh: Date = new Date(0);
 
-  constructor(prisma: PrismaClient, logger: Logger, caManager?: CertificateAuthorityManager) {
+  constructor(
+    prisma: PrismaClient,
+    logger: Logger,
+    caManager?: CertificateAuthorityManager,
+  ) {
     this.prisma = prisma;
     this.logger = logger;
     this.caManager = caManager;
@@ -517,10 +551,11 @@ export class CertificateValidator {
       const cert = new X509Certificate(certPem);
       const { subject } = cert;
       const nodeIdMatch = subject.match(/CN=([^\n,;]+)/);
-      const nodeId = nodeIdMatch && nodeIdMatch[1] ? nodeIdMatch[1].trim() : null;
+      const nodeId =
+        nodeIdMatch && nodeIdMatch[1] ? nodeIdMatch[1].trim() : null;
 
       if (!nodeId) {
-        return { valid: false, error: "Certificate missing CN (node ID)" };
+        return { valid: false, error: 'Certificate missing CN (node ID)' };
       }
 
       const validFrom = new Date(cert.validFrom);
@@ -528,11 +563,11 @@ export class CertificateValidator {
       const now = new Date();
 
       if (now < validFrom) {
-        return { valid: false, nodeId, error: "Certificate not yet valid" };
+        return { valid: false, nodeId, error: 'Certificate not yet valid' };
       }
 
       if (now > validTo) {
-        return { valid: false, nodeId, error: "Certificate expired" };
+        return { valid: false, nodeId, error: 'Certificate expired' };
       }
 
       const { serialNumber } = cert;
@@ -541,7 +576,7 @@ export class CertificateValidator {
           valid: false,
           nodeId,
           serialNumber,
-          error: "Certificate revoked",
+          error: 'Certificate revoked',
         };
       }
 
@@ -554,7 +589,7 @@ export class CertificateValidator {
           valid: false,
           nodeId,
           serialNumber,
-          error: "Certificate not found or inactive in database",
+          error: 'Certificate not found or inactive in database',
         };
       }
 
@@ -565,13 +600,13 @@ export class CertificateValidator {
           valid: false,
           nodeId,
           serialNumber,
-          error: "Certificate signature or chain verification failed",
+          error: 'Certificate signature or chain verification failed',
         };
       }
 
       this.logger.debug(
         { nodeId, serialNumber },
-        "Certificate validated successfully",
+        'Certificate validated successfully',
       );
 
       return {
@@ -581,8 +616,8 @@ export class CertificateValidator {
         expiresAt: validTo,
       };
     } catch (error: any) {
-      this.logger.error({ error }, "Certificate validation failed");
-      return { valid: false, error: "Invalid certificate format" };
+      this.logger.error({ error }, 'Certificate validation failed');
+      return { valid: false, error: 'Invalid certificate format' };
     }
   }
 
@@ -591,23 +626,31 @@ export class CertificateValidator {
       const clientCert = new X509Certificate(clientCertPem);
       const now = new Date();
       if (new Date(clientCert.validTo) < now) {
-        this.logger.warn({ serialNumber: clientCert.serialNumber, expiry: clientCert.validTo }, "Client certificate expired");
+        this.logger.warn(
+          { serialNumber: clientCert.serialNumber, expiry: clientCert.validTo },
+          'Client certificate expired',
+        );
         return false;
       }
       if (!this.caManager) {
-        this.logger.error("CA Manager not available for signature verification");
+        this.logger.error(
+          'CA Manager not available for signature verification',
+        );
         return false;
       }
       const caCertPem = this.caManager.getCACertificate();
       const caCert = new X509Certificate(caCertPem);
       const isSignedByCA = clientCert.verify(caCert.publicKey);
       if (!isSignedByCA) {
-        this.logger.warn({ serialNumber: clientCert.serialNumber, issuer: clientCert.issuer }, "Certificate not signed by trusted CA");
+        this.logger.warn(
+          { serialNumber: clientCert.serialNumber, issuer: clientCert.issuer },
+          'Certificate not signed by trusted CA',
+        );
         return false;
       }
       return true;
     } catch (err) {
-      this.logger.error({ err }, "Certificate chain verification error");
+      this.logger.error({ err }, 'Certificate chain verification error');
       return false;
     }
   }
@@ -615,8 +658,12 @@ export class CertificateValidator {
   private async isRevoked(serialNumber: string): Promise<boolean> {
     const cached = this.crlCache.get(serialNumber);
     if (cached) {
-      if (cached.revoked) {return true;}
-      if (cached.expiresAt > Date.now()) {return false;}
+      if (cached.revoked) {
+        return true;
+      }
+      if (cached.expiresAt > Date.now()) {
+        return false;
+      }
     }
 
     const revoked = await this.prisma.certificateRevocation.findUnique({
@@ -643,10 +690,13 @@ export class CertificateValidator {
     if (cacheAge > CACHE_TTL) {
       const revoked = await this.prisma.certificateRevocation.findMany();
       revoked.forEach((r) => {
-        this.crlCache.set(r.serialNumber, { revoked: true, expiresAt: Infinity });
+        this.crlCache.set(r.serialNumber, {
+          revoked: true,
+          expiresAt: Infinity,
+        });
       });
       this.crlLastRefresh = now;
-      this.logger.info({ count: revoked.length }, "Refreshed CRL cache");
+      this.logger.info({ count: revoked.length }, 'Refreshed CRL cache');
     }
   }
 }
@@ -754,12 +804,12 @@ export class AgentRegistrationService {
 
     // Get tenant info from the newly signed cert's session/token context
     // Actually, signCSR should return the token data too or we fetch it after consumption
-    const token = await this.prisma.bootstrapToken.findUnique({
+    const token = (await this.prisma.bootstrapToken.findUnique({
       where: { token: request.bootstrapToken },
       include: {
-        user: { include: { tenantUsers: { take: 1 } } }
-      }
-    }) as any;
+        user: { include: { tenantUsers: { take: 1 } } },
+      },
+    })) as any;
 
     const tenantId = token.user.tenantUsers[0]!.tenantId;
 
@@ -825,13 +875,13 @@ export class CertificateRotationService {
   private readonly GRACE_PERIOD_HOURS = 24;
 
   constructor(
-  _caManager: CertificateAuthorityManager,
-  prisma: PrismaClient,
-  logger: Logger,
-) {
-  this.prisma = prisma;
-  this.logger = logger;
-}
+    _caManager: CertificateAuthorityManager,
+    prisma: PrismaClient,
+    logger: Logger,
+  ) {
+    this.prisma = prisma;
+    this.logger = logger;
+  }
 
   /**
    * Check if certificate needs rotation

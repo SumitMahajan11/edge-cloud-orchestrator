@@ -1,35 +1,40 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // Task schemas
 export const TaskTypeSchema = z.enum([
-  'IMAGE_CLASSIFICATION',
-  'DATA_AGGREGATION',
-  'MODEL_INFERENCE',
-  'SENSOR_FUSION',
-  'VIDEO_PROCESSING',
-  'LOG_ANALYSIS',
-  'ANOMALY_DETECTION',
-  'CUSTOM',
+  "IMAGE_CLASSIFICATION",
+  "DATA_AGGREGATION",
+  "MODEL_INFERENCE",
+  "SENSOR_FUSION",
+  "VIDEO_PROCESSING",
+  "LOG_ANALYSIS",
+  "ANOMALY_DETECTION",
+  "CUSTOM",
 ]);
 
 export const TaskStatusSchema = z.enum([
-  'PENDING',
-  'SCHEDULED',
-  'RUNNING',
-  'COMPLETED',
-  'FAILED',
-  'CANCELLED',
+  "PENDING",
+  "SCHEDULED",
+  "RUNNING",
+  "COMPLETED",
+  "FAILED",
+  "CANCELLED",
 ]);
 
-export const TaskPrioritySchema = z.enum(['CRITICAL', 'HIGH', 'MEDIUM', 'LOW']);
-export const ExecutionTargetSchema = z.enum(['EDGE', 'CLOUD']);
-export const NodeStatusSchema = z.enum(['ONLINE', 'OFFLINE', 'DEGRADED', 'MAINTENANCE']);
+export const TaskPrioritySchema = z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]);
+export const ExecutionTargetSchema = z.enum(["EDGE", "CLOUD"]);
+export const NodeStatusSchema = z.enum([
+  "ONLINE",
+  "OFFLINE",
+  "DEGRADED",
+  "MAINTENANCE",
+]);
 
 export const CreateTaskSchema = z.object({
   name: z.string().min(1).max(200),
   type: TaskTypeSchema,
-  priority: TaskPrioritySchema.default('MEDIUM'),
-  target: ExecutionTargetSchema.default('EDGE'),
+  priority: TaskPrioritySchema.default("MEDIUM"),
+  target: ExecutionTargetSchema.default("EDGE"),
   nodeId: z.string().uuid().optional(),
   input: z.record(z.unknown()).optional(),
   metadata: z.record(z.unknown()).optional(),
@@ -47,7 +52,7 @@ export const TaskListQuerySchema = z.object({
 });
 
 export const CancelTaskBodySchema = z.object({
-  reason: z.string().min(1).max(500).default('Cancelled by user'),
+  reason: z.string().min(1).max(500).default("Cancelled by user"),
 });
 
 export const ScheduleTaskBodySchema = z.object({
@@ -72,7 +77,7 @@ export const RegisterNodeSchema = z.object({
   name: z.string().min(1).max(100),
   location: z.string().min(1).max(200),
   region: z.string().min(1).max(50),
-  ipAddress: z.string().ip({ version: 'v4' }),
+  ipAddress: z.string().ip({ version: "v4" }),
   port: z.number().int().min(1).max(65535),
   cpuCores: z.number().int().min(1).max(128),
   memoryGB: z.number().int().min(1).max(1024),
@@ -104,12 +109,15 @@ export const NodeMetricsBodySchema = z.object({
 
 // Common response schemas
 export const ApiErrorSchema = z.object({
-  code: z.string().describe('Machine-readable error code'),
-  message: z.string().describe('Human-readable error description'),
-  requestId: z.string().optional().describe('Unique request ID'),
-  timestamp: z.string().datetime().optional().describe('ISO 8601 timestamp'),
-  details: z.unknown().optional().describe('Optional error details'),
-  stack: z.string().optional().describe('Error stack trace (non-production only)'),
+  code: z.string().describe("Machine-readable error code"),
+  message: z.string().describe("Human-readable error description"),
+  requestId: z.string().optional().describe("Unique request ID"),
+  timestamp: z.string().datetime().optional().describe("ISO 8601 timestamp"),
+  details: z.unknown().optional().describe("Optional error details"),
+  stack: z
+    .string()
+    .optional()
+    .describe("Error stack trace (non-production only)"),
 });
 
 export const ErrorSchema = z.object({
@@ -117,7 +125,7 @@ export const ErrorSchema = z.object({
 });
 
 export const HealthSchema = z.object({
-  status: z.enum(['healthy', 'degraded', 'unhealthy']),
+  status: z.enum(["healthy", "degraded", "unhealthy"]),
   service: z.string(),
   timestamp: z.string().datetime(),
   checks: z.record(z.boolean()).optional(),

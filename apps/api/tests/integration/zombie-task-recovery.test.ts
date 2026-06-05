@@ -57,18 +57,21 @@ const mockLeaderElection = {
 
 // Mock internal packages
 vi.mock('@edgecloud/shared-kernel', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@edgecloud/shared-kernel')>();
+  const actual =
+    await importOriginal<typeof import('@edgecloud/shared-kernel')>();
   return {
     ...actual,
     LeaderElection: vi.fn().mockImplementation(() => mockLeaderElection),
     getTraceId: vi.fn().mockReturnValue('mock-trace-id'),
     getRequestId: vi.fn().mockReturnValue('mock-request-id'),
     tracer: {
-      startActiveSpan: vi.fn().mockImplementation((_name, _options, callback) => callback({
-        setStatus: vi.fn(),
-        recordException: vi.fn(),
-        end: vi.fn(),
-      })),
+      startActiveSpan: vi.fn().mockImplementation((_name, _options, callback) =>
+        callback({
+          setStatus: vi.fn(),
+          recordException: vi.fn(),
+          end: vi.fn(),
+        }),
+      ),
     },
   };
 });
@@ -125,7 +128,11 @@ describe('Zombie Task Recovery Integration', () => {
         findMany: vi.fn(),
         findFirst: vi.fn(),
         findUnique: vi.fn(),
-        update: vi.fn().mockImplementation(({ data }: any) => Promise.resolve({ id: 'task-1', submittedAt: new Date(), ...data })),
+        update: vi
+          .fn()
+          .mockImplementation(({ data }: any) =>
+            Promise.resolve({ id: 'task-1', submittedAt: new Date(), ...data }),
+          ),
         updateMany: vi.fn(),
         count: vi.fn().mockResolvedValue(0),
         groupBy: vi.fn(),
@@ -173,21 +180,21 @@ describe('Zombie Task Recovery Integration', () => {
 
   describe('Atomic Assignment & Rollback', () => {
     it('should revert task to PENDING if dispatch fails', async () => {
-      const task = { 
-        id: 'task-1', 
-        tenantId: 'tenant-1', 
-        status: 'PENDING', 
+      const task = {
+        id: 'task-1',
+        tenantId: 'tenant-1',
+        status: 'PENDING',
         maxRetries: 3,
         priority: 'HIGH',
         submittedAt: new Date(),
         runtime: 'DOCKER',
-        policy: 'LATENCY'
+        policy: 'LATENCY',
       };
       const node = { id: 'node-1', url: 'http://node-1' };
       const execution = { id: 'exec-1', attemptNumber: 1 };
 
       mockPrisma.taskExecution.findFirst.mockResolvedValue(execution);
-      
+
       // Mock axios failure
       (axios.post as any).mockRejectedValueOnce(new Error('Network error'));
       (axios as any).isAxiosError.mockReturnValueOnce(true);
@@ -196,42 +203,51 @@ describe('Zombie Task Recovery Integration', () => {
       await (scheduler as any).assignTask(task, node);
 
       // Verify transaction 1: Atomic SCHEDULED update
-      expect(mockPrisma.task.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: 'task-1' },
-        data: expect.objectContaining({ status: 'SCHEDULED', nodeId: 'node-1' })
-      }));
+      expect(mockPrisma.task.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'task-1' },
+          data: expect.objectContaining({
+            status: 'SCHEDULED',
+            nodeId: 'node-1',
+          }),
+        }),
+      );
 
       // Verify rollback transaction
-      expect(mockPrisma.task.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: 'task-1' },
-        data: expect.objectContaining({ status: 'PENDING', nodeId: null })
-      }));
+      expect(mockPrisma.task.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'task-1' },
+          data: expect.objectContaining({ status: 'PENDING', nodeId: null }),
+        }),
+      );
 
       // Verify TaskExecution marked as FAILED
-      expect(mockPrisma.taskExecution.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: 'exec-1' },
-        data: expect.objectContaining({ status: 'FAILED' })
-      }));
+      expect(mockPrisma.taskExecution.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'exec-1' },
+          data: expect.objectContaining({ status: 'FAILED' }),
+        }),
+      );
     });
   });
 
   describe('Reconciliation Loop Zombie Recovery', () => {
     it('should recover tasks stuck in SCHEDULED for > 60s and reconcile node count', async () => {
       const now = Date.now();
-      const zombieTask = { 
-        id: 'zombie-1', 
-        status: 'SCHEDULED', 
+      const zombieTask = {
+        id: 'zombie-1',
+        status: 'SCHEDULED',
         updatedAt: new Date(now - 65000), // 65s ago
         priority: 'MEDIUM',
         submittedAt: new Date(now - 120000),
-        nodeId: 'node-1'
+        nodeId: 'node-1',
       };
 
       const node = { id: 'node-1', tasksRunning: 1 };
 
       mockPrisma.edgeNode.findMany.mockResolvedValue([node]);
       mockPrisma.task.findMany.mockResolvedValue([zombieTask]);
-      
+
       // During reconciliation (Step 2), actualCountsMap will look up node-1,
       // so if groupBy returns empty array, it means actualCount is 0
       mockPrisma.task.groupBy.mockResolvedValue([]);
@@ -240,19 +256,27 @@ describe('Zombie Task Recovery Integration', () => {
       await (scheduler as any).reconcileTaskCounts();
 
       // Verify zombie recovery (Step 1)
-      expect(mockPrisma.task.updateMany).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: { in: ['zombie-1'] } },
-        data: { status: 'PENDING', nodeId: null }
-      }));
+      expect(mockPrisma.task.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ['zombie-1'] } },
+          data: { status: 'PENDING', nodeId: null },
+        }),
+      );
 
       // Verify node count reconciled (Step 2)
-      expect(mockPrisma.edgeNode.update).toHaveBeenCalledWith(expect.objectContaining({
-        where: { id: 'node-1' },
-        data: { tasksRunning: 0 }
-      }));
+      expect(mockPrisma.edgeNode.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'node-1' },
+          data: { tasksRunning: 0 },
+        }),
+      );
 
       // Verify requeued in Redis
-      expect(mockRedis.zadd).toHaveBeenCalledWith('task:queue', expect.any(Number), 'zombie-1');
+      expect(mockRedis.zadd).toHaveBeenCalledWith(
+        'task:queue',
+        expect.any(Number),
+        'zombie-1',
+      );
     });
   });
 });

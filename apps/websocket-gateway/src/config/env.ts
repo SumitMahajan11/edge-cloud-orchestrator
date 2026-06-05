@@ -1,6 +1,6 @@
-import 'dotenv/config';
-import { z } from 'zod';
-import { baseEnvSchema, validateEnv } from '@edgecloud/shared-kernel';
+import "dotenv/config";
+import { z } from "zod";
+import { baseEnvSchema, validateEnv } from "@edgecloud/shared-kernel";
 
 /**
  * Environment variables schema for the WebSocket Gateway.
@@ -10,10 +10,12 @@ const envSchema = baseEnvSchema.extend({
   HEARTBEAT_INTERVAL: z.coerce.number().default(30000),
   RECONNECT_BACKOFF_BASE: z.coerce.number().default(1000),
   RECONNECT_BACKOFF_MAX: z.coerce.number().default(30000),
-  NODE_SERVICE_URL: z.string().url().default('http://localhost:3001'),
-  SERVICE_TOKEN: z.string().default('internal-default'),
-  REDIS_URL: z.string().url().default('redis://localhost:6379'),
-  CORS_ORIGINS: z.string().default('http://localhost:5173,http://localhost:3000'),
+  NODE_SERVICE_URL: z.string().url().default("http://localhost:3001"),
+  SERVICE_TOKEN: z.string().default("internal-default"),
+  REDIS_URL: z.string().url().default("redis://localhost:6379"),
+  CORS_ORIGINS: z
+    .string()
+    .default("http://localhost:5173,http://localhost:3000"),
 });
 
 export const env = validateEnv(envSchema);

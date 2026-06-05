@@ -1,7 +1,7 @@
-import { S3Client, GetObjectCommand } from '@aws-sdk/client-s3';
-import { Upload } from '@aws-sdk/lib-storage';
-import { Readable } from 'stream';
-import crypto from 'crypto';
+import { S3Client, GetObjectCommand } from "@aws-sdk/client-s3";
+import { Upload } from "@aws-sdk/lib-storage";
+import { Readable } from "stream";
+import crypto from "crypto";
 
 /**
  * Configuration for ModelStorageService
@@ -21,12 +21,12 @@ export class ModelStorageService {
   private bucketName: string;
 
   constructor() {
-    this.bucketName = process.env.MODEL_STORAGE_BUCKET || 'edge-cloud-models';
+    this.bucketName = process.env.MODEL_STORAGE_BUCKET || "edge-cloud-models";
     this.client = new S3Client({
-      region: process.env.AWS_REGION || 'us-east-1',
+      region: process.env.AWS_REGION || "us-east-1",
       credentials: {
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID || 'minioadmin',
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || 'minioadmin',
+        accessKeyId: process.env.AWS_ACCESS_KEY_ID || "minioadmin",
+        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "minioadmin",
       },
       ...(process.env.S3_ENDPOINT ? { endpoint: process.env.S3_ENDPOINT } : {}),
       forcePathStyle: !!process.env.S3_ENDPOINT,
@@ -35,26 +35,29 @@ export class ModelStorageService {
 
   /**
    * Uploads model weights to object storage and returns the SHA-256 checksum.
-   * 
+   *
    * @param modelId Unique identifier for the model
    * @param buffer Binary weight data
    * @returns The S3 key/URL and the SHA-256 checksum
    */
-  async uploadWeights(modelId: string, buffer: Buffer): Promise<{ url: string; checksum: string }> {
+  async uploadWeights(
+    modelId: string,
+    buffer: Buffer,
+  ): Promise<{ url: string; checksum: string }> {
     const key = `models/${modelId}/weights.bin`;
-    const checksum = crypto.createHash('sha256').update(buffer).digest('hex');
-    
+    const checksum = crypto.createHash("sha256").update(buffer).digest("hex");
+
     const upload = new Upload({
       client: this.client,
       params: {
         Bucket: this.bucketName,
         Key: key,
         Body: buffer,
-        ContentType: 'application/octet-stream',
-        ServerSideEncryption: 'AES256',
+        ContentType: "application/octet-stream",
+        ServerSideEncryption: "AES256",
         Metadata: {
-          'x-amz-meta-checksum-sha256': checksum
-        }
+          "x-amz-meta-checksum-sha256": checksum,
+        },
       },
     });
 
@@ -64,12 +67,15 @@ export class ModelStorageService {
 
   /**
    * Downloads model weights from object storage and verifies integrity.
-   * 
+   *
    * @param weightsUrl The S3 key or URL
    * @param expectedChecksum Optional SHA-256 checksum to verify integrity
    * @returns Binary weight data as a Buffer
    */
-  async downloadWeights(weightsUrl: string, expectedChecksum?: string): Promise<Buffer> {
+  async downloadWeights(
+    weightsUrl: string,
+    expectedChecksum?: string,
+  ): Promise<Buffer> {
     const command = new GetObjectCommand({
       Bucket: this.bucketName,
       Key: weightsUrl,
@@ -80,15 +86,20 @@ export class ModelStorageService {
 
     const buffer = await new Promise<Buffer>((resolve, reject) => {
       const chunks: Buffer[] = [];
-      stream.on('data', (chunk) => chunks.push(chunk));
-      stream.on('error', (err) => reject(err));
-      stream.on('end', () => resolve(Buffer.concat(chunks)));
+      stream.on("data", (chunk) => chunks.push(chunk));
+      stream.on("error", (err) => reject(err));
+      stream.on("end", () => resolve(Buffer.concat(chunks)));
     });
 
     if (expectedChecksum) {
-      const actualChecksum = crypto.createHash('sha256').update(buffer).digest('hex');
+      const actualChecksum = crypto
+        .createHash("sha256")
+        .update(buffer)
+        .digest("hex");
       if (actualChecksum !== expectedChecksum) {
-        throw new Error(`Integrity Failure: Model weights checksum mismatch. Expected ${expectedChecksum}, got ${actualChecksum}`);
+        throw new Error(
+          `Integrity Failure: Model weights checksum mismatch. Expected ${expectedChecksum}, got ${actualChecksum}`,
+        );
       }
     }
 

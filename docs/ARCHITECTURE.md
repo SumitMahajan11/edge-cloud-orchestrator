@@ -29,12 +29,12 @@ graph LR
 
 ### Service Port Map
 
-| Service | Port | Protocol |
-|---|---|---|
-| api (Unified) | 3090 | HTTP/REST + Internal Scheduler |
-| websocket-gateway | 3004 | WebSocket |
-| metrics-service | 3005 | HTTP (Prometheus Aggregator) |
-| api-gateway (Nginx) | 80/443 | HTTP/HTTPS (reverse proxy) |
+| Service             | Port   | Protocol                       |
+| ------------------- | ------ | ------------------------------ |
+| api (Unified)       | 3090   | HTTP/REST + Internal Scheduler |
+| websocket-gateway   | 3004   | WebSocket                      |
+| metrics-service     | 3005   | HTTP (Prometheus Aggregator)   |
+| api-gateway (Nginx) | 80/443 | HTTP/HTTPS (reverse proxy)     |
 
 > [!NOTE]
 > In the v2.0.0 refactor, the **Task Service**, **Scheduler Service**, and **Node Service** were consolidated into the core **API Service**. This allows the scheduler to run as an internal background process within the API instances, significantly reducing inter-service latency and simplifying the Raft-based coordination logic.
@@ -53,25 +53,25 @@ graph LR
 
 ### High Availability
 
-| Service | Replicas (prod) | Strategy |
-|---|---|---|
-| api (Unified) | 3 | Multi-leader with Redlock-based task acquisition |
-| websocket-gateway | 2 | Stateless, regional affinity |
-| PostgreSQL | 1 Primary + 1 Standby | Synchronous streaming replication; PgBouncer pooler |
-| Redis | 1 Primary + 2 Replicas | HA Sentinel with 3 sentinels; auto-failover |
+| Service           | Replicas (prod)        | Strategy                                            |
+| ----------------- | ---------------------- | --------------------------------------------------- |
+| api (Unified)     | 3                      | Multi-leader with Redlock-based task acquisition    |
+| websocket-gateway | 2                      | Stateless, regional affinity                        |
+| PostgreSQL        | 1 Primary + 1 Standby  | Synchronous streaming replication; PgBouncer pooler |
+| Redis             | 1 Primary + 2 Replicas | HA Sentinel with 3 sentinels; auto-failover         |
 
 > [!TIP]
 > For production environments, it is highly recommended to migrate to managed database services like **AWS RDS Multi-AZ**, **Azure Database for PostgreSQL**, or **Google CloudSQL**. These services provide automated failover, point-in-time recovery, and 99.99% availability SLAs that are difficult to match with self-managed Kubernetes deployments.
 
 ### Scaling Limits (Validated)
 
-| Dimension | Limit | Notes |
-|---|---|---|
-| Nodes | 50,000 | Async heartbeat batching in api |
-| Total tasks | 1,000,000 | DB-dependent; configure retention policy |
-| Node Metrics | 6,000,000,000 | Native range partitioning (daily) with 7-day retention |
-| Scheduling throughput | 500 tasks/sec | ML model + Redis Streams pipeline |
-| P99 scheduling latency | <50ms | Measured at api |
+| Dimension              | Limit         | Notes                                                  |
+| ---------------------- | ------------- | ------------------------------------------------------ |
+| Nodes                  | 50,000        | Async heartbeat batching in api                        |
+| Total tasks            | 1,000,000     | DB-dependent; configure retention policy               |
+| Node Metrics           | 6,000,000,000 | Native range partitioning (daily) with 7-day retention |
+| Scheduling throughput  | 500 tasks/sec | ML model + Redis Streams pipeline                      |
+| P99 scheduling latency | <50ms         | Measured at api                                        |
 
 > [!IMPORTANT]
 > **Database Growth Mitigation**: The `node_metrics` table is partitioned by range on the `timestamp` column. Daily partitions are managed by `pg_partman` with a strict 7-day retention policy. This allows the system to ingest ~864M rows/day while keeping the active dataset size manageable and ensuring constant-time query performance for the last 7 days of history.
@@ -84,10 +84,10 @@ The system defines strict targets for data recovery and service availability to 
 
 ### Recovery Objectives
 
-| Metric | Target | Description |
-|---|---|---|
-| **RPO** (Recovery Point Objective) | 1 hour | Maximum acceptable data loss duration. |
-| **RTO** (Recovery Time Objective) | 30 minutes | Maximum acceptable downtime to restore services. |
+| Metric                             | Target     | Description                                      |
+| ---------------------------------- | ---------- | ------------------------------------------------ |
+| **RPO** (Recovery Point Objective) | 1 hour     | Maximum acceptable data loss duration.           |
+| **RTO** (Recovery Time Objective)  | 30 minutes | Maximum acceptable downtime to restore services. |
 
 ### Backup Strategy
 
@@ -106,6 +106,7 @@ The system defines strict targets for data recovery and service availability to 
 ### Automated Restore Testing
 
 A backup that hasn't been tested for restoration is not a backup. The system implements an automated **Monthly Restore Test** in the staging environment:
+
 - **Procedure**: Automated CronJob restores the latest production backup to a transient PostgreSQL instance.
 - **Validation**: Runs data integrity checks, row counts, and timestamp verification.
 - **Alerting**: Reports success/failure to the engineering Slack channel.
@@ -118,6 +119,7 @@ A backup that hasn't been tested for restoration is not a backup. The system imp
 The system utilizes a Redis Sentinel architecture (1 Primary + 2 Replicas + 3 Sentinels) to eliminate Redis as a single point of failure.
 
 ### Failover Characteristics
+
 1. **Failure Detection**: Sentinels monitor the primary and replicas. If the primary is unreachable for 30s (`down-after-milliseconds`), a failover is initiated.
 2. **Leader Election**: Sentinels vote to elect a new primary from the available replicas. This typically completes in <10 seconds once a quorum (2/3) is reached.
 3. **Client Redirection**: All services use `ioredis` with Sentinel support. Upon failover, clients receive a notification from the Sentinels and automatically reconnect to the new primary.
@@ -158,6 +160,7 @@ Responsible for **decision making**, **coordination**, and **state management**.
 ```
 
 **Control Plane Responsibilities:**
+
 - Task scheduling decisions
 - Node registration and health tracking
 - Policy evaluation
@@ -188,6 +191,7 @@ Responsible for **task execution**, **metrics collection**, and **local state**.
 ```
 
 **Data Plane Responsibilities:**
+
 - Task execution in containers
 - Resource metrics collection (CPU, memory, network)
 - Local task queue buffering
@@ -196,12 +200,12 @@ Responsible for **task execution**, **metrics collection**, and **local state**.
 
 ### Communication Patterns
 
-| Direction | Protocol | Purpose | Payload |
-|-----------|----------|---------|---------|
-| CP → DP | gRPC/HTTPS | Task assignment | Task spec, container image |
-| DP → CP | gRPC/HTTPS | Heartbeat + metrics | Node status, resource usage |
-| DP → CP | WebSocket | Real-time events | Task completion, errors |
-| CP → CP | Redis Pub/Sub | Coordination | Scheduling decisions |
+| Direction | Protocol      | Purpose             | Payload                     |
+| --------- | ------------- | ------------------- | --------------------------- |
+| CP → DP   | gRPC/HTTPS    | Task assignment     | Task spec, container image  |
+| DP → CP   | gRPC/HTTPS    | Heartbeat + metrics | Node status, resource usage |
+| DP → CP   | WebSocket     | Real-time events    | Task completion, errors     |
+| CP → CP   | Redis Pub/Sub | Coordination        | Scheduling decisions        |
 
 ### Why This Separation Matters
 
@@ -219,17 +223,17 @@ Responsible for **task execution**, **metrics collection**, and **local state**.
 // Control Plane: Scheduler Service
 // Only makes decisions, never executes tasks
 interface SchedulerService {
-  scheduleTask(task: Task): Promise<SchedulingDecision>
-  evaluatePolicies(task: Task, nodes: Node[]): Promise<PolicyResult>
+  scheduleTask(task: Task): Promise<SchedulingDecision>;
+  evaluatePolicies(task: Task, nodes: Node[]): Promise<PolicyResult>;
   // No task execution logic here
 }
 
 // Control Plane: Node Registry
 // Tracks node state, doesn't manage node lifecycle
 interface NodeRegistry {
-  registerNode(node: NodeRegistration): Promise<void>
-  updateHealth(nodeId: string, health: HealthStatus): Promise<void>
-  getEligibleNodes(requirements: ResourceRequirements): Promise<Node[]>
+  registerNode(node: NodeRegistration): Promise<void>;
+  updateHealth(nodeId: string, health: HealthStatus): Promise<void>;
+  getEligibleNodes(requirements: ResourceRequirements): Promise<Node[]>;
 }
 ```
 
@@ -239,16 +243,16 @@ interface NodeRegistry {
 // Data Plane: Task Executor
 // Only executes, never makes scheduling decisions
 interface TaskExecutor {
-  execute(task: TaskSpec): Promise<ExecutionResult>
-  cancel(taskId: string): Promise<void>
-  getStatus(taskId: string): Promise<TaskStatus>
+  execute(task: TaskSpec): Promise<ExecutionResult>;
+  cancel(taskId: string): Promise<void>;
+  getStatus(taskId: string): Promise<TaskStatus>;
 }
 
 // Data Plane: Metrics Collector
 // Collects and reports, doesn't analyze
 interface MetricsCollector {
-  collect(): Promise<SystemMetrics>
-  report(metrics: SystemMetrics): Promise<void>
+  collect(): Promise<SystemMetrics>;
+  report(metrics: SystemMetrics): Promise<void>;
 }
 ```
 
@@ -259,6 +263,7 @@ interface MetricsCollector {
 The system uses a hybrid approach to task placement, combining deterministic constraints with predictive modeling.
 
 ### Architecture
+
 - **ML Scheduler**: Python-trained TensorFlow/Keras model exported to TF.js format.
   - Trains on node heartbeat history and task execution outcomes.
   - Falls back to bin-packing algorithm when confidence < threshold or model unavailable.
@@ -270,6 +275,7 @@ The system uses a hybrid approach to task placement, combining deterministic con
 - **Drift Detector**: Statistical monitor to identify when production data deviates from training sets.
 
 ### Model Lifecycle
+
 1. **Data Collection**: Metrics from the Data Plane are stored in PostgreSQL.
 2. **Offline Training**: Python script (XGBoost) processes data and exports artifacts.
 3. **Promotion**: Validated models saved to `packages/ml-scheduler/models/` with versioned metadata.
@@ -283,18 +289,22 @@ The system uses a hybrid approach to task placement, combining deterministic con
 Large binary assets, specifically ML model weights and training artifacts, are offloaded from the primary PostgreSQL database to S3-compatible object storage (e.g., AWS S3, Google Cloud Storage, or MinIO).
 
 ### Architecture
+
 - **Metadata Storage**: PostgreSQL stores references (`weightsUrl`) and metadata (`weightsSize`) in the `FLModel` table.
 - **Binary Storage**: Binary weights are stored in an S3 bucket with the prefix `models/{modelId}/weights.bin`.
 - **Storage Service**: `ModelStorageService` in the `ml-scheduler` package handles the logic for multi-part uploads and stream-based downloads.
 
 ### Benefits
+
 1. **Database Scalability**: Prevents PostgreSQL table bloat caused by GB-sized binary blobs.
 2. **Backup Performance**: Reduces the size of database backups and speeds up recovery times.
 3. **CDN Integration**: Allows serving weights via CDN for faster distribution to edge nodes.
 4. **Lifecycle Management**: Older model versions can be automatically moved to cheaper storage tiers (e.g., AWS Glacier) after a defined period (default: 90 days).
 
 ### Cost Optimization (Lifecycle Policy)
+
 The following lifecycle rules are applied to the S3 bucket:
+
 - **Active Tier**: Current and recent model weights (Standard storage).
 - **Glacier Transition**: Objects older than 90 days are transitioned to Glacier storage for cost-effective long-term archival.
 - **Expiration**: (Optional) Development or temporary model weights can be set to expire after a certain period if not promoted to production.
@@ -304,6 +314,7 @@ The following lifecycle rules are applied to the S3 bucket:
 ## Tech Stack
 
 ### Backend Services
+
 - **Runtime**: Node.js 18+ with TypeScript 5.x
 - **API Framework**: Fastify v4 (all services)
 - **Database**: PostgreSQL 16 (primary datastore)
@@ -311,6 +322,7 @@ The following lifecycle rules are applied to the S3 bucket:
 - **ORM**: Prisma 5.x
 
 ### ML Scheduler
+
 - **ML Training**: Python 3.9+ (training only, not runtime)
   - Framework: XGBoost (primary), scikit-learn (fallback)
   - Libraries: pandas, numpy, joblib
@@ -320,6 +332,7 @@ The following lifecycle rules are applied to the S3 bucket:
   - Model format: XGBoost JSON → TensorFlow.js compatible
 
 ### Infrastructure
+
 - **API Gateway**: Nginx (reverse proxy, rate limiting, request validation)
 - **Deployment**: Kubernetes with Kustomize overlays + ArgoCD GitOps
 - **Monitoring**: Prometheus + Grafana
@@ -327,6 +340,7 @@ The following lifecycle rules are applied to the S3 bucket:
 - **Secrets Management**: HashiCorp Vault
 
 ### Frontend
+
 - **Framework**: React 18+ with Vite
 - **State Management**: Zustand
 - **UI Library**: Tailwind CSS + shadcn/ui
@@ -356,14 +370,14 @@ graph TD
 
 ### Strict Rules
 
-| Package | Allowed Dependencies | Rule |
-|---------|----------------------|------|
-| `shared-kernel` | None | Must have **ZERO** dependencies on other internal packages. |
-| `ml-scheduler` | `shared-kernel` | May depend on `shared-kernel` **ONLY**. |
-| `circuit-breaker` | `shared-kernel` | May depend on `shared-kernel` **ONLY**. |
-| `outbox` | `shared-kernel` | May depend on `shared-kernel` **ONLY**. |
-| `saga` | `shared-kernel`, `circuit-breaker` | May depend on `shared-kernel` and `circuit-breaker` only. |
-| `apps/*` | Any package | May depend on any package in the `packages/` directory. |
+| Package           | Allowed Dependencies               | Rule                                                        |
+| ----------------- | ---------------------------------- | ----------------------------------------------------------- |
+| `shared-kernel`   | None                               | Must have **ZERO** dependencies on other internal packages. |
+| `ml-scheduler`    | `shared-kernel`                    | May depend on `shared-kernel` **ONLY**.                     |
+| `circuit-breaker` | `shared-kernel`                    | May depend on `shared-kernel` **ONLY**.                     |
+| `outbox`          | `shared-kernel`                    | May depend on `shared-kernel` **ONLY**.                     |
+| `saga`            | `shared-kernel`, `circuit-breaker` | May depend on `shared-kernel` and `circuit-breaker` only.   |
+| `apps/*`          | Any package                        | May depend on any package in the `packages/` directory.     |
 
 ### Architectural Guards
 
@@ -373,24 +387,27 @@ graph TD
 
 ---
 
-
 To handle the massive ingestion volume of node heartbeats (~864 million rows per day at full scale), the system implements **PostgreSQL Native Range Partitioning** on the `node_metrics` table.
 
 ### Partitioning Strategy
+
 - **Partition Key**: `timestamp` (TIMESTAMP(3))
 - **Interval**: Daily (partitions created automatically by `pg_partman`)
 - **Primary Key**: Composite `(id, timestamp)` to satisfy PostgreSQL partitioning requirements.
 - **Indices**:
-    - `(nodeId, timestamp DESC)`: Propagated to all partitions to optimize dashboard queries and time-series lookups.
-    - `(timestamp)`: For range-based cleanup and interval queries.
+  - `(nodeId, timestamp DESC)`: Propagated to all partitions to optimize dashboard queries and time-series lookups.
+  - `(timestamp)`: For range-based cleanup and interval queries.
 
 ### Retention Policy
+
 The `TaskScheduler` runs a daily maintenance job (`runRetentionCleanup`) that:
+
 1. Calls `partman.run_maintenance('public.node_metrics')`.
 2. `pg_partman` creates partitions for the next 4 days (default `premake`).
 3. `pg_partman` drops partitions older than **7 days**, permanently deleting the data to reclaim storage.
 
 ### Performance Impact
+
 - **Ingestion**: Writing to partitions is faster than a single large table because the indices for the "current" partition are likely to fit in memory.
 - **Cleanup**: Dropping an old partition is a metadata-only operation (`DROP TABLE`), avoiding the heavy transaction log and vacuuming overhead of `DELETE` statements.
 - **Queries**: The PostgreSQL query planner uses **partition pruning** to only scan relevant daily tables based on the `timestamp` range in the `WHERE` clause.

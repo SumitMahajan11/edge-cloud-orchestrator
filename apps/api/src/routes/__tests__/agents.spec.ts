@@ -6,12 +6,14 @@ import fastify from 'fastify';
 import agentRoutes from '../agents.js';
 
 // Mock SecretManagerFactory for Vault PKI
-SecretManagerFactory.create = () => ({
-  issueCertificate: (_role: string, commonName: string, _ttl?: string) => Promise.resolve({
-    certificate: `-----BEGIN CERTIFICATE-----\nFAKE_CERTIFICATE_FOR_${commonName}\n-----END CERTIFICATE-----`,
-    serial_number: `${commonName}-serial`,
-  }),
-}) as any;
+SecretManagerFactory.create = () =>
+  ({
+    issueCertificate: (_role: string, commonName: string, _ttl?: string) =>
+      Promise.resolve({
+        certificate: `-----BEGIN CERTIFICATE-----\nFAKE_CERTIFICATE_FOR_${commonName}\n-----END CERTIFICATE-----`,
+        serial_number: `${commonName}-serial`,
+      }),
+  }) as any;
 
 describe('Agent Registration Routes', () => {
   let app: any;
@@ -44,13 +46,16 @@ describe('Agent Registration Routes', () => {
     mockPrisma.isMock = true;
     app.decorate('prisma', mockPrisma);
     app.decorate('authenticate', vi.fn());
-    app.decorate('requireRole', vi.fn(() => (_req: any, _res: any, done: any) => done()));
-    
+    app.decorate(
+      'requireRole',
+      vi.fn(() => (_req: any, _res: any, done: any) => done()),
+    );
+
     const { ErrorSchema } = await import('@edgecloud/shared-kernel');
     const { zodToFastifySchema } = await import('../../utils/zod-schema.js');
 
     app.addSchema({ $id: 'ErrorSchema', ...zodToFastifySchema(ErrorSchema) });
-    
+
     await app.register(agentRoutes);
   });
 
@@ -61,12 +66,13 @@ describe('Agent Registration Routes', () => {
       expiresAt: new Date(Date.now() + 3600000),
       usedAt: null,
       user: {
-        tenantUsers: [{ tenantId: 'tenant-1' }]
-      }
+        tenantUsers: [{ tenantId: 'tenant-1' }],
+      },
     };
 
     const mockCA = {
-      certificatePem: '-----BEGIN CERTIFICATE-----\nCA_CERT\n-----END CERTIFICATE-----',
+      certificatePem:
+        '-----BEGIN CERTIFICATE-----\nCA_CERT\n-----END CERTIFICATE-----',
     };
 
     mockPrisma.bootstrapToken.findUnique.mockResolvedValue(mockToken);
@@ -105,8 +111,8 @@ describe('Agent Registration Routes', () => {
       expiresAt: new Date(Date.now() - 3600000),
       usedAt: null,
       user: {
-        tenantUsers: [{ tenantId: 'tenant-1' }]
-      }
+        tenantUsers: [{ tenantId: 'tenant-1' }],
+      },
     };
 
     mockPrisma.bootstrapToken.findUnique.mockResolvedValue(mockToken);
@@ -122,7 +128,11 @@ describe('Agent Registration Routes', () => {
       },
     });
 
-    console.log('DEBUG EXPIRED TOKEN RESPONSE:', response.statusCode, response.body);
+    console.log(
+      'DEBUG EXPIRED TOKEN RESPONSE:',
+      response.statusCode,
+      response.body,
+    );
     expect(response.statusCode).toBe(400); // Current implementation returns 400
     expect(JSON.parse(response.body).error.message).toContain('expired');
   });

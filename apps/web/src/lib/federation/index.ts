@@ -1,9 +1,14 @@
-export type { 
-  ClusterCapacity, 
+export type {
+  ClusterCapacity,
   CrossClusterTask,
-  FederatedCluster, 
+  FederatedCluster,
   FederationMetrics,
-  FederationPolicy, 
+  FederationPolicy,
   FederationRule,
-  ResourceShare} from './MultiClusterFederation'
-export { createMultiClusterFederation, MultiClusterFederation, multiClusterFederation } from './MultiClusterFederation'
+  ResourceShare,
+} from "./MultiClusterFederation";
+export {
+  createMultiClusterFederation,
+  MultiClusterFederation,
+  multiClusterFederation,
+} from "./MultiClusterFederation";

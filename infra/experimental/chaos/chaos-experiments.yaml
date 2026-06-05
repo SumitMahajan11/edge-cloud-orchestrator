@@ -65,7 +65,7 @@ spec:
     labelSelectors:
       app: scheduler-service
   scheduler:
-    cron: '@every 24h'
+    cron: "@every 24h"
 ---
 # Chaos Mesh Experiment - Network Latency
 apiVersion: chaos-mesh.org/v1alpha1
@@ -83,11 +83,11 @@ spec:
       app: task-service
   delay:
     latency: 100ms
-    correlation: '50'
+    correlation: "50"
     jitter: 50ms
   duration: 5m
   scheduler:
-    cron: '@every 12h'
+    cron: "@every 12h"
 ---
 # Chaos Mesh Experiment - CPU Stress
 apiVersion: chaos-mesh.org/v1alpha1
@@ -134,7 +134,7 @@ metadata:
   name: weekly-chaos
   namespace: edgecloud
 spec:
-  schedule: '0 2 * * 0'  # Every Sunday at 2 AM
+  schedule: "0 2 * * 0" # Every Sunday at 2 AM
   concurrencyPolicy: Forbid
   type: Workflow
   workflowSpec:

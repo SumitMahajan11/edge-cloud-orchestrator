@@ -1,4 +1,4 @@
-import { EventBus, TOPICS } from '@edgecloud/event-bus';
+import { EventBus, TOPICS } from "@edgecloud/event-bus";
 import {
   CreateTaskCommand,
   generateCorrelationId,
@@ -9,14 +9,14 @@ import {
   TaskFailedEvent,
   TaskScheduledEvent,
   TaskStatus,
-} from '@edgecloud/shared-kernel';
+} from "@edgecloud/shared-kernel";
 
-import { TaskRepository } from './repository';
+import { TaskRepository } from "./repository";
 
 export class TaskService {
   constructor(
     private repository: TaskRepository,
-    private eventBus: EventBus
+    private eventBus: EventBus,
   ) {}
 
   async createTask(command: CreateTaskCommand): Promise<Task> {
@@ -25,8 +25,8 @@ export class TaskService {
 
     // Publish TaskCreated event
     const event: TaskCreatedEvent = {
-      eventId: '',
-      eventType: 'TaskCreated',
+      eventId: "",
+      eventType: "TaskCreated",
       aggregateId: task.id,
       timestamp: new Date(),
       version: 1,
@@ -65,18 +65,20 @@ export class TaskService {
   async scheduleTask(
     taskId: string,
     nodeId: string,
-    score: number
+    score: number,
   ): Promise<Task | null> {
-    const task = await this.repository.updateStatus(taskId, 'SCHEDULED', {
+    const task = await this.repository.updateStatus(taskId, "SCHEDULED", {
       nodeId,
     });
 
-    if (!task) {return null;}
+    if (!task) {
+      return null;
+    }
 
     // Publish TaskScheduled event
     const event: TaskScheduledEvent = {
-      eventId: '',
-      eventType: 'TaskScheduled',
+      eventId: "",
+      eventType: "TaskScheduled",
       aggregateId: task.id,
       timestamp: new Date(),
       version: 1,
@@ -92,26 +94,28 @@ export class TaskService {
   }
 
   async startTask(taskId: string): Promise<Task | null> {
-    return this.repository.updateStatus(taskId, 'RUNNING');
+    return this.repository.updateStatus(taskId, "RUNNING");
   }
 
   async completeTask(
     taskId: string,
     executionTimeMs: number,
     cost: number,
-    output?: Record<string, unknown>
+    output?: Record<string, unknown>,
   ): Promise<Task | null> {
-    const task = await this.repository.updateStatus(taskId, 'COMPLETED', {
+    const task = await this.repository.updateStatus(taskId, "COMPLETED", {
       executionTimeMs,
       cost,
     });
 
-    if (!task) {return null;}
+    if (!task) {
+      return null;
+    }
 
     // Publish TaskCompleted event
     const event: TaskCompletedEvent = {
-      eventId: '',
-      eventType: 'TaskCompleted',
+      eventId: "",
+      eventType: "TaskCompleted",
       aggregateId: task.id,
       timestamp: new Date(),
       version: 1,
@@ -132,26 +136,30 @@ export class TaskService {
     taskId: string,
     error: string,
     retryCount: number,
-    willRetry: boolean
+    willRetry: boolean,
   ): Promise<Task | null> {
     const task = await this.repository.findById(taskId);
-    if (!task) {return null;}
+    if (!task) {
+      return null;
+    }
 
-    let newStatus: TaskStatus = 'FAILED';
-    
+    let newStatus: TaskStatus = "FAILED";
+
     // Check if we should retry
     if (willRetry && retryCount < task.maxRetries) {
-      newStatus = 'PENDING'; // Reset to pending for retry
+      newStatus = "PENDING"; // Reset to pending for retry
     }
 
     const updatedTask = await this.repository.updateStatus(taskId, newStatus);
 
-    if (!updatedTask) {return null;}
+    if (!updatedTask) {
+      return null;
+    }
 
     // Publish TaskFailed event
     const event: TaskFailedEvent = {
-      eventId: '',
-      eventType: 'TaskFailed',
+      eventId: "",
+      eventType: "TaskFailed",
       aggregateId: task.id,
       timestamp: new Date(),
       version: 1,
@@ -169,14 +177,16 @@ export class TaskService {
   }
 
   async cancelTask(taskId: string, reason: string): Promise<Task | null> {
-    const task = await this.repository.updateStatus(taskId, 'CANCELLED');
+    const task = await this.repository.updateStatus(taskId, "CANCELLED");
 
-    if (!task) {return null;}
+    if (!task) {
+      return null;
+    }
 
     // Publish TaskCancelled event
     const event: TaskCancelledEvent = {
-      eventId: '',
-      eventType: 'TaskCancelled',
+      eventId: "",
+      eventType: "TaskCancelled",
       aggregateId: task.id,
       timestamp: new Date(),
       version: 1,
@@ -199,21 +209,15 @@ export class TaskService {
     failed: number;
     cancelled: number;
   }> {
-    const [
-      pending,
-      scheduled,
-      running,
-      completed,
-      failed,
-      cancelled,
-    ] = await Promise.all([
-      this.repository.countByStatus('PENDING'),
-      this.repository.countByStatus('SCHEDULED'),
-      this.repository.countByStatus('RUNNING'),
-      this.repository.countByStatus('COMPLETED'),
-      this.repository.countByStatus('FAILED'),
-      this.repository.countByStatus('CANCELLED'),
-    ]);
+    const [pending, scheduled, running, completed, failed, cancelled] =
+      await Promise.all([
+        this.repository.countByStatus("PENDING"),
+        this.repository.countByStatus("SCHEDULED"),
+        this.repository.countByStatus("RUNNING"),
+        this.repository.countByStatus("COMPLETED"),
+        this.repository.countByStatus("FAILED"),
+        this.repository.countByStatus("CANCELLED"),
+      ]);
 
     return {
       total: pending + scheduled + running + completed + failed + cancelled,

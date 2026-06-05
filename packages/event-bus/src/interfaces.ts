@@ -1,7 +1,7 @@
-import { DomainEvent } from '@edgecloud/shared-kernel';
+import { DomainEvent } from "@edgecloud/shared-kernel";
 
 export interface TaskCreatedEvent extends DomainEvent {
-  eventType: 'TaskCreated';
+  eventType: "TaskCreated";
   taskId: string;
   name: string;
   type: string;
@@ -11,7 +11,7 @@ export interface TaskCreatedEvent extends DomainEvent {
 }
 
 export interface TaskScheduledEvent extends DomainEvent {
-  eventType: 'TaskScheduled';
+  eventType: "TaskScheduled";
   taskId: string;
   nodeId: string;
   score: number;
@@ -19,7 +19,7 @@ export interface TaskScheduledEvent extends DomainEvent {
 }
 
 export interface TaskCompletedEvent extends DomainEvent {
-  eventType: 'TaskCompleted';
+  eventType: "TaskCompleted";
   taskId: string;
   nodeId: string;
   executionTimeMs: number;
@@ -29,7 +29,7 @@ export interface TaskCompletedEvent extends DomainEvent {
 }
 
 export interface TaskFailedEvent extends DomainEvent {
-  eventType: 'TaskFailed';
+  eventType: "TaskFailed";
   taskId: string;
   nodeId: string;
   error: string;
@@ -39,7 +39,7 @@ export interface TaskFailedEvent extends DomainEvent {
 }
 
 export interface NodeHeartbeatEvent extends DomainEvent {
-  eventType: 'NodeHeartbeat';
+  eventType: "NodeHeartbeat";
   nodeId: string;
   metrics: {
     cpuUsage: number;
@@ -49,9 +49,9 @@ export interface NodeHeartbeatEvent extends DomainEvent {
 }
 
 export interface AlertFiredEvent extends DomainEvent {
-  eventType: 'AlertFired';
+  eventType: "AlertFired";
   alertId: string;
-  severity: 'info' | 'warning' | 'critical';
+  severity: "info" | "warning" | "critical";
   message: string;
   metadata?: Record<string, unknown>;
 }

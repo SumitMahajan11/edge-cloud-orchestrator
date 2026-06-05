@@ -13,6 +13,7 @@ This document covers the most common production incidents, how to diagnose them,
 **Root cause:** Node service can't reach agents, or agents can't reach node service (mTLS misconfiguration, expired certificate, or network policy blocking traffic).
 
 **Diagnosis:**
+
 ```bash
 # 1. Check node-service logs
 kubectl logs -n edgecloud-staging deployment/node-service --tail=100
@@ -32,6 +33,7 @@ kubectl exec -it deployment/node-service -n edgecloud-staging -- \
 ```
 
 **Resolution:**
+
 - If certificate expired → rotate certs (see [Certificate Expiration](#issue-certificate-expiration-imminent) below)
 - If network blocked → inspect Ingress/NetworkPolicy rules, check security groups on edge node VMs
 - If service misconfigured → check `NODE_SERVICE_URL` in agent config, confirm it matches the actual service endpoint
@@ -45,6 +47,7 @@ kubectl exec -it deployment/node-service -n edgecloud-staging -- \
 **Root cause:** `scheduler-service` has crashed, leader election failed, or the ML model failed to load.
 
 **Diagnosis:**
+
 ```bash
 # 1. Check scheduler-service logs
 kubectl logs -n edgecloud-staging deployment/scheduler-service --tail=100
@@ -61,6 +64,7 @@ kubectl logs -n edgecloud-staging deployment/scheduler-service | grep -i "redis"
 ```
 
 **Resolution:**
+
 ```bash
 # Restart scheduler
 kubectl rollout restart deployment/scheduler-service -n edgecloud-staging
@@ -74,6 +78,7 @@ kubectl delete pod -n edgecloud-staging -l app.kubernetes.io/name=scheduler-serv
 ```
 
 After restart, confirm tasks begin advancing:
+
 ```bash
 kubectl port-forward -n edgecloud-staging svc/api 3000:3000
 curl http://localhost:3000/v1/tasks?status=PENDING
@@ -89,6 +94,7 @@ curl http://localhost:3000/v1/tasks?status=PENDING
 **Root cause:** Memory leak in task processing, or replica count too low for current queue load.
 
 **Diagnosis:**
+
 ```bash
 # 1. Check memory usage across pods
 kubectl top pods -n edgecloud-staging
@@ -103,6 +109,7 @@ kubectl get deployment/task-service -n edgecloud-staging \
 ```
 
 **Resolution:**
+
 ```bash
 # Scale up replicas immediately to restore capacity
 kubectl patch deployment/task-service \
@@ -129,6 +136,7 @@ kubectl rollout restart deployment/task-service -n edgecloud-staging
 **Root cause:** Manual cert rotation overdue (Vault PKI auto-rotation not yet configured).
 
 **Diagnosis:**
+
 ```bash
 # Check current cert expiry
 kubectl get secret edgecloud-tls -n edgecloud-staging \
@@ -137,6 +145,7 @@ kubectl get secret edgecloud-tls -n edgecloud-staging \
 ```
 
 **Resolution:**
+
 ```bash
 # 1. Issue a new certificate from Vault
 vault write pki/issue/edgecloud-services \
@@ -174,6 +183,7 @@ kubectl delete secret edgecloud-tls -n edgecloud-staging
 **Root cause:** `websocket-gateway` pod restarted or was evicted; Redis Streams consumer group fell behind.
 
 **Diagnosis:**
+
 ```bash
 # Check websocket-gateway pod status
 kubectl get pods -n edgecloud-staging -l app.kubernetes.io/name=websocket-gateway
@@ -187,6 +197,7 @@ kubectl exec -n edgecloud-staging deployment/redis -- \
 ```
 
 **Resolution:**
+
 ```bash
 # Restart websocket-gateway
 kubectl rollout restart deployment/websocket-gateway -n edgecloud-staging
@@ -205,6 +216,7 @@ kubectl exec -n edgecloud-staging deployment/redis -- \
 **Root cause:** Database connection pool exhausted, or PostgreSQL is down.
 
 **Diagnosis:**
+
 ```bash
 # Check API logs
 kubectl logs -n edgecloud-staging deployment/api --tail=100 | grep -i "error\|database\|pool"
@@ -217,6 +229,7 @@ curl http://localhost:3000/metrics | grep db_pool
 ```
 
 **Resolution:**
+
 ```bash
 # Restart API to reset connection pool
 kubectl rollout restart deployment/api -n edgecloud-staging
@@ -232,15 +245,16 @@ kubectl logs -n edgecloud-staging -l app.kubernetes.io/name=postgres --previous
 
 ## Escalation Path
 
-| Severity | Who to contact | When |
-|---|---|---|
-| P1 (full outage) | On-call engineer → Team lead → Ops manager | Immediately |
-| P2 (degraded, <50% healthy) | On-call engineer → Team lead | Within 15 min if not resolving |
-| P3 (single service degraded) | On-call engineer | Within 1 hour |
+| Severity                     | Who to contact                             | When                           |
+| ---------------------------- | ------------------------------------------ | ------------------------------ |
+| P1 (full outage)             | On-call engineer → Team lead → Ops manager | Immediately                    |
+| P2 (degraded, <50% healthy)  | On-call engineer → Team lead               | Within 15 min if not resolving |
+| P3 (single service degraded) | On-call engineer                           | Within 1 hour                  |
 
 **Slack channel:** `#oncall`
 
 **Page format:**
+
 ```
 INCIDENT: <one-line description>
 Status: Investigating / Mitigating / Resolved

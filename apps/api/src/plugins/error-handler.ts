@@ -18,7 +18,9 @@ export const globalErrorHandler = (
   request: FastifyRequest,
   reply: FastifyReply,
 ) => {
-  process.stdout.write(`[errorHandler] ENTERED with error: ${error.message} code: ${error.code} statusCode: ${error.statusCode}\n`);
+  process.stdout.write(
+    `[errorHandler] ENTERED with error: ${error.message} code: ${error.code} statusCode: ${error.statusCode}\n`,
+  );
   let statusCode = error.statusCode || 500;
   let code = error.code || 'INTERNAL_ERROR';
   let message = error.message || 'An unexpected error occurred';
@@ -70,8 +72,7 @@ export const globalErrorHandler = (
       code = 'TOKEN_INVALID';
       message = 'Invalid authentication token provided.';
     }
-  } 
-  else if (statusCode === 403 || error.message?.includes('permission')) {
+  } else if (statusCode === 403 || error.message?.includes('permission')) {
     statusCode = 403;
     code = 'FORBIDDEN';
     message = 'You do not have permission to perform this action.';
@@ -98,11 +99,12 @@ export const globalErrorHandler = (
     error: {
       code,
       message,
-      requestId: (request.headers['x-request-id'] as string) || request.id as string,
+      requestId:
+        (request.headers['x-request-id'] as string) || (request.id as string),
       timestamp: new Date().toISOString(),
       details,
       ...(env.NODE_ENV !== 'production' && { stack: error.stack }),
-    }
+    },
   };
 
   // Record Metrics

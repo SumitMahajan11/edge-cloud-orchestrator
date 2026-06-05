@@ -15,7 +15,10 @@ describe('CertificateValidator Revocation Cache', () => {
         findMany: vi.fn(),
       },
     };
-    validator = new CertificateValidator(prisma as unknown as PrismaClient, logger);
+    validator = new CertificateValidator(
+      prisma as unknown as PrismaClient,
+      logger,
+    );
   });
 
   it('should hit database on first check of a non-revoked certificate', async () => {
@@ -23,7 +26,7 @@ describe('CertificateValidator Revocation Cache', () => {
     prisma.certificateRevocation.findUnique.mockResolvedValue(null);
 
     const result = await (validator as any).isRevoked(serial);
-    
+
     expect(result).toBe(false);
     expect(prisma.certificateRevocation.findUnique).toHaveBeenCalledTimes(1);
     expect(prisma.certificateRevocation.findUnique).toHaveBeenCalledWith({
@@ -41,7 +44,7 @@ describe('CertificateValidator Revocation Cache', () => {
 
     // Second call - should hit cache
     const result = await (validator as any).isRevoked(serial);
-    
+
     expect(result).toBe(false);
     expect(prisma.certificateRevocation.findUnique).toHaveBeenCalledTimes(1); // Still 1
   });
@@ -63,16 +66,18 @@ describe('CertificateValidator Revocation Cache', () => {
 
     // Second call - should hit DB again
     const result = await (validator as any).isRevoked(serial);
-    
+
     expect(result).toBe(false);
     expect(prisma.certificateRevocation.findUnique).toHaveBeenCalledTimes(2);
-    
+
     vi.restoreAllMocks();
   });
 
   it('should return true immediately for revoked certificates without hitting DB twice', async () => {
     const serial = 'REVOKED-SERIAL';
-    prisma.certificateRevocation.findUnique.mockResolvedValue({ serialNumber: serial });
+    prisma.certificateRevocation.findUnique.mockResolvedValue({
+      serialNumber: serial,
+    });
 
     // First call
     await (validator as any).isRevoked(serial);
@@ -80,7 +85,7 @@ describe('CertificateValidator Revocation Cache', () => {
 
     // Second call
     const result = await (validator as any).isRevoked(serial);
-    
+
     expect(result).toBe(true);
     expect(prisma.certificateRevocation.findUnique).toHaveBeenCalledTimes(1);
   });

@@ -8,7 +8,8 @@ const swaggerPluginInternal: FastifyPluginAsync = async (fastify) => {
     openapi: {
       info: {
         title: 'Edge-Cloud Orchestrator API',
-        description: 'Production API documentation for the Edge-Cloud Orchestrator Control Plane',
+        description:
+          'Production API documentation for the Edge-Cloud Orchestrator Control Plane',
         version: '1.0.0',
       },
       servers: [
@@ -30,12 +31,28 @@ const swaggerPluginInternal: FastifyPluginAsync = async (fastify) => {
             type: 'object',
             required: ['code', 'message', 'requestId', 'timestamp'],
             properties: {
-              code: { type: 'string', description: 'Machine-readable error code' },
-              message: { type: 'string', description: 'Human-readable error description' },
+              code: {
+                type: 'string',
+                description: 'Machine-readable error code',
+              },
+              message: {
+                type: 'string',
+                description: 'Human-readable error description',
+              },
               requestId: { type: 'string', description: 'Unique request ID' },
-              timestamp: { type: 'string', format: 'date-time', description: 'ISO 8601 timestamp' },
-              details: { type: 'object', description: 'Optional error details' } as any,
-              stack: { type: 'string', description: 'Error stack trace (non-production only)' },
+              timestamp: {
+                type: 'string',
+                format: 'date-time',
+                description: 'ISO 8601 timestamp',
+              },
+              details: {
+                type: 'object',
+                description: 'Optional error details',
+              } as any,
+              stack: {
+                type: 'string',
+                description: 'Error stack trace (non-production only)',
+              },
             },
           },
         },
@@ -63,4 +80,3 @@ const swaggerPluginInternal: FastifyPluginAsync = async (fastify) => {
 export const swaggerPlugin = fp(swaggerPluginInternal, {
   name: 'swagger-plugin',
 });
-

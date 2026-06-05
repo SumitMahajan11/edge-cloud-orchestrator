@@ -6,13 +6,16 @@ import { analyticsCostQuerySchema } from '../schemas';
 export default async function analyticsRoutes(fastify: FastifyInstance) {
   /**
    * GET /v2/analytics/cost
-   * 
+   *
    * Returns aggregated cost analytics for the dashboard.
    */
   fastify.get(
     '/cost',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.COST_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.COST_READ),
+      ],
       schema: {
         tags: ['analytics'],
         summary: 'Get cost analytics',
@@ -31,9 +34,9 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
                     nodeId: { type: 'string' },
                     nodeName: { type: 'string' },
                     cost: { type: 'number' },
-                    taskCount: { type: 'number' }
-                  }
-                }
+                    taskCount: { type: 'number' },
+                  },
+                },
               },
               costOverTime: {
                 type: 'array',
@@ -41,20 +44,26 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
                   type: 'object',
                   properties: {
                     date: { type: 'string' },
-                    cost: { type: 'number' }
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
+                    cost: { type: 'number' },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     async (request) => {
-      const { from, to, nodeId } = request.query as { from?: string; to?: string; nodeId?: string };
+      const { from, to, nodeId } = request.query as {
+        from?: string;
+        to?: string;
+        nodeId?: string;
+      };
       const tenantId = request.user!.tenantId!;
 
-      const startTime = from ? new Date(from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const startTime = from
+        ? new Date(from)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const endTime = to ? new Date(to) : new Date();
 
       // 1. Total Cost from TaskExecution
@@ -63,9 +72,9 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
           tenantId,
           completedAt: { gte: startTime, lte: endTime },
           status: 'COMPLETED',
-          ...(nodeId && { nodeId })
+          ...(nodeId && { nodeId }),
         },
-        _sum: { costUSD: true }
+        _sum: { costUSD: true },
       });
 
       // 2. Cost By Node
@@ -75,18 +84,27 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
           tenantId,
           completedAt: { gte: startTime, lte: endTime },
           status: 'COMPLETED',
-          ...(nodeId && { nodeId })
+          ...(nodeId && { nodeId }),
         },
         _sum: { costUSD: true },
-        _count: { id: true }
+        _count: { id: true },
       });
 
       // Enrich with node names
       const nodes = await request.tPrisma.edgeNode.findMany({
-        where: { id: { in: costByNode.map((n) => n.nodeId).filter((id): id is string => !!id) } },
-        select: { id: true, name: true }
+        where: {
+          id: {
+            in: costByNode
+              .map((n) => n.nodeId)
+              .filter((id): id is string => !!id),
+          },
+        },
+        select: { id: true, name: true },
       });
-      const nodeMap = nodes.reduce((acc: Record<string, string>, n) => ({ ...acc, [n.id]: n.name }), {});
+      const nodeMap = nodes.reduce(
+        (acc: Record<string, string>, n) => ({ ...acc, [n.id]: n.name }),
+        {},
+      );
 
       // 3. Cost Over Time (Daily)
       // Note: This is simplified. In production we'd use a more robust time-series query.
@@ -94,9 +112,9 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
         where: {
           tenantId,
           recordedAt: { gte: startTime, lte: endTime },
-          ...(nodeId && { nodeId })
+          ...(nodeId && { nodeId }),
         },
-        orderBy: { recordedAt: 'asc' }
+        orderBy: { recordedAt: 'asc' },
       });
 
       const dailyMap = new Map<string, number>();
@@ -107,26 +125,29 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
         }
       });
 
-      const costOverTime = Array.from(dailyMap.entries()).map(([date, cost]) => ({
-        date,
-        cost: Math.round(cost * 100) / 100
-      }));
+      const costOverTime = Array.from(dailyMap.entries()).map(
+        ([date, cost]) => ({
+          date,
+          cost: Math.round(cost * 100) / 100,
+        }),
+      );
 
       // 4. Savings Calculation (Estimated)
       // Placeholder: In a real system, we'd compare against a baseline (e.g. standard cloud pricing)
       const totalSavings = ((totalCostResult as any)._sum.costUSD || 0) * 0.25; // Assume 25% savings for now
 
       return {
-        totalActualCost: Math.round(((totalCostResult as any)._sum.costUSD || 0) * 100) / 100,
+        totalActualCost:
+          Math.round(((totalCostResult as any)._sum.costUSD || 0) * 100) / 100,
         totalSavings: Math.round(totalSavings * 100) / 100,
         costByNode: costByNode.map((n) => ({
           nodeId: n.nodeId || 'unknown',
           nodeName: (n.nodeId && nodeMap[n.nodeId]) || 'Unknown',
           cost: Math.round(((n as any)._sum.costUSD || 0) * 100) / 100,
-          taskCount: (n as any)._count.id
+          taskCount: (n as any)._count.id,
         })),
-        costOverTime
+        costOverTime,
       };
-    }
+    },
   );
 }

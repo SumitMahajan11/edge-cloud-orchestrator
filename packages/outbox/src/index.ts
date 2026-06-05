@@ -4,4 +4,4 @@ export {
   type OutboxEvent,
   type OutboxEventInput,
   OutboxManager,
-} from './outbox-manager';
+} from "./outbox-manager";

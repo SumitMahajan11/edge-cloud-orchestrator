@@ -1,9 +1,14 @@
-export type { 
-  EdgeFunction, 
-  FunctionDeployment, 
-  FunctionInvocation, 
+export type {
+  EdgeFunction,
+  FunctionDeployment,
+  FunctionInvocation,
   FunctionReview,
-  FunctionTrigger, 
+  FunctionTrigger,
   MarketplaceConfig,
-  MarketplaceListing} from './EdgeFunctionMarketplace'
-export { createEdgeFunctionMarketplace, EdgeFunctionMarketplace, edgeFunctionMarketplace } from './EdgeFunctionMarketplace'
+  MarketplaceListing,
+} from "./EdgeFunctionMarketplace";
+export {
+  createEdgeFunctionMarketplace,
+  EdgeFunctionMarketplace,
+  edgeFunctionMarketplace,
+} from "./EdgeFunctionMarketplace";

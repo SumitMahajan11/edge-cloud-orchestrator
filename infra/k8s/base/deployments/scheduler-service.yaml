@@ -23,8 +23,8 @@ spec:
         app.kubernetes.io/component: scheduler
       annotations:
         prometheus.io/scrape: "true"
-        prometheus.io/port:   "9090"
-        prometheus.io/path:   "/metrics"
+        prometheus.io/port: "9090"
+        prometheus.io/path: "/metrics"
     spec:
       securityContext:
         runAsNonRoot: true
@@ -103,10 +103,10 @@ spec:
             failureThreshold: 3
           resources:
             requests:
-              cpu:    "500m"
+              cpu: "500m"
               memory: "512Mi"
             limits:
-              cpu:    "2000m"
+              cpu: "2000m"
               memory: "1Gi"
           securityContext:
             runAsNonRoot: true
@@ -127,4 +127,3 @@ spec:
           emptyDir: {}
       imagePullSecrets:
         - name: ghcr-credentials
-

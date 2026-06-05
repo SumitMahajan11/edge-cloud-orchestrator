@@ -1,10 +1,10 @@
-import type { FastifyReply, FastifyRequest } from 'fastify';
-import jwt from 'jsonwebtoken';
+import type { FastifyReply, FastifyRequest } from "fastify";
+import jwt from "jsonwebtoken";
 
 export interface AuthUser {
   id: string;
   email: string;
-  role: 'ADMIN' | 'OPERATOR' | 'VIEWER' | 'SERVICE';
+  role: "ADMIN" | "OPERATOR" | "VIEWER" | "SERVICE";
   permissions: string[];
   tenantId?: string | undefined;
   region?: string | undefined;
@@ -16,7 +16,7 @@ export interface AuthConfig {
   skipPaths?: string[];
 }
 
-declare module 'fastify' {
+declare module "fastify" {
   interface FastifyRequest {
     user?: AuthUser;
     serviceAuth?: boolean;
@@ -24,33 +24,36 @@ declare module 'fastify' {
 }
 
 export function createAuthMiddleware(config: AuthConfig) {
-  const skipPaths = config.skipPaths || ['/health', '/metrics', '/ready'];
+  const skipPaths = config.skipPaths || ["/health", "/metrics", "/ready"];
 
-  return async function authMiddleware(request: FastifyRequest, reply: FastifyReply) {
+  return async function authMiddleware(
+    request: FastifyRequest,
+    reply: FastifyReply,
+  ) {
     // Skip authentication for health/metrics endpoints
     if (skipPaths.some((path) => request.url.startsWith(path))) {
       return;
     }
 
     const authHeader = request.headers.authorization;
-    const serviceAuth = request.headers['x-service-auth'] as string;
+    const serviceAuth = request.headers["x-service-auth"] as string;
 
     // Service-to-service authentication
     if (serviceAuth && config.serviceToken) {
       if (serviceAuth === config.serviceToken) {
         request.serviceAuth = true;
         request.user = {
-          id: 'service',
-          email: 'service@internal',
-          role: 'SERVICE',
-          permissions: ['*'],
+          id: "service",
+          email: "service@internal",
+          role: "SERVICE",
+          permissions: ["*"],
         };
         return;
       }
     }
 
     // JWT authentication
-    if (authHeader?.startsWith('Bearer ')) {
+    if (authHeader?.startsWith("Bearer ")) {
       const token = authHeader.substring(7);
 
       try {
@@ -59,30 +62,30 @@ export function createAuthMiddleware(config: AuthConfig) {
         return;
       } catch (error) {
         return reply.status(401).send({
-          error: 'Invalid or expired token',
-          code: 'AUTH_INVALID_TOKEN',
+          error: "Invalid or expired token",
+          code: "AUTH_INVALID_TOKEN",
         });
       }
     }
 
     // API Key authentication (for edge agents)
-    const apiKey = request.headers['x-api-key'] as string;
+    const apiKey = request.headers["x-api-key"] as string;
     if (apiKey) {
       // Validate API key format and extract info
-      if (apiKey.startsWith('ec_agent_')) {
+      if (apiKey.startsWith("ec_agent_")) {
         request.user = {
           id: apiKey,
           email: `agent@${request.ip}`,
-          role: 'SERVICE',
-          permissions: ['tasks:execute', 'nodes:heartbeat'],
+          role: "SERVICE",
+          permissions: ["tasks:execute", "nodes:heartbeat"],
         };
         return;
       }
     }
 
     return reply.status(401).send({
-      error: 'Authentication required',
-      code: 'AUTH_REQUIRED',
+      error: "Authentication required",
+      code: "AUTH_REQUIRED",
     });
   };
 }
@@ -92,15 +95,15 @@ export function requireRole(...roles: string[]) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     if (!request.user) {
       return reply.status(401).send({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
+        error: "Authentication required",
+        code: "AUTH_REQUIRED",
       });
     }
 
-    if (!roles.includes(request.user.role) && request.user.role !== 'ADMIN') {
+    if (!roles.includes(request.user.role) && request.user.role !== "ADMIN") {
       return reply.status(403).send({
-        error: 'Insufficient permissions',
-        code: 'AUTH_FORBIDDEN',
+        error: "Insufficient permissions",
+        code: "AUTH_FORBIDDEN",
         required: roles,
       });
     }
@@ -112,18 +115,19 @@ export function requirePermission(permission: string) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     if (!request.user) {
       return reply.status(401).send({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
+        error: "Authentication required",
+        code: "AUTH_REQUIRED",
       });
     }
 
-    const hasPermission = request.user.permissions.includes('*') || 
-                          request.user.permissions.includes(permission);
+    const hasPermission =
+      request.user.permissions.includes("*") ||
+      request.user.permissions.includes(permission);
 
     if (!hasPermission) {
       return reply.status(403).send({
-        error: 'Permission denied',
-        code: 'AUTH_FORBIDDEN',
+        error: "Permission denied",
+        code: "AUTH_FORBIDDEN",
         required: permission,
       });
     }
@@ -135,40 +139,50 @@ export function requireRegion() {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     if (!request.user) {
       return reply.status(401).send({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
+        error: "Authentication required",
+        code: "AUTH_REQUIRED",
       });
     }
 
     // Admin can access all regions
-    if (request.user.role === 'ADMIN') {
+    if (request.user.role === "ADMIN") {
       return;
     }
 
-    const targetRegion = (request.params as any)?.region || 
-                         (request.query as any)?.region;
+    const targetRegion =
+      (request.params as any)?.region || (request.query as any)?.region;
 
-    if (targetRegion && request.user.region && targetRegion !== request.user.region) {
+    if (
+      targetRegion &&
+      request.user.region &&
+      targetRegion !== request.user.region
+    ) {
       return reply.status(403).send({
-        error: 'Region access denied',
-        code: 'AUTH_REGION_FORBIDDEN',
+        error: "Region access denied",
+        code: "AUTH_REGION_FORBIDDEN",
       });
     }
   };
 }
 
 // Generate JWT token (for login)
-export function generateToken(user: Omit<AuthUser, 'permissions'>, secret: string, expiresIn: string = '1h'): string {
+export function generateToken(
+  user: Omit<AuthUser, "permissions">,
+  secret: string,
+  expiresIn: string = "1h",
+): string {
   const permissions = getPermissionsForRole(user.role);
-  return jwt.sign({ ...user, permissions }, secret, { expiresIn: expiresIn as any });
+  return jwt.sign({ ...user, permissions }, secret, {
+    expiresIn: expiresIn as any,
+  });
 }
 
 function getPermissionsForRole(role: string): string[] {
   const rolePermissions: Record<string, string[]> = {
-    ADMIN: ['*'],
-    OPERATOR: ['tasks:*', 'nodes:*', 'schedule:*', 'metrics:read'],
-    VIEWER: ['tasks:read', 'nodes:read', 'metrics:read'],
-    SERVICE: ['tasks:execute', 'nodes:heartbeat', 'metrics:write'],
+    ADMIN: ["*"],
+    OPERATOR: ["tasks:*", "nodes:*", "schedule:*", "metrics:read"],
+    VIEWER: ["tasks:read", "nodes:read", "metrics:read"],
+    SERVICE: ["tasks:execute", "nodes:heartbeat", "metrics:write"],
   };
   return rolePermissions[role.toUpperCase()] || [];
 }

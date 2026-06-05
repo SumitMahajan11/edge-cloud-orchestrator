@@ -7,8 +7,8 @@ import { FastifyReply, FastifyRequest } from 'fastify';
 
 export interface DeprecationOptions {
   deprecationDate?: string; // ISO 8601 date when deprecation was announced
-  sunsetDate?: string;      // ISO 8601 date when the endpoint will be removed
-  link?: string;            // URL providing more information
+  sunsetDate?: string; // ISO 8601 date when the endpoint will be removed
+  link?: string; // URL providing more information
 }
 
 /**
@@ -16,7 +16,7 @@ export interface DeprecationOptions {
  */
 export function setDeprecationHeaders(
   reply: FastifyReply,
-  options: DeprecationOptions
+  options: DeprecationOptions,
 ) {
   if (options.deprecationDate) {
     void reply.header('Deprecation', options.deprecationDate);
@@ -29,7 +29,10 @@ export function setDeprecationHeaders(
   }
 
   if (options.link) {
-    void reply.header('Link', `<${options.link}>; rel="deprecation"; type="text/html"`);
+    void reply.header(
+      'Link',
+      `<${options.link}>; rel="deprecation"; type="text/html"`,
+    );
   }
 }
 
@@ -38,17 +41,17 @@ export function setDeprecationHeaders(
  */
 export function deprecated(
   options: DeprecationOptions,
-  handler: (request: FastifyRequest, reply: FastifyReply) => Promise<any>
+  handler: (request: FastifyRequest, reply: FastifyReply) => Promise<any>,
 ) {
-  return async function(request: FastifyRequest, reply: FastifyReply) {
+  return async function (request: FastifyRequest, reply: FastifyReply) {
     // Log warning (once per endpoint/version in a real system we might use a cache)
     request.log.warn(
       { url: request.url, ...options },
-      'Accessing deprecated API endpoint'
+      'Accessing deprecated API endpoint',
     );
 
     setDeprecationHeaders(reply, options);
-    
+
     return handler(request, reply);
   };
 }

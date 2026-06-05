@@ -8,7 +8,10 @@ export default async function alertRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ALERT_READ)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.ALERT_READ),
+      ],
       schema: {
         tags: ['alerts'],
         summary: 'Get active alerts for tenant',
@@ -22,19 +25,22 @@ export default async function alertRoutes(fastify: FastifyInstance) {
                   type: 'object',
                   properties: {
                     id: { type: 'string' },
-                    severity: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] },
+                    severity: {
+                      type: 'string',
+                      enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
+                    },
                     title: { type: 'string' },
                     description: { type: 'string' },
                     source: { type: 'string' },
                     firedAt: { type: 'string' },
                     acknowledgedAt: { type: 'string', nullable: true },
                     resolvedAt: { type: 'string', nullable: true },
-                  }
-                }
-              }
-            }
-          }
-        }
+                  },
+                },
+              },
+            },
+          },
+        },
       },
     },
     async (request, _reply) => {
@@ -53,16 +59,19 @@ export default async function alertRoutes(fastify: FastifyInstance) {
   }>(
     '/:id/acknowledge',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ALERT_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.ALERT_MANAGE),
+      ],
       schema: {
         tags: ['alerts'],
         summary: 'Acknowledge an alert',
         params: {
           type: 'object',
           properties: {
-            id: { type: 'string' }
-          }
-        }
+            id: { type: 'string' },
+          },
+        },
       },
     },
     async (request, reply) => {
@@ -73,18 +82,21 @@ export default async function alertRoutes(fastify: FastifyInstance) {
             code: 'SERVICE_UNAVAILABLE',
             message: 'Alerting service unavailable',
             requestId: request.id,
-          }
+          },
         });
       }
 
-      const success = await alerting.acknowledge(request.params.id, request.user!.tenantId!);
+      const success = await alerting.acknowledge(
+        request.params.id,
+        request.user!.tenantId!,
+      );
       if (!success) {
         return reply.status(404).send({
           error: {
             code: 'NOT_FOUND',
             message: 'Alert not found or access denied',
             requestId: request.id,
-          }
+          },
         });
       }
 
@@ -102,7 +114,10 @@ export default async function alertRoutes(fastify: FastifyInstance) {
   }>(
     '/test',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.ALERT_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.ALERT_MANAGE),
+      ],
       schema: {
         tags: ['alerts'],
         summary: 'Send test alert',
@@ -110,7 +125,10 @@ export default async function alertRoutes(fastify: FastifyInstance) {
           type: 'object',
           required: ['severity', 'title', 'description'],
           properties: {
-            severity: { type: 'string', enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'] },
+            severity: {
+              type: 'string',
+              enum: ['CRITICAL', 'HIGH', 'MEDIUM', 'LOW'],
+            },
             title: { type: 'string' },
             description: { type: 'string' },
           },
@@ -125,14 +143,17 @@ export default async function alertRoutes(fastify: FastifyInstance) {
             code: 'SERVICE_UNAVAILABLE',
             message: 'Alerting service unavailable',
             requestId: request.id,
-          }
+          },
         });
       }
 
       let mappedSeverity: 'critical' | 'warning' | 'info' = 'info';
       if (request.body.severity === 'CRITICAL') {
         mappedSeverity = 'critical';
-      } else if (request.body.severity === 'HIGH' || request.body.severity === 'MEDIUM') {
+      } else if (
+        request.body.severity === 'HIGH' ||
+        request.body.severity === 'MEDIUM'
+      ) {
         mappedSeverity = 'warning';
       }
 

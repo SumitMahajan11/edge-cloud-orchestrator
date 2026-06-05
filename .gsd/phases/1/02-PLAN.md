@@ -51,5 +51,6 @@ After all tasks, verify:
 </verification>
 
 <success_criteria>
+
 - [ ] 0 errors for no-floating-promises
-</success_criteria>
+      </success_criteria>

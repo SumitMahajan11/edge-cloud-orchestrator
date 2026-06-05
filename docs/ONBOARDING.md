@@ -26,16 +26,16 @@ pnpm run verify:health
 
 ### What you're running locally
 
-| Component | Port |
-|---|---|
-| PostgreSQL 16 | 5432 |
-| Redis 7 | 6379 |
-| api | 3000 |
-| task-service | 3001 |
-| websocket-gateway | 3002 |
-| scheduler-service | 3003 |
-| node-service | 3004 |
-| metrics-service | 3005 |
+| Component            | Port |
+| -------------------- | ---- |
+| PostgreSQL 16        | 5432 |
+| Redis 7              | 6379 |
+| api                  | 3000 |
+| task-service         | 3001 |
+| websocket-gateway    | 3002 |
+| scheduler-service    | 3003 |
+| node-service         | 3004 |
+| metrics-service      | 3005 |
 | React frontend (web) | 8080 |
 
 ---
@@ -50,16 +50,19 @@ curl -X POST http://localhost:3000/v1/tasks \
 ```
 
 Expected response:
+
 ```json
 { "taskId": "task_abc123", "status": "PENDING" }
 ```
 
 Open the dashboard → Tasks page. Within 10 seconds the task should progress:
+
 ```
 PENDING → SCHEDULED → RUNNING → COMPLETED
 ```
 
 If it stays at `PENDING`, check the scheduler logs:
+
 ```bash
 docker compose -f docker-compose.dev.yml logs scheduler-service
 ```
@@ -102,17 +105,17 @@ edge-cloud-orchestrator/
 
 ## Key Commands
 
-| Command | What it does |
-|---|---|
-| `pnpm install` | Install all dependencies (hoisted, monorepo-aware) |
-| `pnpm build` | Build all services and packages |
-| `pnpm test` | Run all unit tests |
-| `pnpm test:integration` | Run integration tests (requires postgres + redis running) |
-| `pnpm run lint` | ESLint across all packages and apps |
-| `pnpm exec vitest run --workspace=vitest.workspace.ts` | Run full test suite from monorepo root |
-| `pnpm --filter api start` | Start just the API service |
-| `pnpm --filter web build` | Build the React frontend |
-| `pnpm --filter @edgecloud/shared-kernel build` | Build a specific package |
+| Command                                                | What it does                                              |
+| ------------------------------------------------------ | --------------------------------------------------------- |
+| `pnpm install`                                         | Install all dependencies (hoisted, monorepo-aware)        |
+| `pnpm build`                                           | Build all services and packages                           |
+| `pnpm test`                                            | Run all unit tests                                        |
+| `pnpm test:integration`                                | Run integration tests (requires postgres + redis running) |
+| `pnpm run lint`                                        | ESLint across all packages and apps                       |
+| `pnpm exec vitest run --workspace=vitest.workspace.ts` | Run full test suite from monorepo root                    |
+| `pnpm --filter api start`                              | Start just the API service                                |
+| `pnpm --filter web build`                              | Build the React frontend                                  |
+| `pnpm --filter @edgecloud/shared-kernel build`         | Build a specific package                                  |
 
 > **Important:** Always run `vitest` from the monorepo root using `--workspace=vitest.workspace.ts`. Running it from inside a package directory picks up incorrect relative paths.
 
@@ -123,6 +126,7 @@ edge-cloud-orchestrator/
 **Example: Add a new scheduling policy**
 
 1. **Create a feature branch**
+
    ```bash
    git checkout -b feature/scheduling-policy-xyz
    ```
@@ -136,11 +140,13 @@ edge-cloud-orchestrator/
 5. **Wire it in** `apps/scheduler-service/src/index.ts`
 
 6. **Test locally**
+
    ```bash
    pnpm --filter @edgecloud/scheduler-service start
    ```
 
 7. **Run all tests**
+
    ```bash
    pnpm exec vitest run --workspace=vitest.workspace.ts
    ```
@@ -174,13 +180,13 @@ cp config/.env.example config/.env.local
 
 **Critical variables:**
 
-| Variable | Required | Notes |
-|---|---|---|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `REDIS_URL` | Yes | Redis connection string |
-| `JWT_SECRET` | Yes | Min 32 characters; never commit this |
-| `NODE_ENV` | Yes | `development`, `production`, or `test` |
-| `MTLS_ENABLED` | No | Default `false` in development |
+| Variable       | Required | Notes                                  |
+| -------------- | -------- | -------------------------------------- |
+| `DATABASE_URL` | Yes      | PostgreSQL connection string           |
+| `REDIS_URL`    | Yes      | Redis connection string                |
+| `JWT_SECRET`   | Yes      | Min 32 characters; never commit this   |
+| `NODE_ENV`     | Yes      | `development`, `production`, or `test` |
+| `MTLS_ENABLED` | No       | Default `false` in development         |
 
 > **Never commit `.env.local` or any file containing real secrets.** The pre-commit hook will reject files matching `*.crt`, `*.pfx`, `*.pem`, `*.key`.
 
@@ -188,13 +194,13 @@ cp config/.env.example config/.env.local
 
 ## Shared Packages Quick Reference
 
-| Package | Import | Purpose |
-|---|---|---|
-| `@edgecloud/shared-kernel` | `import { DomainEvent, validateEnv } from '@edgecloud/shared-kernel'` | Base types, env validation |
-| `@edgecloud/event-bus` | `import { EventBus } from '@edgecloud/event-bus'` | Redis Streams pub/sub |
-| `@edgecloud/circuit-breaker` | `import { CircuitBreaker } from '@edgecloud/circuit-breaker'` | Resilience |
-| `@edgecloud/security` | `import { PolicyBuilder } from '@edgecloud/security'` | ABAC policy evaluation |
-| `@edgecloud/ml-scheduler` | `import { SchedulingAlgorithm } from '@edgecloud/ml-scheduler'` | Scheduling policies |
+| Package                      | Import                                                                | Purpose                    |
+| ---------------------------- | --------------------------------------------------------------------- | -------------------------- |
+| `@edgecloud/shared-kernel`   | `import { DomainEvent, validateEnv } from '@edgecloud/shared-kernel'` | Base types, env validation |
+| `@edgecloud/event-bus`       | `import { EventBus } from '@edgecloud/event-bus'`                     | Redis Streams pub/sub      |
+| `@edgecloud/circuit-breaker` | `import { CircuitBreaker } from '@edgecloud/circuit-breaker'`         | Resilience                 |
+| `@edgecloud/security`        | `import { PolicyBuilder } from '@edgecloud/security'`                 | ABAC policy evaluation     |
+| `@edgecloud/ml-scheduler`    | `import { SchedulingAlgorithm } from '@edgecloud/ml-scheduler'`       | Scheduling policies        |
 
 **EventBus publish signature note:** `eventBus.publish()` accepts `Omit<DomainEvent, 'eventId' | 'timestamp'>`. Do NOT pass `timestamp` — it is auto-generated internally.
 

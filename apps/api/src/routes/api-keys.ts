@@ -10,7 +10,10 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
   fastify.get(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.API_KEY_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.API_KEY_MANAGE),
+      ],
       schema: {
         tags: ['api-keys'],
         summary: 'List my API keys',
@@ -40,7 +43,7 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
           totalPages: 1,
           hasNext: false,
           hasPrev: false,
-        }
+        },
       };
     },
   );
@@ -49,7 +52,10 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
   fastify.post<{ Body: z.infer<typeof createApiKeySchema> }>(
     '/',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.API_KEY_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.API_KEY_MANAGE),
+      ],
       schema: {
         body: zodToFastifySchema(createApiKeySchema),
         tags: ['api-keys'],
@@ -58,12 +64,12 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { name, permissions, expiresAt } = request.body;
-      const {apiKeyService} = (fastify as any);
-      
+      const { apiKeyService } = fastify as any;
+
       const result = await apiKeyService.createApiKey(
         request.user!.id,
         name,
-        permissions
+        permissions,
       );
 
       // Add expiresAt if provided
@@ -82,7 +88,10 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
   fastify.delete<{ Params: { id: string } }>(
     '/:id',
     {
-      preHandler: [fastify.authenticate, fastify.requirePermission(Permissions.API_KEY_MANAGE)],
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.API_KEY_MANAGE),
+      ],
       schema: {
         params: zodToFastifySchema(idParamSchema),
         tags: ['api-keys'],
@@ -90,7 +99,7 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const {apiKeyService} = (fastify as any);
+      const { apiKeyService } = fastify as any;
       await apiKeyService.revokeApiKey(request.params.id, request.user!.id);
       return { success: true };
     },

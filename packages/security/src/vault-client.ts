@@ -1,5 +1,5 @@
-import axios, { AxiosInstance } from 'axios';
-import { EventEmitter } from 'eventemitter3';
+import axios, { AxiosInstance } from "axios";
+import { EventEmitter } from "eventemitter3";
 
 export interface VaultConfig {
   address: string;
@@ -46,14 +46,14 @@ export class VaultClient extends EventEmitter {
       baseURL: config.address,
       timeout: 30000,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
     });
 
     // Setup request interceptor for token
     this.client.interceptors.request.use(async (config) => {
       if (this.token) {
-        config.headers['X-Vault-Token'] = this.token;
+        config.headers["X-Vault-Token"] = this.token;
       }
       return config;
     });
@@ -66,29 +66,29 @@ export class VaultClient extends EventEmitter {
     } else if (this.config.roleId && this.config.secretId) {
       await this.authenticateAppRole();
     } else {
-      throw new Error('No authentication method provided');
+      throw new Error("No authentication method provided");
     }
 
     this.scheduleTokenRenewal();
-    this.emit('authenticated');
+    this.emit("authenticated");
   }
 
   private async validateToken(): Promise<void> {
     try {
-      await this.client.get('/v1/auth/token/lookup-self');
+      await this.client.get("/v1/auth/token/lookup-self");
     } catch (error) {
-      throw new Error('Invalid Vault token');
+      throw new Error("Invalid Vault token");
     }
   }
 
   private async authenticateAppRole(): Promise<void> {
-    const response = await this.client.post('/v1/auth/approle/login', {
+    const response = await this.client.post("/v1/auth/approle/login", {
       role_id: this.config.roleId,
       secret_id: this.config.secretId,
     });
 
     this.token = response.data.auth.client_token;
-    this.emit('tokenReceived', {
+    this.emit("tokenReceived", {
       token: this.token,
       leaseDuration: response.data.auth.lease_duration,
       renewable: response.data.auth.renewable,
@@ -107,7 +107,7 @@ export class VaultClient extends EventEmitter {
       try {
         await this.renewToken();
       } catch (error) {
-        this.emit('renewalFailed', error);
+        this.emit("renewalFailed", error);
         // Re-authenticate
         await this.authenticate();
       }
@@ -115,8 +115,8 @@ export class VaultClient extends EventEmitter {
   }
 
   private async renewToken(): Promise<void> {
-    const response = await this.client.post('/v1/auth/token/renew-self');
-    this.emit('tokenRenewed', {
+    const response = await this.client.post("/v1/auth/token/renew-self");
+    this.emit("tokenRenewed", {
       leaseDuration: response.data.auth.lease_duration,
     });
   }
@@ -136,7 +136,7 @@ export class VaultClient extends EventEmitter {
   // Database Secrets Engine
   async getDatabaseCredentials(role: string): Promise<DatabaseCredentials> {
     const response = await this.client.get(`/v1/database/creds/${role}`);
-    const {data} = response.data;
+    const { data } = response.data;
 
     const creds: DatabaseCredentials = {
       username: data.username,
@@ -167,7 +167,7 @@ export class VaultClient extends EventEmitter {
         // After successful renewal, reschedule if duration is still valid
         // In a real implementation, we might get a new duration here
       } catch (error) {
-        this.emit('leaseRenewalFailed', { leaseId, error });
+        this.emit("leaseRenewalFailed", { leaseId, error });
         this.leaseRenewalTimers.delete(leaseId);
       }
     }, renewalTime);
@@ -176,14 +176,14 @@ export class VaultClient extends EventEmitter {
   }
 
   async renewLease(leaseId: string): Promise<void> {
-    await this.client.put('/v1/sys/leases/renew', {
+    await this.client.put("/v1/sys/leases/renew", {
       lease_id: leaseId,
     });
-    this.emit('leaseRenewed', { leaseId });
+    this.emit("leaseRenewed", { leaseId });
   }
 
   async revokeLease(leaseId: string): Promise<void> {
-    await this.client.put('/v1/sys/leases/revoke', {
+    await this.client.put("/v1/sys/leases/revoke", {
       lease_id: leaseId,
     });
     const timer = this.leaseRenewalTimers.get(leaseId);
@@ -201,16 +201,16 @@ export class VaultClient extends EventEmitter {
       ttl?: string;
       altNames?: string[];
       ipSans?: string[];
-    }
+    },
   ): Promise<CertificateResponse> {
     const response = await this.client.post(`/v1/pki_int/issue/${role}`, {
       common_name: commonName,
       ttl: options?.ttl,
-      alt_names: options?.altNames?.join(','),
-      ip_sans: options?.ipSans?.join(','),
+      alt_names: options?.altNames?.join(","),
+      ip_sans: options?.ipSans?.join(","),
     });
 
-    const {data} = response.data;
+    const { data } = response.data;
     return {
       certificate: data.certificate,
       issuingCa: data.issuing_ca,
@@ -224,7 +224,7 @@ export class VaultClient extends EventEmitter {
   }
 
   async revokeCertificate(serialNumber: string): Promise<void> {
-    const response = await this.client.post('/v1/pki_int/revoke', {
+    const response = await this.client.post("/v1/pki_int/revoke", {
       serial_number: serialNumber,
     });
   }
@@ -235,7 +235,7 @@ export class VaultClient extends EventEmitter {
     sealed: boolean;
     standby: boolean;
   }> {
-    const response = await this.client.get('/v1/sys/health');
+    const response = await this.client.get("/v1/sys/health");
     return {
       initialized: response.data.initialized,
       sealed: response.data.sealed,

@@ -1,6 +1,10 @@
-import { DEFAULT_SCORE_WEIGHTS, EdgeNode, Task } from '@edgecloud/shared-kernel';
+import {
+  DEFAULT_SCORE_WEIGHTS,
+  EdgeNode,
+  Task,
+} from "@edgecloud/shared-kernel";
 
-import { SchedulingPredictor } from './predictor';
+import { SchedulingPredictor } from "./predictor";
 
 export interface ScoreWeights {
   latency: number;
@@ -28,9 +32,9 @@ export interface NodeScoreResult {
 }
 
 const FALLBACK_SCORE_WEIGHTS = {
-  cpu: 0.40,
-  memory: 0.30,
-  latency: 0.30,
+  cpu: 0.4,
+  memory: 0.3,
+  latency: 0.3,
   cost: 0.0,
   network: 0.0,
   ml: 0.0,
@@ -39,15 +43,23 @@ const FALLBACK_SCORE_WEIGHTS = {
 };
 
 export class MultiObjectiveScorer {
-  constructor(private predictor: SchedulingPredictor, private weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS) {
+  constructor(
+    private predictor: SchedulingPredictor,
+    private weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS,
+  ) {
     if (!this.weights || Object.keys(this.weights).length === 0) {
-      this.weights = (DEFAULT_SCORE_WEIGHTS && Object.keys(DEFAULT_SCORE_WEIGHTS).length > 0)
-        ? DEFAULT_SCORE_WEIGHTS
-        : (FALLBACK_SCORE_WEIGHTS as any);
+      this.weights =
+        DEFAULT_SCORE_WEIGHTS && Object.keys(DEFAULT_SCORE_WEIGHTS).length > 0
+          ? DEFAULT_SCORE_WEIGHTS
+          : (FALLBACK_SCORE_WEIGHTS as any);
     }
   }
 
-  async calculateScore(task: Task, node: EdgeNode, maxCarbon?: number): Promise<NodeScoreResult> {
+  async calculateScore(
+    task: Task,
+    node: EdgeNode,
+    maxCarbon?: number,
+  ): Promise<NodeScoreResult> {
     // Normalize metrics to 0-1 scale (higher is better)
     const latencyScore = this.normalizeLatency(node.latency);
     const cpuScore = this.normalizeCpuUsage(node.cpuUsage);
@@ -56,10 +68,10 @@ export class MultiObjectiveScorer {
     const networkScore = this.calculateNetworkScore(task, node);
     const healthScore = this.normalizeHealthScore(node.healthScore);
     const carbonScore = this.normalizeCarbon(node.carbonIntensity, maxCarbon);
- 
+
     // ML prediction
     const mlPrediction = await this.predictor.predictAsync(task, node);
- 
+
     // Weighted sum
     const score =
       this.weights.latency * latencyScore +
@@ -70,7 +82,7 @@ export class MultiObjectiveScorer {
       this.weights.ml * mlPrediction +
       this.weights.health * healthScore +
       (this.weights as any).carbon * carbonScore;
- 
+
     return {
       nodeId: node.id,
       score,
@@ -88,13 +100,23 @@ export class MultiObjectiveScorer {
   }
 
   async rankNodes(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult[]> {
-    const maxCarbon = Math.max(...nodes.map((n) => n.carbonIntensity || 400), 1);
-    const scores = await Promise.all(nodes.map((node) => this.calculateScore(task, node, maxCarbon)));
+    const maxCarbon = Math.max(
+      ...nodes.map((n) => n.carbonIntensity || 400),
+      1,
+    );
+    const scores = await Promise.all(
+      nodes.map((node) => this.calculateScore(task, node, maxCarbon)),
+    );
     return scores.sort((a, b) => b.score - a.score);
   }
 
-  async selectBestNode(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult | null> {
-    if (nodes.length === 0) {return null;}
+  async selectBestNode(
+    task: Task,
+    nodes: EdgeNode[],
+  ): Promise<NodeScoreResult | null> {
+    if (nodes.length === 0) {
+      return null;
+    }
     const ranked = await this.rankNodes(task, nodes);
     return ranked[0] ?? null;
   }
@@ -137,12 +159,12 @@ export class MultiObjectiveScorer {
   private normalizeCarbon(carbonIntensity: number, maxCarbon?: number): number {
     // Lower carbon intensity is better
     if (carbonIntensity === undefined || carbonIntensity === null) return 0.5;
-    
+
     // Relative normalization if maxCarbon is provided
     if (maxCarbon && maxCarbon > 0) {
       return Math.max(0, 1 - carbonIntensity / maxCarbon);
     }
-    
+
     // Absolute fallback (assume 0-1000g range)
     return Math.max(0, 1 - carbonIntensity / 1000);
   }
@@ -150,10 +172,10 @@ export class MultiObjectiveScorer {
   private calculateNetworkScore(task: Task, node: EdgeNode): number {
     // Consider bandwidth and geographic proximity
     const bandwidthScore = Math.min(1, node.bandwidthInMbps / 1000);
-    
+
     // Check if node has required capabilities
     const capabilityScore = this.checkCapabilities(task, node);
-    
+
     return (bandwidthScore + capabilityScore) / 2;
   }
 
@@ -161,29 +183,31 @@ export class MultiObjectiveScorer {
     // Check if node can handle the task type
     // This is a simplified check - in production, use more sophisticated matching
     const requiredCapabilities = this.getRequiredCapabilities(task.type);
-    
-    if (requiredCapabilities.length === 0) {return 1;}
-    
+
+    if (requiredCapabilities.length === 0) {
+      return 1;
+    }
+
     const nodeCapabilities = node.capabilities || [];
     const matched = requiredCapabilities.filter((cap) =>
-      nodeCapabilities.includes(cap)
+      nodeCapabilities.includes(cap),
     ).length;
-    
+
     return matched / requiredCapabilities.length;
   }
 
   private getRequiredCapabilities(taskType: string): string[] {
     const capabilityMap: Record<string, string[]> = {
-      IMAGE_CLASSIFICATION: ['gpu', 'ml'],
-      VIDEO_PROCESSING: ['gpu', 'high-bandwidth'],
-      MODEL_INFERENCE: ['gpu', 'ml'],
-      DATA_AGGREGATION: ['high-memory'],
-      SENSOR_FUSION: ['low-latency'],
-      ANOMALY_DETECTION: ['ml'],
-      LOG_ANALYSIS: ['high-storage'],
+      IMAGE_CLASSIFICATION: ["gpu", "ml"],
+      VIDEO_PROCESSING: ["gpu", "high-bandwidth"],
+      MODEL_INFERENCE: ["gpu", "ml"],
+      DATA_AGGREGATION: ["high-memory"],
+      SENSOR_FUSION: ["low-latency"],
+      ANOMALY_DETECTION: ["ml"],
+      LOG_ANALYSIS: ["high-storage"],
       CUSTOM: [],
     };
-    
+
     return capabilityMap[taskType] || [];
   }
 }

@@ -3,7 +3,13 @@ phase: 6
 plan: 1
 wave: 1
 depends_on: []
-files_modified: ["apps/api/prisma/schema.prisma", "apps/api/src/services/task-scheduler.ts", "apps/web/src/stores/websocket.ts", "apps/web/src/lib/websocketClient.ts"]
+files_modified:
+  [
+    "apps/api/prisma/schema.prisma",
+    "apps/api/src/services/task-scheduler.ts",
+    "apps/web/src/stores/websocket.ts",
+    "apps/web/src/lib/websocketClient.ts",
+  ]
 autonomous: true
 ---
 
@@ -69,7 +75,8 @@ Harden the backend infrastructure by adding geographic coordinates to edge nodes
 </verification>
 
 <success_criteria>
+
 - [ ] Backend supports geographic telemetry.
 - [ ] Real-time scheduling decisions are visible to the system.
 - [ ] Frontend WebSocket communication is stable and port-aligned.
-</success_criteria>
+      </success_criteria>

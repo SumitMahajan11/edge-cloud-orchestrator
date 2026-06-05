@@ -4,20 +4,25 @@ vi.mock('../../config/env', () => ({
   env: {
     ENCRYPTION_KEY: 'a'.repeat(32),
     NODE_ENV: 'test',
-  }
+  },
 }));
 
 import { SecretManagerFactory } from '@edgecloud/shared-kernel';
 
 // Mock SecretManagerFactory for tests
-SecretManagerFactory.create = () => ({
-  issueCertificate: (_role: string, commonName: string, _ttl?: string) => Promise.resolve({
-    certificate: `-----BEGIN CERTIFICATE-----\nFAKE_CERTIFICATE_FOR_${commonName}\n-----END CERTIFICATE-----`,
-    serial_number: `${commonName}-serial`,
-  }),
-}) as any;
+SecretManagerFactory.create = () =>
+  ({
+    issueCertificate: (_role: string, commonName: string, _ttl?: string) =>
+      Promise.resolve({
+        certificate: `-----BEGIN CERTIFICATE-----\nFAKE_CERTIFICATE_FOR_${commonName}\n-----END CERTIFICATE-----`,
+        serial_number: `${commonName}-serial`,
+      }),
+  }) as any;
 // import { expect, it, describe, beforeAll, vi } from 'vitest';
-import { CertificateAuthorityManager, AgentCertificateGenerator } from '../mtls-authentication';
+import {
+  CertificateAuthorityManager,
+  AgentCertificateGenerator,
+} from '../mtls-authentication';
 import { PrismaClient } from '@prisma/client';
 import pino from 'pino';
 import { X509Certificate } from 'crypto';
@@ -35,22 +40,26 @@ describe('mTLS Certificate Authority', () => {
       },
       bootstrapToken: {
         updateMany: vi.fn(),
-        findUnique: vi.fn(() => Promise.resolve({
-          token: 'valid-token',
-          usedAt: null,
-          expiresAt: new Date(Date.now() + 100000),
-          user: {
-            tenantUsers: [{ tenantId: 'test-tenant' }]
-          }
-        })),
-        update: vi.fn(() => Promise.resolve({
-          token: 'valid-token',
-          usedAt: new Date(),
-          expiresAt: new Date(Date.now() + 100000),
-          user: {
-            tenantUsers: [{ tenantId: 'test-tenant' }]
-          }
-        })),
+        findUnique: vi.fn(() =>
+          Promise.resolve({
+            token: 'valid-token',
+            usedAt: null,
+            expiresAt: new Date(Date.now() + 100000),
+            user: {
+              tenantUsers: [{ tenantId: 'test-tenant' }],
+            },
+          }),
+        ),
+        update: vi.fn(() =>
+          Promise.resolve({
+            token: 'valid-token',
+            usedAt: new Date(),
+            expiresAt: new Date(Date.now() + 100000),
+            user: {
+              tenantUsers: [{ tenantId: 'test-tenant' }],
+            },
+          }),
+        ),
       },
       nodeCertificate: {
         create: vi.fn(),
@@ -66,9 +75,14 @@ describe('mTLS Certificate Authority', () => {
 
   it('should generate a real X.509 CA certificate', async () => {
     prisma.certificateAuthority.findFirst.mockResolvedValue(null);
-    prisma.certificateAuthority.create.mockImplementation(({ data }: any) => Promise.resolve(data));
+    prisma.certificateAuthority.create.mockImplementation(({ data }: any) =>
+      Promise.resolve(data),
+    );
 
-    const manager = new CertificateAuthorityManager(prisma as unknown as PrismaClient, logger);
+    const manager = new CertificateAuthorityManager(
+      prisma as unknown as PrismaClient,
+      logger,
+    );
     const ca = await manager.initialize();
 
     expect(ca.certificate).toContain('-----BEGIN CERTIFICATE-----');
@@ -83,18 +97,28 @@ describe('mTLS Certificate Authority', () => {
   it('should issue and sign an agent certificate', async () => {
     // 1. Initialize CA
     prisma.certificateAuthority.findFirst.mockResolvedValue(null);
-    prisma.certificateAuthority.create.mockImplementation(({ data }: any) => Promise.resolve(data));
+    prisma.certificateAuthority.create.mockImplementation(({ data }: any) =>
+      Promise.resolve(data),
+    );
 
-    const manager = new CertificateAuthorityManager(prisma as unknown as PrismaClient, logger);
+    const manager = new CertificateAuthorityManager(
+      prisma as unknown as PrismaClient,
+      logger,
+    );
     await manager.initialize();
 
     // 2. Generate Agent CSR
     const agentId = 'test-node-123';
-    const { csr } = await AgentCertificateGenerator.generateKeyPairAndCSR(agentId, 'us-east-1');
+    const { csr } = await AgentCertificateGenerator.generateKeyPairAndCSR(
+      agentId,
+      'us-east-1',
+    );
 
     // 3. Sign CSR
     prisma.bootstrapToken.updateMany.mockResolvedValue({ count: 1 });
-    prisma.nodeCertificate.create.mockImplementation(({ data }: any) => Promise.resolve(data));
+    prisma.nodeCertificate.create.mockImplementation(({ data }: any) =>
+      Promise.resolve(data),
+    );
 
     const agentCert = await manager.signCSR(csr, agentId, 'valid-token');
 

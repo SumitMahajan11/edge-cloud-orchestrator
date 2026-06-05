@@ -7,8 +7,8 @@ services:
       # Mount results directory (writable) for JSON output
       - ./tests/load/results:/home/k6/results
     environment:
-      BASE_URL:  ${SMOKE_BASE_URL:-http://api-gateway}
-      API_KEY:   ${LOAD_TEST_API_KEY:-test-key}
+      BASE_URL: ${SMOKE_BASE_URL:-http://api-gateway}
+      API_KEY: ${LOAD_TEST_API_KEY:-test-key}
       ADMIN_KEY: ${LOAD_TEST_ADMIN_KEY:-admin-key}
     networks:
       - edgecloud-network

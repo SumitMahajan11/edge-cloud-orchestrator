@@ -1,23 +1,26 @@
-import { client } from '@edgecloud/api-client'
-import { useQuery } from '@tanstack/react-query'
+import { client } from "@edgecloud/api-client";
+import { useQuery } from "@tanstack/react-query";
 
-import { queryKeys, STALE } from '../lib/query-client'
+import { queryKeys, STALE } from "../lib/query-client";
 
-import type { SchedulingDecision } from '../types'
+import type { SchedulingDecision } from "../types";
 
-export function useSchedulingDecisions(params?: { nodeId?: string; limit?: number }) {
+export function useSchedulingDecisions(params?: {
+  nodeId?: string;
+  limit?: number;
+}) {
   return useQuery({
-    queryKey: [...queryKeys.scheduler.metrics(), 'decisions', params],
+    queryKey: [...queryKeys.scheduler.metrics(), "decisions", params],
     queryFn: async () => {
       const { data, error } = await client.get({
-        url: '/v2/scheduler/decisions',
-        query: params
-      })
+        url: "/v2/scheduler/decisions",
+        query: params,
+      });
       if (error) {
-        throw error
+        throw error;
       }
-      return data as SchedulingDecision[]
+      return data as SchedulingDecision[];
     },
     staleTime: STALE.default,
-  })
+  });
 }

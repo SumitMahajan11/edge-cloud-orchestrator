@@ -1,11 +1,11 @@
-import { AnimatePresence, motion } from 'framer-motion'
-import { Leaf, Server } from 'lucide-react'
-import { cn } from '../../lib/utils'
-import type { EdgeNode } from '../../types'
+import { AnimatePresence, motion } from "framer-motion";
+import { Leaf, Server } from "lucide-react";
+import { cn } from "../../lib/utils";
+import type { EdgeNode } from "../../types";
 
 interface NodesCardGridViewProps {
-  nodes: EdgeNode[]
-  onSelect: (node: EdgeNode) => void
+  nodes: EdgeNode[];
+  onSelect: (node: EdgeNode) => void;
 }
 
 /**
@@ -21,7 +21,7 @@ export function NodesCardGridView({ nodes, onSelect }: NodesCardGridViewProps) {
           No nodes match the current filter.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -55,16 +55,8 @@ export function NodesCardGridView({ nodes, onSelect }: NodesCardGridViewProps) {
 
             {/* Gauges */}
             <div className="grid grid-cols-2 gap-4">
-              <CircularGauge
-                label="CPU"
-                value={node.cpu}
-                color="#00d4aa"
-              />
-              <CircularGauge
-                label="MEM"
-                value={node.memory}
-                color="#6366f1"
-              />
+              <CircularGauge label="CPU" value={node.cpu} color="#00d4aa" />
+              <CircularGauge label="MEM" value={node.memory} color="#6366f1" />
             </div>
 
             {/* Latency sparkline */}
@@ -88,17 +80,17 @@ export function NodesCardGridView({ nodes, onSelect }: NodesCardGridViewProps) {
         ))}
       </AnimatePresence>
     </div>
-  )
+  );
 }
 
-function StatusDot({ status }: { status: EdgeNode['status'] }) {
+function StatusDot({ status }: { status: EdgeNode["status"] }) {
   const color =
-    status === 'online'
-      ? 'bg-[#00d4aa] animate-pulse-teal'
-      : status === 'degraded'
-        ? 'bg-[#f59e0b]'
-        : 'bg-[#ef4444]'
-  return <span className={cn('h-2.5 w-2.5 rounded-full', color)} />
+    status === "online"
+      ? "bg-[#00d4aa] animate-pulse-teal"
+      : status === "degraded"
+        ? "bg-[#f59e0b]"
+        : "bg-[#ef4444]";
+  return <span className={cn("h-2.5 w-2.5 rounded-full", color)} />;
 }
 
 function CircularGauge({
@@ -106,15 +98,16 @@ function CircularGauge({
   value,
   color,
 }: {
-  label: string
-  value: number
-  color: string
+  label: string;
+  value: number;
+  color: string;
 }) {
-  const size = 72
-  const stroke = 6
-  const r = (size - stroke) / 2
-  const circumference = r * 2 * Math.PI
-  const offset = circumference - (Math.min(100, Math.max(0, value)) / 100) * circumference
+  const size = 72;
+  const stroke = 6;
+  const r = (size - stroke) / 2;
+  const circumference = r * 2 * Math.PI;
+  const offset =
+    circumference - (Math.min(100, Math.max(0, value)) / 100) * circumference;
 
   return (
     <div className="flex flex-col items-center">
@@ -138,7 +131,7 @@ function CircularGauge({
             strokeLinecap="round"
             strokeDasharray={circumference}
             strokeDashoffset={offset}
-            style={{ transition: 'stroke-dashoffset 0.5s ease' }}
+            style={{ transition: "stroke-dashoffset 0.5s ease" }}
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
@@ -151,31 +144,29 @@ function CircularGauge({
         {label}
       </span>
     </div>
-  )
+  );
 }
 
-function LatencySparkline({
-  history,
-}: {
-  history: EdgeNode['healthHistory']
-}) {
-  const points = (history ?? []).slice(-20).map((h) => h.latency)
+function LatencySparkline({ history }: { history: EdgeNode["healthHistory"] }) {
+  const points = (history ?? []).slice(-20).map((h) => h.latency);
   if (points.length < 2) {
-    return <div className="h-6 text-[10px] text-muted-foreground font-mono">—</div>
+    return (
+      <div className="h-6 text-[10px] text-muted-foreground font-mono">—</div>
+    );
   }
-  const max = Math.max(...points)
-  const min = Math.min(...points)
-  const range = max - min || 1
-  const w = 200
-  const h = 24
-  const step = w / (points.length - 1)
+  const max = Math.max(...points);
+  const min = Math.min(...points);
+  const range = max - min || 1;
+  const w = 200;
+  const h = 24;
+  const step = w / (points.length - 1);
   const d = points
     .map((v, i) => {
-      const x = (i * step).toFixed(1)
-      const y = (h - ((v - min) / range) * h).toFixed(1)
-      return `${i === 0 ? 'M' : 'L'}${x},${y}`
+      const x = (i * step).toFixed(1);
+      const y = (h - ((v - min) / range) * h).toFixed(1);
+      return `${i === 0 ? "M" : "L"}${x},${y}`;
     })
-    .join(' ')
+    .join(" ");
   return (
     <svg
       viewBox={`0 0 ${w} ${h}`}
@@ -184,27 +175,28 @@ function LatencySparkline({
     >
       <path d={d} stroke="currentColor" strokeWidth="1.5" fill="none" />
     </svg>
-  )
+  );
 }
 
 function CarbonLeaf({ nodeId }: { nodeId: string }) {
   // Derive a pseudo carbon intensity from the node id (deterministic).
   // Clean < 200 gCO2/kWh (green), medium 200-400 (amber), dirty > 400 (red).
   const hash =
-    nodeId.split('').reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 0) & 0xffff
-  const intensity = 100 + (hash % 450)
+    nodeId.split("").reduce((a, c) => (a * 31 + c.charCodeAt(0)) | 0, 0) &
+    0xffff;
+  const intensity = 100 + (hash % 450);
   const color =
     intensity < 200
-      ? 'text-[#22c55e]'
+      ? "text-[#22c55e]"
       : intensity < 400
-        ? 'text-[#f59e0b]'
-        : 'text-[#ef4444]'
+        ? "text-[#f59e0b]"
+        : "text-[#ef4444]";
   return (
     <span
       title={`~${intensity} gCO₂/kWh`}
-      className={cn('inline-flex items-center', color)}
+      className={cn("inline-flex items-center", color)}
     >
       <Leaf className="h-3.5 w-3.5" />
     </span>
-  )
+  );
 }

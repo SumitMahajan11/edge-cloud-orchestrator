@@ -1,4 +1,4 @@
-import { AsyncLocalStorage } from 'async_hooks';
+import { AsyncLocalStorage } from "async_hooks";
 
 export interface LogContext {
   requestId?: string;
@@ -39,7 +39,14 @@ export function runWithContext<T>(context: LogContext, fn: () => T): T {
 /**
  * Run a function with just a request ID and optionally trace ID
  */
-export function runWithRequestId<T>(requestId: string, traceId: string | undefined, fn: () => T): T {
+export function runWithRequestId<T>(
+  requestId: string,
+  traceId: string | undefined,
+  fn: () => T,
+): T {
   const existing = storage.getStore() || {};
-  return storage.run({ ...existing, requestId, traceId: traceId || requestId }, fn);
+  return storage.run(
+    { ...existing, requestId, traceId: traceId || requestId },
+    fn,
+  );
 }

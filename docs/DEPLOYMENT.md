@@ -18,21 +18,23 @@ Before deploying, verify each item is ready:
 
 ## Environments
 
-| Environment | Namespace | Auto-sync | Approval required |
-|---|---|---|---|
-| staging | `edgecloud-staging` | Yes | No |
-| production | `edgecloud-production` | No | Yes (manual) |
+| Environment | Namespace              | Auto-sync | Approval required |
+| ----------- | ---------------------- | --------- | ----------------- |
+| staging     | `edgecloud-staging`    | Yes       | No                |
+| production  | `edgecloud-production` | No        | Yes (manual)      |
 
 ---
 
 ## Deploy to Staging (automatic)
 
 1. **Create the namespace**
+
    ```bash
    kubectl create namespace edgecloud-staging
    ```
 
 2. **Create image pull secret**
+
    ```bash
    kubectl create secret docker-registry ghcr-credentials \
      --docker-server=ghcr.io \
@@ -42,6 +44,7 @@ Before deploying, verify each item is ready:
    ```
 
 3. **Create database/redis secrets**
+
    ```bash
    kubectl create secret generic edgecloud-secrets \
      --from-literal=DATABASE_URL=postgresql://user:pass@host:5432/edgecloud \
@@ -51,11 +54,13 @@ Before deploying, verify each item is ready:
    ```
 
 4. **Apply ArgoCD application**
+
    ```bash
    kubectl apply -f infra/k8s/argocd/staging-app.yaml
    ```
 
 5. **Monitor sync**
+
    ```bash
    argocd app watch edgecloud-staging \
      --server ARGOCD_SERVER \
@@ -76,6 +81,7 @@ Before deploying, verify each item is ready:
 Same sequence as staging, but with these additional steps:
 
 1. **Update image tags** — edit `infra/k8s/overlays/production/kustomization.yaml` with the new image SHA from the build:
+
    ```yaml
    images:
      - name: ghcr.io/your-org/api
@@ -85,11 +91,13 @@ Same sequence as staging, but with these additional steps:
 2. **Open a PR** with the updated image tag changes. Require at least one review before merge.
 
 3. **After approval and merge:**
+
    ```bash
    git checkout main && git pull
    ```
 
 4. **Trigger manual ArgoCD sync** (ArgoCD does NOT auto-sync production):
+
    ```bash
    argocd app sync edgecloud-production \
      --server ARGOCD_SERVER \
@@ -98,6 +106,7 @@ Same sequence as staging, but with these additional steps:
    ```
 
 5. **Wait for all pods to be Ready:**
+
    ```bash
    kubectl rollout status deployment --namespace edgecloud-production
    ```
@@ -125,6 +134,7 @@ argocd app rollback edgecloud-production <REVISION> \
 ```
 
 Kubernetes-native rollback (if ArgoCD is unavailable):
+
 ```bash
 kubectl rollout undo deployment/api -n edgecloud-production
 kubectl rollout undo deployment/task-service -n edgecloud-production
@@ -136,12 +146,14 @@ kubectl rollout undo deployment/scheduler-service -n edgecloud-production
 ## Verify Deployment
 
 ### Pod health
+
 ```bash
 kubectl get pods -n edgecloud-staging
 # Expected: all pods Running and Ready (e.g. 1/1 or 2/2)
 ```
 
 ### API readiness
+
 ```bash
 kubectl port-forward -n edgecloud-staging svc/api 3000:3000
 curl http://localhost:3000/health/ready
@@ -149,14 +161,15 @@ curl http://localhost:3000/health/ready
 ```
 
 ### Per-service health (ports 3000–3005)
-| Service | Port |
-|---|---|
-| api | 3000 |
-| task-service | 3001 |
+
+| Service           | Port |
+| ----------------- | ---- |
+| api               | 3000 |
+| task-service      | 3001 |
 | scheduler-service | 3003 |
-| node-service | 3004 |
+| node-service      | 3004 |
 | websocket-gateway | 3002 |
-| metrics-service | 3005 |
+| metrics-service   | 3005 |
 
 ```bash
 # Example for each service
@@ -165,6 +178,7 @@ curl http://localhost:<port>/health/ready
 ```
 
 ### Metrics endpoint
+
 ```bash
 kubectl port-forward -n edgecloud-staging svc/metrics-service 3005:3005
 curl http://localhost:3005/metrics
@@ -172,6 +186,7 @@ curl http://localhost:3005/metrics
 ```
 
 ### Log tailing
+
 ```bash
 kubectl logs -n edgecloud-staging -l app.kubernetes.io/name=api -f
 ```
@@ -180,11 +195,11 @@ kubectl logs -n edgecloud-staging -l app.kubernetes.io/name=api -f
 
 ## ArgoCD Application Files
 
-| File | Purpose |
-|---|---|
-| `infra/k8s/argocd/staging-app.yaml` | Staging ArgoCD Application (auto-sync) |
+| File                                   | Purpose                                     |
+| -------------------------------------- | ------------------------------------------- |
+| `infra/k8s/argocd/staging-app.yaml`    | Staging ArgoCD Application (auto-sync)      |
 | `infra/k8s/argocd/production-app.yaml` | Production ArgoCD Application (manual sync) |
-| `infra/k8s/overlays/staging/` | Staging Kustomize overlay |
-| `infra/k8s/overlays/production/` | Production Kustomize overlay |
+| `infra/k8s/overlays/staging/`          | Staging Kustomize overlay                   |
+| `infra/k8s/overlays/production/`       | Production Kustomize overlay                |
 
 > **Note:** `infra/experimental/` is intentionally excluded from all ArgoCD sync paths. It contains Chaos Mesh CRDs and multi-region federation configs that are not part of the standard deployment.

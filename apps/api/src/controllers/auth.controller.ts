@@ -24,9 +24,11 @@ export class AuthController {
     // 1. Check rate limit and lockout
     const rateLimit = await this.rateLimitService.checkLimit(ip, email);
     if (!rateLimit.allowed) {
-      const err = new Error(rateLimit.isLocked
-        ? 'Account locked due to multiple failed attempts. Please try again in 15 minutes.'
-        : 'Too many login attempts. Please try again later.') as any;
+      const err = new Error(
+        rateLimit.isLocked
+          ? 'Account locked due to multiple failed attempts. Please try again in 15 minutes.'
+          : 'Too many login attempts. Please try again later.',
+      ) as any;
       err.statusCode = 429;
       err.code = 'RATE_LIMIT_EXCEEDED';
       throw err;
@@ -63,12 +65,16 @@ export class AuthController {
     await this.rateLimitService.reset(ip, email);
 
     // 5. Generate tokens
-    const tokens = await this.authService.generateTokens({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenantUsers?.[0]?.tenantId,
-    }, request.ip, request.headers['user-agent'] || 'unknown');
+    const tokens = await this.authService.generateTokens(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantUsers?.[0]?.tenantId,
+      },
+      request.ip,
+      request.headers['user-agent'] || 'unknown',
+    );
 
     // 6. Set refresh token in httpOnly cookie
     void reply.setCookie('refreshToken', tokens.refreshToken, {
@@ -120,12 +126,16 @@ export class AuthController {
     });
 
     // Generate tokens
-    const tokens = await this.authService.generateTokens({
-      id: user.id,
-      email: user.email,
-      role: user.role,
-      tenantId: user.tenantUsers?.[0]?.tenantId,
-    }, request.ip, request.headers['user-agent'] || 'unknown');
+    const tokens = await this.authService.generateTokens(
+      {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tenantId: user.tenantUsers?.[0]?.tenantId,
+      },
+      request.ip,
+      request.headers['user-agent'] || 'unknown',
+    );
 
     // Set refresh token in httpOnly cookie
     void reply.setCookie('refreshToken', tokens.refreshToken, {
@@ -168,7 +178,7 @@ export class AuthController {
       const tokens = await this.authService.rotateRefreshToken(
         refreshToken,
         request.ip,
-        request.headers['user-agent'] || 'unknown'
+        request.headers['user-agent'] || 'unknown',
       );
 
       void reply.setCookie('refreshToken', tokens.refreshToken, {
@@ -187,10 +197,10 @@ export class AuthController {
       };
     } catch (error: any) {
       // If security alert or reuse detected, we might want to be more specific or generic
-      const message = error.message.includes('reuse detected') 
+      const message = error.message.includes('reuse detected')
         ? 'Security alert: Refresh token reuse detected. All sessions invalidated.'
         : 'Invalid or expired refresh token';
-        
+
       const err = new Error(message) as any;
       err.statusCode = 401;
       err.code = 'UNAUTHORIZED';
@@ -222,20 +232,29 @@ export class AuthController {
     return user;
   }
 
-  async listSessions(request: FastifyRequest, _reply: FastifyReply): Promise<any> {
+  async listSessions(
+    request: FastifyRequest,
+    _reply: FastifyReply,
+  ): Promise<any> {
     const userId = request.user!.id;
     const sessions = await this.authService.listUserSessions(userId);
     return sessions;
   }
 
-  async revokeSession(request: FastifyRequest<{ Params: { id: string } }>, _reply: FastifyReply): Promise<any> {
+  async revokeSession(
+    request: FastifyRequest<{ Params: { id: string } }>,
+    _reply: FastifyReply,
+  ): Promise<any> {
     const userId = request.user!.id;
     const sessionId = request.params.id;
     await this.authService.revokeSessionById(sessionId, userId);
     return { success: true };
   }
 
-  async revokeAllSessions(request: FastifyRequest, _reply: FastifyReply): Promise<any> {
+  async revokeAllSessions(
+    request: FastifyRequest,
+    _reply: FastifyReply,
+  ): Promise<any> {
     const userId = request.user!.id;
     await this.authService.revokeAllUserSessions(userId);
     return { success: true };

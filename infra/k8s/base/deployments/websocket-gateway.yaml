@@ -91,4 +91,3 @@ spec:
       terminationGracePeriodSeconds: 30
       imagePullSecrets:
         - name: ghcr-credentials
-

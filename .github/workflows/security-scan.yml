@@ -2,9 +2,9 @@ name: Security Scan
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Weekly on Sunday
+    - cron: "0 0 * * 0" # Weekly on Sunday
   pull_request:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -24,12 +24,12 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: '${{ matrix.app }}:scan'
-          format: 'table'
-          exit-code: '1'
+          image-ref: "${{ matrix.app }}:scan"
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
+          vuln-type: "os,library"
+          severity: "CRITICAL"
 
   semgrep:
     name: Semgrep SAST
@@ -64,10 +64,10 @@ jobs:
       - name: Dependency Check
         uses: dependency-check/Dependency-Check_Action@main
         with:
-          project: 'Edge-Cloud Orchestrator'
-          path: '.'
-          format: 'HTML'
-          out: 'reports'
+          project: "Edge-Cloud Orchestrator"
+          path: "."
+          format: "HTML"
+          out: "reports"
           args: >
             --enableRetired
       - name: Upload Report

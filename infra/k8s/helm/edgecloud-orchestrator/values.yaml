@@ -163,7 +163,7 @@ postgresql:
         memory: 512Mi
     readinessProbe:
       enabled: true
-      customCommand: 
+      customCommand:
         - psql
         - -U
         - postgres

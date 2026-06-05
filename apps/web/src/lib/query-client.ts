@@ -1,4 +1,4 @@
-import { QueryClient } from '@tanstack/react-query'
+import { QueryClient } from "@tanstack/react-query";
 
 /**
  * Global React Query client with stale-time tiers per data volatility:
@@ -21,7 +21,7 @@ export const queryClient = new QueryClient({
       retry: 0,
     },
   },
-})
+});
 
 // Stale-time presets for hooks to import
 export const STALE = {
@@ -30,49 +30,49 @@ export const STALE = {
   taskStatus: 5_000,
   default: 30_000,
   long: 60_000,
-} as const
+} as const;
 
 // Canonical query keys — single source of truth
 export const queryKeys = {
   nodes: {
-    all: ['nodes'] as const,
+    all: ["nodes"] as const,
     list: (params?: Record<string, unknown>) =>
-      ['nodes', 'list', params ?? {}] as const,
-    detail: (id: string) => ['nodes', 'detail', id] as const,
-    health: (id: string) => ['nodes', 'health', id] as const,
+      ["nodes", "list", params ?? {}] as const,
+    detail: (id: string) => ["nodes", "detail", id] as const,
+    health: (id: string) => ["nodes", "health", id] as const,
   },
   tasks: {
-    all: ['tasks'] as const,
+    all: ["tasks"] as const,
     list: (params?: Record<string, unknown>) =>
-      ['tasks', 'list', params ?? {}] as const,
-    detail: (id: string) => ['tasks', 'detail', id] as const,
-    stats: () => ['tasks', 'stats'] as const,
+      ["tasks", "list", params ?? {}] as const,
+    detail: (id: string) => ["tasks", "detail", id] as const,
+    stats: () => ["tasks", "stats"] as const,
     schedulingDecision: (id: string) =>
-      ['tasks', 'scheduling-decision', id] as const,
+      ["tasks", "scheduling-decision", id] as const,
   },
   metrics: {
-    system: () => ['metrics', 'system'] as const,
-    nodes: () => ['metrics', 'nodes'] as const,
+    system: () => ["metrics", "system"] as const,
+    nodes: () => ["metrics", "nodes"] as const,
   },
   scheduler: {
-    status: () => ['scheduler', 'status'] as const,
-    metrics: () => ['scheduler', 'metrics'] as const,
+    status: () => ["scheduler", "status"] as const,
+    metrics: () => ["scheduler", "metrics"] as const,
   },
   webhooks: {
-    all: ['webhooks'] as const,
-    deliveries: (id: string) => ['webhooks', 'deliveries', id] as const,
+    all: ["webhooks"] as const,
+    deliveries: (id: string) => ["webhooks", "deliveries", id] as const,
   },
   cost: {
-    summary: () => ['cost', 'summary'] as const,
-    byNode: () => ['cost', 'by-node'] as const,
+    summary: () => ["cost", "summary"] as const,
+    byNode: () => ["cost", "by-node"] as const,
   },
   carbon: {
-    summary: () => ['carbon', 'summary'] as const,
-    byRegion: () => ['carbon', 'by-region'] as const,
+    summary: () => ["carbon", "summary"] as const,
+    byRegion: () => ["carbon", "by-region"] as const,
   },
   workflows: {
-    all: ['workflows'] as const,
-    detail: (id: string) => ['workflows', 'detail', id] as const,
-    executions: (id: string) => ['workflows', 'executions', id] as const,
+    all: ["workflows"] as const,
+    detail: (id: string) => ["workflows", "detail", id] as const,
+    executions: (id: string) => ["workflows", "executions", id] as const,
   },
-} as const
+} as const;

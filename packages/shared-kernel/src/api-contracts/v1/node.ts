@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 /**
  * API V1 Node Contracts
@@ -8,7 +8,7 @@ export const RegisterNodeV1Schema = z.object({
   name: z.string().min(1).max(100),
   location: z.string().min(1).max(200),
   region: z.string().min(1).max(50),
-  ipAddress: z.string().ip({ version: 'v4' }),
+  ipAddress: z.string().ip({ version: "v4" }),
   port: z.number().int().min(1).max(65535),
   cpuCores: z.number().int().min(1).max(128),
   memoryGB: z.number().int().min(1).max(1024),
@@ -36,7 +36,7 @@ export const NodeV1ResponseSchema = z.object({
   name: z.string(),
   location: z.string(),
   region: z.string(),
-  status: z.enum(['ONLINE', 'OFFLINE', 'DEGRADED', 'MAINTENANCE']),
+  status: z.enum(["ONLINE", "OFFLINE", "DEGRADED", "MAINTENANCE"]),
   ipAddress: z.string(),
   port: z.number(),
   specs: z.object({
@@ -44,21 +44,25 @@ export const NodeV1ResponseSchema = z.object({
     memoryGB: z.number(),
     storageGB: z.number(),
   }),
-  load: z.object({
-    cpuUsage: z.number().optional(),
-    memoryUsage: z.number().optional(),
-    activeTasks: z.number(),
-  }).optional(),
+  load: z
+    .object({
+      cpuUsage: z.number().optional(),
+      memoryUsage: z.number().optional(),
+      activeTasks: z.number(),
+    })
+    .optional(),
   lastHeartbeat: z.string().datetime(),
 });
 
 export const NodeQueryV1Schema = z.object({
   region: z.string().optional(),
-  status: z.enum(['ONLINE', 'OFFLINE', 'DEGRADED', 'MAINTENANCE']).optional(),
+  status: z.enum(["ONLINE", "OFFLINE", "DEGRADED", "MAINTENANCE"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
   limit: z.coerce.number().int().min(1).max(100).default(20),
-  sortBy: z.enum(['name', 'region', 'status', 'createdAt']).default('createdAt'),
-  sortOrder: z.enum(['asc', 'desc']).default('desc'),
+  sortBy: z
+    .enum(["name", "region", "status", "createdAt"])
+    .default("createdAt"),
+  sortOrder: z.enum(["asc", "desc"]).default("desc"),
 });
 
 // Types derived from schemas

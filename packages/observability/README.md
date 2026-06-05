@@ -12,20 +12,23 @@ pnpm add @edgecloud/observability
 
 ## Exports
 
-| Export          | Type     | Description                                    |
-|-----------------|----------|------------------------------------------------|
-| `initTelemetry` | function | Bootstrap OTEL SDK for a service               |
-| `createLogger`  | function | Pino logger with trace correlation             |
-| `MetricsRegistry`| class   | Prometheus counter/histogram/gauge factory     |
+| Export            | Type     | Description                                |
+| ----------------- | -------- | ------------------------------------------ |
+| `initTelemetry`   | function | Bootstrap OTEL SDK for a service           |
+| `createLogger`    | function | Pino logger with trace correlation         |
+| `MetricsRegistry` | class    | Prometheus counter/histogram/gauge factory |
 
 ## Usage
 
 ```typescript
-import { initTelemetry, createLogger } from '@edgecloud/observability'
+import { initTelemetry, createLogger } from "@edgecloud/observability";
 
-initTelemetry({ serviceName: 'my-service', exporterEndpoint: process.env.OTEL_EXPORTER_ENDPOINT })
-const logger = createLogger('my-service')
-logger.info({ taskId: '...' }, 'task submitted')
+initTelemetry({
+  serviceName: "my-service",
+  exporterEndpoint: process.env.OTEL_EXPORTER_ENDPOINT,
+});
+const logger = createLogger("my-service");
+logger.info({ taskId: "..." }, "task submitted");
 ```
 
 ## Build

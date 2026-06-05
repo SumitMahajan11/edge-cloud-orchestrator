@@ -9,7 +9,10 @@ import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
-import { schedulerWeightsBodySchema, schedulerApplyPresetParamSchema } from '../schemas';
+import {
+  schedulerWeightsBodySchema,
+  schedulerApplyPresetParamSchema,
+} from '../schemas';
 
 // Validation schema for weights
 const WeightsSchema = z.object({
@@ -28,14 +31,16 @@ interface SchedulerConfigRoutesOptions {
   getCircuitBreakerHealth: () => Record<string, unknown>;
 }
 
-
 export async function schedulerConfigRoutes(
   fastify: FastifyInstance,
   options: SchedulerConfigRoutesOptions,
 ) {
   // Add authentication and role protection to all routes in this module
   fastify.addHook('preHandler', fastify.authenticate);
-  fastify.addHook('preHandler', fastify.requirePermission(Permissions.SCHEDULER_READ));
+  fastify.addHook(
+    'preHandler',
+    fastify.requirePermission(Permissions.SCHEDULER_READ),
+  );
 
   // Get current scheduler weights
   fastify.get('/weights', async (_, reply) => {
@@ -79,29 +84,33 @@ export async function schedulerConfigRoutes(
   );
 
   // Reset weights to defaults
-  fastify.post('/weights/reset', {
-    preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)]
-  }, async (_, reply) => {
-    const defaultWeights: ScoreWeights = {
-      latency: 0.2,
-      cpu: 0.15,
-      memory: 0.15,
-      cost: 0.2,
-      network: 0.1,
-      ml: 0.1,
-      health: 0.1,
-    };
+  fastify.post(
+    '/weights/reset',
+    {
+      preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
+    },
+    async (_, reply) => {
+      const defaultWeights: ScoreWeights = {
+        latency: 0.2,
+        cpu: 0.15,
+        memory: 0.15,
+        cost: 0.2,
+        network: 0.1,
+        ml: 0.1,
+        health: 0.1,
+      };
 
-    options.setWeights(defaultWeights);
+      options.setWeights(defaultWeights);
 
-    return reply.send({
-      success: true,
-      message: 'Scheduler weights reset to defaults',
-      data: {
-        weights: defaultWeights,
-      },
-    });
-  });
+      return reply.send({
+        success: true,
+        message: 'Scheduler weights reset to defaults',
+        data: {
+          weights: defaultWeights,
+        },
+      });
+    },
+  );
 
   // Get circuit breaker health
   fastify.get('/circuit-breakers', async (_, reply) => {
@@ -193,83 +202,87 @@ export async function schedulerConfigRoutes(
   });
 
   // Apply a preset
-  fastify.post('/presets/:name/apply', {
-    preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
-    schema: {
-      params: zodToFastifySchema(schedulerApplyPresetParamSchema),
+  fastify.post(
+    '/presets/:name/apply',
+    {
+      preHandler: [fastify.requirePermission(Permissions.SCHEDULER_MANAGE)],
+      schema: {
+        params: zodToFastifySchema(schedulerApplyPresetParamSchema),
+      },
     },
-  }, async (request, reply) => {
-    const { name } = request.params as { name: string };
+    async (request, reply) => {
+      const { name } = request.params as { name: string };
 
-    const presets: Record<string, ScoreWeights> = {
-      balanced: {
-        latency: 0.15,
-        cpu: 0.15,
-        memory: 0.15,
-        cost: 0.15,
-        network: 0.1,
-        ml: 0.15,
-        health: 0.15,
-      },
-      'cost-optimized': {
-        latency: 0.1,
-        cpu: 0.1,
-        memory: 0.1,
-        cost: 0.4,
-        network: 0.05,
-        ml: 0.1,
-        health: 0.15,
-      },
-      'latency-optimized': {
-        latency: 0.4,
-        cpu: 0.1,
-        memory: 0.1,
-        cost: 0.1,
-        network: 0.15,
-        ml: 0.05,
-        health: 0.1,
-      },
-      'ml-enhanced': {
-        latency: 0.1,
-        cpu: 0.1,
-        memory: 0.1,
-        cost: 0.1,
-        network: 0.1,
-        ml: 0.4,
-        health: 0.1,
-      },
-      'health-priority': {
-        latency: 0.1,
-        cpu: 0.1,
-        memory: 0.1,
-        cost: 0.1,
-        network: 0.1,
-        ml: 0.1,
-        health: 0.4,
-      },
-    };
+      const presets: Record<string, ScoreWeights> = {
+        balanced: {
+          latency: 0.15,
+          cpu: 0.15,
+          memory: 0.15,
+          cost: 0.15,
+          network: 0.1,
+          ml: 0.15,
+          health: 0.15,
+        },
+        'cost-optimized': {
+          latency: 0.1,
+          cpu: 0.1,
+          memory: 0.1,
+          cost: 0.4,
+          network: 0.05,
+          ml: 0.1,
+          health: 0.15,
+        },
+        'latency-optimized': {
+          latency: 0.4,
+          cpu: 0.1,
+          memory: 0.1,
+          cost: 0.1,
+          network: 0.15,
+          ml: 0.05,
+          health: 0.1,
+        },
+        'ml-enhanced': {
+          latency: 0.1,
+          cpu: 0.1,
+          memory: 0.1,
+          cost: 0.1,
+          network: 0.1,
+          ml: 0.4,
+          health: 0.1,
+        },
+        'health-priority': {
+          latency: 0.1,
+          cpu: 0.1,
+          memory: 0.1,
+          cost: 0.1,
+          network: 0.1,
+          ml: 0.1,
+          health: 0.4,
+        },
+      };
 
-    const preset = presets[name];
-    if (!preset) {
-      return reply.status(404).send({
-        error: {
-          code: 'NOT_FOUND',
-          message: `Preset '${name}' not found`,
-          requestId: request.id,
-        }
+      const preset = presets[name];
+      if (!preset) {
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: `Preset '${name}' not found`,
+            requestId: request.id,
+          },
+        });
+      }
+
+      options.setWeights(preset);
+
+      return reply.send({
+        success: true,
+        message: `Applied preset: ${name}`,
+        data: {
+          weights: preset,
+        },
       });
-    }
-
-    options.setWeights(preset);
-
-    return reply.send({
-      success: true,
-      message: `Applied preset: ${name}`,
-      data: {
-        weights: preset,
-      },
-    });
-  });
+    },
+  );
 }
 
 /**
@@ -292,4 +305,3 @@ function normalizeWeights(weights: ScoreWeights): ScoreWeights {
     health: weights.health / sum,
   };
 }
-

@@ -1,7 +1,6 @@
 {
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
-
     "paths": {
       "@edgecloud/shared-kernel": ["./packages/shared-kernel/src/index.ts"],
       "@edgecloud/api-client": ["./packages/api-client/src/index.ts"],

@@ -48,7 +48,8 @@ export class RateLimitService {
     pipeline.zcard(windowKey);
     const results = await pipeline.exec();
 
-    const count = (results && results[1] && results[1][1] ? (results[1][1] as number) : 0);
+    const count =
+      results && results[1] && results[1][1] ? (results[1][1] as number) : 0;
 
     if (count >= this.maxAttempts) {
       // Trigger lockout if not already set (this happens on the attempt that exceeds the limit)

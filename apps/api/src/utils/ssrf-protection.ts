@@ -3,7 +3,7 @@ import { isIP, inRange } from 'range_check';
 
 /**
  * SSRF Protection Utility
- * 
+ *
  * Prevents requests to internal/private IP ranges.
  */
 export class SSRFProtection {
@@ -14,21 +14,21 @@ export class SSRFProtection {
     '172.16.0.0/12',
     '192.168.0.0/16',
     '169.254.0.0/16', // Link-local
-    '::1/128',        // IPv6 Loopback
-    'fc00::/7',       // IPv6 Unique Local Address
-    'fe80::/10',      // IPv6 Link-local
+    '::1/128', // IPv6 Loopback
+    'fc00::/7', // IPv6 Unique Local Address
+    'fe80::/10', // IPv6 Link-local
   ];
 
   /**
    * Validates if a URL is safe to request (not pointing to internal infrastructure).
-   * 
+   *
    * @param urlStr The URL to validate
    * @returns true if safe, false if blocked
    */
   static async isSafeUrl(urlStr: string): Promise<boolean> {
     try {
       const url = new URL(urlStr);
-      
+
       // 1. Block non-HTTP protocols
       if (url.protocol !== 'http:' && url.protocol !== 'https:') {
         return false;

@@ -7,6 +7,7 @@
 ## Context
 
 Edge-Cloud Orchestrator needs an API gateway to handle:
+
 - **Reverse proxy** — Route requests to backend services (API, agent, scheduler)
 - **Rate limiting** — Per-user rate limits to prevent abuse
 - **Request validation** — Catch invalid requests early (before they reach services)
@@ -17,6 +18,7 @@ Edge-Cloud Orchestrator needs an API gateway to handle:
 Two primary options were evaluated:
 
 ### Kong API Gateway
+
 - Built on Nginx with Lua plugin system
 - Rich plugin ecosystem (authentication, rate limiting, transformations)
 - YAML/Declarative configuration
@@ -24,6 +26,7 @@ Two primary options were evaluated:
 - Requires PostgreSQL for configuration storage
 
 ### Nginx (Open Source)
+
 - Lightweight, proven reverse proxy
 - Excellent performance at scale
 - Configuration via `nginx.conf` (imperative)
@@ -65,6 +68,7 @@ Two primary options were evaluated:
 ## Consequences
 
 ### Positive
+
 - ✅ **Minimal Dependencies** — Just Nginx (no PostgreSQL for config, no plugin DB)
 - ✅ **Very Fast** — Proven at scale, minimal overhead
 - ✅ **Lower Resource Usage** — 10x less memory than Kong
@@ -72,6 +76,7 @@ Two primary options were evaluated:
 - ✅ **Simpler Debugging** — Standard Nginx error logs, no plugin stack traces
 
 ### Negative
+
 - ⚠️ **Lua Scripting Less Ergonomic** — More verbose than Kong plugins (YAML config)
 - ⚠️ **Loss of Kong's Higher-Level Abstractions** — No built-in API key management, consumer portal
 - ⚠️ **Manual Configuration** — No declarative YAML (must maintain `nginx.conf`)
@@ -80,6 +85,7 @@ Two primary options were evaluated:
 ## Implementation Details
 
 ### Rate Limiting Configuration
+
 ```nginx
 # Per-user rate limiting zones
 limit_req_zone $user_id zone=user_tasks:10m rate=100r/s;
@@ -98,6 +104,7 @@ location /v1/ {
 ```
 
 ### Request Validation (Lua)
+
 ```lua
 -- /etc/nginx/lua/validate_task_request.lua
 local json = require "cjson"
@@ -112,6 +119,7 @@ end
 ```
 
 ### JWT Extraction for Per-User Rate Limiting
+
 ```nginx
 map $http_authorization $user_id {
     default "anonymous";
@@ -120,6 +128,7 @@ map $http_authorization $user_id {
 ```
 
 ### Custom 429 Response
+
 ```nginx
 error_page 429 @rate_limit_exceeded;
 location @rate_limit_exceeded {
@@ -143,7 +152,7 @@ location @rate_limit_exceeded {
 
 3. **Lua Script Maintenance**
    - Keep Lua scripts minimal (validation, simple transformations)
-   - Use external libraries (lua-cjson, lua-resty-*) for common operations
+   - Use external libraries (lua-cjson, lua-resty-\*) for common operations
    - Test Lua scripts with unit tests (busted framework)
 
 4. **Monitoring**
@@ -153,20 +162,20 @@ location @rate_limit_exceeded {
 
 ## Feature Comparison
 
-| Feature | Nginx | Kong |
-|---------|-------|------|
-| Reverse Proxy | ✅ | ✅ |
-| Rate Limiting | ✅ (built-in) | ✅ (plugin) |
-| Request Validation | ✅ (Lua) | ✅ (plugin) |
-| TLS Termination | ✅ | ✅ |
-| Load Balancing | ✅ | ✅ |
-| WebSocket Support | ✅ | ✅ |
-| API Key Management | ❌ (custom) | ✅ (plugin) |
-| Consumer Portal | ❌ | ✅ |
-| Plugin Ecosystem | ❌ | ✅ (100+ plugins) |
-| Resource Usage | ~10MB | ~100MB+ |
-| Configuration | nginx.conf | YAML/DB |
-| Learning Curve | Low | Medium |
+| Feature            | Nginx         | Kong              |
+| ------------------ | ------------- | ----------------- |
+| Reverse Proxy      | ✅            | ✅                |
+| Rate Limiting      | ✅ (built-in) | ✅ (plugin)       |
+| Request Validation | ✅ (Lua)      | ✅ (plugin)       |
+| TLS Termination    | ✅            | ✅                |
+| Load Balancing     | ✅            | ✅                |
+| WebSocket Support  | ✅            | ✅                |
+| API Key Management | ❌ (custom)   | ✅ (plugin)       |
+| Consumer Portal    | ❌            | ✅                |
+| Plugin Ecosystem   | ❌            | ✅ (100+ plugins) |
+| Resource Usage     | ~10MB         | ~100MB+           |
+| Configuration      | nginx.conf    | YAML/DB           |
+| Learning Curve     | Low           | Medium            |
 
 ## Future Considerations
 
@@ -187,6 +196,7 @@ If requirements evolve:
 ## Revisit Triggers
 
 This decision should be revisited when:
+
 - API key management requires complex features (OAuth2, OIDC, consumer tiers)
 - Need for 10+ different request/response transformations
 - Team size grows and Kong's declarative config becomes valuable

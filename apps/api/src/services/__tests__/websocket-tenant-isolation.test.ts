@@ -10,8 +10,8 @@ vi.mock('../../config/env', () => ({
   env: {
     JWT_SECRET: 'a'.repeat(32),
     NODE_ENV: 'test',
-    REDIS_URL: 'redis://localhost:6379'
-  }
+    REDIS_URL: 'redis://localhost:6379',
+  },
 }));
 
 describe('WebSocket Manager Tenant Isolation', () => {
@@ -21,7 +21,7 @@ describe('WebSocket Manager Tenant Isolation', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     mockLogger = {
       info: vi.fn(),
       warn: vi.fn(),
@@ -55,7 +55,10 @@ describe('WebSocket Manager Tenant Isolation', () => {
 
   it('should automatically subscribe user to their tenant-scoped channels locally', async () => {
     const tenantId = 'tenant-a';
-    const token = jwt.sign({ id: 'user-1', tenantId, role: 'USER' }, TEST_SECRET);
+    const token = jwt.sign(
+      { id: 'user-1', tenantId, role: 'USER' },
+      TEST_SECRET,
+    );
     const mockWs = createMockWs();
     const mockReq = createMockReq(token);
 
@@ -63,9 +66,9 @@ describe('WebSocket Manager Tenant Isolation', () => {
 
     // Verify Pod-level Redis psubscribe was called with global pattern (from constructor)
     expect(mockRedis.psubscribe).toHaveBeenCalledWith('*:*:*');
-    
+
     // Verify Client-level local subscriptions
-    const {clients} = (wsManager as any);
+    const { clients } = wsManager as any;
     const client = Array.from(clients.values())[0] as any;
     expect(client.subscriptions.has(`task:created:${tenantId}`)).toBe(true);
     expect(client.subscriptions.has(`node:heartbeat:${tenantId}`)).toBe(true);
@@ -79,7 +82,7 @@ describe('WebSocket Manager Tenant Isolation', () => {
     await wsManager.handleConnection(mockWs as any, mockReq as any);
 
     // Verify Client-level local subscriptions
-    const {clients} = (wsManager as any);
+    const { clients } = wsManager as any;
     const client = Array.from(clients.values())[0] as any;
     expect(client.subscriptions.has('*')).toBe(true);
   });
@@ -87,15 +90,18 @@ describe('WebSocket Manager Tenant Isolation', () => {
   it('should prevent Tenant A from subscribing to Tenant B channels', async () => {
     const tenantIdA = 'tenant-a';
     const tenantIdB = 'tenant-b';
-    const token = jwt.sign({ id: 'user-1', tenantId: tenantIdA, role: 'USER' }, TEST_SECRET);
+    const token = jwt.sign(
+      { id: 'user-1', tenantId: tenantIdA, role: 'USER' },
+      TEST_SECRET,
+    );
     const mockWs = createMockWs();
     const mockReq = createMockReq(token);
 
     await wsManager.handleConnection(mockWs as any, mockReq as any);
-    
-    const {clients} = (wsManager as any);
+
+    const { clients } = wsManager as any;
     const client = Array.from(clients.values())[0] as any;
-    
+
     const channel = `task:created:${tenantIdB}`;
     (wsManager as any).handleSubscribe(client, { channels: [channel] });
 
@@ -105,15 +111,18 @@ describe('WebSocket Manager Tenant Isolation', () => {
 
   it('should allow Tenant A to subscribe to their own channels', async () => {
     const tenantIdA = 'tenant-a';
-    const token = jwt.sign({ id: 'user-1', tenantId: tenantIdA, role: 'USER' }, TEST_SECRET);
+    const token = jwt.sign(
+      { id: 'user-1', tenantId: tenantIdA, role: 'USER' },
+      TEST_SECRET,
+    );
     const mockWs = createMockWs();
     const mockReq = createMockReq(token);
 
     await wsManager.handleConnection(mockWs as any, mockReq as any);
-    
-    const {clients} = (wsManager as any);
+
+    const { clients } = wsManager as any;
     const client = Array.from(clients.values())[0] as any;
-    
+
     const channel = `task:created:${tenantIdA}`;
     (wsManager as any).handleSubscribe(client, { channels: [channel] });
 
@@ -129,7 +138,7 @@ describe('WebSocket Manager Tenant Isolation', () => {
 
     expect(mockRedis.publish).toHaveBeenCalledWith(
       `${event}:${tenantId}`,
-      expect.stringContaining('"tenantId":"tenant-a"')
+      expect.stringContaining('"tenantId":"tenant-a"'),
     );
   });
 
@@ -140,6 +149,9 @@ describe('WebSocket Manager Tenant Isolation', () => {
 
     await wsManager.handleConnection(mockWs as any, mockReq as any);
 
-    expect(mockWs.close).toHaveBeenCalledWith(4001, 'Unauthorized: Missing Tenant Context');
+    expect(mockWs.close).toHaveBeenCalledWith(
+      4001,
+      'Unauthorized: Missing Tenant Context',
+    );
   });
 });

@@ -2,7 +2,7 @@ name: ML Model Retraining
 
 on:
   schedule:
-    - cron: '0 0 * * 0' # Weekly at Sunday midnight
+    - cron: "0 0 * * 0" # Weekly at Sunday midnight
   repository_dispatch:
     types: [ml_drift_alert]
   workflow_dispatch: # Manual trigger
@@ -19,8 +19,8 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-          cache: 'pip'
+          python-version: "3.10"
+          cache: "pip"
 
       - name: Install Dependencies
         run: |
@@ -30,10 +30,10 @@ jobs:
         run: |
           # Create models directory if it doesn't exist
           mkdir -p packages/ml-scheduler/models
-          
+
           # Default data path for retraining
           DATA_PATH="packages/ml-scheduler/src/training/data/historical_metrics.json"
-          
+
           # If data doesn't exist, create a dummy dataset for CI demonstration if needed
           # In production, this would be fetched from a metrics warehouse
           if [ ! -f "$DATA_PATH" ]; then
@@ -42,7 +42,7 @@ jobs:
             # For now, we expect the data to be present or the job will fail
             exit 1
           fi
-          
+
           python packages/ml-scheduler/src/training/train_model.py "$DATA_PATH" packages/ml-scheduler/models
 
       - name: Commit and Push New Model

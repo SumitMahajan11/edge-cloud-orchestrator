@@ -28,11 +28,14 @@ describe('Global Error Handler', () => {
     });
 
     app.get('/error/prisma-conflict', async () => {
-      throw new Prisma.PrismaClientKnownRequestError('Unique constraint failed', {
-        code: 'P2002',
-        clientVersion: '5.0.0',
-        meta: { target: ['email'] }
-      });
+      throw new Prisma.PrismaClientKnownRequestError(
+        'Unique constraint failed',
+        {
+          code: 'P2002',
+          clientVersion: '5.0.0',
+          meta: { target: ['email'] },
+        },
+      );
     });
 
     app.get('/error/jwt-expired', async () => {
@@ -157,7 +160,7 @@ describe('Global Error Handler', () => {
     expect(response.statusCode).toBe(500);
     const { error: body } = JSON.parse(response.payload) as { error: ApiError };
     expect(body.code).toBe('INTERNAL_ERROR');
-    
+
     // In test environment, stack should be included
     expect(body.stack).toBeDefined();
   });
@@ -165,7 +168,7 @@ describe('Global Error Handler', () => {
   it('should hide stack trace in production', async () => {
     const originalEnv = env.NODE_ENV;
     (env as any).NODE_ENV = 'production';
-    
+
     try {
       const response = await app.inject({
         method: 'GET',
@@ -173,7 +176,9 @@ describe('Global Error Handler', () => {
       });
 
       expect(response.statusCode).toBe(500);
-      const { error: body } = JSON.parse(response.payload) as { error: ApiError };
+      const { error: body } = JSON.parse(response.payload) as {
+        error: ApiError;
+      };
       expect(body.stack).toBeUndefined();
       expect(body.message).toBe('An internal server error occurred');
     } finally {

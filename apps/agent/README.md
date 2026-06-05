@@ -4,7 +4,7 @@ The Edge Agent is responsible for executing tasks on the edge node. It communica
 
 ## Security
 
-The agent uses mTLS for secure communication. 
+The agent uses mTLS for secure communication.
 
 ### Certificate Generation
 

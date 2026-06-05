@@ -31,15 +31,15 @@ export const createMockRedis = (logger: Logger) => {
     subscribe: async () => {},
     psubscribe: async () => {},
     punsubscribe: async () => {},
-    on: function() {
+    on: function () {
       return this;
     },
-    off: function() {
+    off: function () {
       return this;
     },
     quit: async () => 'OK',
     disconnect: () => {},
-    duplicate: function() {
+    duplicate: function () {
       return this;
     },
     defineCommand: () => {},
@@ -49,7 +49,10 @@ export const createMockRedis = (logger: Logger) => {
         .sort((a, b) => a.score - b.score)
         .slice(start, stop === -1 ? undefined : stop + 1)
         .map((i) => i.member);
-      logger.debug({ key, start, stop, count: result.length }, '[Redis Mock] zrange');
+      logger.debug(
+        { key, start, stop, count: result.length },
+        '[Redis Mock] zrange',
+      );
       return result;
     },
     zrevrange: async (key: string, start: number, stop: number) => {
@@ -58,14 +61,23 @@ export const createMockRedis = (logger: Logger) => {
         .sort((a, b) => b.score - a.score)
         .slice(start, stop === -1 ? undefined : stop + 1)
         .map((i) => i.member);
-      logger.info({ key, start, stop, count: result.length, first: result[0] }, '[Redis Mock] zrevrange');
+      logger.info(
+        { key, start, stop, count: result.length, first: result[0] },
+        '[Redis Mock] zrevrange',
+      );
       return result;
     },
-    zrangebyscore: async (key: string, min: number | string, max: number | string) => {
+    zrangebyscore: async (
+      key: string,
+      min: number | string,
+      max: number | string,
+    ) => {
       const set = zsets.get(key) || [];
       const minVal = typeof min === 'string' ? -Infinity : min;
       const maxVal = typeof max === 'string' ? Infinity : max;
-      return set.filter((i) => i.score >= minVal && i.score <= maxVal).map((i) => i.member);
+      return set
+        .filter((i) => i.score >= minVal && i.score <= maxVal)
+        .map((i) => i.member);
     },
     zpopmin: async (key: string, count: number = 1) => {
       const set = zsets.get(key) || [];
@@ -76,7 +88,10 @@ export const createMockRedis = (logger: Logger) => {
         result.push(p.member);
         result.push(p.score);
       });
-      logger.debug({ key, count, popped: popped.length }, '[Redis Mock] zpopmin');
+      logger.debug(
+        { key, count, popped: popped.length },
+        '[Redis Mock] zpopmin',
+      );
       return result;
     },
     zcard: async (key: string) => {
@@ -107,12 +122,16 @@ export const createMockRedis = (logger: Logger) => {
     },
     zrank: async (key: string, member: string) => {
       const set = zsets.get(key) || [];
-      const index = set.sort((a, b) => a.score - b.score).findIndex((i) => i.member === member);
+      const index = set
+        .sort((a, b) => a.score - b.score)
+        .findIndex((i) => i.member === member);
       return index === -1 ? null : index;
     },
     zrevrank: async (key: string, member: string) => {
       const set = zsets.get(key) || [];
-      const index = set.sort((a, b) => b.score - a.score).findIndex((i) => i.member === member);
+      const index = set
+        .sort((a, b) => b.score - a.score)
+        .findIndex((i) => i.member === member);
       return index === -1 ? null : index;
     },
     zremrangebyscore: async (key: string, min: number, max: number) => {
@@ -145,16 +164,42 @@ export const createMockRedis = (logger: Logger) => {
     eval: async (..._args: any[]) => 1,
     script: async (..._args: any[]) => 'OK',
     rateLimit: async (..._args: any[]) => [1, 100, 100, -1],
-    pipeline: function() {
+    pipeline: function () {
       const cmds: any[] = [];
       const p: any = {
         exec: async () => cmds.map(() => [null, 0]),
       };
       [
-        'get', 'set', 'setex', 'del', 'incr', 'decr', 'incrby', 'expire', 'ttl',
-        'zadd', 'zrem', 'zrange', 'zrevrange', 'zrangebyscore', 'zcard',
-        'zremrangebyscore', 'zrank', 'zrevrank', 'lrange', 'lpush', 'rpush',
-        'llen', 'lrem', 'ltrim', 'hset', 'hget', 'hdel', 'evalsha', 'eval', 'script'
+        'get',
+        'set',
+        'setex',
+        'del',
+        'incr',
+        'decr',
+        'incrby',
+        'expire',
+        'ttl',
+        'zadd',
+        'zrem',
+        'zrange',
+        'zrevrange',
+        'zrangebyscore',
+        'zcard',
+        'zremrangebyscore',
+        'zrank',
+        'zrevrank',
+        'lrange',
+        'lpush',
+        'rpush',
+        'llen',
+        'lrem',
+        'ltrim',
+        'hset',
+        'hget',
+        'hdel',
+        'evalsha',
+        'eval',
+        'script',
       ].forEach((fn) => {
         p[fn] = (..._args: any[]) => {
           cmds.push(fn);
@@ -163,7 +208,7 @@ export const createMockRedis = (logger: Logger) => {
       });
       return p;
     },
-    multi: function() {
+    multi: function () {
       return (this as any).pipeline();
     },
   };

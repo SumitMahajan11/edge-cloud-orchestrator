@@ -13,14 +13,24 @@ export class ApiClientError extends Error {
     public readonly requestId?: string,
   ) {
     super(response.message);
-    this.name = 'ApiClientError';
+    this.name = "ApiClientError";
   }
-  
-  isNotFound(): boolean { return this.statusCode === 404; }
-  isUnauthorized(): boolean { return this.statusCode === 401; }
-  isForbidden(): boolean { return this.statusCode === 403; }
-  isConflict(): boolean { return this.statusCode === 409; }
-  isServerError(): boolean { return this.statusCode >= 500; }
+
+  isNotFound(): boolean {
+    return this.statusCode === 404;
+  }
+  isUnauthorized(): boolean {
+    return this.statusCode === 401;
+  }
+  isForbidden(): boolean {
+    return this.statusCode === 403;
+  }
+  isConflict(): boolean {
+    return this.statusCode === 409;
+  }
+  isServerError(): boolean {
+    return this.statusCode >= 500;
+  }
 }
 
 export function isApiClientError(e: unknown): e is ApiClientError {

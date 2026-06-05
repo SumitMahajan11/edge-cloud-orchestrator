@@ -1,7 +1,5 @@
 import { AutoHealer } from '../auto-healer';
 
-
-
 // Mock dependencies
 const mockPrisma = {
   task: {
@@ -41,7 +39,7 @@ describe('AutoHealer', () => {
       mockPrisma as any,
       mockRedis as any,
       mockLogger as any,
-      { cooldownMs: 0 }
+      { cooldownMs: 0 },
     );
   });
 
@@ -51,7 +49,7 @@ describe('AutoHealer', () => {
       mockPrisma.task.findMany.mockResolvedValue([failedTask]);
       mockPrisma.taskExecution.count.mockResolvedValue(1); // 1 success/fail attempt so far, < 3
 
-      // We need to trigger the private method checkFailedTasks. 
+      // We need to trigger the private method checkFailedTasks.
       // In a real health check it's called by performHealthChecks.
       await (autoHealer as any).checkFailedTasks();
 
@@ -62,7 +60,11 @@ describe('AutoHealer', () => {
           nodeId: null,
         }),
       });
-      expect(mockRedis.zadd).toHaveBeenCalledWith('task:queue', expect.any(Number), 'task-1');
+      expect(mockRedis.zadd).toHaveBeenCalledWith(
+        'task:queue',
+        expect.any(Number),
+        'task-1',
+      );
     });
 
     it('should NOT retry when retry count >= maxRetries', async () => {

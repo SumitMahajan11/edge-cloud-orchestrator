@@ -1,10 +1,10 @@
-import { z } from 'zod';
-import { v1Contracts } from '@edgecloud/shared-kernel';
+import { z } from "zod";
+import { v1Contracts } from "@edgecloud/shared-kernel";
 
 // Note: This file is a bridge between the TS schema and Rust types for documentation.
 // The actual Rust implementation will use the types defined below.
 
-export const TaskRuntimeSchema = z.enum(['Docker', 'Wasm']);
+export const TaskRuntimeSchema = z.enum(["Docker", "Wasm"]);
 
 export const WasmTaskSpecSchema = z.object({
   imageUrl: z.string().url(),
@@ -53,10 +53,12 @@ export interface TaskPayload {
   maxDurationSeconds?: number | undefined;
   env?: Record<string, string> | undefined;
   command?: string | string[] | undefined;
-  resources?: {
-    memory?: string | undefined;
-    cpu?: number | undefined;
-  } | undefined;
+  resources?:
+    | {
+        memory?: string | undefined;
+        cpu?: number | undefined;
+      }
+    | undefined;
   network?: string | undefined;
   input?: any;
   metadata?: any;
@@ -64,7 +66,7 @@ export interface TaskPayload {
 
 export interface ExecutionResult {
   taskId: string;
-  status: 'completed' | 'failed' | 'timeout';
+  status: "completed" | "failed" | "timeout";
   exitCode?: number | undefined;
   stdout?: string | undefined;
   stderr?: string | undefined;

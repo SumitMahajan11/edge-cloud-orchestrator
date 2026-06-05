@@ -1,52 +1,52 @@
-import { generateId } from '../utils'
+import { generateId } from "../utils";
 
 interface TraceContext {
-  traceId: string
-  spanId: string
-  parentSpanId?: string | undefined
-  sampled: boolean
+  traceId: string;
+  spanId: string;
+  parentSpanId?: string | undefined;
+  sampled: boolean;
 }
 
 interface Span {
-  id: string
-  traceId: string
-  parentId?: string | undefined
-  name: string
-  startTime: number
-  endTime?: number | undefined
-  duration?: number | undefined
-  tags: Record<string, string>
-  logs: SpanLog[]
-  status: 'ok' | 'error'
+  id: string;
+  traceId: string;
+  parentId?: string | undefined;
+  name: string;
+  startTime: number;
+  endTime?: number | undefined;
+  duration?: number | undefined;
+  tags: Record<string, string>;
+  logs: SpanLog[];
+  status: "ok" | "error";
 }
 
 interface SpanLog {
-  timestamp: number
-  fields: Record<string, unknown>
+  timestamp: number;
+  fields: Record<string, unknown>;
 }
 
 interface Trace {
-  traceId: string
-  spans: Span[]
-  startTime: number
-  endTime?: number | undefined
+  traceId: string;
+  spans: Span[];
+  startTime: number;
+  endTime?: number | undefined;
 }
 
 class Tracer {
-  private spans: Map<string, Span> = new Map()
-  private traces: Map<string, Trace> = new Map()
-  private currentContext: TraceContext | null = null
+  private spans: Map<string, Span> = new Map();
+  private traces: Map<string, Trace> = new Map();
+  private currentContext: TraceContext | null = null;
 
   startTrace(name: string, parentContext?: TraceContext): TraceContext {
-    const traceId = parentContext?.traceId ?? this.generateId()
-    const spanId = this.generateId()
+    const traceId = parentContext?.traceId ?? this.generateId();
+    const spanId = this.generateId();
 
     const context: TraceContext = {
       traceId,
       spanId,
       parentSpanId: parentContext?.spanId,
       sampled: parentContext?.sampled ?? true,
-    }
+    };
 
     if (context.sampled) {
       const span: Span = {
@@ -57,148 +57,165 @@ class Tracer {
         startTime: Date.now(),
         tags: {},
         logs: [],
-        status: 'ok',
-      }
+        status: "ok",
+      };
 
-      this.spans.set(spanId, span)
+      this.spans.set(spanId, span);
 
       if (!parentContext) {
         this.traces.set(traceId, {
           traceId,
           spans: [span],
           startTime: Date.now(),
-        })
+        });
       } else {
-        const trace = this.traces.get(traceId)
+        const trace = this.traces.get(traceId);
         if (trace) {
-          trace.spans.push(span)
+          trace.spans.push(span);
         }
       }
     }
 
-    this.currentContext = context
-    return context
+    this.currentContext = context;
+    return context;
   }
 
   startSpan(name: string, parentContext?: TraceContext): TraceContext {
-    return this.startTrace(name, parentContext ?? this.currentContext ?? undefined)
+    return this.startTrace(
+      name,
+      parentContext ?? this.currentContext ?? undefined,
+    );
   }
 
   finishSpan(context: TraceContext): void {
-    if (!context.sampled) {return}
+    if (!context.sampled) {
+      return;
+    }
 
-    const span = this.spans.get(context.spanId)
+    const span = this.spans.get(context.spanId);
     if (span) {
-      span.endTime = Date.now()
-      span.duration = span.endTime - span.startTime
+      span.endTime = Date.now();
+      span.duration = span.endTime - span.startTime;
 
       // Update trace end time
-      const trace = this.traces.get(context.traceId)
+      const trace = this.traces.get(context.traceId);
       if (trace) {
-        trace.endTime = Date.now()
+        trace.endTime = Date.now();
       }
     }
 
     // Restore parent context
     if (context.parentSpanId) {
-      const parentSpan = this.spans.get(context.parentSpanId)
+      const parentSpan = this.spans.get(context.parentSpanId);
       if (parentSpan) {
         this.currentContext = {
           traceId: context.traceId,
           spanId: parentSpan.id,
           parentSpanId: parentSpan.parentId,
           sampled: context.sampled,
-        }
+        };
       }
     } else {
-      this.currentContext = null
+      this.currentContext = null;
     }
   }
 
   addTag(context: TraceContext, key: string, value: string): void {
-    if (!context.sampled) {return}
+    if (!context.sampled) {
+      return;
+    }
 
-    const span = this.spans.get(context.spanId)
+    const span = this.spans.get(context.spanId);
     if (span) {
-      span.tags[key] = value
+      span.tags[key] = value;
     }
   }
 
   addTags(context: TraceContext, tags: Record<string, string>): void {
-    if (!context.sampled) {return}
+    if (!context.sampled) {
+      return;
+    }
 
-    const span = this.spans.get(context.spanId)
+    const span = this.spans.get(context.spanId);
     if (span) {
-      Object.assign(span.tags, tags)
+      Object.assign(span.tags, tags);
     }
   }
 
   log(context: TraceContext, fields: Record<string, unknown>): void {
-    if (!context.sampled) {return}
+    if (!context.sampled) {
+      return;
+    }
 
-    const span = this.spans.get(context.spanId)
+    const span = this.spans.get(context.spanId);
     if (span) {
       span.logs.push({
         timestamp: Date.now(),
         fields,
-      })
+      });
     }
   }
 
   setError(context: TraceContext, error: Error): void {
-    if (!context.sampled) {return}
+    if (!context.sampled) {
+      return;
+    }
 
-    const span = this.spans.get(context.spanId)
+    const span = this.spans.get(context.spanId);
     if (span) {
-      span.status = 'error'
-      span.tags['error'] = 'true'
-      span.tags['error.message'] = error.message
-      span.tags['error.stack'] = error.stack ?? ''
+      span.status = "error";
+      span.tags["error"] = "true";
+      span.tags["error.message"] = error.message;
+      span.tags["error.stack"] = error.stack ?? "";
     }
   }
 
   getTrace(traceId: string): Trace | undefined {
-    return this.traces.get(traceId)
+    return this.traces.get(traceId);
   }
 
   getSpan(spanId: string): Span | undefined {
-    return this.spans.get(spanId)
+    return this.spans.get(spanId);
   }
 
   getCurrentContext(): TraceContext | null {
-    return this.currentContext
+    return this.currentContext;
   }
 
   extractContext(headers: Record<string, string>): TraceContext | null {
-    const traceId = headers['x-trace-id']
-    const spanId = headers['x-span-id']
-    const sampled = headers['x-trace-sampled'] !== 'false'
+    const traceId = headers["x-trace-id"];
+    const spanId = headers["x-span-id"];
+    const sampled = headers["x-trace-sampled"] !== "false";
 
-    if (!traceId) {return null}
+    if (!traceId) {
+      return null;
+    }
 
     return {
       traceId,
       spanId: spanId ?? this.generateId(),
       sampled,
-    }
+    };
   }
 
   injectContext(context: TraceContext): Record<string, string> {
     return {
-      'x-trace-id': context.traceId,
-      'x-span-id': context.spanId,
-      'x-trace-sampled': context.sampled ? 'true' : 'false',
-    }
+      "x-trace-id": context.traceId,
+      "x-span-id": context.spanId,
+      "x-trace-sampled": context.sampled ? "true" : "false",
+    };
   }
 
   private generateId(): string {
-    return generateId()
+    return generateId();
   }
 
   // Export trace data
   exportTrace(traceId: string): Record<string, unknown> | null {
-    const trace = this.traces.get(traceId)
-    if (!trace) {return null}
+    const trace = this.traces.get(traceId);
+    if (!trace) {
+      return null;
+    }
 
     return {
       traceId: trace.traceId,
@@ -211,82 +228,88 @@ class Tracer {
         logs: span.logs,
         status: span.status,
       })),
-    }
+    };
   }
 
   // Clear old traces
   cleanup(maxAgeMs = 3600000): number {
-    const cutoff = Date.now() - maxAgeMs
-    let removed = 0
+    const cutoff = Date.now() - maxAgeMs;
+    let removed = 0;
 
     for (const [traceId, trace] of this.traces) {
       if (trace.startTime < cutoff) {
         // Remove all spans for this trace
-        trace.spans.forEach((span) => this.spans.delete(span.id))
-        this.traces.delete(traceId)
-        removed++
+        trace.spans.forEach((span) => this.spans.delete(span.id));
+        this.traces.delete(traceId);
+        removed++;
       }
     }
 
-    return removed
+    return removed;
   }
 }
 
 // Correlation ID manager
 class CorrelationManager {
-  private correlationId: string | null = null
+  private correlationId: string | null = null;
 
   set(id: string): void {
-    this.correlationId = id
+    this.correlationId = id;
   }
 
   get(): string {
     if (!this.correlationId) {
-      this.correlationId = generateId()
+      this.correlationId = generateId();
     }
-    return this.correlationId
+    return this.correlationId;
   }
 
   clear(): void {
-    this.correlationId = null
+    this.correlationId = null;
   }
 
   // Middleware for Express
   middleware() {
-    return (req: { headers: Record<string, string> }, res: { setHeader: (key: string, value: string) => void }, next: () => void) => {
+    return (
+      req: { headers: Record<string, string> },
+      res: { setHeader: (key: string, value: string) => void },
+      next: () => void,
+    ) => {
       // Extract or generate correlation ID
-      const correlationId = req.headers['x-correlation-id'] ?? generateId()
-      this.set(correlationId)
+      const correlationId = req.headers["x-correlation-id"] ?? generateId();
+      this.set(correlationId);
 
       // Add to response headers
-      res.setHeader('x-correlation-id', correlationId)
+      res.setHeader("x-correlation-id", correlationId);
 
-      next()
-    }
+      next();
+    };
   }
 }
 
 // Request timing helper
 class RequestTimer {
-  private startTime: number | null = null
+  private startTime: number | null = null;
 
   start(): void {
-    this.startTime = performance.now()
+    this.startTime = performance.now();
   }
 
   elapsed(): number {
-    if (this.startTime === null) {return 0}
-    return performance.now() - this.startTime
+    if (this.startTime === null) {
+      return 0;
+    }
+    return performance.now() - this.startTime;
   }
 
   reset(): void {
-    this.startTime = null
+    this.startTime = null;
   }
 }
 
 // Singleton instances
-export const tracer = new Tracer()
-export const correlationManager = new CorrelationManager()
+export const tracer = new Tracer();
+export const correlationManager = new CorrelationManager();
 
-export { CorrelationManager, RequestTimer,Tracer }
-export type { Span, SpanLog, Trace,TraceContext }
+export { CorrelationManager, RequestTimer, Tracer };
+export type { Span, SpanLog, Trace, TraceContext };

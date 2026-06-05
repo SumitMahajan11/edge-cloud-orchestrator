@@ -13,12 +13,17 @@ export {
   RoleHierarchyResolver,
   type Subject,
   TimeBasedAttributeResolver,
-} from './abac';
+} from "./abac";
 export {
   type CertificateAuthority,
   type CertificateRequest,
   type IssuedCertificate,
   type MTLSConfig,
   MTLSManager,
-} from './mtls';
-export { type CertificateResponse,type DatabaseCredentials, VaultClient, type VaultConfig } from './vault-client';
+} from "./mtls";
+export {
+  type CertificateResponse,
+  type DatabaseCredentials,
+  VaultClient,
+  type VaultConfig,
+} from "./vault-client";

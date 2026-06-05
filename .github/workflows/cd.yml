@@ -2,7 +2,7 @@ name: CD
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -63,11 +63,11 @@ jobs:
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: ghcr.io/${{ github.repository }}/${{ matrix.app }}:${{ github.sha }}
-          format: 'table'
-          exit-code: '1'
+          format: "table"
+          exit-code: "1"
           ignore-unfixed: true
-          vuln-type: 'os,library'
-          severity: 'CRITICAL'
+          vuln-type: "os,library"
+          severity: "CRITICAL"
 
       - name: Validate Image Size
         run: |
@@ -75,7 +75,7 @@ jobs:
           SIZE_BYTES=$(docker image inspect $IMAGE_TAG --format='{{.Size}}')
           SIZE_MB=$((SIZE_BYTES / 1024 / 1024))
           echo "Image size for ${{ matrix.app }}: ${SIZE_MB}MB"
-          
+
           if [[ "${{ matrix.app }}" == "api" && $SIZE_MB -gt 200 ]]; then
             echo "::error::API image size (${SIZE_MB}MB) exceeds 200MB limit!" && exit 1
           fi

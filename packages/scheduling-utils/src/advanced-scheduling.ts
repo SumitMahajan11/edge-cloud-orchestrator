@@ -1,5 +1,5 @@
-import { EdgeNode,Task } from '@edgecloud/shared-kernel';
-import { EventEmitter } from 'eventemitter3';
+import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import { EventEmitter } from "eventemitter3";
 
 // Phase 11: Advanced Scheduling - Resource Reservations & Gang Scheduling
 
@@ -14,7 +14,7 @@ export interface ResourceReservation {
   };
   reservedAt: Date;
   expiresAt: Date;
-  status: 'PENDING' | 'CONFIRMED' | 'RELEASED';
+  status: "PENDING" | "CONFIRMED" | "RELEASED";
 }
 
 export interface GangSchedulingRequest {
@@ -27,15 +27,15 @@ export interface GangSchedulingRequest {
     requireSameRack?: boolean;
     requireSameRegion?: boolean;
   };
-  status: 'PENDING' | 'SCHEDULING' | 'SCHEDULED' | 'FAILED';
+  status: "PENDING" | "SCHEDULING" | "SCHEDULED" | "FAILED";
 }
 
 export interface AffinityConstraint {
-  type: 'node-affinity' | 'pod-affinity' | 'pod-anti-affinity';
+  type: "node-affinity" | "pod-affinity" | "pod-anti-affinity";
   weight: number; // 1-100
   expressions: {
     key: string;
-    operator: 'In' | 'NotIn' | 'Exists' | 'DoesNotExist';
+    operator: "In" | "NotIn" | "Exists" | "DoesNotExist";
     values: string[];
   }[];
 }
@@ -49,7 +49,7 @@ export class ResourceReservationManager extends EventEmitter {
     taskId: string,
     nodeId: string,
     resources: { cpu: number; memory: number; gpu?: number },
-    ttlSeconds: number = 300
+    ttlSeconds: number = 300,
   ): Promise<ResourceReservation> {
     const reservation: ResourceReservation = {
       id: `res-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
@@ -58,7 +58,7 @@ export class ResourceReservationManager extends EventEmitter {
       resources,
       reservedAt: new Date(),
       expiresAt: new Date(Date.now() + ttlSeconds * 1000),
-      status: 'PENDING',
+      status: "PENDING",
     };
 
     this.reservations.set(reservation.id, reservation);
@@ -69,7 +69,7 @@ export class ResourceReservationManager extends EventEmitter {
     }
     this.nodeReservations.get(nodeId)!.add(reservation.id);
 
-    this.emit('reservationCreated', reservation);
+    this.emit("reservationCreated", reservation);
 
     // Auto-expire reservation
     const timer = setTimeout(() => {
@@ -86,13 +86,15 @@ export class ResourceReservationManager extends EventEmitter {
       throw new Error(`Reservation ${reservationId} not found`);
     }
 
-    reservation.status = 'CONFIRMED';
-    this.emit('reservationConfirmed', reservation);
+    reservation.status = "CONFIRMED";
+    this.emit("reservationConfirmed", reservation);
   }
 
   async releaseReservation(reservationId: string): Promise<void> {
     const reservation = this.reservations.get(reservationId);
-    if (!reservation) {return;}
+    if (!reservation) {
+      return;
+    }
 
     // Clear timer
     const timer = this.reservationTimers.get(reservationId);
@@ -101,7 +103,7 @@ export class ResourceReservationManager extends EventEmitter {
       this.reservationTimers.delete(reservationId);
     }
 
-    reservation.status = 'RELEASED';
+    reservation.status = "RELEASED";
 
     // Remove from node tracking
     const nodeRes = this.nodeReservations.get(reservation.nodeId);
@@ -109,7 +111,7 @@ export class ResourceReservationManager extends EventEmitter {
       nodeRes.delete(reservationId);
     }
 
-    this.emit('reservationReleased', reservation);
+    this.emit("reservationReleased", reservation);
     this.reservations.delete(reservationId);
   }
 
@@ -123,7 +125,11 @@ export class ResourceReservationManager extends EventEmitter {
     this.reservationTimers.clear();
   }
 
-  getNodeReservedResources(nodeId: string): { cpu: number; memory: number; gpu: number } {
+  getNodeReservedResources(nodeId: string): {
+    cpu: number;
+    memory: number;
+    gpu: number;
+  } {
     const reservationIds = this.nodeReservations.get(nodeId) || new Set();
     let cpu = 0;
     let memory = 0;
@@ -131,7 +137,7 @@ export class ResourceReservationManager extends EventEmitter {
 
     for (const id of reservationIds) {
       const res = this.reservations.get(id);
-      if (res && res.status !== 'RELEASED') {
+      if (res && res.status !== "RELEASED") {
         cpu += res.resources.cpu;
         memory += res.resources.memory;
         gpu += res.resources.gpu || 0;
@@ -141,7 +147,11 @@ export class ResourceReservationManager extends EventEmitter {
     return { cpu, memory, gpu };
   }
 
-  getAvailableResources(node: EdgeNode): { cpu: number; memory: number; gpu: number } {
+  getAvailableResources(node: EdgeNode): {
+    cpu: number;
+    memory: number;
+    gpu: number;
+  } {
     const reserved = this.getNodeReservedResources(node.id);
     return {
       cpu: 100 - node.cpuUsage - reserved.cpu,
@@ -162,7 +172,7 @@ export class GangScheduler extends EventEmitter {
 
   async submitGangRequest(request: GangSchedulingRequest): Promise<string> {
     this.pendingGangs.set(request.id, request);
-    this.emit('gangRequestSubmitted', request);
+    this.emit("gangRequestSubmitted", request);
 
     // Attempt to schedule immediately
     await this.scheduleGang(request.id);
@@ -172,23 +182,28 @@ export class GangScheduler extends EventEmitter {
 
   private async scheduleGang(gangId: string): Promise<void> {
     const request = this.pendingGangs.get(gangId);
-    if (!request || request.status !== 'PENDING') {return;}
+    if (!request || request.status !== "PENDING") {
+      return;
+    }
 
-    request.status = 'SCHEDULING';
-    this.emit('gangSchedulingStarted', request);
+    request.status = "SCHEDULING";
+    this.emit("gangSchedulingStarted", request);
 
     // This is a simplified implementation
     // In production, this would query available nodes and check constraints
 
     // Simulate finding suitable nodes
-    const requiredNodes = Math.min(request.constraints.minNodes, request.tasks.length);
+    const requiredNodes = Math.min(
+      request.constraints.minNodes,
+      request.tasks.length,
+    );
 
     if (requiredNodes > 0) {
-      request.status = 'SCHEDULED';
-      this.emit('gangScheduled', request);
+      request.status = "SCHEDULED";
+      this.emit("gangScheduled", request);
     } else {
-      request.status = 'FAILED';
-      this.emit('gangSchedulingFailed', request);
+      request.status = "FAILED";
+      this.emit("gangSchedulingFailed", request);
     }
 
     this.pendingGangs.delete(gangId);
@@ -199,7 +214,7 @@ export class AffinityScorer {
   calculateAffinityScore(
     task: Task,
     node: EdgeNode,
-    constraints: AffinityConstraint[]
+    constraints: AffinityConstraint[],
   ): number {
     let totalScore = 0;
     let totalWeight = 0;
@@ -216,7 +231,7 @@ export class AffinityScorer {
   private evaluateConstraint(
     task: Task,
     node: EdgeNode,
-    constraint: AffinityConstraint
+    constraint: AffinityConstraint,
   ): number {
     let matches = 0;
     const total = constraint.expressions.length;
@@ -225,17 +240,25 @@ export class AffinityScorer {
       const nodeValue = this.getNodeLabel(node, expr.key);
 
       switch (expr.operator) {
-        case 'In':
-          if (nodeValue !== undefined && expr.values.includes(nodeValue)) {matches++;}
+        case "In":
+          if (nodeValue !== undefined && expr.values.includes(nodeValue)) {
+            matches++;
+          }
           break;
-        case 'NotIn':
-          if (nodeValue !== undefined && !expr.values.includes(nodeValue)) {matches++;}
+        case "NotIn":
+          if (nodeValue !== undefined && !expr.values.includes(nodeValue)) {
+            matches++;
+          }
           break;
-        case 'Exists':
-          if (nodeValue !== undefined) {matches++;}
+        case "Exists":
+          if (nodeValue !== undefined) {
+            matches++;
+          }
           break;
-        case 'DoesNotExist':
-          if (nodeValue === undefined) {matches++;}
+        case "DoesNotExist":
+          if (nodeValue === undefined) {
+            matches++;
+          }
           break;
       }
     }
@@ -244,7 +267,7 @@ export class AffinityScorer {
   }
 
   private getNodeLabel(node: EdgeNode, key: string): string | undefined {
-    const labels = node.labels as Record<string, string> || {};
+    const labels = (node.labels as Record<string, string>) || {};
     return labels[key];
   }
 }
@@ -272,7 +295,7 @@ export class PreemptionManager extends EventEmitter {
   findPreemptionCandidates(
     requiredResources: { cpu: number; memory: number },
     minPriority: number,
-    targetNodeId: string
+    targetNodeId: string,
   ): PreemptionCandidate[] {
     const candidates: PreemptionCandidate[] = [];
 
@@ -296,7 +319,10 @@ export class PreemptionManager extends EventEmitter {
     let memoryAvailable = 0;
 
     for (const candidate of candidates) {
-      if (cpuAvailable >= requiredResources.cpu && memoryAvailable >= requiredResources.memory) {
+      if (
+        cpuAvailable >= requiredResources.cpu &&
+        memoryAvailable >= requiredResources.memory
+      ) {
         break;
       }
       toPreempt.push(candidate);
@@ -311,7 +337,7 @@ export class PreemptionManager extends EventEmitter {
     for (const taskId of taskIds) {
       const task = this.runningTasks.get(taskId);
       if (task) {
-        this.emit('taskPreempted', task);
+        this.emit("taskPreempted", task);
         this.runningTasks.delete(taskId);
       }
     }

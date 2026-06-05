@@ -29,10 +29,12 @@ During the migration, a gap analysis was performed to ensure 100% feature parity
 ## Upgrading
 
 If you are running the legacy `server.js` agent:
+
 1. Shut down the legacy service (`pm2 stop edge-agent` or `docker stop edge-agent`).
 2. Delete the old directory: `rm -rf edge-agent/`.
 3. Deploy using the new Kustomize manifest: `kubectl apply -k infra/k8s/base/`.
 4. Ensure the host node has the Docker socket mounted (`/var/run/docker.sock`) properly mapped to the DaemonSet.
 
 ## Testing
+
 The new agent logic is comprehensively validated via `tests/integration/agent-task.test.ts`.

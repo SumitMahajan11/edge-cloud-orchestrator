@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3';
+import { EventEmitter } from "eventemitter3";
 
 export interface CircuitBreakerConfig {
   failureThreshold: number;
@@ -8,7 +8,7 @@ export interface CircuitBreakerConfig {
   name: string;
 }
 
-export type CircuitState = 'CLOSED' | 'OPEN' | 'HALF_OPEN';
+export type CircuitState = "CLOSED" | "OPEN" | "HALF_OPEN";
 
 export interface CircuitBreakerMetrics {
   state: CircuitState;
@@ -21,7 +21,7 @@ export interface CircuitBreakerMetrics {
 }
 
 export class CircuitBreaker extends EventEmitter {
-  private state: CircuitState = 'CLOSED';
+  private state: CircuitState = "CLOSED";
   private failures = 0;
   private successes = 0;
   private consecutiveSuccesses = 0;
@@ -40,7 +40,7 @@ export class CircuitBreaker extends EventEmitter {
       resetTimeout: 30000,
       halfOpenMaxCalls: 3,
       successThreshold: 2,
-      name: 'default',
+      name: "default",
       ...config,
     };
   }
@@ -48,17 +48,17 @@ export class CircuitBreaker extends EventEmitter {
   async execute<T>(fn: () => Promise<T>, fallback?: () => T): Promise<T> {
     this.totalCalls++;
 
-    if (this.state === 'OPEN') {
+    if (this.state === "OPEN") {
       this.rejectedCalls++;
-      this.emit('rejected', { name: this.config.name });
-      
+      this.emit("rejected", { name: this.config.name });
+
       if (fallback) {
         return fallback();
       }
       throw new CircuitBreakerOpenError(this.config.name);
     }
 
-    if (this.state === 'HALF_OPEN') {
+    if (this.state === "HALF_OPEN") {
       if (this.halfOpenCalls >= this.config.halfOpenMaxCalls) {
         this.rejectedCalls++;
         throw new CircuitBreakerOpenError(this.config.name);
@@ -83,13 +83,13 @@ export class CircuitBreaker extends EventEmitter {
     this.successes++;
     this.consecutiveSuccesses++;
 
-    if (this.state === 'HALF_OPEN') {
+    if (this.state === "HALF_OPEN") {
       if (this.consecutiveSuccesses >= this.config.successThreshold) {
         this.closeCircuit();
       }
     }
 
-    this.emit('success', { name: this.config.name });
+    this.emit("success", { name: this.config.name });
   }
 
   private onFailure(): void {
@@ -97,7 +97,7 @@ export class CircuitBreaker extends EventEmitter {
     this.consecutiveSuccesses = 0;
     this.lastFailureTime = new Date();
 
-    if (this.state === 'HALF_OPEN') {
+    if (this.state === "HALF_OPEN") {
       this.openCircuit();
       return;
     }
@@ -106,11 +106,11 @@ export class CircuitBreaker extends EventEmitter {
       this.openCircuit();
     }
 
-    this.emit('failure', { name: this.config.name, failures: this.failures });
+    this.emit("failure", { name: this.config.name, failures: this.failures });
   }
 
   public reset(): void {
-    this.state = 'CLOSED';
+    this.state = "CLOSED";
     this.failures = 0;
     this.successes = 0;
     this.consecutiveSuccesses = 0;
@@ -122,15 +122,17 @@ export class CircuitBreaker extends EventEmitter {
       clearTimeout(this.resetTimer);
       this.resetTimer = undefined;
     }
-    this.emit('reset', { name: this.config.name });
+    this.emit("reset", { name: this.config.name });
   }
 
   private openCircuit(): void {
-    if (this.state === 'OPEN') {return;}
+    if (this.state === "OPEN") {
+      return;
+    }
 
-    this.state = 'OPEN';
+    this.state = "OPEN";
     this.nextRetryAt = new Date(Date.now() + this.config.resetTimeout);
-    this.emit('open', { name: this.config.name });
+    this.emit("open", { name: this.config.name });
 
     // Schedule transition to half-open
     this.resetTimer = setTimeout(() => {
@@ -139,30 +141,34 @@ export class CircuitBreaker extends EventEmitter {
   }
 
   private halfOpenCircuit(): void {
-    if (this.state !== 'OPEN') {return;}
+    if (this.state !== "OPEN") {
+      return;
+    }
 
-    this.state = 'HALF_OPEN';
+    this.state = "HALF_OPEN";
     this.nextRetryAt = undefined;
     this.halfOpenCalls = 0;
     this.consecutiveSuccesses = 0;
-    this.emit('halfOpen', { name: this.config.name });
+    this.emit("halfOpen", { name: this.config.name });
   }
 
   private closeCircuit(): void {
-    if (this.state === 'CLOSED') {return;}
+    if (this.state === "CLOSED") {
+      return;
+    }
 
-    this.state = 'CLOSED';
+    this.state = "CLOSED";
     this.failures = 0;
     this.nextRetryAt = undefined;
     this.halfOpenCalls = 0;
     this.consecutiveSuccesses = 0;
-    
+
     if (this.resetTimer) {
       clearTimeout(this.resetTimer);
       this.resetTimer = undefined;
     }
 
-    this.emit('close', { name: this.config.name });
+    this.emit("close", { name: this.config.name });
   }
 
   getState(): CircuitState {
@@ -197,23 +203,23 @@ export class CircuitBreaker extends EventEmitter {
     }
 
     this.state = state;
-    if (state === 'CLOSED') {
+    if (state === "CLOSED") {
       this.failures = 0;
       this.nextRetryAt = undefined;
       this.halfOpenCalls = 0;
       this.consecutiveSuccesses = 0;
-      this.emit('close', { name: this.config.name });
-    } else if (state === 'OPEN') {
+      this.emit("close", { name: this.config.name });
+    } else if (state === "OPEN") {
       this.nextRetryAt = new Date(Date.now() + this.config.resetTimeout);
-      this.emit('open', { name: this.config.name });
+      this.emit("open", { name: this.config.name });
       this.resetTimer = setTimeout(() => {
         this.halfOpenCircuit();
       }, this.config.resetTimeout);
-    } else if (state === 'HALF_OPEN') {
+    } else if (state === "HALF_OPEN") {
       this.nextRetryAt = undefined;
       this.halfOpenCalls = 0;
       this.consecutiveSuccesses = 0;
-      this.emit('halfOpen', { name: this.config.name });
+      this.emit("halfOpen", { name: this.config.name });
     }
   }
 }
@@ -221,7 +227,7 @@ export class CircuitBreaker extends EventEmitter {
 export class CircuitBreakerOpenError extends Error {
   constructor(public readonly circuitName: string) {
     super(`Circuit breaker '${circuitName}' is OPEN`);
-    this.name = 'CircuitBreakerOpenError';
+    this.name = "CircuitBreakerOpenError";
   }
 }
 
@@ -229,7 +235,10 @@ export class CircuitBreakerOpenError extends Error {
 export class CircuitBreakerRegistry {
   private breakers: Map<string, CircuitBreaker> = new Map();
 
-  getOrCreate(name: string, config?: Partial<CircuitBreakerConfig>): CircuitBreaker {
+  getOrCreate(
+    name: string,
+    config?: Partial<CircuitBreakerConfig>,
+  ): CircuitBreaker {
     if (!this.breakers.has(name)) {
       this.breakers.set(name, new CircuitBreaker({ name, ...config }));
     }
@@ -279,7 +288,8 @@ export class CircuitBreakerRegistry {
         name,
         state: metrics.state,
         failureRate: (metrics.failures / total) * 100,
-        lastStateChange: metrics.lastFailureTime?.toISOString() || new Date().toISOString(),
+        lastStateChange:
+          metrics.lastFailureTime?.toISOString() || new Date().toISOString(),
         successCount: metrics.successes,
         failureCount: metrics.failures,
         nextRetryAt: metrics.nextRetryAt?.toISOString(),

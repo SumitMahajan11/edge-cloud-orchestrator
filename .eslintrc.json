@@ -6,11 +6,7 @@
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": [
-    "@typescript-eslint",
-    "import",
-    "simple-import-sort"
-  ],
+  "plugins": ["@typescript-eslint", "import", "simple-import-sort"],
   "extends": [],
   "rules": {
     "import/no-internal-modules": "off"

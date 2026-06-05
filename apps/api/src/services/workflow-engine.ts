@@ -16,7 +16,7 @@ export class WorkflowEngine {
     prisma: PrismaClient,
     logger: Logger,
     taskScheduler: TaskScheduler,
-    wsManager: WebSocketManager
+    wsManager: WebSocketManager,
   ) {
     this.prisma = prisma;
     this.logger = logger;
@@ -29,7 +29,10 @@ export class WorkflowEngine {
       try {
         await this.handleTaskOutcome(taskId, status);
       } catch (error) {
-        this.logger.error({ error, taskId }, 'Error handling task outcome in workflow engine');
+        this.logger.error(
+          { error, taskId },
+          'Error handling task outcome in workflow engine',
+        );
       }
     });
   }
@@ -51,10 +54,10 @@ export class WorkflowEngine {
     const definition = workflow.definition as any;
     const rawNodes = definition.nodes || [];
     const rawEdges = definition.edges || [];
-    
+
     // Map to DAGExecutor format
     const nodes: WorkflowNode[] = this.mapToWorkflowNodes(rawNodes, rawEdges);
-    
+
     // Validate DAG
     const validation = this.dagExecutor.validate(nodes);
     if (!validation.valid) {
@@ -72,7 +75,7 @@ export class WorkflowEngine {
 
     // Find root nodes (no dependencies)
     const readyNodes = this.dagExecutor.getReadyNodes(nodes, new Set());
-    
+
     if (readyNodes.length === 0 && nodes.length > 0) {
       throw new Error('No root nodes found in DAG');
     }
@@ -90,10 +93,14 @@ export class WorkflowEngine {
       });
     }
 
-    this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:execution_started', {
-      executionId: execution.id,
-      workflowId,
-    });
+    this.wsManager.broadcastToTenant(
+      tenantId as TenantId,
+      'workflow:execution_started',
+      {
+        executionId: execution.id,
+        workflowId,
+      },
+    );
 
     return execution.id;
   }
@@ -101,7 +108,10 @@ export class WorkflowEngine {
   /**
    * Handle task outcome and advance workflow if needed
    */
-  private async handleTaskOutcome(taskId: string, status: 'COMPLETED' | 'FAILED'): Promise<void> {
+  private async handleTaskOutcome(
+    taskId: string,
+    status: 'COMPLETED' | 'FAILED',
+  ): Promise<void> {
     const taskRun = await this.prisma.workflowTaskRun.findFirst({
       where: { taskId },
       include: { execution: { include: { workflow: true } } },
@@ -109,7 +119,10 @@ export class WorkflowEngine {
 
     if (!taskRun) return; // Not part of a workflow
 
-    this.logger.debug({ taskId, status, executionId: taskRun.executionId }, 'Processing task outcome for workflow');
+    this.logger.debug(
+      { taskId, status, executionId: taskRun.executionId },
+      'Processing task outcome for workflow',
+    );
 
     // Update task run status
     await this.prisma.workflowTaskRun.update({
@@ -130,11 +143,15 @@ export class WorkflowEngine {
         data: { status: 'FAILED', completedAt: new Date() },
       });
 
-      this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:execution_failed', {
-        executionId,
-        taskId,
-        error: 'Task failed',
-      });
+      this.wsManager.broadcastToTenant(
+        tenantId as TenantId,
+        'workflow:execution_failed',
+        {
+          executionId,
+          taskId,
+          error: 'Task failed',
+        },
+      );
       return;
     }
 
@@ -144,25 +161,33 @@ export class WorkflowEngine {
     });
 
     const completedIds = new Set(
-      allRuns
-        .filter(r => r.status === 'COMPLETED')
-        .map(r => r.stepName) // We use stepName in dependencies
+      allRuns.filter((r) => r.status === 'COMPLETED').map((r) => r.stepName), // We use stepName in dependencies
     );
 
     const workflow = taskRun.execution.workflow;
     const definition = workflow.definition as any;
-    const nodes: WorkflowNode[] = this.mapToWorkflowNodes(definition.nodes || [], definition.edges || []);
+    const nodes: WorkflowNode[] = this.mapToWorkflowNodes(
+      definition.nodes || [],
+      definition.edges || [],
+    );
 
     const readyNodes = this.dagExecutor.getReadyNodes(nodes, completedIds);
 
     // Filter out nodes that are already in progress
     const inProgressStepNames = new Set(
       allRuns
-        .filter(r => r.status === 'RUNNING' || r.status === 'SCHEDULED' || r.status === 'PENDING')
-        .map(r => r.stepName)
+        .filter(
+          (r) =>
+            r.status === 'RUNNING' ||
+            r.status === 'SCHEDULED' ||
+            r.status === 'PENDING',
+        )
+        .map((r) => r.stepName),
     );
 
-    const nextNodes = readyNodes.filter(n => !inProgressStepNames.has(n.stepName));
+    const nextNodes = readyNodes.filter(
+      (n) => !inProgressStepNames.has(n.stepName),
+    );
 
     if (nextNodes.length > 0) {
       for (const node of nextNodes) {
@@ -170,8 +195,10 @@ export class WorkflowEngine {
       }
     } else {
       // Check if all nodes are completed
-      const allStepNames = new Set(nodes.map(n => n.id));
-      const finishedAll = Array.from(allStepNames).every(id => completedIds.has(id));
+      const allStepNames = new Set(nodes.map((n) => n.id));
+      const finishedAll = Array.from(allStepNames).every((id) =>
+        completedIds.has(id),
+      );
 
       if (finishedAll) {
         await this.prisma.workflowExecution.update({
@@ -179,24 +206,32 @@ export class WorkflowEngine {
           data: { status: 'COMPLETED', completedAt: new Date() },
         });
 
-        this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:execution_completed', {
-          executionId,
-        });
+        this.wsManager.broadcastToTenant(
+          tenantId as TenantId,
+          'workflow:execution_completed',
+          {
+            executionId,
+          },
+        );
       }
     }
-    
+
     // Broadcast progress update
-    this.wsManager.broadcastToTenant(tenantId as TenantId, 'workflow:progress', {
-      executionId,
-      completedSteps: Array.from(completedIds),
-    });
+    this.wsManager.broadcastToTenant(
+      tenantId as TenantId,
+      'workflow:progress',
+      {
+        executionId,
+        completedSteps: Array.from(completedIds),
+      },
+    );
   }
 
   private mapToWorkflowNodes(rawNodes: any[], rawEdges: any[]): WorkflowNode[] {
-    return rawNodes.map(node => {
+    return rawNodes.map((node) => {
       const dependsOn = rawEdges
-        .filter(edge => edge.to === node.id)
-        .map(edge => edge.from);
+        .filter((edge) => edge.to === node.id)
+        .map((edge) => edge.from);
 
       return {
         id: node.id,
@@ -215,22 +250,29 @@ export class WorkflowEngine {
     });
   }
 
-  private async submitTaskForNode(executionId: string, node: WorkflowNode, tenantId: string): Promise<void> {
-    this.logger.info({ executionId, step: node.stepName }, 'Submitting task for workflow step');
+  private async submitTaskForNode(
+    executionId: string,
+    node: WorkflowNode,
+    tenantId: string,
+  ): Promise<void> {
+    this.logger.info(
+      { executionId, step: node.stepName },
+      'Submitting task for workflow step',
+    );
 
     // Create the actual Task
     const task = await this.prisma.task.create({
       data: {
         name: `${node.stepName} (Workflow)`,
         type: node.taskSpec.type as any,
-        priority: node.taskSpec.priority as any || 'MEDIUM',
-        target: node.taskSpec.target as any || 'EDGE',
+        priority: (node.taskSpec.priority as any) || 'MEDIUM',
+        target: (node.taskSpec.target as any) || 'EDGE',
         tenantId,
         policy: node.taskSpec.nodeId ? 'manual' : 'ml-optimized',
         reason: `Workflow execution ${executionId} step ${node.stepName}`,
         input: (node.taskSpec.input ?? {}) as any,
         metadata: {
-          ...(node.taskSpec.metadata as any || {}),
+          ...((node.taskSpec.metadata as any) || {}),
           workflowExecutionId: executionId,
           workflowStepName: node.stepName,
         },

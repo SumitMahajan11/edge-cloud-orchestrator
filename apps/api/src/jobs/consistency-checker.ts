@@ -1,12 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { Logger } from 'pino';
-import { 
-  SYSTEM_INVARIANTS, 
-  SAFE_FIXES 
-} from '@edgecloud/shared-kernel';
-import { 
-  consistencyViolationsTotal, 
-  consistencyAutoFixesTotal 
+import { SYSTEM_INVARIANTS, SAFE_FIXES } from '@edgecloud/shared-kernel';
+import {
+  consistencyViolationsTotal,
+  consistencyAutoFixesTotal,
 } from '../services/metrics-service';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 
@@ -40,16 +37,22 @@ export class ConsistencyCheckerJob {
   start(): void {
     if (this.interval) return;
 
-    this.logger.info({ scheduleHour: this.scheduleHour }, 'Consistency checker job scheduled');
+    this.logger.info(
+      { scheduleHour: this.scheduleHour },
+      'Consistency checker job scheduled',
+    );
 
     this.interval = setInterval(() => {
       const now = new Date();
       const currentDay = now.toISOString().split('T')[0]!;
       const currentHour = now.getUTCHours();
-      
+
       if (currentHour === this.scheduleHour && this.lastRunDay !== currentDay) {
         this.lastRunDay = currentDay;
-        this.logger.info({ hour: currentHour, day: currentDay }, 'Triggering scheduled consistency check');
+        this.logger.info(
+          { hour: currentHour, day: currentDay },
+          'Triggering scheduled consistency check',
+        );
         this.run().catch((err) => {
           this.logger.error({ err }, 'Error in ConsistencyCheckerJob run');
         });
@@ -87,8 +90,8 @@ export class ConsistencyCheckerJob {
       summary: {
         totalViolations: 0,
         fixedCount: 0,
-        durationMs: 0
-      }
+        durationMs: 0,
+      },
     };
 
     this.logger.info('Starting system consistency check...');
@@ -98,36 +101,46 @@ export class ConsistencyCheckerJob {
       for (const invariant of Object.values(SYSTEM_INVARIANTS)) {
         try {
           const violations = await this.prisma.$queryRawUnsafe(invariant.query);
-          const violationCount = Array.isArray(violations) ? violations.length : 0;
-          
+          const violationCount = Array.isArray(violations)
+            ? violations.length
+            : 0;
+
           results.invariants.push({
             name: invariant.name,
             violated: violationCount > 0,
             violationCount,
-            details: violations
+            details: violations,
           });
 
           if (violationCount > 0) {
-            this.logger.warn({ invariant: invariant.name, count: violationCount }, 'Consistency violation detected');
-            consistencyViolationsTotal.labels(invariant.name).inc(violationCount);
-            
+            this.logger.warn(
+              { invariant: invariant.name, count: violationCount },
+              'Consistency violation detected',
+            );
+            consistencyViolationsTotal
+              .labels(invariant.name)
+              .inc(violationCount);
+
             // Log to audit log
             await this.prisma.auditLog.create({
               data: {
                 action: 'CONSISTENCY_VIOLATION',
                 entityType: 'System',
-                details: { 
-                  invariant: invariant.name, 
+                details: {
+                  invariant: invariant.name,
                   count: violationCount,
-                  description: invariant.description
+                  description: invariant.description,
                 } as any,
-                tenantId: 'SYSTEM' // Global system tenant
-              }
+                tenantId: 'SYSTEM', // Global system tenant
+              },
             });
           }
           results.summary.totalViolations += violationCount;
         } catch (err) {
-          this.logger.error({ err, invariant: invariant.name }, 'Failed to run invariant check');
+          this.logger.error(
+            { err, invariant: invariant.name },
+            'Failed to run invariant check',
+          );
         }
       }
 
@@ -136,30 +149,42 @@ export class ConsistencyCheckerJob {
         try {
           const toFix: any[] = await this.prisma.$queryRawUnsafe(fix.query);
           if (toFix.length > 0) {
-            const ids = toFix.map(item => item.id);
-            this.logger.info({ fix: fix.name, count: ids.length }, 'Applying auto-fix');
-            
+            const ids = toFix.map((item) => item.id);
+            this.logger.info(
+              { fix: fix.name, count: ids.length },
+              'Applying auto-fix',
+            );
+
             try {
               await fix.fix(this.prisma, ids);
               results.autoFixes.push({
                 name: fix.name,
                 fixedCount: ids.length,
-                status: 'SUCCESS'
+                status: 'SUCCESS',
               });
-              consistencyAutoFixesTotal.labels(fix.name, 'success').inc(ids.length);
+              consistencyAutoFixesTotal
+                .labels(fix.name, 'success')
+                .inc(ids.length);
               results.summary.fixedCount += ids.length;
             } catch (fixErr) {
-              this.logger.error({ err: fixErr, fix: fix.name }, 'Failed to apply auto-fix');
+              this.logger.error(
+                { err: fixErr, fix: fix.name },
+                'Failed to apply auto-fix',
+              );
               results.autoFixes.push({
                 name: fix.name,
                 status: 'FAILED',
-                error: fixErr instanceof Error ? fixErr.message : String(fixErr)
+                error:
+                  fixErr instanceof Error ? fixErr.message : String(fixErr),
               });
               consistencyAutoFixesTotal.labels(fix.name, 'failure').inc(1);
             }
           }
         } catch (err) {
-          this.logger.error({ err, fix: fix.name }, 'Failed to run auto-fix check');
+          this.logger.error(
+            { err, fix: fix.name },
+            'Failed to run auto-fix check',
+          );
         }
       }
 
@@ -169,7 +194,6 @@ export class ConsistencyCheckerJob {
       await this.uploadReport(results);
 
       this.logger.info(results.summary, 'Consistency check completed');
-
     } catch (error) {
       this.logger.error({ error }, 'Fatal error during consistency check');
     } finally {
@@ -180,13 +204,13 @@ export class ConsistencyCheckerJob {
   private async uploadReport(results: any): Promise<void> {
     const dateStr = new Date().toISOString().split('T')[0];
     const key = `consistency-reports/report-${dateStr}.json`;
-    
+
     try {
       const command = new PutObjectCommand({
         Bucket: this.reportBucket,
         Key: key,
         Body: JSON.stringify(results, null, 2),
-        ContentType: 'application/json'
+        ContentType: 'application/json',
       });
 
       await this.s3Client.send(command);

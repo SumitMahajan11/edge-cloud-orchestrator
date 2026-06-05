@@ -12,15 +12,15 @@ pnpm add @edgecloud/shared-kernel
 
 ## Exports
 
-| Export              | Type      | Description                                 |
-|---------------------|-----------|---------------------------------------------|
-| `EdgeNode`          | type      | Edge node domain model                      |
-| `Task`              | type      | Task domain model                           |
-| `TaskStatus`        | enum      | Task lifecycle states                       |
-| `DomainEvent`       | interface | Base domain event interface                 |
-| `NodeStatus`        | enum      | Node health states                          |
-| `ResourceUsage`     | type      | CPU/memory/GPU usage snapshot               |
-| `createLogger`      | function  | Pino structured logger factory              |
+| Export          | Type      | Description                    |
+| --------------- | --------- | ------------------------------ |
+| `EdgeNode`      | type      | Edge node domain model         |
+| `Task`          | type      | Task domain model              |
+| `TaskStatus`    | enum      | Task lifecycle states          |
+| `DomainEvent`   | interface | Base domain event interface    |
+| `NodeStatus`    | enum      | Node health states             |
+| `ResourceUsage` | type      | CPU/memory/GPU usage snapshot  |
+| `createLogger`  | function  | Pino structured logger factory |
 
 ## Usage
 

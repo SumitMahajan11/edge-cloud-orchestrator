@@ -30,7 +30,11 @@ export class AlertingService {
   private alertHistory: Alert[] = [];
   private lastAlertTime = new Map<string, number>();
 
-  constructor(logger: Logger, redisOrConfig?: any, config?: Partial<AlertingConfig>) {
+  constructor(
+    logger: Logger,
+    redisOrConfig?: any,
+    config?: Partial<AlertingConfig>,
+  ) {
     this.logger = logger;
     if (redisOrConfig && typeof redisOrConfig.multi === 'function') {
       this.redis = redisOrConfig;
@@ -112,13 +116,22 @@ export class AlertingService {
 
     switch (alert.severity) {
       case 'critical':
-        this.logger.fatal(logData, `🚨 [${alert.tenantId}] CRITICAL ALERT: ${alert.title}`);
+        this.logger.fatal(
+          logData,
+          `🚨 [${alert.tenantId}] CRITICAL ALERT: ${alert.title}`,
+        );
         break;
       case 'warning':
-        this.logger.warn(logData, `⚠️ [${alert.tenantId}] WARNING: ${alert.title}`);
+        this.logger.warn(
+          logData,
+          `⚠️ [${alert.tenantId}] WARNING: ${alert.title}`,
+        );
         break;
       case 'info':
-        this.logger.info(logData, `ℹ️ [${alert.tenantId}] INFO: ${alert.title}`);
+        this.logger.info(
+          logData,
+          `ℹ️ [${alert.tenantId}] INFO: ${alert.title}`,
+        );
         break;
     }
   }
@@ -181,7 +194,7 @@ export class AlertingService {
       await this.recordFailedDelivery(
         this.config.webhookUrl,
         'SSRF_BLOCKED',
-        'SSRF blocked'
+        'SSRF blocked',
       );
       return;
     }
@@ -201,7 +214,7 @@ export class AlertingService {
         await this.recordFailedDelivery(
           this.config.webhookUrl,
           'HTTP_ERROR',
-          `HTTP status ${response.status}`
+          `HTTP status ${response.status}`,
         );
       }
     } catch (error) {
@@ -212,7 +225,7 @@ export class AlertingService {
       await this.recordFailedDelivery(
         this.config.webhookUrl,
         'DELIVERY_ERROR',
-        (error as Error).message
+        (error as Error).message,
       );
     }
   }
@@ -221,7 +234,7 @@ export class AlertingService {
    * Get alert history
    */
   getAlertHistory(tenantId: string, severity?: Alert['severity']): Alert[] {
-    let alerts = this.alertHistory.filter(a => a.tenantId === tenantId);
+    let alerts = this.alertHistory.filter((a) => a.tenantId === tenantId);
     if (severity) {
       alerts = alerts.filter((a) => a.severity === severity);
     }
@@ -233,7 +246,9 @@ export class AlertingService {
   }
 
   acknowledge(id: string, tenantId: string): boolean {
-    const alert = this.alertHistory.find(a => a.id === id && a.tenantId === tenantId);
+    const alert = this.alertHistory.find(
+      (a) => a.id === id && a.tenantId === tenantId,
+    );
     if (alert) {
       (alert as any).acknowledgedAt = new Date();
       return true;
@@ -245,7 +260,9 @@ export class AlertingService {
    * Clear alert history
    */
   clearHistory(tenantId: string): void {
-    this.alertHistory = this.alertHistory.filter(a => a.tenantId !== tenantId);
+    this.alertHistory = this.alertHistory.filter(
+      (a) => a.tenantId !== tenantId,
+    );
   }
 
   // Convenience methods

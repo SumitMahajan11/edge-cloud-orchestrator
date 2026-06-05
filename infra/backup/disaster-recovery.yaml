@@ -7,23 +7,23 @@ data:
   # ══════════════════════════════════════════════════════════
   # PostgreSQL Backup Scripts
   # ══════════════════════════════════════════════════════════
-  
+
   backup-postgresql.sh: |
     #!/bin/bash
     set -e
-    
+
     BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
     BACKUP_FILE="backup_${BACKUP_DATE}.sql"
     BACKUP_DIR="/backups/postgresql"
-    
+
     echo "Starting PostgreSQL backup at $(date)"
-    
+
     # Create full database backup with compression
     pg_dump "${DATABASE_URL}" \
       --format=custom \
       --compress=9 \
       --file="${BACKUP_DIR}/${BACKUP_FILE}"
-    
+
     # Verify backup
     if [ -f "${BACKUP_DIR}/${BACKUP_FILE}" ]; then
       BACKUP_SIZE=$(du -sh "${BACKUP_DIR}/${BACKUP_FILE}" | cut -f1)
@@ -49,27 +49,27 @@ data:
       echo "ERROR: Backup failed!"
       exit 1
     fi
-  
+
   restore-postgresql.sh: |
     #!/bin/bash
     set -e
-    
+
     BACKUP_NAME=${1:-"latest"}
     BACKUP_DIR="/backups/postgresql"
-    
+
     if [ "$BACKUP_NAME" = "latest" ]; then
       BACKUP_PATH=$(readlink -f "${BACKUP_DIR}/latest.sql")
     else
       BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
     fi
-    
+
     if [ ! -f "$BACKUP_PATH" ]; then
       echo "ERROR: Backup file not found: ${BACKUP_PATH}"
       exit 1
     fi
-    
+
     echo "Restoring PostgreSQL from ${BACKUP_PATH}"
-    
+
     # Restore database
     pg_restore "${DATABASE_URL}" \
       --clean \
@@ -77,37 +77,37 @@ data:
       --no-owner \
       --verbose \
       "${BACKUP_PATH}"
-    
+
     echo "Restore completed at $(date)"
-    
+
     # Verify restore
     psql "${DATABASE_URL}" -c "SELECT COUNT(*) FROM tasks;" 2>/dev/null && \
       echo "Verification: Database accessible" || \
       echo "WARNING: Verification failed"
-  
+
   # ══════════════════════════════════════════════════════════
   # Redis Streams Backup
   # ══════════════════════════════════════════════════════════
-  
+
   backup-redis.sh: |
     #!/bin/bash
     set -e
-    
+
     BACKUP_DATE=$(date +%Y%m%d_%H%M%S)
     BACKUP_DIR="/backups/redis"
     RDB_FILE="dump_${BACKUP_DATE}.rdb"
-    
+
     echo "Starting Redis backup at $(date)"
-    
+
     # Trigger background save
     redis-cli BGSAVE
-    
+
     # Wait for save to complete
     echo "Waiting for BGSAVE to complete..."
     while [ "$(redis-cli LASTSAVE)" = "$(redis-cli LASTSAVE)" ]; do
       sleep 1
     done
-    
+
     # Copy RDB file to backup location
     if [ -f "/var/lib/redis/dump.rdb" ]; then
       cp /var/lib/redis/dump.rdb "${BACKUP_DIR}/${RDB_FILE}"
@@ -129,54 +129,54 @@ data:
       echo "ERROR: Redis RDB file not found at /var/lib/redis/dump.rdb"
       exit 1
     fi
-  
+
   restore-redis.sh: |
     #!/bin/bash
     set -e
-    
+
     BACKUP_NAME=${1:-"latest"}
     BACKUP_DIR="/backups/redis"
-    
+
     if [ "$BACKUP_NAME" = "latest" ]; then
       BACKUP_PATH=$(readlink -f "${BACKUP_DIR}/latest.rdb")
     else
       BACKUP_PATH="${BACKUP_DIR}/${BACKUP_NAME}"
     fi
-    
+
     if [ ! -f "$BACKUP_PATH" ]; then
       echo "ERROR: Backup file not found: ${BACKUP_PATH}"
       exit 1
     fi
-    
+
     echo "WARNING: This will replace the current Redis database!"
     echo "Restoring Redis from ${BACKUP_PATH}"
-    
+
     # Stop Redis
     redis-cli SHUTDOWN NOSAVE 2>/dev/null || true
-    
+
     # Replace RDB file
     cp "${BACKUP_PATH}" /var/lib/redis/dump.rdb
     chown redis:redis /var/lib/redis/dump.rdb
-    
+
     # Restart Redis
     redis-server /etc/redis/redis.conf --daemonize yes
-    
+
     # Verify restore
     sleep 2
     REDIS_KEYS=$(redis-cli DBSIZE | awk '{print $2}')
     echo "Redis restored successfully. Keys: ${REDIS_KEYS}"
-  
+
   # ══════════════════════════════════════════════════════════
   # Backup Verification
   # ══════════════════════════════════════════════════════════
-  
+
   verify-backup.sh: |
     #!/bin/bash
-    
+
     echo "=== Backup Verification Report ==="
     echo "Date: $(date)"
     echo ""
-    
+
     # Check PostgreSQL backups
     echo "PostgreSQL Backups:"
     BACKUP_DIR="/backups/postgresql"
@@ -203,9 +203,9 @@ data:
     else
       echo "  Backup directory not found: ${BACKUP_DIR}"
     fi
-    
+
     echo ""
-    
+
     # Check Redis backups
     echo "Redis Backups:"
     REDIS_BACKUP_DIR="/backups/redis"
@@ -224,7 +224,7 @@ data:
     else
       echo "  Backup directory not found: ${REDIS_BACKUP_DIR}"
     fi
-    
+
     echo ""
     echo "=== Verification Complete ==="
 ---
@@ -235,7 +235,7 @@ metadata:
   name: postgresql-backup
   namespace: edgecloud
 spec:
-  schedule: "0 2 * * *"  # Daily at 2 AM
+  schedule: "0 2 * * *" # Daily at 2 AM
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -244,32 +244,32 @@ spec:
       template:
         spec:
           containers:
-          - name: backup
-            image: postgres:16-alpine
-            command:
-            - /bin/bash
-            - /scripts/backup-postgresql.sh
-            volumeMounts:
-            - name: backup-scripts
-              mountPath: /scripts
-            - name: backup-storage
-              mountPath: /backups
-            env:
-            - name: DATABASE_URL
-              valueFrom:
-                secretKeyRef:
-                  name: edgecloud-secrets
-                  key: DATABASE_URL
-            - name: BACKUP_BUCKET
-              value: "edgecloud-backups"
+            - name: backup
+              image: postgres:16-alpine
+              command:
+                - /bin/bash
+                - /scripts/backup-postgresql.sh
+              volumeMounts:
+                - name: backup-scripts
+                  mountPath: /scripts
+                - name: backup-storage
+                  mountPath: /backups
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: edgecloud-secrets
+                      key: DATABASE_URL
+                - name: BACKUP_BUCKET
+                  value: "edgecloud-backups"
           volumes:
-          - name: backup-scripts
-            configMap:
-              name: backup-scripts
-              defaultMode: 0755
-          - name: backup-storage
-            persistentVolumeClaim:
-              claimName: backup-pvc
+            - name: backup-scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
           restartPolicy: OnFailure
 ---
 # CronJob for Redis backups (every 6 hours)
@@ -279,7 +279,7 @@ metadata:
   name: redis-backup
   namespace: edgecloud
 spec:
-  schedule: "0 */6 * * *"  # Every 6 hours
+  schedule: "0 */6 * * *" # Every 6 hours
   concurrencyPolicy: Forbid
   successfulJobsHistoryLimit: 3
   failedJobsHistoryLimit: 3
@@ -288,33 +288,33 @@ spec:
       template:
         spec:
           containers:
-          - name: backup
-            image: redis:7-alpine
-            command:
-            - /bin/bash
-            - /scripts/backup-redis.sh
-            volumeMounts:
-            - name: backup-scripts
-              mountPath: /scripts
-            - name: backup-storage
-              mountPath: /backups
-            - name: redis-data
-              mountPath: /var/lib/redis
-              readOnly: true
-            env:
-            - name: BACKUP_BUCKET
-              value: "edgecloud-backups"
+            - name: backup
+              image: redis:7-alpine
+              command:
+                - /bin/bash
+                - /scripts/backup-redis.sh
+              volumeMounts:
+                - name: backup-scripts
+                  mountPath: /scripts
+                - name: backup-storage
+                  mountPath: /backups
+                - name: redis-data
+                  mountPath: /var/lib/redis
+                  readOnly: true
+              env:
+                - name: BACKUP_BUCKET
+                  value: "edgecloud-backups"
           volumes:
-          - name: backup-scripts
-            configMap:
-              name: backup-scripts
-              defaultMode: 0755
-          - name: backup-storage
-            persistentVolumeClaim:
-              claimName: backup-pvc
-          - name: redis-data
-            persistentVolumeClaim:
-              claimName: redis-data-pvc
+            - name: backup-scripts
+              configMap:
+                name: backup-scripts
+                defaultMode: 0755
+            - name: backup-storage
+              persistentVolumeClaim:
+                claimName: backup-pvc
+            - name: redis-data
+              persistentVolumeClaim:
+                claimName: redis-data-pvc
           restartPolicy: OnFailure
 ---
 # Persistent Volume Claim for backups
@@ -340,18 +340,18 @@ metadata:
 data:
   runbook.md: |
     # Disaster Recovery Runbook
-    
+
     ## Recovery Time Objectives (RTO)
     - Service degradation: 5 minutes
     - Full service recovery: 30 minutes
     - Data recovery (PITR): 1 hour
-    
+
     ## Recovery Point Objectives (RPO)
     - PostgreSQL: Maximum data loss 24 hours (daily backups)
     - Redis: Maximum data loss 6 hours (BGSAVE every 6 hours)
-    
+
     ## Scenarios
-    
+
     ### 1. PostgreSQL Database Failure
     **Detection:** Connection errors, health check failures
     **Response:**
@@ -363,7 +363,7 @@ data:
        ```
     4. Verify data integrity: `pg_restore --list latest.sql`
     5. Restart dependent services
-    
+
     ### 2. Redis Failure
     **Detection:** Cache misses, event processing delays
     **Response:**
@@ -375,7 +375,7 @@ data:
        ```
     4. Verify event streams: `redis-cli XLEN task-events`
     5. Monitor event processing resume
-    
+
     ### 3. Region Failure
     **Detection:** All nodes in region unreachable
     **Response:**
@@ -383,7 +383,7 @@ data:
     2. Redirect traffic to healthy regions via DNS
     3. Restore region from backup when available
     4. Re-sync PostgreSQL from primary region replica
-    
+
     ### 4. Point-in-Time Recovery (PostgreSQL)
     **When:** Data deleted or corrupted at specific time
     **Command:**
@@ -391,17 +391,17 @@ data:
     # Restore to specific backup
     kubectl exec -it backup-job -- /scripts/restore-postgresql.sh backup_20260425_020000.sql
     ```
-    
+
     ## Backup Verification
     Monthly backup verification:
     ```bash
     # Run verification job
     kubectl create job --from=cronjob/postgresql-backup backup-verify-$(date +%s)
-    
+
     # Check backup integrity
     kubectl exec -it backup-verify-xxx -- /scripts/verify-backup.sh
     ```
-    
+
     ## Backup Retention
     - PostgreSQL: 7 days local + 30 days S3
     - Redis: 7 days local + 14 days S3

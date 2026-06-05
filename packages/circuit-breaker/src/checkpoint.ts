@@ -1,4 +1,4 @@
-import { EventEmitter } from 'eventemitter3';
+import { EventEmitter } from "eventemitter3";
 
 export interface Checkpoint {
   id: string;
@@ -27,13 +27,16 @@ export class InMemoryCheckpointStore implements CheckpointStore {
     this.checkpoints.set(checkpoint.taskId, taskCheckpoints);
   }
 
-  async load(taskId: string, checkpointId?: string): Promise<Checkpoint | null> {
+  async load(
+    taskId: string,
+    checkpointId?: string,
+  ): Promise<Checkpoint | null> {
     const taskCheckpoints = this.checkpoints.get(taskId) || [];
-    
+
     if (checkpointId) {
       return taskCheckpoints.find((c) => c.id === checkpointId) || null;
     }
-    
+
     // Return latest checkpoint
     return taskCheckpoints[taskCheckpoints.length - 1] ?? null;
   }
@@ -73,28 +76,31 @@ export class CheckpointManager extends EventEmitter {
       metadata: {
         createdAt: new Date(),
         sequenceNumber,
-        version: '1.0',
+        version: "1.0",
       },
     };
 
     await this.store.save(checkpoint);
-    
-    this.emit('checkpointCreated', { taskId, checkpointId: checkpoint.id });
-    
+
+    this.emit("checkpointCreated", { taskId, checkpointId: checkpoint.id });
+
     return checkpoint;
   }
 
-  async restoreFromCheckpoint(taskId: string, checkpointId?: string): Promise<any | null> {
+  async restoreFromCheckpoint(
+    taskId: string,
+    checkpointId?: string,
+  ): Promise<any | null> {
     const checkpoint = await this.store.load(taskId, checkpointId);
-    
+
     if (!checkpoint) {
       return null;
     }
 
-    this.emit('checkpointRestored', { 
-      taskId, 
+    this.emit("checkpointRestored", {
+      taskId,
       checkpointId: checkpoint.id,
-      sequenceNumber: checkpoint.metadata.sequenceNumber 
+      sequenceNumber: checkpoint.metadata.sequenceNumber,
     });
 
     return this.deserializeState(checkpoint.state);
@@ -106,14 +112,14 @@ export class CheckpointManager extends EventEmitter {
 
   async deleteCheckpoint(taskId: string, checkpointId?: string): Promise<void> {
     await this.store.delete(taskId, checkpointId);
-    this.emit('checkpointDeleted', { taskId, checkpointId });
+    this.emit("checkpointDeleted", { taskId, checkpointId });
   }
 
   async withCheckpoint<T>(
     taskId: string,
     fn: () => Promise<T>,
     getState: () => any,
-    onRestore?: (state: any) => void
+    onRestore?: (state: any) => void,
   ): Promise<T> {
     // Try to restore from checkpoint first
     const restoredState = await this.restoreFromCheckpoint(taskId);
@@ -123,10 +129,10 @@ export class CheckpointManager extends EventEmitter {
 
     try {
       const result = await fn();
-      
+
       // Create checkpoint on success
       await this.createCheckpoint(taskId, getState());
-      
+
       return result;
     } catch (error) {
       // Create checkpoint on failure for potential retry
@@ -155,11 +161,7 @@ export class AutomaticCheckpointing extends EventEmitter {
     this.checkpointManager = checkpointManager;
   }
 
-  start(
-    taskId: string,
-    getState: () => any,
-    intervalMs: number = 30000
-  ): void {
+  start(taskId: string, getState: () => any, intervalMs: number = 30000): void {
     if (this.intervals.has(taskId)) {
       return;
     }
@@ -168,9 +170,9 @@ export class AutomaticCheckpointing extends EventEmitter {
       try {
         const state = getState();
         await this.checkpointManager.createCheckpoint(taskId, state);
-        this.emit('autoCheckpoint', { taskId, timestamp: new Date() });
+        this.emit("autoCheckpoint", { taskId, timestamp: new Date() });
       } catch (error) {
-        this.emit('autoCheckpointError', { taskId, error });
+        this.emit("autoCheckpointError", { taskId, error });
       }
     }, intervalMs);
 

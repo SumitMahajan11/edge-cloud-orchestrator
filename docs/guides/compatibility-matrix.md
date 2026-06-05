@@ -11,9 +11,9 @@ We use **URL-based versioning** combined with **Header-based negotiation**.
 
 ### Supported Versions
 
-| Version | Status | Introduced | Deprecation | Sunset |
-|:---|:---|:---|:---|:---|
-| `v1` | **Active** | 2026-04-14 | - | - |
+| Version | Status     | Introduced | Deprecation | Sunset |
+| :------ | :--------- | :--------- | :---------- | :----- |
+| `v1`    | **Active** | 2026-04-14 | -           | -      |
 
 ## Version Negotiation
 
@@ -23,6 +23,7 @@ Clients can specify the desired version in two ways:
 2.  **Header**: `X-API-Version: v1`
 
 **Rules**:
+
 - If both are provided, they **must match**.
 - If neither is provided, the API defaults to the latest stable version (`v1`).
 - Requesting an unsupported version returns `400 Bad Request`.
@@ -53,7 +54,7 @@ Link: <https://docs.edgecloud.com/api/v2/stats>; rel="deprecation"
 The single source of truth for the API contract is `packages/shared-kernel/src/api-contracts/`. Both the Gateway and Edge Agents must import from this package to ensure schema alignment.
 
 ```typescript
-import { v1Contracts } from '@edgecloud/shared-kernel';
+import { v1Contracts } from "@edgecloud/shared-kernel";
 
 // Use v1Contracts.CreateTaskV1Schema for validation
 ```

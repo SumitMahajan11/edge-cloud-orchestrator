@@ -1,25 +1,25 @@
 {
-    "name":  "@edgecloud/websocket-client",
-    "version":  "1.0.0",
-    "description":  "Resilient WebSocket client with auto-reconnect and SSE fallback",
-    "main":  "dist/index.js",
-    "types":  "dist/index.d.ts",
-    "exports":  {
-                    ".":  {
-                              "import":  "./dist/index.js",
-                              "types":  "./dist/index.d.ts",
-                              "require":  "./dist/index.js"
-                          }
-                },
-    "scripts":  {
-                    "build":  "tsc",
-                    "dev":  "tsc --watch"
-                },
-    "dependencies":  {
-                         "eventemitter3":  "^5.0.0"
-                     },
-    "devDependencies":  {
-                            "@types/node":  "^20.0.0",
-                            "typescript":  "^5.3.0"
-                        }
+  "name": "@edgecloud/websocket-client",
+  "version": "1.0.0",
+  "description": "Resilient WebSocket client with auto-reconnect and SSE fallback",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts",
+      "require": "./dist/index.js"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "eventemitter3": "^5.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.3.0"
+  }
 }

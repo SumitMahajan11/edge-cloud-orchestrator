@@ -105,7 +105,10 @@ export class WebSocketManager {
           this.broadcastLocally(clusterMsg.channel, clusterMsg.payload);
         }
       } catch (error) {
-        this.logger.error({ error, channel }, 'Failed to parse cluster message');
+        this.logger.error(
+          { error, channel },
+          'Failed to parse cluster message',
+        );
       }
     };
 
@@ -113,9 +116,12 @@ export class WebSocketManager {
       messageHandler(channel, message);
     });
 
-    this.redisSubscriber.on('pmessage', (_pattern: string, channel: string, message: string) => {
-      messageHandler(channel, message);
-    });
+    this.redisSubscriber.on(
+      'pmessage',
+      (_pattern: string, channel: string, message: string) => {
+        messageHandler(channel, message);
+      },
+    );
 
     this.logger.info(
       { instanceId: this.instanceId },
@@ -189,7 +195,10 @@ export class WebSocketManager {
 
     // Extract token from Authorization header or ?token= query parameter
     const authHeader = req.headers.authorization;
-    const url = new URL(req.url || '', `http://${req.headers.host || 'localhost'}`);
+    const url = new URL(
+      req.url || '',
+      `http://${req.headers.host || 'localhost'}`,
+    );
     const queryToken = url.searchParams.get('token');
 
     let token = queryToken;
@@ -198,7 +207,10 @@ export class WebSocketManager {
     }
 
     if (!token) {
-      this.logger.warn({ clientId }, 'WebSocket connection rejected: No token provided');
+      this.logger.warn(
+        { clientId },
+        'WebSocket connection rejected: No token provided',
+      );
       ws.close(4001, 'Unauthorized');
       return;
     }
@@ -213,8 +225,15 @@ export class WebSocketManager {
       };
 
       // Reject non-admin connections without tenantId
-      if (!decoded.tenantId && decoded.role !== 'SUPER_ADMIN' && decoded.role !== 'ADMIN') {
-        this.logger.warn({ clientId }, 'WebSocket connection rejected: Missing tenant context');
+      if (
+        !decoded.tenantId &&
+        decoded.role !== 'SUPER_ADMIN' &&
+        decoded.role !== 'ADMIN'
+      ) {
+        this.logger.warn(
+          { clientId },
+          'WebSocket connection rejected: Missing tenant context',
+        );
         ws.close(4001, 'Unauthorized: Missing Tenant Context');
         return;
       }
@@ -338,7 +357,10 @@ export class WebSocketManager {
         });
         break;
       case 'reconnect':
-        this.handleReconnect(client, message.payload as { previousConnectionId: string });
+        this.handleReconnect(
+          client,
+          message.payload as { previousConnectionId: string },
+        );
         break;
       default:
         this.logger.warn(
@@ -348,7 +370,10 @@ export class WebSocketManager {
     }
   }
 
-  private handleReconnect(client: Client, payload: { previousConnectionId: string }): void {
+  private handleReconnect(
+    client: Client,
+    payload: { previousConnectionId: string },
+  ): void {
     if (!payload?.previousConnectionId) {
       return this.sendToClient(client, 'error', {
         message: 'Invalid reconnect payload',
@@ -368,7 +393,11 @@ export class WebSocketManager {
       this.disconnectedClients.delete(previousId);
 
       this.logger.info(
-        { clientId: client.id, previousConnectionId: previousId, restoredSubscriptions: Array.from(client.subscriptions) },
+        {
+          clientId: client.id,
+          previousConnectionId: previousId,
+          restoredSubscriptions: Array.from(client.subscriptions),
+        },
         'WebSocket session resumed successfully',
       );
 
@@ -387,7 +416,10 @@ export class WebSocketManager {
     }
   }
 
-  private handleSubscribe(client: Client, payload: { channels: string[] }): void {
+  private handleSubscribe(
+    client: Client,
+    payload: { channels: string[] },
+  ): void {
     if (!payload?.channels || !Array.isArray(payload.channels)) {
       return this.sendToClient(client, 'error', {
         message: 'Invalid subscribe payload',
@@ -415,16 +447,22 @@ export class WebSocketManager {
               const { prisma } = await import('../index.js');
               if (prisma) {
                 const nodes = await prisma.edgeNode.findMany({
-                  where: { tenantId: parsedTenantId }
+                  where: { tenantId: parsedTenantId },
                 });
                 this.sendToClient(client, 'snapshot', {
                   channel,
                   data: nodes,
                 });
-                this.logger.info({ clientId: client.id, channel }, 'Sent node snapshot');
+                this.logger.info(
+                  { clientId: client.id, channel },
+                  'Sent node snapshot',
+                );
               }
             } catch (err) {
-              this.logger.error({ err, channel }, 'Failed to fetch node snapshot for subscription');
+              this.logger.error(
+                { err, channel },
+                'Failed to fetch node snapshot for subscription',
+              );
             }
           })();
         }
@@ -438,7 +476,10 @@ export class WebSocketManager {
     );
   }
 
-  private handleUnsubscribe(client: Client, payload: { channels: string[] }): void {
+  private handleUnsubscribe(
+    client: Client,
+    payload: { channels: string[] },
+  ): void {
     if (!payload?.channels || !Array.isArray(payload.channels)) {
       return this.sendToClient(client, 'error', {
         message: 'Invalid unsubscribe payload',
@@ -451,7 +492,6 @@ export class WebSocketManager {
 
     this.sendToClient(client, 'unsubscribed', { channels: payload.channels });
   }
-
 
   private sendToClient(client: Client, type: string, payload: unknown): void {
     if (client.ws.readyState === WebSocket.OPEN) {
@@ -500,12 +540,20 @@ export class WebSocketManager {
   /**
    * Broadcast to all instances via Redis Pub/Sub
    */
-  broadcast(channel: string, payload: unknown, tenantIdOrExcludeClientId?: string, excludeClientId?: string): void {
+  broadcast(
+    channel: string,
+    payload: unknown,
+    tenantIdOrExcludeClientId?: string,
+    excludeClientId?: string,
+  ): void {
     let tenantId: string | undefined;
     let actualExcludeClientId = excludeClientId;
 
     if (tenantIdOrExcludeClientId) {
-      const isUuid = (str: string) => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(str);
+      const isUuid = (str: string) =>
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          str,
+        );
       if (isUuid(tenantIdOrExcludeClientId)) {
         actualExcludeClientId = tenantIdOrExcludeClientId;
       } else {
@@ -513,7 +561,9 @@ export class WebSocketManager {
       }
     }
 
-    const redisChannel = tenantId ? `${channel}:${tenantId}` : REDIS_PUBSUB_CHANNEL;
+    const redisChannel = tenantId
+      ? `${channel}:${tenantId}`
+      : REDIS_PUBSUB_CHANNEL;
     const targetChannel = tenantId ? `${channel}:${tenantId}` : channel;
 
     // First, broadcast locally
@@ -551,7 +601,10 @@ export class WebSocketManager {
 
   broadcastToTenant(tenantId: TenantId, type: string, payload: unknown): void {
     for (const client of this.clients.values()) {
-      if (client.tenantId === tenantId && client.ws.readyState === WebSocket.OPEN) {
+      if (
+        client.tenantId === tenantId &&
+        client.ws.readyState === WebSocket.OPEN
+      ) {
         this.sendToClient(client, type, payload);
       }
     }

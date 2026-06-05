@@ -9,12 +9,15 @@ The scheduling logic uses an XGBoost-based predictor to estimate task outcomes a
 ## Automated Retraining
 
 ### Triggers
+
 1. **Scheduled**: The pipeline runs every Sunday at midnight UTC.
 2. **Drift Detected**: Triggered by a `repository_dispatch` event (`ml_drift_alert`) emitted by the `DriftDetector` when prediction error spikes.
 3. **Manual**: Can be triggered via the GitHub Actions UI ("Workflow Dispatch").
 
 ### Validation Gate
+
 The `train_model.py` script includes a strict validation step:
+
 - Evaluates the new model against a 20% holdout test set.
 - Calculates the **P99 Scheduling Error**.
 - **Threshold**: Must be **< 10ms**.
@@ -22,11 +25,13 @@ The `train_model.py` script includes a strict validation step:
 
 ## Model Versioning
 
-Models are versioned using **SemVer** (e.g., `1.2.0`). 
+Models are versioned using **SemVer** (e.g., `1.2.0`).
+
 - Metadata is stored in `packages/ml-scheduler/models/model_metadata.json`.
 - The version is automatically incremented (patch version) by the training script based on the previous `latest.json`.
 
 ### Metadata Format
+
 ```json
 {
   "version": "1.2.0",
@@ -42,12 +47,14 @@ Models are versioned using **SemVer** (e.g., `1.2.0`).
 ## Enforcement & Security
 
 The `SchedulingPredictor` enforces a minimum model version requirement:
+
 - Set `MIN_MODEL_VERSION` environment variable (e.g., `1.1.0`).
 - If the loaded model's version is lower than `MIN_MODEL_VERSION`, the service will throw an error on startup and refuse to process tasks.
 
 ## Rollback Procedure
 
 To roll back to a previous model version:
+
 1. Identify the desired version (e.g., `1.1.5`) from the `packages/ml-scheduler/models/` directory.
 2. Revert the `latest.json` or `model_metadata.json` to point to the older artifact.
 3. Alternatively, set `MIN_MODEL_VERSION` to the older version and update the deployment configuration to use the specific versioned artifact.

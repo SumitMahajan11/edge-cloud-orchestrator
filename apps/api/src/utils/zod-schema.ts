@@ -53,5 +53,3 @@ export function zodToFastifySchema<T extends z.ZodType>(
 
   return jsonSchema as Record<string, unknown>;
 }
-
-

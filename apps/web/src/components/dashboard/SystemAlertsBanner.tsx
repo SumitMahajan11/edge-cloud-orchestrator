@@ -1,16 +1,16 @@
-import { useEffect, useMemo, useState } from 'react'
-import { AlertTriangle, AlertCircle, X } from 'lucide-react'
-import Link from 'next/link'
-import { useWsEventStream } from '../../stores/websocket'
-import { cn } from '../../lib/utils'
+import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, AlertCircle, X } from "lucide-react";
+import Link from "next/link";
+import { useWsEventStream } from "../../stores/websocket";
+import { cn } from "../../lib/utils";
 
 export interface SystemAlert {
-  id: string
-  severity: 'critical' | 'warning'
-  title: string
-  description?: string
-  source?: string
-  createdAt: number
+  id: string;
+  severity: "critical" | "warning";
+  title: string;
+  description?: string;
+  source?: string;
+  createdAt: number;
 }
 
 /**
@@ -22,93 +22,97 @@ export interface SystemAlert {
  *   - node.offline               → warning (per node)
  */
 export function SystemAlertsBanner() {
-  const events = useWsEventStream()
-  const [dismissed, setDismissed] = useState<Set<string>>(new Set())
+  const events = useWsEventStream();
+  const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   // Derive alerts from recent events (last 100)
   const derived = useMemo<SystemAlert[]>(() => {
-    const recent = events.slice(-100)
-    const seen = new Map<string, SystemAlert>()
+    const recent = events.slice(-100);
+    const seen = new Map<string, SystemAlert>();
 
     for (const e of recent) {
-      const d: any = e.data ?? {}
-      const ts = e.receivedAt
+      const d: any = e.data ?? {};
+      const ts = e.receivedAt;
 
-      if (e.type === 'circuit_breaker.opened') {
-        const key = `cb:${d.service ?? d.name ?? 'unknown'}`
+      if (e.type === "circuit_breaker.opened") {
+        const key = `cb:${d.service ?? d.name ?? "unknown"}`;
         seen.set(key, {
           id: key,
-          severity: 'critical',
-          title: `Circuit breaker OPEN: ${d.service ?? d.name ?? 'service'}`,
-          description: d.reason ?? 'Downstream failures exceeded threshold',
+          severity: "critical",
+          title: `Circuit breaker OPEN: ${d.service ?? d.name ?? "service"}`,
+          description: d.reason ?? "Downstream failures exceeded threshold",
           source: d.service,
           createdAt: ts,
-        })
-      } else if (e.type === 'circuit_breaker.closed') {
-        const key = `cb:${d.service ?? d.name ?? 'unknown'}`
-        seen.delete(key)
-      } else if (e.type === 'ml.drift_detected') {
-        const key = `drift:${d.model ?? 'default'}`
+        });
+      } else if (e.type === "circuit_breaker.closed") {
+        const key = `cb:${d.service ?? d.name ?? "unknown"}`;
+        seen.delete(key);
+      } else if (e.type === "ml.drift_detected") {
+        const key = `drift:${d.model ?? "default"}`;
         seen.set(key, {
           id: key,
-          severity: 'warning',
-          title: `ML model drift detected${d.model ? `: ${d.model}` : ''}`,
+          severity: "warning",
+          title: `ML model drift detected${d.model ? `: ${d.model}` : ""}`,
           description:
             d.reason ??
-            `Drift score ${d.score ?? '?'} crossed threshold. Consider retraining.`,
+            `Drift score ${d.score ?? "?"} crossed threshold. Consider retraining.`,
           createdAt: ts,
-        })
-      } else if (e.type === 'ml.fallback') {
-        const key = 'ml-fallback'
-        const existing = seen.get(key)
-        const count = (existing as any)?._count ? (existing as any)._count + 1 : 1
+        });
+      } else if (e.type === "ml.fallback") {
+        const key = "ml-fallback";
+        const existing = seen.get(key);
+        const count = (existing as any)?._count
+          ? (existing as any)._count + 1
+          : 1;
         if (count >= 3) {
           const alert: any = {
             id: key,
-            severity: 'warning',
-            title: 'ML fallback rate elevated',
+            severity: "warning",
+            title: "ML fallback rate elevated",
             description: `${count} fallback decisions in last stream window`,
             createdAt: ts,
             _count: count,
-          }
-          seen.set(key, alert)
+          };
+          seen.set(key, alert);
         } else if (existing) {
-          ;(existing as any)._count = count
+          (existing as any)._count = count;
         } else {
-          ;(seen as any).set(key, { _count: 1 })
+          (seen as any).set(key, { _count: 1 });
         }
-      } else if (e.type === 'node.offline') {
-        const key = `node-offline:${d.nodeId ?? d.id ?? 'unknown'}`
+      } else if (e.type === "node.offline") {
+        const key = `node-offline:${d.nodeId ?? d.id ?? "unknown"}`;
         seen.set(key, {
           id: key,
-          severity: 'warning',
-          title: `Node offline: ${d.name ?? d.nodeId ?? 'unknown'}`,
+          severity: "warning",
+          title: `Node offline: ${d.name ?? d.nodeId ?? "unknown"}`,
           description: d.reason,
           createdAt: ts,
-        })
-      } else if (e.type === 'node.registered' || e.type === 'node.heartbeat') {
+        });
+      } else if (e.type === "node.registered" || e.type === "node.heartbeat") {
         // Clear offline alert once node returns
-        const key = `node-offline:${d.nodeId ?? d.id ?? 'unknown'}`
-        seen.delete(key)
+        const key = `node-offline:${d.nodeId ?? d.id ?? "unknown"}`;
+        seen.delete(key);
       }
     }
 
     // Only return proper SystemAlert shapes (filter out internal _count-only entries)
-    return [...seen.values()].filter((a): a is SystemAlert => !!a && 'title' in a)
-  }, [events])
+    return [...seen.values()].filter(
+      (a): a is SystemAlert => !!a && "title" in a,
+    );
+  }, [events]);
 
   // Prune dismissed-set to ids that no longer exist
   useEffect(() => {
     setDismissed((prev) => {
-      const active = new Set(derived.map((a) => a.id))
-      const next = new Set<string>()
-      for (const id of prev) if (active.has(id)) next.add(id)
-      return next.size === prev.size ? prev : next
-    })
-  }, [derived])
+      const active = new Set(derived.map((a) => a.id));
+      const next = new Set<string>();
+      for (const id of prev) if (active.has(id)) next.add(id);
+      return next.size === prev.size ? prev : next;
+    });
+  }, [derived]);
 
-  const visible = derived.filter((a) => !dismissed.has(a.id))
-  if (visible.length === 0) return null
+  const visible = derived.filter((a) => !dismissed.has(a.id));
+  if (visible.length === 0) return null;
 
   return (
     <div className="sticky top-16 z-20 -mx-6 mb-4 px-6">
@@ -119,35 +123,35 @@ export function SystemAlertsBanner() {
             alert={a}
             onDismiss={() =>
               setDismissed((prev) => {
-                const n = new Set(prev)
-                n.add(a.id)
-                return n
+                const n = new Set(prev);
+                n.add(a.id);
+                return n;
               })
             }
           />
         ))}
       </div>
     </div>
-  )
+  );
 }
 
 function AlertRow({
   alert,
   onDismiss,
 }: {
-  alert: SystemAlert
-  onDismiss: () => void
+  alert: SystemAlert;
+  onDismiss: () => void;
 }) {
-  const isCritical = alert.severity === 'critical'
-  const Icon = isCritical ? AlertCircle : AlertTriangle
+  const isCritical = alert.severity === "critical";
+  const Icon = isCritical ? AlertCircle : AlertTriangle;
 
   return (
     <div
       className={cn(
-        'flex items-start gap-3 rounded-lg border px-4 py-3 animate-pulse-teal',
+        "flex items-start gap-3 rounded-lg border px-4 py-3 animate-pulse-teal",
         isCritical
-          ? 'border-[#ef4444]/40 bg-[#ef4444]/5 text-[#ef4444]'
-          : 'border-[#f59e0b]/40 bg-[#f59e0b]/5 text-[#f59e0b]'
+          ? "border-[#ef4444]/40 bg-[#ef4444]/5 text-[#ef4444]"
+          : "border-[#f59e0b]/40 bg-[#f59e0b]/5 text-[#f59e0b]",
       )}
       role="alert"
     >
@@ -173,5 +177,5 @@ function AlertRow({
         <X className="h-4 w-4" />
       </button>
     </div>
-  )
+  );
 }

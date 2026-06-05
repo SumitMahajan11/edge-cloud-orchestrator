@@ -39,30 +39,31 @@ services:
     networks:
       - edgecloud
   pgbouncer:
-    image: bitnami/pgbouncer:latest
+    image: public.ecr.aws/bitnami/pgbouncer:latest
     environment:
-    - PGBOUNCER_DATABASE_HOST=postgres-primary
-    - PGBOUNCER_DATABASE_PORT=5432
-    - PGBOUNCER_DATABASE_USER=edgecloud
-    - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
-    - PGBOUNCER_DATABASE_NAME=edgecloud
-    - PGBOUNCER_PORT=5432
-    - PGBOUNCER_POOL_MODE=transaction
+      - PGBOUNCER_DATABASE_HOST=postgres-primary
+      - PGBOUNCER_DATABASE_PORT=5432
+      - PGBOUNCER_DATABASE_USER=edgecloud
+      - PGBOUNCER_DATABASE_PASSWORD=${POSTGRES_PASSWORD}
+      - PGBOUNCER_DATABASE_NAME=edgecloud
+      - PGBOUNCER_PORT=5432
+      - PGBOUNCER_POOL_MODE=transaction
+      - POSTGRESQL_PASSWORD=${POSTGRES_PASSWORD}
     depends_on:
-    - postgres-primary
+      - postgres-primary
     networks:
-    - edgecloud
+      - edgecloud
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     networks:
-    - edgecloud
+      - edgecloud
   kafka-1:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-    - zookeeper
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -73,13 +74,13 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
     ports:
-    - 29092:29092
+      - 29092:29092
     networks:
-    - edgecloud
+      - edgecloud
   kafka-2:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-    - zookeeper
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -89,11 +90,11 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
     networks:
-    - edgecloud
+      - edgecloud
   kafka-3:
     image: confluentinc/cp-kafka:7.5.0
     depends_on:
-    - zookeeper
+      - zookeeper
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
@@ -103,11 +104,13 @@ services:
       KAFKA_DEFAULT_REPLICATION_FACTOR: 3
       KAFKA_MIN_INSYNC_REPLICAS: 2
     networks:
-    - edgecloud
+      - edgecloud
   backend:
     build:
-      context: ../../apps/api
-      dockerfile: Dockerfile
+      context: ../..
+      dockerfile: apps/api/Dockerfile
+      network: host
+
     environment:
       PORT: 3000
       DATABASE_URL: postgresql://postgres:postgres@pgbouncer:5432/edge_cloud?schema=public
@@ -118,25 +121,33 @@ services:
       ENCRYPTION_KEY: dev-encryption-key-must-be-at-least-32-chars-long
       VAULT_ADDR: http://vault:8200
       VAULT_TOKEN: dev-token
-      OTEL_ENABLED: 'true'
+      OTEL_ENABLED: "true"
     depends_on:
-    - pgbouncer
-    - kafka-1
-    - redis-sentinel-1
+      - pgbouncer
+      - kafka-1
+      - redis-sentinel-1
     networks:
-    - edgecloud
+      edgecloud:
+        aliases:
+          - task-service
+          - node-service
+          - scheduler-service-1
+          - scheduler-service-2
+          - scheduler-service-3
+          - websocket-gateway
     ports:
-    - 3000:3000
+      - 3000:3000
   nginx:
-    image: nginx:alpine
+    image: fabiocicerchia/nginx-lua:alpine
     volumes:
-    - ../../apps/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../apps/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../apps/api-gateway/lua:/etc/nginx/lua:ro
     ports:
-    - 80:80
+      - 80:80
     depends_on:
-    - backend
+      - backend
     networks:
-    - edgecloud
+      - edgecloud
   redis-master:
     image: redis:7-alpine
     command: redis-server --appendonly yes --appendfsync everysec
@@ -163,8 +174,9 @@ services:
 
   redis-sentinel-1:
     image: redis:7-alpine
-    command: >
-      sh -c "echo 'sentinel monitor mymaster redis-master 6379 2
+    command: |
+      sh -c "echo 'sentinel resolve-hostnames yes
+      sentinel monitor mymaster redis-master 6379 2
       sentinel down-after-milliseconds mymaster 5000
       sentinel failover-timeout mymaster 10000' > /sentinel.conf &&
       redis-sentinel /sentinel.conf"
@@ -178,8 +190,9 @@ services:
 
   redis-sentinel-2:
     image: redis:7-alpine
-    command: >
-      sh -c "echo 'sentinel monitor mymaster redis-master 6379 2
+    command: |
+      sh -c "echo 'sentinel resolve-hostnames yes
+      sentinel monitor mymaster redis-master 6379 2
       sentinel down-after-milliseconds mymaster 5000
       sentinel failover-timeout mymaster 10000' > /sentinel.conf &&
       redis-sentinel /sentinel.conf"
@@ -191,8 +204,9 @@ services:
 
   redis-sentinel-3:
     image: redis:7-alpine
-    command: >
-      sh -c "echo 'sentinel monitor mymaster redis-master 6379 2
+    command: |
+      sh -c "echo 'sentinel resolve-hostnames yes
+      sentinel monitor mymaster redis-master 6379 2
       sentinel down-after-milliseconds mymaster 5000
       sentinel failover-timeout mymaster 10000' > /sentinel.conf &&
       redis-sentinel /sentinel.conf"
@@ -204,82 +218,82 @@ services:
   prometheus:
     image: prom/prometheus:v2.48.0
     volumes:
-    - ../../infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
-    - ../../infra/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
-    - prometheus-data:/prometheus
+      - ../../infra/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ../../infra/observability/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
     command:
-    - --config.file=/etc/prometheus/prometheus.yml
-    - --storage.tsdb.path=/prometheus
-    - --web.console.libraries=/etc/prometheus/console_libraries
-    - --web.console.templates=/etc/prometheus/consoles
-    - --storage.tsdb.retention.time=15d
-    - --web.enable-lifecycle
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.console.libraries=/etc/prometheus/console_libraries
+      - --web.console.templates=/etc/prometheus/consoles
+      - --storage.tsdb.retention.time=15d
+      - --web.enable-lifecycle
     ports:
-    - 9090:9090
+      - 9090:9090
     networks:
-    - edgecloud
+      - edgecloud
   grafana:
     image: grafana/grafana:10.2.0
     volumes:
-    - grafana-data:/var/lib/grafana
-    - ../../infra/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
-    - ../../infra/observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
+      - grafana-data:/var/lib/grafana
+      - ../../infra/observability/grafana/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ../../infra/observability/grafana/datasources:/etc/grafana/provisioning/datasources:ro
     environment:
-    - GF_SECURITY_ADMIN_USER=admin
-    - GF_SECURITY_ADMIN_PASSWORD=admin
-    - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
     ports:
-    - 3002:3000
+      - 3002:3000
     networks:
-    - edgecloud
+      - edgecloud
     depends_on:
-    - prometheus
+      - prometheus
   jaeger:
     image: jaegertracing/all-in-one:1.50
     environment:
-    - COLLECTOR_OTLP_ENABLED=true
+      - COLLECTOR_OTLP_ENABLED=true
     ports:
-    - 16686:16686
-    - 14268:14268
-    - 4317:4317
-    - 4318:4318
-    - 9411:9411
+      - 16686:16686
+      - 14268:14268
+      - 4317:4317
+      - 4318:4318
+      - 9411:9411
     networks:
-    - edgecloud
+      - edgecloud
   loki:
     image: grafana/loki:2.9.2
     ports:
-    - 3100:3100
+      - 3100:3100
     command: -config.file=/etc/loki/local-config.yaml
     networks:
-    - edgecloud
+      - edgecloud
   vault:
     image: hashicorp/vault:1.15
     cap_add:
-    - IPC_LOCK
+      - IPC_LOCK
     environment:
-    - VAULT_DEV_ROOT_TOKEN_ID=dev-token
-    - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
+      - VAULT_DEV_ROOT_TOKEN_ID=dev-token
+      - VAULT_DEV_LISTEN_ADDRESS=0.0.0.0:8200
     volumes:
-    - vault-data:/vault/file
-    - ../../infra/vault/vault-config.hcl:/vault/config/vault.hcl:ro
+      - vault-data:/vault/file
+    # - ../../infra/vault/vault-config.hcl:/vault/config/vault.hcl:ro
     ports:
-    - 8200:8200
+      - 8200:8200
     networks:
-    - edgecloud
+      - edgecloud
     command: server -dev -dev-root-token-id="dev-token"
   backup-service:
     image: postgres:16-alpine
     volumes:
-    - ../../infra/backup:/backup-scripts:ro
-    - backup-data:/backups
+      - ../../infra/backup:/backup-scripts:ro
+      - backup-data:/backups
     command: "sh -c \"\n  echo 'Backup service ready' &&\n  tail -f /dev/null\n\"\n"
     networks:
-    - edgecloud
+      - edgecloud
     depends_on:
-    - postgres-primary
+      - postgres-primary
     environment:
-    - BACKUP_SCHEDULE=0 2 * * *
+      - BACKUP_SCHEDULE=0 2 * * *
 volumes:
   postgres-primary-data: null
   postgres-replica-data: null

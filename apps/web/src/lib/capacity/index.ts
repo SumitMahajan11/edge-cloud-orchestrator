@@ -1,9 +1,13 @@
-export type { 
-  CapacityAction, 
+export type {
+  CapacityAction,
   CapacityConfig,
-  CapacityPlan, 
-  CapacityProjection, 
+  CapacityPlan,
+  CapacityProjection,
   CapacityThreshold,
-  ScalingEvent
-} from './CapacityPlanner'
-export { CapacityPlanner, capacityPlanner,createCapacityPlanner } from './CapacityPlanner'
+  ScalingEvent,
+} from "./CapacityPlanner";
+export {
+  CapacityPlanner,
+  capacityPlanner,
+  createCapacityPlanner,
+} from "./CapacityPlanner";
