@@ -120,13 +120,18 @@ import { authState } from './initializers/auth-state';
 app.decorate('authenticate', function (this: any, request: any, reply: any) {
   return authState.authenticate(request, reply);
 });
-
 app.decorate('requireRole', function (this: any, ...roles: any[]) {
-  return authState.requireRole(...roles);
+  return async function (request: any, reply: any) {
+    const fn = authState.requireRole(...roles);
+    return fn(request, reply);
+  };
 });
 
 app.decorate('requirePermission', function (this: any, permission: string) {
-  return authState.requirePermission(permission);
+  return async function (request: any, reply: any) {
+    const fn = authState.requirePermission(permission);
+    return fn(request, reply);
+  };
 });
 
 /**

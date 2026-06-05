@@ -32,7 +32,7 @@ export default function LoginPage() {
         router.push("/");
       }
     } else {
-      if (password.length < 8) return;
+      if (password.length < 12) return;
       const result = await register(email, password, name);
       if (result) {
         setIsLogin(true);
@@ -44,9 +44,9 @@ export default function LoginPage() {
 
   const handleDemoLogin = async () => {
     clearError();
-    setEmail("admin@example.com");
-    setPassword("admin123");
-    const result = await login("admin@example.com", "admin123");
+    setEmail("admin@demo-org.com");
+    setPassword("Admin123!");
+    const result = await login("admin@demo-org.com", "Admin123!");
     if (result) {
       router.push("/");
     }
@@ -167,7 +167,7 @@ export default function LoginPage() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
-                  minLength={isLogin ? undefined : 8}
+                  minLength={isLogin ? undefined : 12}
                   className="w-full pl-9 pr-10 py-2 bg-secondary/30 border border-border/80 rounded-lg text-sm text-foreground placeholder-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary focus:border-transparent transition-all"
                   placeholder="••••••••"
                 />
@@ -186,7 +186,7 @@ export default function LoginPage() {
               </div>
               {!isLogin && (
                 <p className="text-[10px] text-muted-foreground mt-1">
-                  Minimum 8 characters
+                  Minimum 12 characters
                 </p>
               )}
             </div>
