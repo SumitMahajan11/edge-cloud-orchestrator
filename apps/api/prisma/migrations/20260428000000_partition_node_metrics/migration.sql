@@ -6,6 +6,9 @@ CREATE EXTENSION IF NOT EXISTS pg_partman SCHEMA partman;
 
 -- Rename existing table
 ALTER TABLE "node_metrics" RENAME TO "node_metrics_old";
+ALTER TABLE "node_metrics_old" RENAME CONSTRAINT "node_metrics_pkey" TO "node_metrics_pkey_old";
+ALTER TABLE "node_metrics_old" RENAME CONSTRAINT "node_metrics_nodeId_fkey" TO "node_metrics_nodeId_fkey_old";
+ALTER INDEX "node_metrics_nodeId_timestamp_idx" RENAME TO "node_metrics_nodeId_timestamp_idx_old";
 
 -- Create partitioned table
 -- Note: In partitioned tables, the partition key must be part of any unique/primary key
@@ -37,7 +40,7 @@ CREATE INDEX "node_metrics_timestamp_idx" ON "node_metrics"("timestamp");
 CREATE INDEX "node_metrics_nodeId_timestamp_idx" ON "node_metrics"("nodeId", "timestamp" DESC);
 
 -- Initialize pg_partman for the table
-SELECT partman.create_parent('public.node_metrics', 'timestamp', 'native', 'daily');
+SELECT partman.create_parent('public.node_metrics', 'timestamp', '1 day');
 
 -- Configure retention in pg_partman
 UPDATE partman.part_config 

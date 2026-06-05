@@ -1,6 +1,6 @@
 # Stage 1: Builder
 FROM node:22-alpine AS builder
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
 
 ENV PNPM_CONFIG_IGNORE_SCRIPTS=true
@@ -35,14 +35,15 @@ RUN PRISMA_DIR=$(find /app/node_modules -name ".prisma" -type d | head -n 1) && 
 
 # Stage 2: Runner
 FROM node:22-alpine AS runner
+RUN apk add --no-cache openssl
 WORKDIR /app
 
 # Set production environment
 ENV NODE_ENV=production
 ENV PORT=3000
 
-# Create non-root user
-RUN adduser -S appuser -u 1001
+# Create non-root user and ensure directory ownership
+RUN adduser -S appuser -u 1001 && mkdir -p /app/models && chown -R appuser /app
 
 # Copy the deploy folder
 COPY --chown=appuser --from=builder /deploy ./
@@ -57,4 +58,4 @@ EXPOSE 3000
 HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
-CMD ["node", "dist/index.js"]
+CMD ["node", "dist/src/index.js"]

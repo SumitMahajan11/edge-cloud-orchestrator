@@ -39,7 +39,7 @@ QUERY PERFORMANCE AUDIT (Simulated Production Load: 1.2M Tasks, 4.5M TaskExecuti
 CREATE INDEX "edge_nodes_status_region_idx" ON "edge_nodes"("status", "region");
 
 -- CreateIndex
-CREATE INDEX "tasks_tenantId_status_idx" ON "tasks"("tenantId", "status");
+-- CREATE INDEX "tasks_tenantId_status_idx" ON "tasks"("tenantId", "status");
 
 -- CreateIndex
 DROP INDEX "task_executions_taskId_idx";

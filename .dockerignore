@@ -8,7 +8,8 @@ monitoring
 docs
 infrastructure
 *.log
-.env*
+**/.env*
+**/.*env*
 backend/node_modules
 packages/*/node_modules
 apps/*/node_modules

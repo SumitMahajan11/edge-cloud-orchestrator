@@ -231,21 +231,64 @@ export class CertificateAuthorityManager {
     // Validate and atomically consume bootstrap token (prevents race conditions)
     await this.validateAndConsumeBootstrapToken(bootstrapToken, nodeId);
 
+    let certificate: string;
+    let serialNumber: string;
+
     // Use Vault PKI to issue a certificate instead of local signing
     const secretManager = SecretManagerFactory.create();
-    const certBundle = await secretManager.issueCertificate?.(
-      'edge-agent',
-      nodeId,
-      `${CERT_CONFIG.validityDays}d`,
-    );
-    if (!certBundle) {
-      throw new Error('Vault PKI issueCertificate not available');
+    let certBundle: any = null;
+    if (secretManager.issueCertificate) {
+      try {
+        certBundle = await secretManager.issueCertificate(
+          'edge-agent',
+          nodeId,
+          `${CERT_CONFIG.validityDays}d`,
+        );
+      } catch (err) {
+        this.logger.warn({ err }, 'Vault certificate issuance failed, falling back to local CA signing');
+      }
     }
-    const certificate = certBundle.certificate;
-    const serialNumber = certBundle.serial_number;
+
     const now = new Date();
     const expiresAt = new Date(now);
     expiresAt.setDate(expiresAt.getDate() + CERT_CONFIG.validityDays);
+
+    if (certBundle) {
+      certificate = certBundle.certificate;
+      serialNumber = certBundle.serial_number;
+    } else {
+      // Local signing fallback
+      this.logger.info({ nodeId }, 'Using local CA to sign agent CSR');
+      const cleanPem = this.ca.privateKey.replace(
+        /-----BEGIN PRIVATE KEY-----|-----END PRIVATE KEY-----|\s/g,
+        '',
+      );
+      const caKey = await webcrypto.subtle.importKey(
+        'pkcs8',
+        Buffer.from(cleanPem, 'base64'),
+        { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        true,
+        ['sign'],
+      );
+
+      const parsedCsr = new x509.Pkcs10CertificateRequest(_csrPem);
+      const agentPublicKey = await parsedCsr.publicKey.export();
+      
+      serialNumber = this.generateSerial('NODE');
+
+      const cert = await x509.X509CertificateGenerator.create({
+        serialNumber,
+        subject: parsedCsr.subject,
+        issuer: `CN=EdgeCloud-CA, O=EdgeCloud`,
+        notBefore: now,
+        notAfter: expiresAt,
+        signingAlgorithm: { name: 'RSASSA-PKCS1-v1_5', hash: 'SHA-256' },
+        publicKey: agentPublicKey,
+        signingKey: caKey,
+      });
+
+      certificate = cert.toString('pem');
+    }
 
     // Generate fingerprint for the issued certificate
     const fingerprint = this.calculateFingerprint(certificate);
@@ -265,7 +308,7 @@ export class CertificateAuthorityManager {
 
     this.logger.info(
       { nodeId, serialNumber, expiresAt },
-      'Issued agent certificate via Vault PKI',
+      'Issued agent certificate successfully',
     );
 
     return {
@@ -795,15 +838,7 @@ export class AgentRegistrationService {
     // Generate node ID
     const nodeId = `node-${randomBytes(8).toString('hex')}`;
 
-    // Sign CSR (Atomics handled inside signCSR)
-    const agentCert = await this.caManager.signCSR(
-      request.csr,
-      nodeId,
-      request.bootstrapToken,
-    );
-
-    // Get tenant info from the newly signed cert's session/token context
-    // Actually, signCSR should return the token data too or we fetch it after consumption
+    // Get tenant info from the bootstrap token
     const token = (await this.prisma.bootstrapToken.findUnique({
       where: { token: request.bootstrapToken },
       include: {
@@ -811,9 +846,19 @@ export class AgentRegistrationService {
       },
     })) as any;
 
+    if (!token) {
+      throw new Error('Invalid bootstrap token');
+    }
+    if (token.usedAt) {
+      throw new Error('Bootstrap token already used');
+    }
+    if (token.expiresAt < new Date()) {
+      throw new Error('Bootstrap token expired');
+    }
+
     const tenantId = token.user.tenantUsers[0]!.tenantId;
 
-    // Create node record
+    // Create node record first to satisfy foreign key constraint in NodeCertificate
     await this.prisma.edgeNode.create({
       data: {
         id: nodeId,
@@ -830,6 +875,13 @@ export class AgentRegistrationService {
         tenantId,
       },
     });
+
+    // Sign CSR (Atomics handled inside signCSR)
+    const agentCert = await this.caManager.signCSR(
+      request.csr,
+      nodeId,
+      request.bootstrapToken,
+    );
 
     // Audit log
     await this.prisma.auditLog.create({

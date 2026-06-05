@@ -234,11 +234,43 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         });
       }
 
+      // Transition task and execution status to RUNNING
+      const executionId = task.executions[0]?.id;
+      if (executionId) {
+        await fastify.prisma.$transaction([
+          fastify.prisma.task.update({
+            where: { id: task.id },
+            data: { status: 'RUNNING' },
+          }),
+          fastify.prisma.taskExecution.update({
+            where: { id: executionId },
+            data: { status: 'RUNNING', startedAt: new Date() },
+          }),
+        ]);
+      } else {
+        await fastify.prisma.$transaction([
+          fastify.prisma.task.update({
+            where: { id: task.id },
+            data: { status: 'RUNNING' },
+          }),
+          fastify.prisma.taskExecution.create({
+            data: {
+              taskId: task.id,
+              nodeId: nodeId as string,
+              status: 'RUNNING',
+              startedAt: new Date(),
+              tenantId: node.tenantId,
+              attemptNumber: 1,
+            },
+          }),
+        ]);
+      }
+
       // Map to TaskSpec format expected by agent
       const taskSpec = {
         task_id: task.id,
-        runtime: task.type === 'IMAGE_CLASSIFICATION' ? 'wasm' : 'wasm', // Defaulting to wasm for now
-        image: 'main.wasm', // In reality, this would be determined by task type/input
+        runtime: task.runtime === 'DOCKER' ? 'Docker' : 'Wasm',
+        image: task.image || 'main.wasm', // In reality, this would be determined by task type/input
         input: task.input || {},
         memory_limit_mb: 512,
         cpu_fuel: null,

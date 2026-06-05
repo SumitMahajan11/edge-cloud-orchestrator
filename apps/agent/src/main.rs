@@ -21,6 +21,7 @@ async fn main() -> Result<()> {
     std::fs::create_dir_all("data/certs")?;
 
     let cert_manager = CertificateManager::new(&agent_id, cert_path);
+    let bootstrap_required = cert_manager.load_bundle().is_err();
     let mtls_client = MTlsClient::new(control_plane_url, cert_manager, bootstrap_token).await?;
 
     // Initialize persistence
@@ -28,7 +29,7 @@ async fn main() -> Result<()> {
     let shared_mtls = Arc::new(mtls_client);
 
     // Bootstrap if needed
-    if shared_mtls.refresh_client().await.is_err() {
+    if bootstrap_required {
         println!("No valid certificate found. Attempting bootstrap...");
         let node_info = NodeRegistrationInfo {
             name: agent_id.clone(),

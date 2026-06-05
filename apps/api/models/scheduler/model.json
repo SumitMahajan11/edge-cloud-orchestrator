@@ -1,0 +1,15 @@
+{
+  "format": "layers-model",
+  "generatedBy": "seed-script",
+  "convertedBy": null,
+  "modelTopology": {
+    "training_config": {},
+    "model_config": {
+      "class_name": "Sequential",
+      "config": {
+        "layers": []
+      }
+    }
+  },
+  "weightsManifest": []
+}

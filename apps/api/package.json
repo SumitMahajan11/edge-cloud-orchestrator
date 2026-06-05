@@ -2,11 +2,11 @@
   "name": "@edgecloud/api",
   "version": "1.0.0",
   "description": "Production backend for Edge-Cloud Compute Orchestrator",
-  "main": "dist/index.js",
+  "main": "dist/src/index.js",
   "scripts": {
     "dev": "cross-env PORT=3090 tsx watch src/index.ts",
     "build": "tsc",
-    "start": "node dist/index.js",
+    "start": "node dist/src/index.js",
     "migrate": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
     "generate": "prisma generate",
@@ -68,11 +68,11 @@
     "ws": "^8.17.0",
     "yaml": "^2.8.3",
     "zod": "^3.25.76",
-    "zod-to-json-schema": "^3.23.0"
+    "zod-to-json-schema": "^3.23.0",
+    "@fastify/swagger": "^8.15.0",
+    "@fastify/websocket": "^8.3.1"
   },
   "devDependencies": {
-    "@fastify/swagger": "^8.15.0",
-    "@fastify/websocket": "^8.3.1",
     "@hey-api/openapi-ts": "^0.97.0",
     "@types/amqplib": "^0.10.5",
     "@types/bcryptjs": "^2.4.6",

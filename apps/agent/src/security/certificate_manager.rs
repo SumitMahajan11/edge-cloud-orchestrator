@@ -11,6 +11,7 @@ pub struct CertBundle {
     pub private_key: String,
     pub ca_certificate: String,
     pub expires_at: DateTime<Utc>,
+    pub node_id: Option<String>,
 }
 
 pub struct CertificateManager {

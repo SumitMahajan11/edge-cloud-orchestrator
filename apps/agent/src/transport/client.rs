@@ -17,7 +17,9 @@ struct SignRequest {
     ip_address: String,
     port: u16,
     cpu_cores: u32,
+    #[serde(rename = "memoryGB")]
     memory_gb: u32,
+    #[serde(rename = "storageGB")]
     storage_gb: u32,
 }
 
@@ -35,6 +37,7 @@ pub struct MTlsClient {
     cert_manager: CertificateManager,
     base_url: String,
     bootstrap_token: Option<String>,
+    node_id: Arc<RwLock<Option<String>>>,
 }
 
 impl MTlsClient {
@@ -48,6 +51,7 @@ impl MTlsClient {
             cert_manager,
             base_url,
             bootstrap_token,
+            node_id: Arc::new(RwLock::new(None)),
         };
         
         slf.refresh_client().await?;
@@ -73,6 +77,12 @@ impl MTlsClient {
             if self.cert_manager.needs_rotation(&bundle) {
                 warn!("Certificate needs rotation. Attempting renewal...");
                 // In a real implementation, we would call a renewal endpoint here
+            }
+
+            // Store node_id if present
+            if let Some(ref nid) = bundle.node_id {
+                let mut nid_lock = self.node_id.write().await;
+                *nid_lock = Some(nid.clone());
             }
 
             // Configure mTLS Identity
@@ -138,10 +148,16 @@ impl MTlsClient {
             private_key: key_pair.serialize_pem(),
             ca_certificate: sign_res.ca_certificate,
             expires_at: chrono::DateTime::parse_from_rfc3339(&sign_res.expires_at)?.with_timezone(&chrono::Utc),
+            node_id: Some(sign_res.node_id.clone()),
         };
 
         self.cert_manager.store_bundle(bundle)?;
         
+        {
+            let mut nid_lock = self.node_id.write().await;
+            *nid_lock = Some(sign_res.node_id.clone());
+        }
+
         // Refresh client to use new credentials
         self.refresh_client().await?;
 
@@ -154,11 +170,15 @@ impl MTlsClient {
     }
 
     pub async fn report_task_result(&self, result: &crate::types::ExecutionResult) -> Result<()> {
-        let response = self.client.read().await
+        let req = self.client.read().await
             .post(format!("{}/v2/agents/tasks/{}/result", self.base_url, result.task_id))
-            .json(result)
-            .send()
-            .await?;
+            .json(result);
+        let req = if let Some(ref nid) = *self.node_id.read().await {
+            req.header("x-node-id", nid)
+        } else {
+            req
+        };
+        let response = req.send().await?;
 
         if !response.status().is_success() {
             let err_body = response.text().await?;
@@ -169,11 +189,15 @@ impl MTlsClient {
     }
 
     pub async fn send_heartbeat(&self, payload: &serde_json::Value) -> Result<()> {
-        let response = self.client.read().await
+        let req = self.client.read().await
             .post(format!("{}/v2/agents/heartbeat", self.base_url))
-            .json(payload)
-            .send()
-            .await?;
+            .json(payload);
+        let req = if let Some(ref nid) = *self.node_id.read().await {
+            req.header("x-node-id", nid)
+        } else {
+            req
+        };
+        let response = req.send().await?;
 
         if !response.status().is_success() {
             let err_body = response.text().await?;
@@ -184,10 +208,14 @@ impl MTlsClient {
     }
 
     pub async fn get_pending_task(&self) -> Result<Option<crate::types::TaskSpec>> {
-        let response = self.client.read().await
-            .get(format!("{}/v2/agents/tasks/pending", self.base_url))
-            .send()
-            .await?;
+        let req = self.client.read().await
+            .get(format!("{}/v2/agents/tasks/pending", self.base_url));
+        let req = if let Some(ref nid) = *self.node_id.read().await {
+            req.header("x-node-id", nid)
+        } else {
+            req
+        };
+        let response = req.send().await?;
 
         if response.status() == reqwest::StatusCode::NOT_FOUND {
             return Ok(None);

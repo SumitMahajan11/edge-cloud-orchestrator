@@ -301,7 +301,7 @@ async function registerPlugins() {
     },
     timeWindow: rateLimitWindow,
     cache: 10000,
-    allowList: ['127.0.0.1'],
+    allowList: ['127.0.0.1', '::1'],
     ...(redisUrlForRateLimit && !env.FORCE_MOCK_REDIS ? { redis: redis } : {}),
     keyGenerator: (request) => {
       return (request as any).user?.id || request.ip;

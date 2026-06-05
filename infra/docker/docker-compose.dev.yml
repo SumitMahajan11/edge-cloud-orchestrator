@@ -1,6 +1,6 @@
 services:
   postgres-primary:
-    image: postgres:16-alpine
+    image: ghcr.io/dbsystel/postgresql-partman:16
     environment:
       POSTGRES_USER: edgecloud
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -23,7 +23,7 @@ services:
       - edgecloud
 
   postgres-replica:
-    image: postgres:16-alpine
+    image: ghcr.io/dbsystel/postgresql-partman:16
     environment:
       PGUSER: replicator
       PGPASSWORD: ${POSTGRES_REPLICATION_PASSWORD}
@@ -59,7 +59,6 @@ services:
       - postgres-primary
     networks:
       - edgecloud
-    restart: unless-stopped
   zookeeper:
     image: confluentinc/cp-zookeeper:7.5.0
     environment:
@@ -150,6 +149,8 @@ services:
     volumes:
       - ../../apps/api-gateway/nginx.conf:/etc/nginx/nginx.conf:ro
       - ../../apps/api-gateway/lua:/etc/nginx/lua:ro
+      - ../../certs/server.crt:/etc/nginx/ssl/server.crt:ro
+      - ../../certs/server.key:/etc/nginx/ssl/server.key:ro
     ports:
       - 80:80
     depends_on:
