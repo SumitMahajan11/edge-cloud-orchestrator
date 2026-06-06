@@ -109,9 +109,14 @@ class WebSocketClient {
           this.disconnectionHandlers.forEach((handler) => handler());
           if (event.code === 4001) {
             console.warn(
-              "[WebSocket] Connection unauthorized. Reconnection disabled.",
+              "[WebSocket] Connection unauthorized (4001). Clearing token and redirecting to login.",
             );
+            // Clear stale token and signal auth layer — mirrors customFetch 401 behaviour
+            this.token = null;
             this.reconnectAttempts = 0;
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new Event("auth-unauthorized"));
+            }
           } else {
             this.scheduleReconnect();
           }

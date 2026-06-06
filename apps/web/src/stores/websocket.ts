@@ -205,6 +205,18 @@ export function initWsStore() {
     );
   });
 
+  // When WS closes with 4001 (Unauthorized), the wsClient dispatches auth-unauthorized.
+  // Set store to DISCONNECTED (not RECONNECTING) so the UI pill shows 'offline'.
+  if (typeof window !== "undefined") {
+    window.addEventListener("auth-unauthorized", () => {
+      useWsStore.setState({
+        status: "DISCONNECTED",
+        isConnected: false,
+        reconnectAttempts: 0,
+      });
+    });
+  }
+
   // Subscribe to canonical channels. Each incoming payload is normalized
   // into a typed WsEvent and appended to the stream.
   const channels: Array<{ channel: string; typePrefix: string }> = [
