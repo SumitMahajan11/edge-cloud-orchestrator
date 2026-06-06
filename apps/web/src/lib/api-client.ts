@@ -193,22 +193,27 @@ export const authApi = {
     const { data, error } = await postV2AuthLogin({
       body: { email, password },
     });
-    if (error) throw new ApiError("Login failed", 400, error);
+    if (error) throw new ApiError("Login failed", 401, error);
     const body = data as any;
-    return {
-      token: body.token,
-      refreshToken: body.refreshToken,
-      user: transformUserFromApi(body.user),
-    };
+
+    // Persist tokens so every subsequent API call carries Authorization header
+    if (body.token) authStorage.setToken(body.token);
+    if (body.refreshToken) authStorage.setRefreshToken(body.refreshToken);
+
+    const user = transformUserFromApi(body.user);
+    authStorage.setUser(user as any);
+
+    return { token: body.token, refreshToken: body.refreshToken, user };
   },
   register: async (email: string, password: string, name: string) => {
     const { data, error } = await postV2AuthRegister({
       body: { email, password, name },
     });
     if (error) throw new ApiError("Registration failed", 400, error);
-    return transformUserFromApi(data);
+    return transformUserFromApi((data as any).user ?? data);
   },
   logout: async () => {
+    authStorage.clear();
     await postV2AuthLogout();
   },
   getMe: async () => {

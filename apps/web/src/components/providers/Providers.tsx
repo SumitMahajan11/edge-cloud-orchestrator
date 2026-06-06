@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import { queryClient } from "@/lib/query-client";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { initWsStore } from "@/stores/websocket";
@@ -15,10 +15,20 @@ import { Toaster } from "@/components/ui/sonner";
 import { Layout } from "@/components/layout/Layout";
 import { CommandPalette } from "@/components/modals/CommandPalette";
 
-export function Providers({ children }: { children: React.ReactNode }) {
+/**
+ * Inner shell rendered inside AuthProvider so it can call useAuth().
+ * Blocks any protected page from mounting until auth state is hydrated
+ * from localStorage, preventing unauthenticated API calls.
+ */
+function AppShell({ children }: { children: React.ReactNode }) {
   const { state: persistedState, isLoaded: persistedLoaded } =
     usePersistentState();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const { user, isLoading: authLoading } = useAuth();
+  const pathname = usePathname();
+  const router = useRouter();
+
+  const isLoginPage = pathname === "/login";
 
   // Theme toggle
   const toggleTheme = useCallback(() => {
@@ -53,39 +63,62 @@ export function Providers({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const pathname = usePathname();
-  const isLoginPage = pathname === "/login";
+  // Redirect unauthenticated users to login (after auth hydration completes)
+  useEffect(() => {
+    if (!authLoading && !user && !isLoginPage) {
+      router.replace("/login");
+    }
+  }, [authLoading, user, isLoginPage, router]);
 
+  // While auth state is hydrating from localStorage, show nothing to avoid
+  // mounting protected pages (and firing their queries) without a token.
+  if (authLoading) {
+    return (
+      <div className="flex h-screen items-center justify-center bg-slate-950">
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <CommandPalette
+        isOpen={commandPaletteOpen}
+        onClose={() => setCommandPaletteOpen(false)}
+      />
+      {isLoginPage ? (
+        children
+      ) : (
+        <Layout
+          isDark={persistedState.theme === "dark"}
+          onToggleTheme={toggleTheme}
+          onOpenCommandPalette={() => setCommandPaletteOpen(true)}
+        >
+          {children}
+        </Layout>
+      )}
+      <Toaster
+        position="bottom-right"
+        toastOptions={{
+          className: "bg-card border-border text-foreground",
+        }}
+      />
+      <ReactQueryDevtools initialIsOpen={false} />
+    </>
+  );
+}
+
+export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <TenantProvider>
           <TooltipProvider delayDuration={200}>
-            <CommandPalette
-              isOpen={commandPaletteOpen}
-              onClose={() => setCommandPaletteOpen(false)}
-            />
-            {isLoginPage ? (
-              children
-            ) : (
-              <Layout
-                isDark={persistedState.theme === "dark"}
-                onToggleTheme={toggleTheme}
-                onOpenCommandPalette={() => setCommandPaletteOpen(true)}
-              >
-                {children}
-              </Layout>
-            )}
-            <Toaster
-              position="bottom-right"
-              toastOptions={{
-                className: "bg-card border-border text-foreground",
-              }}
-            />
-            <ReactQueryDevtools initialIsOpen={false} />
+            <AppShell>{children}</AppShell>
           </TooltipProvider>
         </TenantProvider>
       </AuthProvider>
     </QueryClientProvider>
   );
 }
+

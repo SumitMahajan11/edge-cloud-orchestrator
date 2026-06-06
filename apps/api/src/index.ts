@@ -245,8 +245,10 @@ async function registerPlugins() {
           'http://localhost:5173',
           'http://localhost:5174',
           'http://localhost:3000',
+          'http://localhost:3001',
         ]
       : [];
+
 
   if (!isDevelopment && corsOrigins.length === 0) {
     logger.warn(
