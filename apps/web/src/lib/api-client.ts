@@ -98,7 +98,16 @@ async function customFetch(
   let refreshed = false;
 
   while (true) {
-    const headers = await buildHeaders(init?.headers);
+    // When the @hey-api/openapi-ts client calls customFetch, it passes
+    // a fully-constructed Request object as `input` and undefined as `init`.
+    // The Request object contains serialized body, content-type, etc.
+    // We must extract those headers and merge them with our auth headers,
+    // otherwise fetch(requestObj, { headers }) completely replaces them.
+    let baseHeaders: HeadersInit | undefined = init?.headers;
+    if (!baseHeaders && input instanceof Request) {
+      baseHeaders = input.headers;
+    }
+    const headers = await buildHeaders(baseHeaders);
     const res = await fetch(input, { ...init, headers });
 
     if (res.status === 429 && attempt < 2) {

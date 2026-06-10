@@ -10,6 +10,26 @@ import { FastifyRequest, FastifyReply } from 'fastify';
 import type { UserRole } from '../types/fastify';
 import { RolePermissions, type Permission } from '@edgecloud/shared-kernel';
 
+function sendAuthError(
+  reply: FastifyReply,
+  statusCode: number,
+  code: string,
+  message: string,
+): void {
+  const requestId =
+    (reply.request?.headers?.['x-request-id'] as string) ||
+    reply.request?.id ||
+    'unknown';
+  reply.status(statusCode).send({
+    error: {
+      code,
+      message,
+      requestId,
+      timestamp: new Date().toISOString(),
+    },
+  });
+}
+
 export class AuthorizationError extends Error {
   constructor(
     message: string,
@@ -44,10 +64,7 @@ export function authorize(...roles: UserRole[]) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     // Check if user is authenticated
     if (!request.user) {
-      return reply.status(401).send({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
-      });
+      return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication required');
     }
 
     // Admin can access everything (super user)
@@ -76,10 +93,7 @@ export function authorize(...roles: UserRole[]) {
 export function requirePermissions(...permissions: string[]) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     if (!request.user) {
-      return reply.status(401).send({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
-      });
+      return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication required');
     }
 
     // Admin bypasses permission checks
@@ -97,13 +111,7 @@ export function requirePermissions(...permissions: string[]) {
     );
 
     if (!hasPermission) {
-      return reply.status(403).send({
-        error: {
-          code: 'FORBIDDEN',
-          message: 'Insufficient permissions',
-          statusCode: 403,
-        }
-      });
+      return sendAuthError(reply, 403, 'FORBIDDEN', 'Insufficient permissions');
     }
   };
 }
@@ -122,10 +130,7 @@ export function requireOwnership(
 ) {
   return async function (request: FastifyRequest, reply: FastifyReply) {
     if (!request.user) {
-      return reply.status(401).send({
-        error: 'Authentication required',
-        code: 'AUTH_REQUIRED',
-      });
+      return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication required');
     }
 
     const resourceId = (request.params as Record<string, string>)[
@@ -133,19 +138,13 @@ export function requireOwnership(
     ];
 
     if (!resourceId) {
-      return reply.status(400).send({
-        error: 'Resource ID required',
-        code: 'INVALID_PARAM',
-      });
+      return sendAuthError(reply, 400, 'INVALID_PARAM', 'Resource ID required');
     }
 
     const ownerId = await getUserFromResource(resourceId);
 
     if (!ownerId) {
-      return reply.status(404).send({
-        error: 'Resource not found',
-        code: 'NOT_FOUND',
-      });
+      return sendAuthError(reply, 404, 'NOT_FOUND', 'Resource not found');
     }
 
     // Admin can access any resource

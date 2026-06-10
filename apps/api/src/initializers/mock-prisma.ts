@@ -463,20 +463,39 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
   };
 }
 
-// Seed default admin user for development
-// Password: admin123
+// Seed default admin user for development (matches real seed credentials)
+// Password: Admin123!
 mockUsers.set('user-admin-seed', {
   id: 'user-admin-seed',
-  email: 'admin@example.com',
-  passwordHash: bcrypt.hashSync('admin123', 10),
+  email: 'admin@demo-org.com',
+  passwordHash: bcrypt.hashSync('Admin123!', 10),
   name: 'Admin User',
   role: 'ADMIN',
   isActive: true,
   emailVerified: true,
+  tenantId: 'tenant-demo-org',
   createdAt: new Date(),
   updatedAt: new Date(),
   lastLoginAt: null,
-});
+  // tenantUsers join table expected by auth controller
+  tenantUsers: [{ tenantId: 'tenant-demo-org', userId: 'user-admin-seed', role: 'ADMIN' }],
+} as any);
+
+// Also seed a regular user for testing
+mockUsers.set('user-user1-seed', {
+  id: 'user-user1-seed',
+  email: 'user1@demo-org.com',
+  passwordHash: bcrypt.hashSync('Password123!', 10),
+  name: 'User One',
+  role: 'VIEWER',
+  isActive: true,
+  emailVerified: true,
+  tenantId: 'tenant-demo-org',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastLoginAt: null,
+  tenantUsers: [{ tenantId: 'tenant-demo-org', userId: 'user-user1-seed', role: 'VIEWER' }],
+} as any);
 
 export const mockPrisma = {
   isMock: true,

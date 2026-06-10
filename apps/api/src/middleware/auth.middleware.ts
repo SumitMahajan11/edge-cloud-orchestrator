@@ -7,6 +7,26 @@ import {
 import { UserPayload, UserRole } from '../types/fastify';
 import { env } from '../config/env';
 
+function sendAuthError(
+  reply: FastifyReply,
+  statusCode: 401 | 403,
+  code: string,
+  message: string,
+): void {
+  const requestId =
+    (reply.request?.headers?.['x-request-id'] as string) ||
+    reply.request?.id ||
+    'unknown';
+  reply.status(statusCode).send({
+    error: {
+      code,
+      message,
+      requestId,
+      timestamp: new Date().toISOString(),
+    },
+  });
+}
+
 export async function authenticate(
   request: FastifyRequest,
   reply: FastifyReply,
@@ -41,7 +61,7 @@ export async function authenticate(
         }
       }
 
-      return reply.status(401).send({ error: 'Authentication required' });
+      return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication required');
     }
 
     const token = authHeader.replace('Bearer ', '');
@@ -53,7 +73,7 @@ export async function authenticate(
 
     // 1. Future iat check (30s tolerance)
     if (decoded.iat && decoded.iat > Math.floor(Date.now() / 1000) + 30) {
-      return reply.status(401).send({ error: 'Token issued in the future' });
+      return sendAuthError(reply, 401, 'TOKEN_FUTURE', 'Token issued in the future');
     }
 
     // 2. JTI Revocation Check (Redis)
@@ -62,9 +82,7 @@ export async function authenticate(
       if (redis) {
         const isRevoked = await redis.get(`revoked_token:${decoded.jti}`);
         if (isRevoked) {
-          return reply
-            .status(401)
-            .send({ error: 'Access token has been revoked' });
+          return sendAuthError(reply, 401, 'TOKEN_REVOKED', 'Access token has been revoked');
         }
       }
     }
@@ -80,18 +98,18 @@ export async function authenticate(
     enterWithTenantContext(decoded.tenantId || undefined);
   } catch (error: any) {
     console.error('--- AUTH ERROR ---', error.message);
-    return reply.status(401).send({ error: 'Authentication failed' });
+    return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication failed');
   }
 }
 
 export function requireRole(...roles: (UserRole | string)[]) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     if (!request.user) {
-      return reply.status(401).send({ error: 'Authentication required' });
+      return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication required');
     }
 
     if (!roles.includes(request.user.role)) {
-      return reply.status(403).send({ error: 'Insufficient permissions' });
+      return sendAuthError(reply, 403, 'FORBIDDEN', 'Insufficient permissions');
     }
   };
 }
@@ -99,7 +117,7 @@ export function requireRole(...roles: (UserRole | string)[]) {
 export function requirePermission(permission: string) {
   return async (request: FastifyRequest, reply: FastifyReply) => {
     if (!request.user) {
-      return reply.status(401).send({ error: 'Authentication required' });
+      return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication required');
     }
 
     // Admin role bypasses permission checks
@@ -109,7 +127,7 @@ export function requirePermission(permission: string) {
 
     const permissions = request.user.permissions || [];
     if (!permissions.includes(permission) && !permissions.includes('*')) {
-      return reply.status(403).send({ error: 'Insufficient permissions' });
+      return sendAuthError(reply, 403, 'FORBIDDEN', 'Insufficient permissions');
     }
   };
 }

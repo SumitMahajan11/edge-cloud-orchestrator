@@ -62,7 +62,7 @@ import rateLimit from '@fastify/rate-limit';
 import staticPlugin from '@fastify/static';
 import websocket from '@fastify/websocket';
 import { PrismaClient } from '@prisma/client';
-import Fastify from 'fastify';
+import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
 import path from 'path';
 
 import {
@@ -117,20 +117,19 @@ const app = Fastify({
 import { authState } from './initializers/auth-state';
 
 // Auth middleware indirection to allow early route registration
-app.decorate('authenticate', function (this: any, request: any, reply: any) {
+app.decorate('authenticate', (request: FastifyRequest, reply: FastifyReply) => {
   return authState.authenticate(request, reply);
 });
-app.decorate('requireRole', function (this: any, ...roles: any[]) {
-  return async function (request: any, reply: any) {
-    const fn = authState.requireRole(...roles);
-    return fn(request, reply);
+
+app.decorate('requireRole', (...roles: string[]) => {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    return authState.requireRole(...roles)(request, reply);
   };
 });
 
-app.decorate('requirePermission', function (this: any, permission: string) {
-  return async function (request: any, reply: any) {
-    const fn = authState.requirePermission(permission);
-    return fn(request, reply);
+app.decorate('requirePermission', (permission: string) => {
+  return async (request: FastifyRequest, reply: FastifyReply) => {
+    return authState.requirePermission(permission)(request, reply);
   };
 });
 
@@ -144,6 +143,10 @@ app.decorate('requirePermission', function (this: any, permission: string) {
 app.addHook('preHandler', async (request, reply) => {
   // 1. Check if route is explicitly marked as public
   const isPublic = request.routeOptions.config?.public === true;
+  
+  // Debug logging to diagnose the issue
+  console.log('[AUTH HOOK] URL:', request.url, 'isPublic:', isPublic, 'config:', request.routeOptions.config);
+  
   if (isPublic) return;
 
   // 2. Public health and documentation routes (bypass by path pattern)
