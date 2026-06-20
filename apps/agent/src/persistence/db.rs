@@ -1,3 +1,15 @@
+/**
+ * Local SQLite Database Manager for the Edge Agent.
+ *
+ * What it does: Provides offline storage and outbox buffer queues for edge agents.
+ * This guarantees resilience against network outages and agent crashes.
+ *
+ * Managed tables:
+ * - `pending_tasks`: Tracks local tasks, execution state (PENDING, RUNNING, completed, failed, timeout),
+ *   execution outputs, and control plane sync status.
+ * - `heartbeat_buffer`: Temporarily buffers telemetry payloads (up to 500 entries) when control plane is down.
+ * - `federated_outcomes`: Buffers features and reinforcement learning rewards for offline federated model training.
+ */
 use anyhow::Result;
 use sqlx::{sqlite::SqliteConnectOptions, SqlitePool};
 use chrono::Utc;
@@ -45,6 +57,17 @@ impl DatabaseManager {
                 payload TEXT NOT NULL,
                 created_at INTEGER NOT NULL,
                 sent INTEGER DEFAULT 0
+            )"
+        )
+        .execute(&self.pool)
+        .await?;
+
+        sqlx::query(
+            "CREATE TABLE IF NOT EXISTS federated_outcomes (
+                id TEXT PRIMARY KEY,
+                features TEXT NOT NULL,
+                reward REAL NOT NULL,
+                created_at INTEGER NOT NULL
             )"
         )
         .execute(&self.pool)
@@ -222,6 +245,46 @@ impl DatabaseManager {
             tracing::info!("Database maintenance complete. Current size: {} bytes", metadata.len());
         }
 
+        Ok(())
+    }
+
+    pub async fn save_federated_outcome(&self, id: &str, features: &[f32; 12], reward: f64) -> Result<()> {
+        let features_json = serde_json::to_string(features)?;
+        sqlx::query(
+            "INSERT OR REPLACE INTO federated_outcomes (id, features, reward, created_at)
+             VALUES (?, ?, ?, ?)"
+        )
+        .bind(id)
+        .bind(features_json)
+        .bind(reward)
+        .bind(Utc::now().timestamp())
+        .execute(&self.pool)
+        .await?;
+        Ok(())
+    }
+
+    pub async fn get_federated_outcomes(&self) -> Result<Vec<(String, Vec<f32>, f64)>> {
+        let rows = sqlx::query(
+            "SELECT id, features, reward FROM federated_outcomes ORDER BY created_at ASC"
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let mut results = Vec::new();
+        for row in rows {
+            let id: String = sqlx::Row::get(&row, 0);
+            let features_str: String = sqlx::Row::get(&row, 1);
+            let reward: f64 = sqlx::Row::get(&row, 2);
+            let features: Vec<f32> = serde_json::from_str(&features_str)?;
+            results.push((id, features, reward));
+        }
+        Ok(results)
+    }
+
+    pub async fn clear_federated_outcomes(&self) -> Result<()> {
+        sqlx::query("DELETE FROM federated_outcomes")
+            .execute(&self.pool)
+            .await?;
         Ok(())
     }
 }

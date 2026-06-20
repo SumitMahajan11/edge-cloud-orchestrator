@@ -1,3 +1,17 @@
+/**
+ * Attribute-Based Access Control (ABAC) Policy Engine
+ *
+ * What it does: Implements fine-grained access control based on Subject,
+ * Resource, Action, and Environment attributes. Supports policy priority sorting,
+ * dynamic attribute resolution (e.g. time-based and hierarchical roles), and obligations.
+ *
+ * Policy Evaluation Rule:
+ * - Policies are evaluated in descending priority order.
+ * - If a policy matches, the effect (allow/deny) determines the decision.
+ * - Any matching "deny" policy takes precedence and immediately halts evaluation.
+ * - Contains pre-configured default policies (e.g. Admin Full Access, Operator tasks access,
+ *   own-task ownership filters, and off-business-hours constraints).
+ */
 import { EventEmitter } from "eventemitter3";
 
 // ABAC - Attribute-Based Access Control

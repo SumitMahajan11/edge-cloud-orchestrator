@@ -1,3 +1,15 @@
+/**
+ * Mutual TLS (mTLS) Certificate Authority and Key Manager
+ *
+ * What it does: Manages Root Certificate Authority (CA) generation, certificate signing
+ * requests (CSR), approval workflows, and certificate revocation lists (CRL).
+ *
+ * Key components:
+ * - `MTLSManager`: The central coordinator that loads/generates the CA, processes
+ *   registration requests, signs client certs, and validates agent signatures.
+ * - `approveCertificate()`: Signs incoming CSRs and issues active client certificates.
+ * - `validateCertificate()`: Validates authenticity, expiration, and CRL membership.
+ */
 import {
   createHash,
   createSign,

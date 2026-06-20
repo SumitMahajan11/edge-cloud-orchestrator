@@ -1,3 +1,20 @@
+/**
+ * System Administration and Operators Routes
+ *
+ * What it does: Exposes restricted administrative APIs for system telemetry, security, outbox auditing, and event republishing.
+ * Handlers:
+ * - GET /ws-stats — Returns current WebSocket connection stats and counts.
+ * - GET /audit-logs — Returns paginated security audit history.
+ * - GET /users — Lists users registered within the tenant context.
+ * - PATCH /users/:id/role — Updates a user's role (ADMIN, OPERATOR, VIEWER).
+ * - POST /users/:id/deactivate — Revokes user access and invalidates active session tokens.
+ * - GET /health — Performs database and cache connectivity pings.
+ * - POST /cleanup — Cleans up historical metrics, task logs, and audit logs.
+ * - POST /ml/retrain — Extracts metrics data, spawns background Python training script, and promotes the model.
+ * - POST /events/republish — Manually republishes transactional events (e.g. task created) back into the message bus.
+ * - POST /events/republish-range — Performs bulk outbox republishes between two timestamps.
+ * - GET /dlq/stats — Returns metrics of Dead Letter Queue events.
+ */
 import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';

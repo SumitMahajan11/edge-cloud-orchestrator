@@ -1,5 +1,19 @@
+/**
+ * Task Management Routes
+ *
+ * What it does: Exposes REST API endpoints for clients to interact with tasks.
+ * Handlers:
+ * - GET / — Lists and paginates tasks with multi-field filtering.
+ * - GET /:id — Retrieves full details, execution attempts, and logs for a task.
+ * - GET /:id/scheduling-decision — Gets the exact node decision metadata.
+ * - POST / — Validates and creates a new task (enqueuing it into TaskScheduler).
+ * - POST /:id/cancel — Transitions tasks to CANCELLED and reconciles capacity limiters.
+ * - POST /:id/retry — Re-enqueues failed tasks within maximum retry bounds.
+ * - POST /artifacts — Accepts multipart WASM file uploads and stores them in Redis.
+ * - GET /artifacts/:id — Downloads stored WASM bytecode binaries.
+ */
 import { Permissions, v1Contracts } from '@edgecloud/shared-kernel';
-import { Task, TaskExecution } from '@prisma/client';
+import { Task, TaskExecution, TaskStatus, TaskType } from '@prisma/client';
 import { FastifyInstance, FastifyRequest } from 'fastify';
 import type { TenantId } from '../types/fastify.js';
 
@@ -28,7 +42,8 @@ function transformTask(task: Task & { executions?: TaskExecution[] }) {
     startedAt: (task.executions?.[0]?.startedAt || null)?.toISOString() || null,
     completedAt:
       (task.executions?.[0]?.completedAt || null)?.toISOString() || null,
-    image: task.image || '',
+    image: task.image || null,
+    wasmArtifactId: task.wasmArtifactId || null,
     specs: (metadata.specs as Record<string, unknown>) || null,
     runtime: task.runtime,
     affinity: task.affinity,
@@ -101,10 +116,10 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       } = request.query;
 
       const where: import('@prisma/client').Prisma.TaskWhereInput = {
-        ...(status && { status: status as any }),
-        ...(type && { type: type as any }),
+        ...(status && { status: status as TaskStatus }),
+        ...(type && { type: type as TaskType }),
         ...(nodeId && { nodeId }),
-        ...(priority && { priority: priority as any }),
+        ...(priority && { priority }),
         ...(from || to
           ? {
               submittedAt: {
@@ -290,12 +305,9 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           include: { metrics: { take: 1, orderBy: { timestamp: 'desc' } } },
         });
 
-        if (node && node.metrics && node.metrics.length > 0) {
-          (node as any).status = 'ONLINE';
-          (node as any).lastHeartbeat = node.metrics[0]!.timestamp;
-        }
+        const status = (node && node.metrics && node.metrics.length > 0) ? 'ONLINE' : node?.status;
 
-        if (!node || node.status !== 'ONLINE' || node.isMaintenanceMode) {
+        if (!node || status !== 'ONLINE' || node.isMaintenanceMode) {
           return reply.status(400).send({
             error: {
               code: 'BAD_REQUEST',
@@ -324,7 +336,8 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           },
           maxRetries: data.maxRetries,
           runtime: data.runtime,
-          image: data.image,
+          image: data.image ?? null,
+          wasmArtifactId: data.wasmArtifactId ?? null,
           affinity: data.affinity ?? null,
           traceId: data.traceId ?? null,
           tenantId,
@@ -358,7 +371,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
-          details: { name: task.name, type: task.type } as any,
+          details: { name: task.name, type: task.type } as import('@prisma/client').Prisma.InputJsonValue,
           ipAddress: request.ip,
           userAgent: request.headers['user-agent'] ?? null,
         },
@@ -422,6 +435,15 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           status: 'CANCELLED',
         },
       });
+
+      // Decrement rate limiter pending tasks if it was scheduled or running on a node
+      if (
+        fastify.taskScheduler?.schedulerRateLimiter &&
+        task.nodeId &&
+        ['SCHEDULED', 'RUNNING'].includes(task.status)
+      ) {
+        await fastify.taskScheduler.schedulerRateLimiter.recordTaskCompleted(task.nodeId);
+      }
 
       // Broadcast via WebSocket
       fastify.wsManager.broadcastToTenant(
@@ -488,9 +510,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const previousExecution = await (
-        request.tPrisma as any
-      ).taskExecution.findFirst({
+      const previousExecution = await request.tPrisma.taskExecution.findFirst({
         where: { taskId: id },
         orderBy: { attemptNumber: 'desc' },
       });
@@ -531,7 +551,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           .send({ error: 'Task not found after creation' });
       }
 
-      await fastify.taskScheduler.enqueue(tUpdatedTask as any);
+      await fastify.taskScheduler.enqueue(tUpdatedTask);
       fastify.wsManager.broadcastToTenant(
         tUpdatedTask.tenantId as TenantId,
         'task:created',
@@ -653,5 +673,98 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         };
       },
     ),
+  );
+
+  // POST /artifacts (Upload WASM artifact)
+  fastify.post(
+    '/artifacts',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CREATE),
+      ],
+      schema: {
+        tags: ['tasks'],
+        summary: 'Upload a WASM task artifact',
+        response: {
+          201: {
+            type: 'object',
+            properties: {
+              artifactId: { type: 'string' },
+            },
+          },
+          400: { $ref: 'ErrorSchema#' },
+        },
+      },
+    },
+    async (request: any, reply) => {
+      const data = await request.file();
+      if (!data) {
+        return reply.status(400).send({
+          error: {
+            code: 'BAD_REQUEST',
+            message: 'No file uploaded',
+            requestId: request.id,
+          },
+        });
+      }
+
+      const buffer = await data.toBuffer();
+      const { v4: uuidv4 } = await import('uuid');
+      const artifactId = uuidv4();
+      
+      const redisKey = `wasm:artifact:${artifactId}`;
+      // Store in Redis with 7 days TTL (7 * 24 * 3600 seconds)
+      const base64Data = buffer.toString('base64');
+      await fastify.redis.setex(redisKey, 7 * 24 * 3600, base64Data);
+
+      return reply.status(201).send({ artifactId });
+    }
+  );
+
+  // GET /artifacts/:id (Download WASM artifact)
+  fastify.get<{ Params: { id: string } }>(
+    '/artifacts/:id',
+    {
+      config: { public: true },
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+          required: ['id'],
+        },
+        tags: ['tasks'],
+        summary: 'Download a WASM task artifact',
+        response: {
+          200: {
+            type: 'string',
+            format: 'binary',
+          },
+          404: { $ref: 'ErrorSchema#' },
+        },
+      },
+    },
+    async (request, reply) => {
+      const redisKey = `wasm:artifact:${request.params.id}`;
+      const base64Data = await fastify.redis.get(redisKey);
+
+      if (!base64Data) {
+        return reply.status(404).send({
+          error: {
+            code: 'RESOURCE_NOT_FOUND',
+            message: 'WASM artifact not found or expired',
+            requestId: request.id,
+            timestamp: new Date().toISOString(),
+          },
+        });
+      }
+
+      const buffer = Buffer.from(base64Data, 'base64');
+      return reply
+        .type('application/wasm')
+        .send(buffer);
+    }
   );
 }

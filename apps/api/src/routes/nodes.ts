@@ -1,3 +1,20 @@
+/**
+ * Edge Node Management Routes
+ *
+ * What it does: Exposes API endpoints for managing the registration, state, and metrics of compute nodes.
+ * Handlers:
+ * - GET / — Lists and paginates registered edge/cloud nodes with filtering.
+ * - GET /:id — Retrieves full node details, including currently running tasks and metric history.
+ * - POST / — Registers a new edge node (includes SSRF validation on the IP address).
+ * - PATCH /:id — Updates static properties of a node (e.g., location, capacity limits, costs).
+ * - DELETE /:id — Deregisters a node, ensuring it has no active tasks.
+ * - POST /:id/heartbeat — Receives resource usage heartbeats from agents, saving them to NodeMetric history.
+ * - GET /:id/metrics — Retrieves time-series historical metrics for charting.
+ * - POST /:id/maintenance — Toggles node maintenance state.
+ * - POST /:id/drain — Drains a node (gracefully stops scheduling new tasks on it).
+ * - POST /:id/offline — Manually forces a node's status to OFFLINE.
+ * - GET /:id/scheduling-history — Returns recent scheduling decisions targeting the node.
+ */
 import {
   Permissions,
   v1NodeContracts,
@@ -501,6 +518,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       await request.tPrisma.nodeMetric.create({
         data: {
           nodeId: id,
+          tenantId: node.tenantId,
           cpuUsage: metrics.cpuUsage,
           memoryUsage: metrics.memoryUsage,
           storageUsage: metrics.storageUsage ?? 0,

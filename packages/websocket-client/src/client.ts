@@ -1,8 +1,18 @@
 /**
- * WebSocket Client with Auto-Reconnect and SSE Fallback
+ * Resilient WebSocket Client with Auto-Reconnect and Server-Sent Events (SSE) Fallback
+ *
+ * What it does: Maintains a continuous real-time telemetry stream from edge nodes/dashboards.
+ * If the WebSocket connection fails or drops, it automatically falls back to an SSE connection
+ * to maintain read-only stream stability, switching back to WebSockets when availability recovers.
+ *
+ * Key features:
+ * - Exponential backoff reconnection loop.
+ * - Dynamic subscription recovery upon reconnection.
+ * - Connection heartbeats (ping/pong) to identify silent channel dropouts.
+ * - SSE fallback conversion URL resolver (/ws -> /sse).
  *
  * Usage:
- *   const client = new ResilientWebSocketClient('ws://localhost:3004/ws');
+ *   const client = new ResilientWebSocketClient({ url: 'ws://localhost:3004/ws' });
  *   client.on('message', (data) => console.log(data));
  *   client.subscribe(['tasks', 'nodes']);
  */

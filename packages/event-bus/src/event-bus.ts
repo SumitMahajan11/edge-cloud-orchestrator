@@ -1,3 +1,17 @@
+/**
+ * Kafka-based Distributed Event Bus with DLQ and OpenTelemetry Tracing
+ *
+ * What it does: Orchestrates distributed asynchronous communications across all monorepo microservices
+ * (scheduler, api, agents) using KafkaJS. Implements idempotent publishers, consumer groups,
+ * dead-letter queues (DLQ), and automatic OpenTelemetry trace context propagation.
+ *
+ * Key components:
+ * - `EventBus`: Central client manager. Provides `publish()` and `subscribe()` wrappers.
+ * - `publish()`: Wraps domain events with timestamp metadata, correlation IDs, and injects spans.
+ * - `subscribe()`: Starts concurrent Kafka consumers. Spawns trace spans around message processors
+ *   and redirects failed/unhandled messages into the `DeadLetterQueue` database outbox.
+ * - `TOPICS`: Central registry of system event topics (tasks, nodes, metrics, scheduler, alerts).
+ */
 import {
   DomainEvent,
   generateCorrelationId,
