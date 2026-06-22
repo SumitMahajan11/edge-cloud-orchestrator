@@ -1,0 +1,21 @@
+<USER_REQUEST>
+@[/GSD Planner]@[/GSD Plan Checker]@[/GSD Verifier]@[/GSD Executor]# FINAL-AUDIT: Complete Project Verification — Past, Present, and Future State
+# Edge-Cloud Orchestrator
+# Goal: One exhaustive audit covering every dimension of the project —
+#       code health, security, tests, infra, ML, docs, git hygiene,
+#       and feature completeness — producing a single source-of-truth
+#       report for "where this project actually stands today."
+# Estimated time: half a day (mostly automated, some manual review)
+# Run in: Claude Code (Gemini Anti-Gravity) at D:\Projects\Cloud1\edge-cloud-orchestrator
+#
+# WHEN TO RUN THIS: after PRD-PROOF, STR-3, PRD-1, and IMP-1 are complete.
+# This is the "are we actually done with Phase A" checkpoint before
+# moving to OSS release (Phase B).
+
+---
+
+## HOW THIS PROMPT WORKS
+
+12 sections. Each section runs a set of read-only checks (no code changes
+except where explicitly marked FIX) and produces a small status table.
+<truncated 61536 bytes>

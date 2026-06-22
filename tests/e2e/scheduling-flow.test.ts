@@ -46,6 +46,9 @@ const dbState = {
   nodeCertificates: new Map(),
   certificateRevocations: new Map(),
   bootstrapTokens: new Map(),
+  schedulingPolicies: new Map(),
+  nodeHealthScores: new Map(),
+  carbonRecords: new Map(),
 };
 
 // Ports for tests
@@ -175,6 +178,9 @@ const resetDbState = () => {
   dbState.nodeCertificates.clear();
   dbState.certificateRevocations.clear();
   dbState.bootstrapTokens.clear();
+  dbState.schedulingPolicies.clear();
+  dbState.nodeHealthScores.clear();
+  dbState.carbonRecords.clear();
   dbState.users.set("admin", {
     id: "admin",
     role: "ADMIN",
@@ -338,6 +344,9 @@ const mockPrismaInstance = {
   nodeCertificate: createMockModel("nodeCertificates"),
   certificateRevocation: createMockModel("certificateRevocations"),
   bootstrapToken: createMockModel("bootstrapTokens"),
+  schedulingPolicy: createMockModel("schedulingPolicies"),
+  nodeHealthScore: createMockModel("nodeHealthScores"),
+  carbonRecord: createMockModel("carbonRecords"),
 };
 
 // Mock dependencies at the top level
@@ -577,6 +586,13 @@ describe("Scheduling Flow E2E", () => {
 
   beforeEach(() => {
     resetDbState();
+    if (mockAgent) {
+      mockAgent.lastReceivedTask = undefined;
+      mockAgent.shouldFail = false;
+    }
+    if (api && api.app && api.app.taskScheduler) {
+      api.app.taskScheduler.onlineNodesCache = null;
+    }
   });
 
   afterAll(async () => {
@@ -887,6 +903,10 @@ describe("Scheduling Flow E2E", () => {
       },
       headers: { Authorization: "Bearer admin-token" },
     });
+
+    // Explicitly set policy to ml-optimized in the mock DB and invalidate cache
+    dbState.tasks.get(taskRes.data.id).policy = "ml-optimized";
+    scheduler.onlineNodesCache = null;
 
     // 3. Trigger scheduling
     await scheduler.processQueue();

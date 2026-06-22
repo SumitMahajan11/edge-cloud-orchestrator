@@ -78,6 +78,7 @@ export interface Task {
   duration: number;
   nodeId?: string | undefined;
   runtime: RuntimeType;
+  image?: string | undefined;
   affinity?: string | undefined;
   specs?:
     | {

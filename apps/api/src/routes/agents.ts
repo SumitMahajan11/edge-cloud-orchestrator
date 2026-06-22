@@ -12,7 +12,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     'hasDecorator(prisma):',
     fastify.hasDecorator('prisma'),
   );
-  if (!(fastify as any).prisma) {
+  if (!fastify.prisma) {
     fastify.log.error(
       { route: 'agentRoutes' },
       'Prisma client not found on fastify instance in agentRoutes',
@@ -85,7 +85,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     async (request, reply) => {
       try {
         const result = await registrationService.registerAgent(
-          request.body as any,
+          request.body as Parameters<import('../services/mtls-authentication.js').AgentRegistrationService['registerAgent']>[0],
         );
         return result;
       } catch (error: unknown) {
@@ -150,6 +150,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
               task_id: { type: 'string' },
               runtime: { type: 'string' },
               image: { type: 'string' },
+              wasm_artifact_id: { type: 'string', nullable: true },
               input: { type: 'object', additionalProperties: true },
               memory_limit_mb: { type: 'number' },
               cpu_fuel: { type: 'number', nullable: true },
@@ -205,11 +206,11 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         await import('@edgecloud/shared-kernel');
       enterWithTenantContext(node.tenantId);
 
-      // Find oldest pending task assigned to this node
+      // Find oldest pending or scheduled task assigned to this node
       const task = await fastify.prisma.task.findFirst({
         where: {
           nodeId: nodeId as string,
-          status: 'PENDING',
+          status: { in: ['PENDING', 'SCHEDULED'] },
         },
         orderBy: {
           priority: 'asc', // Higher priority first (if priority is mapped correctly)
@@ -218,7 +219,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         },
         include: {
           executions: {
-            where: { status: 'PENDING' },
+            where: { status: { in: ['PENDING', 'SCHEDULED'] } },
             take: 1,
           },
         },
@@ -270,7 +271,8 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       const taskSpec = {
         task_id: task.id,
         runtime: task.runtime === 'DOCKER' ? 'Docker' : 'Wasm',
-        image: task.image || 'main.wasm', // In reality, this would be determined by task type/input
+        image: task.image || '',
+        wasm_artifact_id: task.wasmArtifactId || null,
         input: task.input || {},
         memory_limit_mb: 512,
         cpu_fuel: null,
@@ -582,6 +584,10 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
               status: status as any,
               exitCode: result.exit_code as number,
               durationMs: result.duration_ms as number,
+              output: {
+                stdout: result.stdout || '',
+                stderr: result.stderr || '',
+              },
               error: result.error as string | null,
               completedAt: new Date(),
             },

@@ -327,7 +327,9 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           priority: data.priority,
           target: data.target,
           nodeId: data.nodeId ?? null,
-          policy: 'manual',
+          policy: data.policy ?? (data.nodeId ? 'manual' : 'auto'),
+          isDeferrable: data.isDeferrable ?? false,
+          maxDelayMinutes: data.maxDelayMinutes ?? 0,
           reason: 'Manually submitted',
           input: data.input || {},
           metadata: {

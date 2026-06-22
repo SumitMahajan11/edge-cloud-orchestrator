@@ -16,15 +16,31 @@ async function measureCapacity() {
   // Get token
   const token = jwt.sign(
     {
-      id: "load-test-user",
-      email: "load@test.com",
+      id: process.env.USER_ID || "30d4bed2-46f2-40ad-9983-1502668287a2",
+      email: "admin@demo-org.com",
       role: "ADMIN",
-      tenantId: "test-tenant",
+      tenantId: process.env.TENANT_ID || "2c919f7a-6966-4da7-9ce0-91309494f9cf",
+      aud: "edge-cloud-clients",
+      iss: "edge-cloud-orchestrator",
     },
     process.env.JWT_SECRET || "load_test_secret_at_least_32_chars_long",
   );
 
-  const API_URL = "http://127.0.0.1:3000/v2";
+  const API_URL = process.env.API_URL || "http://127.0.0.1:3090/v2";
+
+  console.log("Cleaning up previous test nodes from database...");
+  const { PrismaClient } = require("@prisma/client");
+  const prisma = new PrismaClient();
+  try {
+    const deletedNodes = await prisma.edgeNode.deleteMany({
+      where: { name: { startsWith: "CapNode-" } },
+    });
+    console.log(`Cleaned up ${deletedNodes.count} old CapNodes.`);
+  } catch (err) {
+    console.error("Cleanup error:", err);
+  } finally {
+    await prisma.$disconnect();
+  }
 
   const nodeIds: string[] = [];
 

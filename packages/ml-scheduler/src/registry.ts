@@ -17,10 +17,10 @@ export interface ModelMetadata {
 export class ModelRegistry {
   private readonly REDIS_KEY = "ml:active_model_version";
   private readonly HISTORY_KEY = "ml:model_version_history";
-  private readonly MODEL_DIR: string;
+  public readonly MODEL_DIR: string;
 
   constructor(
-    private redis: Redis,
+    public redis: Redis,
     modelDir?: string,
   ) {
     this.MODEL_DIR = modelDir || path.join(process.cwd(), "models");
@@ -48,7 +48,11 @@ export class ModelRegistry {
       }
     }
 
-    return versions.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    return versions.sort((a, b) => {
+      const dateA = a.created_at || (a as any).timestamp || "";
+      const dateB = b.created_at || (b as any).timestamp || "";
+      return dateB.localeCompare(dateA);
+    });
   }
 
   async getActiveModel(): Promise<ModelMetadata | null> {
@@ -111,9 +115,9 @@ export class ModelRegistry {
 
   private async pruneOldModels(): Promise<void> {
     const models = await this.listModels();
-    if (models.length <= 5) return;
+    if (models.length <= 3) return;
 
-    const toDelete = models.slice(5);
+    const toDelete = models.slice(3);
     const activeVersion = await this.redis.get(this.REDIS_KEY);
 
     for (const model of toDelete) {

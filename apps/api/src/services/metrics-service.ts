@@ -562,6 +562,12 @@ export const wsMessagesTotal = new Counter({
 // DATABASE METRICS
 // ============================================================================
 
+export const nodeMetricRowCount = new Gauge({
+  name: 'edgecloud_node_metrics_row_count',
+  help: 'Total number of rows in the node_metrics table',
+  registers: [register],
+});
+
 export const dbQueryLatency = new Histogram({
   name: 'edgecloud_database_query_duration_seconds',
   help: 'Database query latency',

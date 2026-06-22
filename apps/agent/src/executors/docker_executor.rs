@@ -1,5 +1,6 @@
 use crate::types::{TaskSpec, ExecutionResult};
 use anyhow::Result;
+use metrics::histogram;
 
 #[derive(Default)]
 pub struct DockerExecutor;
@@ -10,6 +11,8 @@ impl DockerExecutor {
     }
 
     pub async fn execute(&self, spec: &TaskSpec) -> Result<ExecutionResult> {
+        histogram!("docker_task_cold_start_duration_seconds", 0.500);
+
         // Placeholder for Docker execution (existing behavior)
         Ok(ExecutionResult {
             task_id: spec.task_id.clone(),

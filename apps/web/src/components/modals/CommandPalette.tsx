@@ -125,6 +125,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               type: "Image Classification",
               priority: "high",
               runtime: "docker",
+              image: "edgecloud/worker:latest",
               specs: { cpuCores: 2, memoryGB: 4 },
             });
             toast.success("Quick task submitted");

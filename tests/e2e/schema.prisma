@@ -173,6 +173,8 @@ model EdgeNode {
 model NodeMetric {
   id        String   @default(uuid())
   nodeId    String
+  tenantId  String   @default("default-tenant")
+  createdAt DateTime @default(now())
   timestamp DateTime @default(now())
 
   cpuUsage     Float
@@ -222,6 +224,8 @@ model Task {
   nodeId String?
   policy String
   reason String
+  isDeferrable    Boolean @default(false)
+  maxDelayMinutes Int     @default(0)
 
   // Timing
   submittedAt DateTime @default(now())
@@ -741,6 +745,28 @@ model CarbonMetric {
   @@map("carbon_metrics")
 }
 
+model CarbonRecord {
+  id                String   @id @default(uuid())
+  taskId            String   @unique
+  tenantId          String
+  nodeId            String
+  region            String
+  carbonIntensity   Float
+  durationMs        Int
+  estimatedGco2eq   Float
+  estimatedWatts    Float    @default(10.0)
+  wasDeferred       Boolean  @default(false)
+  baselineGco2eq    Float?
+  carbonSavedGco2eq Float?
+  recordedAt        DateTime @default(now())
+
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, recordedAt])
+  @@index([taskId])
+  @@map("carbon_records")
+}
+
 // ============================================
 // Multi-Tenancy (Phase 3)
 // ============================================
@@ -773,6 +799,7 @@ model Tenant {
   TaskCostEstimate   TaskCostEstimate[]
   CostRecord         CostRecord[]
   CarbonMetric       CarbonMetric[]
+  CarbonRecord       CarbonRecord[]
   SagaInstance       SagaInstance[]
   SagaStep           SagaStep[]
 

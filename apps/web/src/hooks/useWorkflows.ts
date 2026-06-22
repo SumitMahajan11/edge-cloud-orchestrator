@@ -13,7 +13,7 @@ export function useWorkflows() {
     queryFn: async () => {
       const { data, error } = await getV2Workflows();
       if (error) throw error;
-      return data;
+      return (data as any).data || [];
     },
     staleTime: STALE.taskStatus,
   });

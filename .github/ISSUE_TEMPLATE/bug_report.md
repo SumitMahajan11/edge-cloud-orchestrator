@@ -6,6 +6,8 @@ labels: bug
 assignees: ""
 ---
 
+> **Note**: Before opening a new issue, please review our [Contributing Guidelines](https://github.com/SumitMahajan11/edge-cloud-orchestrator/blob/main/CONTRIBUTING.md).
+
 **Describe the bug**
 A clear and concise description of what the bug is.
 

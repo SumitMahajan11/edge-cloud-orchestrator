@@ -28,7 +28,7 @@ export default async function logRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const { taskId, nodeId, level, limit, offset } = request.query as any;
+      const { taskId, nodeId, level, limit, offset } = request.query as z.infer<typeof LogQuerySchema>;
       const tenantId = request.user!.tenantId!;
 
       const logs = await fastify.prisma.taskLog.findMany({

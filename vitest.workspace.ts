@@ -2,9 +2,13 @@ import { defineWorkspace } from "vitest/config";
 import path from "path";
 
 const sharedConfig = {
+  resolve: {
+    conditions: ["node", "require"],
+  },
   test: {
     globals: true,
     environment: "node",
+    pool: "forks",
     setupFiles: [path.resolve(__dirname, "./vitest.setup.ts")],
     hookTimeout: 60000,
     testTimeout: 60000,
@@ -34,6 +38,11 @@ const sharedConfig = {
         __dirname,
         "./packages/saga/src/index.ts",
       ),
+    },
+    server: {
+      deps: {
+        inline: [/@opentelemetry\/.*/],
+      },
     },
   },
 };

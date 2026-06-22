@@ -6,7 +6,7 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const API_URL = process.env.API_URL || "http://127.0.0.1:3012/v2";
+const API_URL = process.env.API_URL || "http://127.0.0.1:3090/v2";
 const DURATION_SEC = 30; // Reduced for speed
 const CONCURRENCY = 10;
 
@@ -19,10 +19,10 @@ async function measureThroughput() {
   // Get token
   const token = jwt.sign(
     {
-      id: "load-test-user",
-      email: "load@test.com",
+      id: process.env.USER_ID || "30d4bed2-46f2-40ad-9983-1502668287a2",
+      email: "admin@demo-org.com",
       role: "ADMIN",
-      tenantId: "test-tenant",
+      tenantId: process.env.TENANT_ID || "2c919f7a-6966-4da7-9ce0-91309494f9cf",
       aud: "edge-cloud-clients",
       iss: "edge-cloud-orchestrator",
     },
@@ -116,7 +116,10 @@ async function measureThroughput() {
           },
         );
         submittedCount++;
-      } catch (err) {
+      } catch (err: any) {
+        if (failedSubmissionCount < 5) {
+          console.error("Submission failed error:", err.message, err.response?.data || "");
+        }
         failedSubmissionCount++;
       }
     }
@@ -136,7 +139,7 @@ async function measureThroughput() {
 
   while (Date.now() < monitorTimeout) {
     try {
-      const resp = await axios.get(`${API_URL}/tasks`, {
+      const resp = await axios.get(`${API_URL}/tasks?limit=10000`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const taskList = Array.isArray(resp.data) ? resp.data : resp.data.data;

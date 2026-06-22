@@ -144,22 +144,118 @@ export const createMockRedis = (logger: Logger) => {
       zsets.set(key, newSet);
       return initialLen - newSet.length;
     },
-    lrange: async () => [],
-    lpush: async () => 0,
-    rpush: async () => 0,
-    llen: async () => 0,
-    lrem: async () => 0,
+    lrange: async (key: string, start: number, stop: number) => {
+      const list = mockStorage.get(key);
+      if (!Array.isArray(list)) return [];
+      const end = stop === -1 ? undefined : stop + 1;
+      return list.slice(start, end);
+    },
+    lpush: async (key: string, ...values: any[]) => {
+      let list = mockStorage.get(key);
+      if (!Array.isArray(list)) {
+        list = [];
+        mockStorage.set(key, list);
+      }
+      list.unshift(...values.reverse());
+      return list.length;
+    },
+    rpush: async (key: string, ...values: any[]) => {
+      let list = mockStorage.get(key);
+      if (!Array.isArray(list)) {
+        list = [];
+        mockStorage.set(key, list);
+      }
+      list.push(...values);
+      return list.length;
+    },
+    llen: async (key: string) => {
+      const list = mockStorage.get(key);
+      return Array.isArray(list) ? list.length : 0;
+    },
+    lrem: async (key: string, count: number, value: any) => {
+      const list = mockStorage.get(key);
+      if (!Array.isArray(list)) return 0;
+      let removed = 0;
+      if (count === 0) {
+        const initialLen = list.length;
+        const filtered = list.filter((v) => v !== value);
+        mockStorage.set(key, filtered);
+        return initialLen - filtered.length;
+      }
+      if (count > 0) {
+        for (let i = 0; i < list.length && removed < count; i++) {
+          if (list[i] === value) {
+            list.splice(i, 1);
+            i--;
+            removed++;
+          }
+        }
+      } else {
+        const absCount = Math.abs(count);
+        for (let i = list.length - 1; i >= 0 && removed < absCount; i--) {
+          if (list[i] === value) {
+            list.splice(i, 1);
+            removed++;
+          }
+        }
+      }
+      return removed;
+    },
     expire: async () => 1,
     ttl: async () => -1,
     keys: async () => [],
-    hset: async () => 0,
-    hget: async () => null,
-    hgetall: async () => null,
-    hdel: async () => 0,
-    incr: async () => 1,
-    decr: async () => 0,
-    incrby: async () => 1,
-    setnx: async () => 1,
+    hset: async (key: string, field: string, value: any) => {
+      let hash = mockStorage.get(key);
+      if (!(hash instanceof Map)) {
+        hash = new Map();
+        mockStorage.set(key, hash);
+      }
+      hash.set(field, value);
+      return 1;
+    },
+    hget: async (key: string, field: string) => {
+      const hash = mockStorage.get(key);
+      if (!(hash instanceof Map)) return null;
+      return hash.get(field) || null;
+    },
+    hgetall: async (key: string) => {
+      const hash = mockStorage.get(key);
+      if (!(hash instanceof Map)) return null;
+      const obj: Record<string, any> = {};
+      hash.forEach((v, k) => {
+        obj[k] = v;
+      });
+      return obj;
+    },
+    hdel: async (key: string, ...fields: string[]) => {
+      const hash = mockStorage.get(key);
+      if (!(hash instanceof Map)) return 0;
+      let deleted = 0;
+      fields.forEach((f) => {
+        if (hash.delete(f)) deleted++;
+      });
+      return deleted;
+    },
+    incr: async (key: string) => {
+      const val = parseInt(mockStorage.get(key) || '0', 10) + 1;
+      mockStorage.set(key, val.toString());
+      return val;
+    },
+    decr: async (key: string) => {
+      const val = parseInt(mockStorage.get(key) || '0', 10) - 1;
+      mockStorage.set(key, val.toString());
+      return val;
+    },
+    incrby: async (key: string, increment: number) => {
+      const val = parseInt(mockStorage.get(key) || '0', 10) + increment;
+      mockStorage.set(key, val.toString());
+      return val;
+    },
+    setnx: async (key: string, value: any) => {
+      if (mockStorage.has(key)) return 0;
+      mockStorage.set(key, value);
+      return 1;
+    },
     evalsha: async (..._args: any[]) => 1,
     eval: async (..._args: any[]) => 1,
     script: async (..._args: any[]) => 'OK',

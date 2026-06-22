@@ -32,7 +32,7 @@ export const UpdateNodeV1Schema = z.object({
 });
 
 export const NodeV1ResponseSchema = z.object({
-  id: z.string().uuid(),
+  id: z.string(),
   name: z.string(),
   location: z.string(),
   region: z.string(),

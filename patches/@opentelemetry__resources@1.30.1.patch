@@ -1,0 +1,13 @@
+diff --git a/build/esm/detectors/platform/node/machine-id/getMachineId-win.js b/build/esm/detectors/platform/node/machine-id/getMachineId-win.js
+index 34a08daa86d86a830a12531dc558e3cef60541a3..4b7195d80ccc970a6d98be14213a9499673d34de 100644
+--- a/build/esm/detectors/platform/node/machine-id/getMachineId-win.js
++++ b/build/esm/detectors/platform/node/machine-id/getMachineId-win.js
+@@ -50,7 +50,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
+     }
+ };
+ import * as process from 'process';
+-import { execAsync } from './execAsync';
++import { execAsync } from './execAsync.js';
+ import { diag } from '@opentelemetry/api';
+ export function getMachineId() {
+     return __awaiter(this, void 0, void 0, function () {

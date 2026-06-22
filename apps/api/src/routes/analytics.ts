@@ -134,17 +134,17 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
 
       // 4. Savings Calculation (Estimated)
       // Placeholder: In a real system, we'd compare against a baseline (e.g. standard cloud pricing)
-      const totalSavings = ((totalCostResult as any)._sum.costUSD || 0) * 0.25; // Assume 25% savings for now
-
+      const totalSavings = (Number(totalCostResult._sum.costUSD) || 0) * 0.25; // Assume 25% savings for now
+ 
       return {
         totalActualCost:
-          Math.round(((totalCostResult as any)._sum.costUSD || 0) * 100) / 100,
+          Math.round((Number(totalCostResult._sum.costUSD) || 0) * 100) / 100,
         totalSavings: Math.round(totalSavings * 100) / 100,
         costByNode: costByNode.map((n) => ({
           nodeId: n.nodeId || 'unknown',
           nodeName: (n.nodeId && nodeMap[n.nodeId]) || 'Unknown',
-          cost: Math.round(((n as any)._sum.costUSD || 0) * 100) / 100,
-          taskCount: (n as any)._count.id,
+          cost: Math.round((Number(n._sum.costUSD) || 0) * 100) / 100,
+          taskCount: n._count?.id ?? 0,
         })),
         costOverTime,
       };

@@ -1,4 +1,5 @@
 import crypto from 'crypto';
+import { Prisma } from '@prisma/client';
 import { Permissions, validateWebhookUrl } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
@@ -43,7 +44,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const webhooks = await (fastify.prisma as any).webhook.findMany({
+      const webhooks = await fastify.prisma.webhook.findMany({
         where: { tenantId: request.user!.tenantId! },
         include: {
           _count: { select: { deliveries: true } },
@@ -93,11 +94,11 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       const tenantId = request.user!.tenantId!;
 
       const [total, active, failedLast24h] = await Promise.all([
-        (fastify.prisma as any).webhook.count({ where: { tenantId } }),
-        (fastify.prisma as any).webhook.count({
+        fastify.prisma.webhook.count({ where: { tenantId } }),
+        fastify.prisma.webhook.count({
           where: { tenantId, enabled: true },
         }),
-        (fastify.prisma as any).webhookDelivery.count({
+        fastify.prisma.webhookDelivery.count({
           where: {
             tenantId,
             status: 'FAILED',
@@ -144,11 +145,11 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const webhook = await (fastify.prisma as any).webhook.create({
+      const webhook = await fastify.prisma.webhook.create({
         data: {
           name,
           url,
-          events: isSqlite ? JSON.stringify(events) : events,
+          events: (isSqlite ? JSON.stringify(events) : events) as unknown as string[],
           secret: secret || crypto.randomBytes(32).toString('hex'),
           enabled,
           tenantId: request.user!.tenantId!,
@@ -197,14 +198,19 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         }
       }
 
-      const updateData = { ...data };
-      if (isSqlite && updateData.events && Array.isArray(updateData.events)) {
-        updateData.events = JSON.stringify(updateData.events) as any;
-      }
+      const updateData: Prisma.WebhookUpdateInput = {
+        ...(data.name !== undefined && { name: data.name }),
+        ...(data.url !== undefined && { url: data.url }),
+        ...(data.secret !== undefined && { secret: data.secret }),
+        ...(data.enabled !== undefined && { enabled: data.enabled }),
+        ...(data.events !== undefined && {
+          events: (isSqlite ? JSON.stringify(data.events) : data.events) as unknown as string[],
+        }),
+      };
 
-      const webhook = await (fastify.prisma as any).webhook.update({
+      const webhook = await fastify.prisma.webhook.update({
         where: { id, tenantId: request.user!.tenantId! },
-        data: updateData as any,
+        data: updateData,
       });
 
       return isSqlite ? formatWebhook(webhook) : webhook;
@@ -226,7 +232,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      await (fastify.prisma as any).webhook.delete({
+      await fastify.prisma.webhook.delete({
         where: { id: request.params.id, tenantId: request.user!.tenantId! },
       });
       return { success: true };
@@ -252,7 +258,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
       const { limit = 50 } = request.query;
 
-      const deliveries = await (fastify.prisma as any).webhookDelivery.findMany(
+      const deliveries = await fastify.prisma.webhookDelivery.findMany(
         {
           where: {
             webhookId: id,
@@ -294,7 +300,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id, deliveryId } = request.params;
 
-      const delivery = await (fastify.prisma as any).webhookDelivery.findFirst({
+      const delivery = await fastify.prisma.webhookDelivery.findFirst({
         where: {
           id: deliveryId,
           webhookId: id,
@@ -369,7 +375,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params;
 
-      const webhook = await (fastify.prisma as any).webhook.findUnique({
+      const webhook = await fastify.prisma.webhook.findUnique({
         where: { id, tenantId: request.user!.tenantId! },
       });
 
@@ -384,7 +390,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       }
 
       // Create a test delivery record
-      const delivery = await (fastify.prisma as any).webhookDelivery.create({
+      const delivery = await fastify.prisma.webhookDelivery.create({
         data: {
           webhookId: id,
           event: 'webhook.test',
@@ -430,7 +436,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { id } = request.params; // This id is the deliveryId
 
-      const delivery = await (fastify.prisma as any).webhookDelivery.findFirst({
+      const delivery = await fastify.prisma.webhookDelivery.findFirst({
         where: { id, tenantId: request.user!.tenantId! },
       });
 

@@ -33,6 +33,7 @@ model Tenant {
 
   tasks     Task[]
   nodes     EdgeNode[] @relation("TenantNodes")
+  carbonRecords CarbonRecord[]
 
   @@map("tenants")
 }
@@ -82,6 +83,8 @@ model Task {
   policy   String
   reason   String
   runtime  String @default("DOCKER")
+  isDeferrable    Boolean @default(false)
+  maxDelayMinutes Int     @default(0)
   
   submittedAt DateTime @default(now())
 
@@ -105,4 +108,26 @@ model TaskLog {
   task      Task     @relation(fields: [taskId], references: [id])
   
   @@map("task_logs")
+}
+
+model CarbonRecord {
+  id                String   @id @default(uuid())
+  taskId            String   @unique
+  tenantId          String
+  nodeId            String
+  region            String
+  carbonIntensity   Float
+  durationMs        Int
+  estimatedGco2eq   Float
+  estimatedWatts    Float    @default(10.0)
+  wasDeferred       Boolean  @default(false)
+  baselineGco2eq    Float?
+  carbonSavedGco2eq Float?
+  recordedAt        DateTime @default(now())
+
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, recordedAt])
+  @@index([taskId])
+  @@map("carbon_records")
 }

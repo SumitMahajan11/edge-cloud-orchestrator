@@ -214,6 +214,10 @@ export function transformTaskToApi(task: Partial<Task>): any {
     target: "EDGE",
     nodeId: task.nodeId,
     maxRetries: task.maxRetries || 3,
+    runtime: task.runtime ? task.runtime.toUpperCase() : "DOCKER",
+    image: task.image || "alpine:latest",
+    specs: task.specs,
+    affinity: task.affinity,
   };
 }
 

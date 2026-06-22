@@ -58,11 +58,9 @@ export default async function schedulerRoutes(fastify: FastifyInstance) {
         limit?: number;
       };
 
-      const decisions = await (
-        fastify as any
-      ).prisma.schedulingDecision.findMany({
+      const decisions = await fastify.prisma.schedulingDecision.findMany({
         where: {
-          tenantId: (request.user as any).tenantId,
+          tenantId: request.user!.tenantId!,
           ...(nodeId && { selectedNodeId: nodeId }),
         },
         orderBy: { timestamp: 'desc' },

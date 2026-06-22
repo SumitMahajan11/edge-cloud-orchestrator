@@ -1,20 +1,20 @@
 [
   {
     "level": 1000,
-    "heartbeatMs": 5,
-    "queryMs": 10,
-    "memoryMB": 33
+    "heartbeatMs": 4,
+    "queryMs": 6,
+    "memoryMB": 22
   },
   {
     "level": 5000,
-    "heartbeatMs": 3,
-    "queryMs": 8,
-    "memoryMB": 31
+    "heartbeatMs": 5,
+    "queryMs": 5,
+    "memoryMB": 24
   },
   {
     "level": 10000,
-    "heartbeatMs": 3,
-    "queryMs": 11,
-    "memoryMB": 57
+    "heartbeatMs": 6,
+    "queryMs": 10,
+    "memoryMB": 30
   }
 ]

@@ -1130,6 +1130,7 @@ export class TaskScheduler extends EventEmitter {
             userId,
             matchedNode.id,
           );
+
           if (!nodeCheck.allowed) {
             this.logger.warn(
               { taskId: task.id, nodeId: matchedNode.id, reason: nodeCheck.reason },
@@ -1308,10 +1309,13 @@ export class TaskScheduler extends EventEmitter {
 
     const healthMap = new Map(healthScores.map((h) => [h.nodeId, h.penaltyMultiplier]));
 
-    const availableNodesWithHealth = availableNodes.map((node) => ({
-      ...node,
-      penaltyMultiplier: healthMap.get(node.id) ?? 1.0,
-    }));
+    const availableNodesWithHealth = availableNodes.map((node) => {
+      const penaltyMultiplier = healthMap.get(node.id) ?? 1.0;
+      return {
+        ...node,
+        penaltyMultiplier,
+      };
+    });
 
     // ── 3. Affinity scoring ──────────────────────────────────────────────────
     // task.affinity is an optional JSON string containing AffinityConstraint[].

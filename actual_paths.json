@@ -618,6 +618,10 @@
                   },
                   "timeout_seconds": {
                     "type": "number"
+                  },
+                  "wasm_artifact_id": {
+                    "nullable": true,
+                    "type": "string"
                   }
                 },
                 "type": "object"
@@ -1612,6 +1616,61 @@
       ]
     }
   },
+  "/v2/carbon/report": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "from",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "to",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "tenantId",
+          "required": false,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "format",
+          "required": false,
+          "schema": {
+            "default": "json",
+            "enum": [
+              "csv",
+              "json"
+            ],
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get auditable tenant carbon report",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
   "/v2/carbon/savings": {
     "get": {
       "parameters": [
@@ -2482,6 +2541,140 @@
       ]
     }
   },
+  "/v2/ml/federated/model/{modelId}/weights": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "modelId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Download weights for a federated learning model",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/round": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "minParticipants": {
+                    "type": "number"
+                  },
+                  "modelId": {
+                    "type": "string"
+                  },
+                  "roundId": {
+                    "type": "string"
+                  },
+                  "roundNumber": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "submissionsCount": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get or initialize current active federated learning round",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/weights": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "avgReward": {
+                  "nullable": true,
+                  "type": "number"
+                },
+                "nodeId": {
+                  "type": "string"
+                },
+                "roundId": {
+                  "type": "string"
+                },
+                "sampleCount": {
+                  "type": "number"
+                },
+                "weightsUrl": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nodeId",
+                "roundId",
+                "sampleCount",
+                "weightsUrl"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Submit local model weight deltas for federated aggregation",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/weights/upload": {
+    "post": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      }
+    }
+  },
   "/v2/ml/model/current": {
     "get": {
       "responses": {
@@ -2702,7 +2895,6 @@
                       "additionalProperties": false,
                       "properties": {
                         "id": {
-                          "format": "uuid",
                           "type": "string"
                         },
                         "ipAddress": {
@@ -2906,7 +3098,6 @@
                 "additionalProperties": false,
                 "properties": {
                   "id": {
-                    "format": "uuid",
                     "type": "string"
                   },
                   "ipAddress": {
@@ -3053,7 +3244,6 @@
                 "additionalProperties": false,
                 "properties": {
                   "id": {
-                    "format": "uuid",
                     "type": "string"
                   },
                   "ipAddress": {
@@ -3687,6 +3877,63 @@
       ]
     }
   },
+  "/v2/scheduling/policy": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get per-tenant scheduling policy",
+      "tags": [
+        "scheduling"
+      ]
+    },
+    "put": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "carbonWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "costWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "latencyWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "carbonWeight",
+                "costWeight",
+                "latencyWeight"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update per-tenant scheduling policy weights",
+      "tags": [
+        "scheduling"
+      ]
+    }
+  },
   "/v2/status": {
     "get": {
       "responses": {
@@ -3754,7 +4001,6 @@
           "name": "nodeId",
           "required": false,
           "schema": {
-            "format": "uuid",
             "type": "string"
           }
         },
@@ -3788,7 +4034,7 @@
           "required": false,
           "schema": {
             "default": 20,
-            "maximum": 100,
+            "maximum": 10000,
             "minimum": 1,
             "type": "integer"
           }
@@ -3910,7 +4156,21 @@
                           "type": "string"
                         },
                         "image": {
-                          "type": "string"
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         },
                         "metadata": {
                           "additionalProperties": {},
@@ -3927,7 +4187,6 @@
                                   "not": {}
                                 },
                                 {
-                                  "format": "uuid",
                                   "type": "string"
                                 }
                               ]
@@ -4030,11 +4289,27 @@
                         },
                         "type": {
                           "type": "string"
+                        },
+                        "wasmArtifactId": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
                         }
                       },
                       "required": [
                         "id",
-                        "image",
                         "name",
                         "priority",
                         "runtime",
@@ -4087,12 +4362,18 @@
                   "type": "string"
                 },
                 "image": {
-                  "minLength": 1,
                   "type": "string"
                 },
                 "input": {
                   "additionalProperties": {},
                   "type": "object"
+                },
+                "isDeferrable": {
+                  "type": "boolean"
+                },
+                "maxDelayMinutes": {
+                  "minimum": 0,
+                  "type": "integer"
                 },
                 "maxRetries": {
                   "default": 3,
@@ -4110,7 +4391,9 @@
                   "type": "string"
                 },
                 "nodeId": {
-                  "format": "uuid",
+                  "type": "string"
+                },
+                "policy": {
                   "type": "string"
                 },
                 "priority": {
@@ -4190,10 +4473,12 @@
                     "VIDEO_PROCESSING"
                   ],
                   "type": "string"
+                },
+                "wasmArtifactId": {
+                  "type": "string"
                 }
               },
               "required": [
-                "image",
                 "name",
                 "type"
               ],
@@ -4267,7 +4552,21 @@
                     "type": "string"
                   },
                   "image": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "metadata": {
                     "additionalProperties": {},
@@ -4284,7 +4583,6 @@
                             "not": {}
                           },
                           {
-                            "format": "uuid",
                             "type": "string"
                           }
                         ]
@@ -4387,11 +4685,27 @@
                   },
                   "type": {
                     "type": "string"
+                  },
+                  "wasmArtifactId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
                   "id",
-                  "image",
                   "name",
                   "priority",
                   "runtime",
@@ -4427,6 +4741,82 @@
         }
       },
       "summary": "Create and schedule a new task",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/artifacts": {
+    "post": {
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "artifactId": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "400": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Upload a WASM task artifact",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/artifacts/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "404": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Download a WASM task artifact",
       "tags": [
         "tasks"
       ]
@@ -4522,7 +4912,21 @@
                     "type": "string"
                   },
                   "image": {
-                    "type": "string"
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   },
                   "metadata": {
                     "additionalProperties": {},
@@ -4539,7 +4943,6 @@
                             "not": {}
                           },
                           {
-                            "format": "uuid",
                             "type": "string"
                           }
                         ]
@@ -4642,11 +5045,27 @@
                   },
                   "type": {
                     "type": "string"
+                  },
+                  "wasmArtifactId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
                   }
                 },
                 "required": [
                   "id",
-                  "image",
                   "name",
                   "priority",
                   "runtime",

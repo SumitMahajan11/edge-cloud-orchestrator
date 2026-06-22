@@ -163,6 +163,9 @@ export const createTaskSchema = z.object({
   input: z.record(z.string().max(100), z.unknown()).optional(),
   metadata: z.record(z.string().max(100), z.unknown()).optional(),
   maxRetries: z.number().int().min(0).max(20).default(3),
+  isDeferrable: z.boolean().optional(),
+  maxDelayMinutes: z.number().int().min(0).optional(),
+  policy: z.string().optional(),
 });
 
 export const updateTaskSchema = z.object({
@@ -481,4 +484,11 @@ export const adminDlqEventRetryParamSchema = z.object({
 
 export const adminDlqPurgeBodySchema = z.object({
   olderThanDays: z.number().int().optional(),
+});
+
+export const carbonReportQuerySchema = z.object({
+  from: z.string().datetime().optional(),
+  to: z.string().datetime().optional(),
+  tenantId: z.string().uuid().optional(),
+  format: z.enum(['json', 'csv']).optional().default('json'),
 });

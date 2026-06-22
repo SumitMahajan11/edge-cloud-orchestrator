@@ -1,0 +1,9 @@
+{
+  "version": "1.0.1",
+  "algorithm": "GradientBoostingRegressor",
+  "mae": 0.15,
+  "trainedAt": "2026-06-22T17:55:24.740Z",
+  "created_at": "2026-06-22T17:55:24.741Z",
+  "isIncremental": true,
+  "baseVersion": "1.0.0"
+}

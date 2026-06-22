@@ -14,6 +14,7 @@ async fn test_task_persistence_and_sync() -> Result<()> {
         task_id: "task-1".to_string(),
         runtime: TaskRuntime::Wasm,
         image: "test.wasm".to_string(),
+        wasm_artifact_id: None,
         input: json!({"val": 1}),
         memory_limit_mb: 128,
         cpu_fuel: None,
@@ -88,12 +89,13 @@ async fn test_crash_recovery() -> Result<()> {
             task_id: "crashed-task".to_string(),
             runtime: TaskRuntime::Wasm,
             image: "test.wasm".to_string(),
+            wasm_artifact_id: None,
             input: json!({}),
             memory_limit_mb: 128,
             cpu_fuel: None,
             timeout_seconds: 30,
-        trace_id: None,
-        span_id: None,
+            trace_id: None,
+            span_id: None,
         };
         db.save_task(&spec).await?;
         db.update_task_status("crashed-task", "RUNNING").await?;

@@ -17,9 +17,13 @@ export default async function flRoutes(fastify: FastifyInstance) {
       schema: { tags: ['federated-learning'], summary: 'List FL models' },
     },
     async (request) => {
-      const models = await (fastify.prisma as any).fLModel.findMany({
+      const models = await fastify.prisma.fLModel.findMany({
         where: { tenantId: request.user!.tenantId! },
         include: {
+          sessions: {
+            orderBy: { startedAt: 'desc' },
+            take: 10,
+          },
           _count: { select: { sessions: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -59,7 +63,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
         weightsSize,
       } = request.body;
 
-      const model = await (fastify.prisma as any).fLModel.create({
+      const model = await fastify.prisma.fLModel.create({
         data: {
           name,
           version,
@@ -87,7 +91,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const model = await (fastify.prisma as any).fLModel.findUnique({
+      const model = await fastify.prisma.fLModel.findUnique({
         where: { id: request.params.id, tenantId: request.user!.tenantId! },
         include: {
           sessions: {
@@ -137,7 +141,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       const buffer = await data.toBuffer();
       const modelId = request.params.id;
 
-      const model = await (fastify.prisma as any).fLModel.findUnique({
+      const model = await fastify.prisma.fLModel.findUnique({
         where: { id: modelId, tenantId: request.user!.tenantId! },
       });
 
@@ -152,11 +156,9 @@ export default async function flRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const { url: weightsUrl, checksum: weightsChecksum } = await (
-          fastify as any
-        ).modelStorage.uploadWeights(modelId, buffer);
+        const { url: weightsUrl, checksum: weightsChecksum } = await fastify.modelStorage.uploadWeights(modelId, buffer);
 
-        await (fastify.prisma as any).fLModel.update({
+        await fastify.prisma.fLModel.update({
           where: { id: modelId, tenantId: request.user!.tenantId! },
           data: {
             weightsUrl,
@@ -196,7 +198,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const model = await (fastify.prisma as any).fLModel.findUnique({
+      const model = await fastify.prisma.fLModel.findUnique({
         where: { id: request.params.id, tenantId: request.user!.tenantId! },
       });
 
@@ -211,7 +213,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       }
 
       try {
-        const buffer = await (fastify as any).modelStorage.downloadWeights(
+        const buffer = await fastify.modelStorage.downloadWeights(
           model.weightsUrl,
           model.weightsChecksum || undefined,
         );
@@ -249,7 +251,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
     async (request, reply) => {
       const { modelId, totalRounds, config } = request.body;
 
-      const model = await (fastify.prisma as any).fLModel.findUnique({
+      const model = await fastify.prisma.fLModel.findUnique({
         where: { id: modelId, tenantId: request.user!.tenantId! },
       });
 
@@ -263,7 +265,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const nodes = await (fastify.prisma.edgeNode as any).findMany({
+      const nodes = await fastify.prisma.edgeNode.findMany({
         where: {
           status: 'ONLINE',
           isMaintenanceMode: false,
@@ -286,7 +288,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const session = await (fastify.prisma as any).fLSession.create({
+      const session = await fastify.prisma.fLSession.create({
         data: {
           modelId,
           totalRounds,
@@ -312,7 +314,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const session = await (fastify.prisma as any).fLSession.findUnique({
+      const session = await fastify.prisma.fLSession.findUnique({
         where: {
           id: request.params.id,
           model: { tenantId: request.user!.tenantId! },
@@ -346,7 +348,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const session = await (fastify.prisma as any).fLSession.update({
+      const session = await fastify.prisma.fLSession.update({
         where: {
           id: request.params.id,
           model: { tenantId: request.user!.tenantId! },

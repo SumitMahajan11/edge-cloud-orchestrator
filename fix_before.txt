@@ -1,0 +1,10 @@
+﻿
+[31mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[1m[7m Failed Tests 8 [27m[22mΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»ΓÄ»[39m
+[2m Test Files [22m [1m[31m11 failed[39m[22m[2m | [22m[1m[32m65 passed[39m[22m[2m | [22m[33m1 
+skipped[39m[90m (77)[39m
+[2m      Tests [22m [1m[31m8 failed[39m[22m[2m | [22m[1m[32m419 passed[39m[22m[2m | [22m[33m33 
+skipped[39m[90m (517)[39m
+[2m   Duration [22m 262.95s[2m (transform 206.49s, setup 22.75s, collect 1106.04s, tests 1373.95s, environment 
+43ms, prepare 45.94s)[22m
+
+

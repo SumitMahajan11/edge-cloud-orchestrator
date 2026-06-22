@@ -13,10 +13,11 @@ pub struct WasmExecutor {
     engine: Engine,
     module_cache: Arc<RwLock<HashMap<String, (Module, Instant)>>>,
     client: reqwest::Client,
+    control_plane_url: String,
 }
 
 impl WasmExecutor {
-    pub fn new() -> Result<Self> {
+    pub fn new(control_plane_url: String) -> Result<Self> {
         let mut config = Config::new();
         config.consume_fuel(true);
         config.async_support(true); // Enable async support for tokio integration
@@ -27,6 +28,7 @@ impl WasmExecutor {
             engine,
             module_cache: Arc::new(RwLock::new(HashMap::new())),
             client: reqwest::Client::new(),
+            control_plane_url,
         })
     }
 
@@ -34,7 +36,15 @@ impl WasmExecutor {
         let start_time = Instant::now();
         
         // 1. Download or retrieve cached .wasm binary
-        let wasm_bytes = self.get_wasm_bytes(&spec.image).await?;
+        let wasm_bytes = if let Some(ref artifact_id) = spec.wasm_artifact_id {
+            let download_url = format!("{}/v2/tasks/artifacts/{}", self.control_plane_url, artifact_id);
+            self.get_wasm_bytes(&download_url).await?
+        } else if spec.image.starts_with("http://") || spec.image.starts_with("https://") {
+            self.get_wasm_bytes(&spec.image).await?
+        } else {
+            let download_url = format!("{}/v2/tasks/artifacts/{}", self.control_plane_url, spec.image);
+            self.get_wasm_bytes(&download_url).await?
+        };
         let content_hash = self.calculate_hash(&wasm_bytes);
         
         // 2. Get or compile module
@@ -69,6 +79,9 @@ impl WasmExecutor {
         let instance = linker.instantiate_async(&mut store, &module).await?;
         let main = instance.get_typed_func::<(), ()>(&mut store, "_start")
             .context("failed to find _start function")?;
+
+        let cold_start_duration = start_time.elapsed();
+        histogram!("wasm_task_cold_start_duration_seconds", cold_start_duration.as_secs_f64());
 
         // 5. Execution with timeout
         let timeout = Duration::from_secs(spec.timeout_seconds as u64);

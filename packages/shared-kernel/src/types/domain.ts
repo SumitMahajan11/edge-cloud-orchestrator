@@ -43,6 +43,7 @@ export interface DomainNode {
   region?: string;
   availabilityZone?: string;
   carbonIntensity?: number;
+  penaltyMultiplier?: number;
 }
 
 export interface ScoreWeights {

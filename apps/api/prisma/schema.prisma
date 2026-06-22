@@ -164,6 +164,9 @@ model EdgeNode {
   // Cost
   costPerHour Float @default(0.05)
 
+  // Carbon
+  carbonIntensity Float?
+
   // Network
   bandwidthInMbps  Int @default(100)
   bandwidthOutMbps Int @default(100)
@@ -182,6 +185,7 @@ model EdgeNode {
   metrics        NodeMetric[]
   certificates   NodeCertificate[]
   pricing        NodePricing?
+  federatedSubmissions FederatedWeightSubmission[]
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id])
@@ -202,6 +206,8 @@ enum NodeStatus {
 model NodeMetric {
   id        String   @default(uuid())
   nodeId    String
+  tenantId  String
+  createdAt DateTime @default(now())
   timestamp DateTime @default(now())
 
   cpuUsage     Float
@@ -212,10 +218,12 @@ model NodeMetric {
   networkIn    Float
   networkOut   Float
 
-  node EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  node   EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  tenant Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
   @@id([id, timestamp])
   @@index([nodeId, timestamp(sort: Desc)])
+  @@index([tenantId, createdAt])
   @@map("node_metrics")
 }
 
@@ -253,8 +261,11 @@ model Task {
   reason   String
   runtime  Runtime @default(DOCKER)
   image    String?
+  wasmArtifactId String?
   affinity String?
   traceId  String?
+  isDeferrable    Boolean @default(false)
+  maxDelayMinutes Int     @default(0)
 
   // Timing
   submittedAt DateTime @default(now())
@@ -301,6 +312,7 @@ model TaskExecution {
   node    EdgeNode? @relation(fields: [nodeId], references: [id])
   nodeUrl String? // Snapshot of node URL at execution time
   runtime Runtime @default(DOCKER)
+  wasmArtifactId String?
   affinity String?
   traceId  String?
 
@@ -720,6 +732,46 @@ model FLSession {
   @@map("fl_sessions")
 }
 
+model FederatedRound {
+  id              String                      @id @default(uuid())
+  modelId         String
+  roundNumber     Int
+  status          String                      @default("RUNNING") // RUNNING, COMPLETED, FAILED
+  minParticipants Int                         @default(3)
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+  submissions     FederatedWeightSubmission[]
+
+  tenantId        String
+  tenant          Tenant                      @relation(fields: [tenantId], references: [id])
+
+  @@unique([modelId, roundNumber])
+  @@index([tenantId])
+  @@map("federated_rounds")
+}
+
+model FederatedWeightSubmission {
+  id          String         @id @default(uuid())
+  roundId     String
+  nodeId      String
+  weightsUrl  String
+  sampleCount Int
+  avgReward   Float          @default(0.0)
+  createdAt   DateTime       @default(now())
+
+  round       FederatedRound @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  node        EdgeNode       @relation(fields: [nodeId], references: [id])
+
+  tenantId    String
+  tenant      Tenant         @relation(fields: [tenantId], references: [id])
+
+  @@unique([roundId, nodeId])
+  @@index([roundId])
+  @@index([nodeId])
+  @@index([tenantId])
+  @@map("federated_weight_submissions")
+}
+
 // ============================================
 // Cost & Sustainability
 // ============================================
@@ -856,6 +908,28 @@ model CarbonMetric {
   @@map("carbon_metrics")
 }
 
+model CarbonRecord {
+  id                String   @id @default(uuid())
+  taskId            String   @unique
+  tenantId          String
+  nodeId            String
+  region            String
+  carbonIntensity   Float
+  durationMs        Int
+  estimatedGco2eq   Float
+  estimatedWatts    Float    @default(10.0)
+  wasDeferred       Boolean  @default(false)
+  baselineGco2eq    Float?
+  carbonSavedGco2eq Float?
+  recordedAt        DateTime @default(now())
+
+  tenant            Tenant   @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, recordedAt])
+  @@index([taskId])
+  @@map("carbon_records")
+}
+
 // ============================================
 // Multi-Tenancy (Phase 3)
 // ============================================
@@ -870,27 +944,33 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users              TenantUser[]
-  EdgeNode           EdgeNode[]
-  Task               Task[]
-  Workflow           Workflow[]
-  SchedulingPolicy   SchedulingPolicy[]
-  AlertRule          AlertRule[]
-  Alert              Alert[]
-  Webhook            Webhook[]
-  AuditLog           AuditLog[]
-  SchedulingDecision SchedulingDecision[]
-  FLModel            FLModel[]
-  FLSession          FLSession[]
-  TaskExecution      TaskExecution[]
-  TaskLog            TaskLog[]
-  WorkflowExecution  WorkflowExecution[]
-  WebhookDelivery    WebhookDelivery[]
-  TaskCostEstimate   TaskCostEstimate[]
-  CostRecord         CostRecord[]
-  CarbonMetric       CarbonMetric[]
-  SagaInstance       SagaInstance[]
-  SagaStep           SagaStep[]
+  users                 TenantUser[]
+  EdgeNode              EdgeNode[]
+  Task                  Task[]
+  Workflow              Workflow[]
+  SchedulingPolicy      SchedulingPolicy[]
+  AlertRule             AlertRule[]
+  Alert                 Alert[]
+  Webhook               Webhook[]
+  AuditLog              AuditLog[]
+  SchedulingDecision    SchedulingDecision[]
+  FLModel               FLModel[]
+  FLSession             FLSession[]
+  TaskExecution         TaskExecution[]
+  TaskLog               TaskLog[]
+  WorkflowExecution     WorkflowExecution[]
+  WebhookDelivery       WebhookDelivery[]
+  TaskCostEstimate      TaskCostEstimate[]
+  CostRecord            CostRecord[]
+  CarbonMetric          CarbonMetric[]
+  CarbonRecord          CarbonRecord[]
+  SagaInstance          SagaInstance[]
+  SagaStep              SagaStep[]
+  NodeMetric            NodeMetric[]
+  MetricRetentionPolicy MetricRetentionPolicy?
+  SchedulingOutcome     SchedulingOutcome[]
+  FederatedRound        FederatedRound[]
+  FederatedWeightSubmission FederatedWeightSubmission[]
 
   @@map("tenants")
 }
@@ -907,6 +987,18 @@ model TenantUser {
 
   @@unique([tenantId, userId])
   @@map("tenant_users")
+}
+
+model MetricRetentionPolicy {
+  id            String   @id @default(uuid())
+  tenantId      String   @unique
+  retentionDays Int      @default(30)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("metric_retention_policies")
 }
 
 // ============================================
@@ -1135,3 +1227,44 @@ model OutcomeLog {
   @@index([timestamp])
   @@map("ml_outcome_logs")
 }
+
+model NodeHealthScore {
+  id                String   @id @default(uuid())
+  nodeId            String   @unique
+  tenantId          String
+  successRate       Float    @default(1.0)
+  avgLatencyMs      Float    @default(0.0)
+  latencyDeviation  Float    @default(0.0)
+  anomalyScore      Float    @default(0.0)
+  isAnomaly         Boolean  @default(false)
+  penaltyMultiplier Float    @default(1.0)
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("node_health_scores")
+}
+
+model SchedulingOutcome {
+  id                          String    @id @default(cuid())
+  taskId                      String    @unique
+  nodeId                      String
+  tenantId                    String
+  assignedAt                  DateTime
+  completedAt                 DateTime?
+  status                      String
+  actualLatencyMs             Int?
+  predictedLatencyMs          Int
+  carbonIntensityAtAssignment Float
+  nodeLoadAtAssignment        Float
+  rewardScore                 Float?
+  createdAt                   DateTime  @default(now())
+
+  tenant                      Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([nodeId])
+  @@index([tenantId])
+  @@map("scheduling_outcomes")
+}
+
+

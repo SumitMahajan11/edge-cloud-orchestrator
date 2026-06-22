@@ -3,12 +3,12 @@ import path from "path";
 import fs from "fs";
 
 let tf: any = null;
-try {
-  tf = require("@tensorflow/tfjs-node");
-} catch (e) {
-  if ((globalThis as any).tf) {
-    tf = (globalThis as any).tf;
-  } else {
+if ((globalThis as any).tf) {
+  tf = (globalThis as any).tf;
+} else {
+  try {
+    tf = require("@tensorflow/tfjs-node");
+  } catch (e) {
     console.warn("TensorFlow native addon not available, using mock predictor");
   }
 }
@@ -149,12 +149,13 @@ export class SchedulingPredictor {
       return;
     }
 
-    if (meta.algorithm === "XGBoost") {
+    const isTF = meta.algorithm === "TF" || meta.algorithm === "TensorFlow.js";
+    if (!isTF) {
       logger.info(
-        `XGBoost model version ${meta.version} detected. Loading artifact from ${meta.artifact_path}`,
+        `${meta.algorithm} model version ${meta.version} detected. Using heuristic fallback.`,
       );
       this.currentVersion = meta.version;
-      this.isTrained = false; // Fallback to heuristics if algorithm is XGBoost
+      this.isTrained = false;
     } else {
       const modelPath = `file://${path.join(modelDir, version, "model.json")}`;
       this.model = await tf.loadLayersModel(modelPath);

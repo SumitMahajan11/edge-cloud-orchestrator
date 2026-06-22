@@ -36,21 +36,42 @@ model Tenant {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  tasks               Task[]
-  nodes               EdgeNode[]           @relation("TenantNodes")
-  taskExecutions      TaskExecution[]
-  tenantUsers         TenantUser[]
-  webhooks            Webhook[]
-  webhookDeliveries   WebhookDelivery[]
-  auditLogs           AuditLog[]
-  sagaInstances       SagaInstance[]
-  sagaSteps           SagaStep[]
-  schedulingDecisions SchedulingDecision[]
-  costRecords         CostRecord[]
-  carbonMetrics       CarbonMetric[]
-  taskLogs            TaskLog[]
+  tasks                 Task[]
+  nodes                 EdgeNode[]             @relation("TenantNodes")
+  taskExecutions        TaskExecution[]
+  tenantUsers           TenantUser[]
+  webhooks              Webhook[]
+  webhookDeliveries     WebhookDelivery[]
+  auditLogs             AuditLog[]
+  sagaInstances         SagaInstance[]
+  sagaSteps             SagaStep[]
+  schedulingDecisions   SchedulingDecision[]
+  costRecords           CostRecord[]
+  carbonMetrics         CarbonMetric[]
+  carbonRecords         CarbonRecord[]
+  taskLogs              TaskLog[]
+  NodeMetric            NodeMetric[]
+  MetricRetentionPolicy MetricRetentionPolicy?
+  SchedulingPolicy      SchedulingPolicy[]
+  SchedulingOutcome     SchedulingOutcome[]
 
   @@map("tenants")
+}
+
+model SchedulingPolicy {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  type      String
+  config    String // SQLite stores config as a string instead of JSON
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("scheduling_policies")
 }
 
 model TenantUser {
@@ -65,6 +86,18 @@ model TenantUser {
 
   @@unique([tenantId, userId])
   @@map("tenant_users")
+}
+
+model MetricRetentionPolicy {
+  id            String   @id @default(uuid())
+  tenantId      String   @unique
+  retentionDays Int      @default(30)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@map("metric_retention_policies")
 }
 
 model UserSession {
@@ -183,6 +216,7 @@ model EdgeNode {
   longitude    Float?
 
   costPerHour       Float    @default(0.05)
+  carbonIntensity   Float?
   bandwidthInMbps   Int      @default(100)
   bandwidthOutMbps  Int      @default(100)
   isMaintenanceMode Boolean  @default(false)
@@ -210,13 +244,16 @@ model Task {
   priority String @default("MEDIUM")
   target   String
 
-  nodeId   String?
-  policy   String
-  reason   String
-  runtime  String  @default("DOCKER")
-  image    String?
-  affinity String?
-  traceId  String?
+  nodeId          String?
+  policy          String
+  reason          String
+  runtime         String  @default("DOCKER")
+  image           String?
+  wasmArtifactId  String?
+  affinity        String?
+  traceId         String?
+  isDeferrable    Boolean @default(false)
+  maxDelayMinutes Int     @default(0)
 
   maxDurationSeconds Int @default(3600)
   maxRetries         Int @default(3)
@@ -243,12 +280,17 @@ model TaskExecution {
 
   attemptNumber Int @default(1)
 
-  nodeId      String?
-  node        EdgeNode? @relation(fields: [nodeId], references: [id])
-  scheduledAt DateTime  @default(now())
-  startedAt   DateTime?
-  completedAt DateTime?
-  durationMs  Int?
+  nodeId         String?
+  node           EdgeNode? @relation(fields: [nodeId], references: [id])
+  nodeUrl        String?
+  runtime        String    @default("DOCKER")
+  wasmArtifactId String?
+  affinity       String?
+  traceId        String?
+  scheduledAt    DateTime  @default(now())
+  startedAt      DateTime?
+  completedAt    DateTime?
+  durationMs     Int?
 
   status      String  @default("PENDING")
   exitCode    Int?
@@ -296,6 +338,8 @@ model CertificateAuthority {
 model NodeMetric {
   id        String   @id @default(uuid())
   nodeId    String
+  tenantId  String
+  createdAt DateTime @default(now())
   timestamp DateTime @default(now())
 
   cpuUsage     Float
@@ -306,8 +350,10 @@ model NodeMetric {
   networkIn    Float
   networkOut   Float
 
-  node EdgeNode @relation(fields: [nodeId], references: [id])
+  node   EdgeNode @relation(fields: [nodeId], references: [id], onDelete: Cascade)
+  tenant Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 
+  @@index([tenantId, createdAt])
   @@map("node_metrics")
 }
 
@@ -437,4 +483,65 @@ model CarbonMetric {
   @@index([recordedAt])
   @@index([tenantId])
   @@map("carbon_metrics")
+}
+
+model CarbonRecord {
+  id                String   @id @default(uuid())
+  taskId            String   @unique
+  tenantId          String
+  nodeId            String
+  region            String
+  carbonIntensity   Float
+  durationMs        Int
+  estimatedGco2eq   Float
+  estimatedWatts    Float    @default(10.0)
+  wasDeferred       Boolean  @default(false)
+  baselineGco2eq    Float?
+  carbonSavedGco2eq Float?
+  recordedAt        DateTime @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId, recordedAt])
+  @@index([taskId])
+  @@map("carbon_records")
+}
+
+model NodeHealthScore {
+  id                String   @id @default(uuid())
+  nodeId            String   @unique
+  tenantId          String
+  successRate       Float    @default(1.0)
+  avgLatencyMs      Float    @default(0.0)
+  latencyDeviation  Float    @default(0.0)
+  anomalyScore      Float    @default(0.0)
+  isAnomaly         Boolean  @default(false)
+  penaltyMultiplier Float    @default(1.0)
+  updatedAt         DateTime @updatedAt
+
+  @@index([tenantId])
+  @@map("node_health_scores")
+}
+
+model SchedulingOutcome {
+  id                          String    @id @default(cuid())
+  taskId                      String    @unique
+  nodeId                      String
+  tenantId                    String
+  assignedAt                  DateTime
+  completedAt                 DateTime?
+  status                      String
+  actualLatencyMs             Int?
+  predictedLatencyMs          Int
+  carbonIntensityAtAssignment Float
+  nodeLoadAtAssignment        Float
+  rewardScore                 Float?
+  createdAt                   DateTime  @default(now())
+
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([taskId])
+  @@index([nodeId])
+  @@index([tenantId])
+  @@map("scheduling_outcomes")
 }

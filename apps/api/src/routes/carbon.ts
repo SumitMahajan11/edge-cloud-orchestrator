@@ -1,13 +1,17 @@
 import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
-import { carbonSavingsQuerySchema, carbonPolicyUpdateSchema } from '../schemas';
+import {
+  carbonSavingsQuerySchema,
+  carbonPolicyUpdateSchema,
+  carbonReportQuerySchema,
+} from '../schemas/index.js';
 
 /**
  * Carbon & Eco-Scheduling Routes (v2)
  */
 export default async function carbonRoutes(fastify: FastifyInstance) {
-  const { taskScheduler } = fastify as any;
+  const { taskScheduler } = fastify;
 
   // GET /api/v2/carbon/intensity
   fastify.get(
@@ -160,7 +164,7 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
-      const { days } = (request.query as any) || { days: 7 };
+      const { days } = (request.query as { days?: number }) || { days: 7 };
       if (!taskScheduler) {
         return {
           totalSavedGco2Today: 0,
@@ -228,11 +232,169 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
-      const { carbonWeight } = request.body as any;
+      const { carbonWeight } = request.body as { carbonWeight: number };
       if (!taskScheduler) {
         return { success: false, carbonWeight: 0 };
       }
       return taskScheduler.updateCarbonPolicy(carbonWeight);
+    },
+  );
+
+  // GET /api/v2/carbon/report
+  fastify.get(
+    '/report',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.CARBON_READ),
+      ],
+      schema: {
+        tags: ['carbon'],
+        summary: 'Get auditable tenant carbon report',
+        querystring: zodToFastifySchema(carbonReportQuerySchema),
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const { from, to, format } = (request.query as { from?: string; to?: string; format?: string }) || {};
+
+      const startDate = from ? new Date(from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const endDate = to ? new Date(to) : new Date();
+
+      // Query database
+      const records = await request.tPrisma.carbonRecord.findMany({
+        where: {
+          recordedAt: {
+            gte: startDate,
+            lte: endDate,
+          },
+        },
+        orderBy: {
+          recordedAt: 'asc',
+        },
+      });
+
+      // Get task types by querying Task model
+      const taskIds = records.map((r: any) => r.taskId);
+      const tasks = await request.tPrisma.task.findMany({
+        where: { id: { in: taskIds } },
+        select: { id: true, type: true },
+      });
+      const taskTypeMap = new Map(tasks.map((t: any) => [t.id, t.type]));
+
+      const recordWithTaskType = records.map((r: any) => ({
+        ...r,
+        taskType: taskTypeMap.get(r.taskId) || 'unknown',
+      }));
+
+      // Summarize
+      let totalGco2eq = 0;
+      let totalBaselineGco2eq = 0;
+      let totalSavedGco2eq = 0;
+      let totalDurationMs = 0;
+      let deferredTasks = 0;
+
+      for (const r of recordWithTaskType) {
+        totalGco2eq += r.estimatedGco2eq;
+        totalBaselineGco2eq += r.baselineGco2eq !== null ? r.baselineGco2eq : r.estimatedGco2eq;
+        totalSavedGco2eq += r.carbonSavedGco2eq || 0;
+        totalDurationMs += r.durationMs;
+        if (r.wasDeferred) {
+          deferredTasks += 1;
+        }
+      }
+
+      // Per-workload breakdown
+      const workloadBreakdown: Record<
+        string,
+        {
+          totalGco2eq: number;
+          totalSavedGco2eq: number;
+          totalDurationMs: number;
+          taskCount: number;
+        }
+      > = {};
+
+      for (const r of recordWithTaskType) {
+        const type = r.taskType;
+        if (!workloadBreakdown[type]) {
+          workloadBreakdown[type] = {
+            totalGco2eq: 0,
+            totalSavedGco2eq: 0,
+            totalDurationMs: 0,
+            taskCount: 0,
+          };
+        }
+        workloadBreakdown[type].totalGco2eq += r.estimatedGco2eq;
+        workloadBreakdown[type].totalSavedGco2eq += r.carbonSavedGco2eq || 0;
+        workloadBreakdown[type].totalDurationMs += r.durationMs;
+        workloadBreakdown[type].taskCount += 1;
+      }
+
+      // Check format
+      const isCsv = format === 'csv' || request.headers.accept === 'text/csv';
+
+      if (isCsv) {
+        const csvHeaders = [
+          'Task ID',
+          'Task Type',
+          'Region',
+          'Node ID',
+          'Carbon Intensity (gCO2eq/kWh)',
+          'Duration (ms)',
+          'Estimated gCO2eq',
+          'Estimated Watts',
+          'Was Deferred',
+          'Baseline gCO2eq',
+          'Carbon Saved gCO2eq',
+          'Recorded At',
+        ].join(',');
+
+        const csvRows = recordWithTaskType.map((r: any) => {
+          return [
+            r.taskId,
+            r.taskType,
+            r.region,
+            r.nodeId,
+            r.carbonIntensity,
+            r.durationMs,
+            r.estimatedGco2eq.toFixed(4),
+            r.estimatedWatts,
+            r.wasDeferred ? 'TRUE' : 'FALSE',
+            r.baselineGco2eq !== null ? r.baselineGco2eq.toFixed(4) : '',
+            r.carbonSavedGco2eq !== null ? r.carbonSavedGco2eq.toFixed(4) : '',
+            r.recordedAt.toISOString(),
+          ]
+            .map((val) => `"${String(val).replace(/"/g, '""')}"`)
+            .join(',');
+        });
+
+        const csvContent = [csvHeaders, ...csvRows].join('\n');
+
+        reply
+          .header('Content-Type', 'text/csv')
+          .header(
+            'Content-Disposition',
+            `attachment; filename="carbon-report-${
+              startDate.toISOString().split('T')[0]
+            }-to-${endDate.toISOString().split('T')[0]}.csv"`,
+          )
+          .send(csvContent);
+        return;
+      }
+
+      // Return JSON
+      return {
+        summary: {
+          totalGco2eq,
+          totalBaselineGco2eq,
+          totalSavedGco2eq,
+          totalDurationMs,
+          totalTasks: recordWithTaskType.length,
+          deferredTasks,
+        },
+        workloads: recordWithTaskType,
+        breakdown: workloadBreakdown,
+      };
     },
   );
 }

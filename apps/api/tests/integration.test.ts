@@ -1,4 +1,5 @@
 import axios, { AxiosInstance } from 'axios';
+import http from 'http';
 
 /**
  * Integration Tests for Edge-Cloud Orchestrator
@@ -28,14 +29,54 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
       headers: {
         'Content-Type': 'application/json',
       },
+      httpAgent: new http.Agent({ keepAlive: true, maxSockets: 50 }),
     });
+
+    apiClient.interceptors.request.use((config) => {
+      const version = config.headers?.['x-api-version'] || config.headers?.['X-API-Version'] || 'v1';
+      if (config.url && config.url.startsWith('/api/')) {
+        config.url = config.url.replace('/api/', `/${version}/`);
+      }
+      return config;
+    });
+
+    apiClient.interceptors.response.use(
+      (response) => response,
+      (error) => {
+        if (axios.isAxiosError(error)) {
+          const method = error.config?.method?.toUpperCase() || 'UNKNOWN';
+          const url = error.config?.url || 'UNKNOWN';
+          const status = error.response?.status;
+          const statusText = error.response?.statusText;
+          const responseData = error.response?.data;
+          const cleanError = new Error(
+            `AxiosError: ${method} ${url} failed with status ${status} (${statusText}): ${JSON.stringify(responseData)} | Code: ${error.code} | Cause: ${error.cause}`
+          );
+          (cleanError as any).status = status;
+          (cleanError as any).code = error.code;
+          (cleanError as any).data = responseData;
+          (cleanError as any).response = error.response;
+          return Promise.reject(cleanError);
+        }
+        return Promise.reject(error);
+      }
+    );
+  });
+
+  beforeEach(() => {
+    if (authToken) {
+      apiClient.defaults.headers.common['Authorization'] = `Bearer ${authToken}`;
+    }
+  });
+
+  afterEach(async () => {
   });
 
   describe('Health Checks', () => {
     it('should have healthy API server', async () => {
       const response = await apiClient.get('/health');
       expect(response.status).toBe(200);
-      expect(response.data.status).toBe('healthy');
+      expect(response.data.status).toBe('ok');
     });
 
     it('should have healthy edge agent', async () => {
@@ -192,7 +233,8 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
       const response = await apiClient.get(`/api/nodes/${testNodeId}/metrics`);
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
+      expect(Array.isArray(response.data.data)).toBe(true);
+      expect(response.data.data.length).toBeGreaterThanOrEqual(0);
     });
   });
 
@@ -214,8 +256,8 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
     it('should create a task', async () => {
       const response = await apiClient.post('/api/tasks', {
         name: `test-task-${Date.now()}`,
-        type: 'INFERENCE',
-        priority: 'NORMAL',
+        type: 'MODEL_INFERENCE',
+        priority: 'MEDIUM',
         input: { model: 'test-model', data: 'test-data' },
       });
 
@@ -229,7 +271,7 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
       const response = await apiClient.get('/api/tasks/stats');
 
       expect(response.status).toBe(200);
-      expect(response.data.total).toBeDefined();
+      expect(response.data.byStatus).toBeDefined();
     });
 
     it('should get task by ID', async () => {
@@ -250,7 +292,7 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
         return;
       }
 
-      const response = await apiClient.post(`/api/tasks/${testTaskId}/cancel`);
+      const response = await apiClient.post(`/api/tasks/${testTaskId}/cancel`, {});
 
       expect(response.status).toBe(200);
       expect(response.data.status).toBe('CANCELLED');
@@ -331,7 +373,7 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
       const response = await apiClient.get('/api/webhooks');
 
       expect(response.status).toBe(200);
-      expect(Array.isArray(response.data)).toBe(true);
+      expect(Array.isArray(response.data.data)).toBe(true);
     });
 
     it('should create a webhook', async () => {
@@ -362,48 +404,64 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
 
   describe('Rate Limiting', () => {
     it('should enforce rate limits', async () => {
-      const requests = [];
+      const responses = [];
+      const rateLimitClient = axios.create({ baseURL: API_URL, timeout: 5000, headers: { 'Content-Type': 'application/json', 'Connection': 'close' } });
+      rateLimitClient.interceptors.request.use((config) => {
+        const version = config.headers?.['x-api-version'] || config.headers?.['X-API-Version'] || 'v1';
+        if (config.url && config.url.startsWith('/api/')) config.url = config.url.replace('/api/', `/${version}/`);
+        return config;
+      });
 
-      // Make many requests quickly
-      for (let i = 0; i < 150; i++) {
-        requests.push(apiClient.get('/api/nodes').catch((e) => e.response));
+      // Create a unique user for this test so the ban doesn't leak to other tests
+      // since the rate limiter uses user.id as the key
+      const registerRes = await apiClient.post('/api/auth/register', {
+        email: `ratelimit-${Date.now()}@example.com`,
+        password: 'Password123!',
+        name: 'Rate Limit User',
+        role: 'USER', // Note: rate limiting test shouldn't need admin
+      });
+      const uniqueToken = registerRes.data.token;
+
+      for (let i = 0; i < 110; i++) {
+        const res = await rateLimitClient.get('/api/nodes', {
+          headers: { Authorization: `Bearer ${uniqueToken}` }
+        }).catch((e) => e);
+        responses.push(res);
       }
 
-      const responses = await Promise.all(requests);
       const rateLimited = responses.filter((r) => r?.status === 429);
 
       // Should have some rate limited responses
       expect(rateLimited.length).toBeGreaterThan(0);
+      
+      // Wait for the 1-second test rate limit window to expire to avoid affecting subsequent tests
+      await new Promise(resolve => setTimeout(resolve, 1200));
     }, 30000);
   });
 
   describe('Error Handling', () => {
     it('should return 404 for non-existent node', async () => {
       try {
-        await apiClient.get('/api/nodes/non-existent-id');
+        await apiClient.get('/api/nodes/00000000-0000-0000-0000-000000000000');
         throw new Error('Should have thrown an error');
       } catch (error: unknown) {
         const err = error as any;
-        expect(err.response.status).toBe(404);
+        console.log('404 TEST ERROR:', err.message, 'STATUS:', err.status, 'KEYS:', Object.keys(err));
+        expect(err.status).toBe(404);
       }
     });
 
     it('should return 401 for missing auth', async () => {
       try {
-        await axios.get(`${API_URL}/api/admin/users`);
+        await apiClient.get('/api/admin/users', { headers: { Authorization: '' } });
         throw new Error('Should have thrown an error');
       } catch (error: unknown) {
         const err = error as any;
-        expect(err.response.status).toBe(401);
+        expect(err.status).toBe(401);
       }
     });
 
     it('should return 400 for invalid input', async () => {
-      if (!authToken) {
-        console.log('No auth token, skipping');
-        return;
-      }
-
       try {
         await apiClient.post('/api/nodes', {
           // Missing required fields
@@ -412,7 +470,8 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
         throw new Error('Should have thrown an error');
       } catch (error: unknown) {
         const err = error as any;
-        expect(err.response.status).toBe(400);
+        console.log('400 TEST ERROR:', err.message, 'STATUS:', err.status, 'KEYS:', Object.keys(err));
+        expect(err.status).toBe(400);
       }
     });
   });

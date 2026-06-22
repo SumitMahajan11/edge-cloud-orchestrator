@@ -126,9 +126,9 @@ describe("Carbon-Aware Scheduling", () => {
       region: "EU-DE", // Fallback table has 350 for this
     } as any;
 
-    const task: Task = { id: "task-1", policy: "DEFAULT" } as any;
+    const task: Task = { id: "task-1", policy: "CARBON_OPTIMIZED" } as any;
 
-    await mlScheduler.schedule(task, [node], {} as any);
+    await mlScheduler.schedule(task, [node], { carbon: 0.1 } as any);
 
     expect(node.carbonIntensity).toBe(350);
   });

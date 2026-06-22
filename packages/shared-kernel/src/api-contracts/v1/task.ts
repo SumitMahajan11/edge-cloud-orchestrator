@@ -32,7 +32,7 @@ export const CreateTaskV1Schema = z
     ]),
     priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).default("MEDIUM"),
     target: z.enum(["EDGE", "CLOUD", "HYBRID"]).default("EDGE"),
-    nodeId: z.string().uuid().optional(),
+    nodeId: z.string().optional(),
     specs: z
       .object({
         cpuCores: z.number().int().min(1).max(128).optional(),
@@ -49,16 +49,20 @@ export const CreateTaskV1Schema = z
     metadata: z.record(z.unknown()).optional(),
     maxRetries: z.number().int().min(0).max(10).default(3),
     runtime: z.enum(["NATIVE", "DOCKER", "WASM"]).default("DOCKER"),
-    image: z.string().min(1),
+    image: z.string().optional(),
+    wasmArtifactId: z.string().optional(),
     affinity: z.string().optional(),
     traceId: z.string().optional(),
+    isDeferrable: z.boolean().optional(),
+    maxDelayMinutes: z.number().int().min(0).optional(),
+    policy: z.string().optional(),
   })
   .superRefine((data, ctx) => {
     if (data.runtime === "WASM") {
-      if (!data.image.startsWith("http")) {
+      if (!data.wasmArtifactId && (!data.image || !data.image.startsWith("http"))) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "WASM runtime requires a valid URL for the image",
+          message: "WASM runtime requires either a valid URL for the image or a wasmArtifactId",
           path: ["image"],
         });
       }
@@ -68,7 +72,7 @@ export const CreateTaskV1Schema = z
 export const UpdateTaskV1Schema = z.object({
   name: z.string().min(1).max(200).optional(),
   priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).optional(),
-  nodeId: z.string().uuid().optional().nullable(),
+  nodeId: z.string().optional().nullable(),
   metadata: z.record(z.unknown()).optional(),
 });
 
@@ -85,7 +89,7 @@ export const TaskV1ResponseSchema = z.object({
     "CANCELLED",
   ]),
   priority: z.string(),
-  nodeId: z.string().uuid().optional().nullable(),
+  nodeId: z.string().optional().nullable(),
   specs: z
     .object({
       cpuCores: z.number(),
@@ -99,7 +103,8 @@ export const TaskV1ResponseSchema = z.object({
   error: z.string().optional().nullable(),
   metadata: z.record(z.unknown()).optional(),
   runtime: z.enum(["NATIVE", "DOCKER", "WASM"]),
-  image: z.string(),
+  image: z.string().optional().nullable(),
+  wasmArtifactId: z.string().optional().nullable(),
   affinity: z.string().optional().nullable(),
   traceId: z.string().optional().nullable(),
 });
@@ -116,10 +121,10 @@ export const TaskQueryV1Schema = z.object({
     ])
     .optional(),
   type: z.string().optional(),
-  nodeId: z.string().uuid().optional(),
+  nodeId: z.string().optional(),
   priority: z.enum(["CRITICAL", "HIGH", "MEDIUM", "LOW"]).optional(),
   page: z.coerce.number().int().min(1).default(1),
-  limit: z.coerce.number().int().min(1).max(100).default(20),
+  limit: z.coerce.number().int().min(1).max(10000).default(20),
   sortBy: z
     .enum([
       "submittedAt",

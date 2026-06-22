@@ -75,6 +75,18 @@ vi.mock('@edgecloud/observability', () => ({
   })),
 }));
 
+// Mock withSpan from tracing
+vi.mock('../../lib/tracing.js', () => ({
+  withSpan: vi.fn().mockImplementation(async (_name, fn) => {
+    return fn({
+      end: vi.fn(),
+      setStatus: vi.fn(),
+      recordException: vi.fn(),
+      setAttribute: vi.fn(),
+    });
+  }),
+}));
+
 // Mock config
 vi.mock('../../config/env', () => ({
   env: {
@@ -113,11 +125,17 @@ describe('TaskScheduler Race Condition (RACE-01)', () => {
         create: vi.fn().mockResolvedValue({ id: 'exec-1' }),
         update: vi.fn(),
       },
+      nodeHealthScore: {
+        findMany: vi.fn().mockResolvedValue([]),
+      },
       schedulingDecision: {
         upsert: vi.fn().mockResolvedValue({}),
       },
       auditLog: {
         create: vi.fn(),
+      },
+      schedulingPolicy: {
+        findFirst: vi.fn().mockResolvedValue(null),
       },
       $transaction: vi.fn().mockResolvedValue([]),
     };

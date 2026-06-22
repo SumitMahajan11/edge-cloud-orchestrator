@@ -135,6 +135,7 @@ describe("ML Feedback Loop & Contextual Bandit", () => {
   });
 
   it("should occasionally explore (epsilon-greedy)", async () => {
+    process.env.ENABLE_BANDIT_EXPLORE = "true";
     // Mock random to always return < 0.1 for exploration
     const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0.05);
 
@@ -149,5 +150,6 @@ describe("ML Feedback Loop & Contextual Bandit", () => {
 
     expect(result?.explanation.bandit).toBe("explore");
     randomSpy.mockRestore();
+    delete process.env.ENABLE_BANDIT_EXPLORE;
   });
 });

@@ -27,6 +27,29 @@ vi.mock("@opentelemetry/api", async (importOriginal) => {
   };
 });
 
+// Mock @opentelemetry/resources to avoid ES module resolution issues on Windows
+vi.mock("@opentelemetry/resources", () => ({
+  Resource: vi.fn().mockImplementation(() => ({})),
+}));
+
+// Mock @opentelemetry/sdk-node to prevent importing the actual package
+vi.mock("@opentelemetry/sdk-node", () => ({
+  NodeSDK: vi.fn().mockImplementation(() => ({
+    start: vi.fn(),
+    shutdown: vi.fn().mockResolvedValue(undefined),
+  })),
+}));
+
+// Mock @opentelemetry/auto-instrumentations-node
+vi.mock("@opentelemetry/auto-instrumentations-node", () => ({
+  getNodeAutoInstrumentations: vi.fn().mockReturnValue([]),
+}));
+
+// Mock @opentelemetry/exporter-jaeger
+vi.mock("@opentelemetry/exporter-jaeger", () => ({
+  JaegerExporter: vi.fn().mockImplementation(() => ({})),
+}));
+
 // Mock fastify-plugin which often fails in Vite/CJS environments
 vi.mock("fastify-plugin", () => ({
   default: (fn: any) => fn,
@@ -43,9 +66,11 @@ vi.mock("@edgecloud/observability", () => ({
   MetricsCollector: vi.fn().mockImplementation(() => ({
     recordMLFallback: vi.fn(),
     recordSchedulingDecision: vi.fn(),
+    updateMLDrift: vi.fn(),
     incrementCounter: vi.fn(),
     recordGauge: vi.fn(),
     recordMetric: vi.fn(),
+    recordCarbonMetrics: vi.fn(),
   })),
   createTracer: vi.fn().mockReturnValue({
     startActiveSpan: vi.fn((name, fn) => fn({ end: vi.fn() })),

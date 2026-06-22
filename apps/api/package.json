@@ -27,6 +27,7 @@
     "@edgecloud/ml-scheduler": "workspace:*",
     "@edgecloud/observability": "workspace:*",
     "@edgecloud/saga": "workspace:*",
+    "@edgecloud/scheduling-utils": "workspace:*",
     "@edgecloud/shared-kernel": "workspace:*",
     "@fastify/cookie": "^9.2.0",
     "@fastify/cors": "^9.0.1",

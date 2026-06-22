@@ -150,7 +150,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
             timeout,
             retryPolicy,
           } as any,
-          tenantId: (request as any).tenantId!,
+          tenantId: request.user!.tenantId!,
         } as any,
       });
 
@@ -194,7 +194,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
         });
       }
 
-      const executionId = await (fastify as any).workflowEngine.executeWorkflow(
+      const executionId = await fastify.workflowEngine.executeWorkflow(
         id,
         request.user!.tenantId!,
       );

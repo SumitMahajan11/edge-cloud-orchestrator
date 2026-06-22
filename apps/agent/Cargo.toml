@@ -15,7 +15,7 @@ thiserror = "1.0"
 sysinfo = "0.30"
 metrics = "0.21"
 lru = "0.12"
-reqwest = { version = "0.11", features = ["json", "stream", "rustls-tls"] }
+reqwest = { version = "0.11", features = ["json", "stream", "rustls-tls", "multipart"] }
 rcgen = "0.12"
 keyring = "2.3"
 aes-gcm = "0.10"
@@ -33,6 +33,7 @@ opentelemetry_sdk = { version = "0.21", features = ["rt-tokio"] }
 opentelemetry-otlp = "0.14"
 chrono = { version = "0.4", features = ["serde"] }
 sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "sqlite", "chrono", "json"] }
+tract-onnx = "0.21"
 
 [dev-dependencies]
 criterion = { version = "0.5", features = ["async_tokio"] }

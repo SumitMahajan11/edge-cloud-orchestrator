@@ -28,7 +28,34 @@ export class HeartbeatMonitor {
     this.logger = logger;
   }
 
-  start(): void {
+  async start(): Promise<void> {
+    try {
+      const ruleExists = await this.prisma.alertRule.findUnique({
+        where: { id: 'heartbeat-timeout' },
+      });
+      if (!ruleExists) {
+        const defaultTenant = await this.prisma.tenant.findFirst();
+        if (defaultTenant) {
+          await this.prisma.alertRule.create({
+            data: {
+              id: 'heartbeat-timeout',
+              name: 'Heartbeat Timeout',
+              metric: 'heartbeat',
+              operator: 'gt',
+              threshold: 30,
+              duration: 30,
+              enabled: true,
+              tenantId: defaultTenant.id,
+            },
+          });
+          this.logger.info('Created heartbeat-timeout alert rule');
+        } else {
+          this.logger.warn('No tenant found to associate heartbeat-timeout alert rule');
+        }
+      }
+    } catch (err) {
+      this.logger.error({ err }, 'Failed to ensure heartbeat-timeout alert rule exists');
+    }
     this.interval = setInterval(() => this.checkNodes(), CHECK_INTERVAL);
   }
 

@@ -97,7 +97,7 @@ const resilienceRoutes: FastifyPluginAsync = async (fastify) => {
       breaker.forceClose();
 
       fastify.log.warn(
-        { adminId: (request as any).user?.id, breaker: name },
+        { adminId: request.user?.id, breaker: name },
         'Admin force-closed circuit breaker',
       );
 

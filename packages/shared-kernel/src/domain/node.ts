@@ -28,6 +28,7 @@ export interface EdgeNode {
   carbonIntensity: number; // grams of CO2 per kWh
   capabilities?: string[];
   labels?: Record<string, string>;
+  penaltyMultiplier?: number;
   createdAt: Date;
   updatedAt: Date;
 }

@@ -8,7 +8,7 @@ import { queryClient } from "@/lib/query-client";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { TenantProvider } from "@/contexts/TenantContext";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { initWsStore } from "@/stores/websocket";
+import { initWsStore, useWsStore } from "@/stores/websocket";
 import { initTracing } from "@/telemetry/tracing";
 import { usePersistentState } from "@/hooks/usePersistentState";
 import { Toaster } from "@/components/ui/sonner";
@@ -50,6 +50,17 @@ function AppShell({ children }: { children: React.ReactNode }) {
     initWsStore();
     initTracing();
   }, []);
+
+  // Connect/disconnect WebSocket based on user authentication state
+  useEffect(() => {
+    if (!authLoading) {
+      if (user) {
+        void useWsStore.getState().connect();
+      } else {
+        useWsStore.getState().disconnect();
+      }
+    }
+  }, [user, authLoading]);
 
   // Global keyboard shortcuts
   useEffect(() => {

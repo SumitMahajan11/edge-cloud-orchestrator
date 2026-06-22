@@ -43,6 +43,8 @@ export interface MockTask {
   payload: Record<string, unknown>;
   nodeId?: string | undefined;
   priority?: string | undefined;
+  isDeferrable?: boolean;
+  maxDelayMinutes?: number;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -144,6 +146,117 @@ function generateUuid(): string {
   });
 }
 
+function applyWhereForMock(items: any[], where: any) {
+  if (!where) return items;
+  return items.filter((item: any) => {
+    for (const [k, v] of Object.entries(where)) {
+      const val = v as any;
+      if (val !== undefined) {
+        if (val && typeof val === 'object' && val.in) {
+          if (!val.in.includes(item[k])) return false;
+        } else if (
+          val &&
+          typeof val === 'object' &&
+          (val.lt || val.gte || val.gt || val.lte)
+        ) {
+          if (val.lt !== undefined && item[k] >= val.lt) return false;
+          if (val.gte !== undefined && item[k] < val.gte) return false;
+          if (val.gt !== undefined && item[k] <= val.gt) return false;
+          if (val.lte !== undefined && item[k] > val.lte) return false;
+        } else if (item[k] !== val) {
+          return false;
+        }
+      }
+    }
+    return true;
+  });
+}
+
+function createMockGroupBy(storeName: string) {
+  return async (args: any = {}) => {
+    const g = globalThis as any;
+    const key = `__mock_${storeName}`;
+    if (!g[key]) g[key] = new Map<string, any>();
+    const store = g[key];
+
+    const filtered = applyWhereForMock(Array.from(store.values()), args?.where);
+    const byFields: string[] = args.by || [];
+
+    const groups = new Map<string, any[]>();
+    for (const item of filtered) {
+      const groupKey = byFields.map(f => String(item[f])).join('|');
+      if (!groups.has(groupKey)) {
+        groups.set(groupKey, []);
+      }
+      groups.get(groupKey)!.push(item);
+    }
+
+    const results = [];
+    for (const [groupKey, groupItems] of groups.entries()) {
+      const firstItem = groupItems[0];
+      const resObj: any = {};
+      for (const f of byFields) {
+        resObj[f] = firstItem[f];
+      }
+
+      if (args._sum) {
+        resObj._sum = {};
+        for (const key of Object.keys(args._sum)) {
+          let sum = 0;
+          for (const item of groupItems) {
+            sum += Number(item[key]) || 0;
+          }
+          resObj._sum[key] = sum;
+        }
+      }
+
+      if (args._count !== undefined) {
+        resObj._count = args._count === true ? groupItems.length : { id: groupItems.length };
+      }
+
+      results.push(resObj);
+    }
+
+    return results;
+  };
+}
+
+function createMockAggregate(storeName: string) {
+  return async (args: any = {}) => {
+    const g = globalThis as any;
+    const key = `__mock_${storeName}`;
+    if (!g[key]) g[key] = new Map<string, any>();
+    const store = g[key];
+
+    const filtered = applyWhereForMock(Array.from(store.values()), args?.where);
+    const result: any = {};
+    if (args._sum) {
+      result._sum = {};
+      for (const key of Object.keys(args._sum)) {
+        let sum = 0;
+        for (const item of filtered) {
+          sum += Number(item[key]) || 0;
+        }
+        result._sum[key] = sum;
+      }
+    }
+    if (args._avg) {
+      result._avg = {};
+      for (const key of Object.keys(args._avg)) {
+        let sum = 0;
+        for (const item of filtered) {
+          sum += Number(item[key]) || 0;
+        }
+        result._avg[key] = filtered.length ? sum / filtered.length : 0;
+      }
+    }
+    if (args._count !== undefined) {
+      result._count = filtered.length;
+    }
+    return result;
+  };
+}
+
 function createMockModelStore<T extends { id: string }>(storeName: string) {
   const g = globalThis as any;
   const key = `__mock_${storeName}`;
@@ -152,6 +265,8 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
 
   return {
     store,
+    groupBy: createMockGroupBy(storeName),
+    aggregate: createMockAggregate(storeName),
     findUnique: async (args: any) => {
       const where = args?.where;
       if (!where) return null;
@@ -204,6 +319,16 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
               }
             }
           }
+          return true;
+        });
+      }
+      if (args?.distinct) {
+        const distinctFields = Array.isArray(args.distinct) ? args.distinct : [args.distinct];
+        const seen = new Set<string>();
+        all = all.filter((item: any) => {
+          const key = distinctFields.map((f: string) => String(item[f])).join('|');
+          if (seen.has(key)) return false;
+          seen.add(key);
           return true;
         });
       }
@@ -497,6 +622,53 @@ mockUsers.set('user-user1-seed', {
   tenantUsers: [{ tenantId: 'tenant-demo-org', userId: 'user-user1-seed', role: 'VIEWER' }],
 } as any);
 
+// Integration tests seed users
+mockUsers.set('user-integration-admin', {
+  id: 'user-integration-admin',
+  email: 'admin@example.com',
+  passwordHash: bcrypt.hashSync('admin123', 10),
+  name: 'System Administrator',
+  role: 'ADMIN',
+  isActive: true,
+  emailVerified: true,
+  tenantId: 'tenant-demo-org',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastLoginAt: null,
+  tenantUsers: [{ tenantId: 'tenant-demo-org', userId: 'user-integration-admin', role: 'ADMIN' }],
+} as any);
+
+mockUsers.set('user-integration-operator', {
+  id: 'user-integration-operator',
+  email: 'operator@example.com',
+  passwordHash: bcrypt.hashSync('operator123', 10),
+  name: 'System Operator',
+  role: 'OPERATOR',
+  isActive: true,
+  emailVerified: true,
+  tenantId: 'tenant-demo-org',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastLoginAt: null,
+  tenantUsers: [{ tenantId: 'tenant-demo-org', userId: 'user-integration-operator', role: 'OPERATOR' }],
+} as any);
+
+mockUsers.set('user-integration-viewer', {
+  id: 'user-integration-viewer',
+  email: 'viewer@example.com',
+  passwordHash: bcrypt.hashSync('viewer123', 10),
+  name: 'System Viewer',
+  role: 'VIEWER',
+  isActive: true,
+  emailVerified: true,
+  tenantId: 'tenant-demo-org',
+  createdAt: new Date(),
+  updatedAt: new Date(),
+  lastLoginAt: null,
+  tenantUsers: [{ tenantId: 'tenant-demo-org', userId: 'user-integration-viewer', role: 'VIEWER' }],
+} as any);
+
+
 export const mockPrisma = {
   isMock: true,
   user: {
@@ -597,6 +769,22 @@ export const mockPrisma = {
       const count = mockUsers.size;
       mockUsers.clear();
       return { count };
+    },
+    findMany: async (args: any = {}): Promise<MockUser[]> => {
+      let users = Array.from(mockUsers.values());
+      const tenantId = args?.where?.tenantUsers?.some?.tenantId;
+      if (tenantId) {
+        users = users.filter((u) => u.tenantId === tenantId || (u.tenantUsers && u.tenantUsers.some((tu: any) => tu.tenantId === tenantId)));
+      }
+      return users;
+    },
+    count: async (args: any = {}): Promise<number> => {
+      let users = Array.from(mockUsers.values());
+      const tenantId = args?.where?.tenantUsers?.some?.tenantId;
+      if (tenantId) {
+        users = users.filter((u) => u.tenantId === tenantId || (u.tenantUsers && u.tenantUsers.some((tu: any) => tu.tenantId === tenantId)));
+      }
+      return users.length;
     },
   },
   session: {
@@ -729,15 +917,69 @@ export const mockPrisma = {
     },
   },
   task: {
-    findMany: async ({ where }: { where?: any }): Promise<MockTask[]> => {
+    findMany: async (args: any = {}): Promise<MockTask[]> => {
+      const where = args?.where;
+      const orderBy = args?.orderBy;
+      const skip = args?.skip;
+      const take = args?.take;
       let tasks = Array.from(mockTasks.values());
-      if (where?.status) tasks = tasks.filter((t) => t.status === where.status);
-      if (where?.userId) tasks = tasks.filter((t) => t.userId === where.userId);
-      if (where?.nodeId)
-        tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
-      if (where?.type) tasks = tasks.filter((t) => t.type === where.type);
-      if (where?.priority)
-        tasks = tasks.filter((t) => t.priority === where.priority);
+      // Minimal-subset filters: status, nodeId, type, priority (including `in` arrays)
+      if (where) {
+        if (where.status) {
+          if (typeof where.status === 'string') {
+            tasks = tasks.filter((t) => t.status === where.status);
+          } else if (where.status.in) {
+            tasks = tasks.filter((t) => where.status.in.includes(t.status));
+          }
+        }
+        if (where.userId) tasks = tasks.filter((t) => t.userId === where.userId);
+        if (where.nodeId) tasks = tasks.filter((t) => (t as any).nodeId === where.nodeId);
+        if (where.type) {
+          if (typeof where.type === 'string') {
+            tasks = tasks.filter((t) => t.type === where.type);
+          } else if (where.type.in) {
+            tasks = tasks.filter((t) => where.type.in.includes(t.type));
+          }
+        }
+        if (where.priority) {
+          if (typeof where.priority === 'string') {
+            tasks = tasks.filter((t) => t.priority === where.priority);
+          } else if (where.priority.in) {
+            tasks = tasks.filter((t) => where.priority.in.includes(t.priority));
+          }
+        }
+        if (where.tenantId) tasks = tasks.filter((t) => (t as any).tenantId === where.tenantId);
+        if (where.id) {
+          if (typeof where.id === 'string') {
+            tasks = tasks.filter((t) => t.id === where.id);
+          } else if (where.id.in) {
+            tasks = tasks.filter((t) => where.id.in.includes(t.id));
+          }
+        }
+        if (where.name) {
+          if (typeof where.name === 'string') {
+            tasks = tasks.filter((t) => (t as any).name === where.name);
+          } else if (where.name.startsWith) {
+            tasks = tasks.filter((t) => (t as any).name?.startsWith(where.name.startsWith));
+          }
+        }
+      }
+      // Single-field orderBy
+      if (orderBy) {
+        const field = typeof orderBy === 'object' ? Object.keys(orderBy)[0] : null;
+        const dir = field ? (orderBy as any)[field] : null;
+        if (field) {
+          tasks.sort((a: any, b: any) => {
+            const av = a[field], bv = b[field];
+            if (av < bv) return dir === 'desc' ? 1 : -1;
+            if (av > bv) return dir === 'desc' ? -1 : 1;
+            return 0;
+          });
+        }
+      }
+      // Pagination
+      if (typeof skip === 'number') tasks = tasks.slice(skip);
+      if (typeof take === 'number') tasks = tasks.slice(0, take);
       return tasks;
     },
     findFirst: async (args: any): Promise<MockTask | null> => {
@@ -767,6 +1009,18 @@ export const mockPrisma = {
         updatedAt: new Date(),
         ...(data as any),
       };
+      // Handle nested execution creation
+      if ((data as any).executions?.create) {
+        const exec = (data as any).executions.create;
+        const execId = generateUuid();
+        mockExecutions.set(execId, { ...exec, id: execId, taskId: task.id });
+      }
+      if ((data as any).executions?.createMany?.data) {
+        for (const exec of (data as any).executions.createMany.data) {
+          const execId = generateUuid();
+          mockExecutions.set(execId, { ...exec, id: execId, taskId: task.id });
+        }
+      }
       mockTasks.set(task.id, task);
       return task;
     },
@@ -776,7 +1030,13 @@ export const mockPrisma = {
     update: async ({ where, data }: any): Promise<MockTask> => {
       const task = mockTasks.get(where.id);
       if (!task) throw new Error(`Task ${where.id} not found`);
-      const updated = { ...task, ...data, updatedAt: new Date() };
+      const updated = { ...task, ...data, updatedAt: new Date() } as MockTask;
+      // Handle nested execution updates (create only for mock simplicity)
+      if ((data as any).executions?.create) {
+        const exec = (data as any).executions.create;
+        const execId = generateUuid();
+        mockExecutions.set(execId, { ...exec, id: execId, taskId: updated.id });
+      }
       mockTasks.set(where.id, updated);
       return updated;
     },
@@ -812,6 +1072,8 @@ export const mockPrisma = {
       }
       return { count };
     },
+    groupBy: createMockGroupBy('task'),
+    aggregate: createMockAggregate('task'),
   },
   node: {
     findMany: async ({
@@ -1253,6 +1515,7 @@ export const mockPrisma = {
       return updated;
     },
   },
+  nodeHealthScore: createMockModelStore<any>('nodeHealthScore'),
   $connect: async () => {},
   $disconnect: async () => {},
   $queryRaw: async (_query: any) => [{ '?column?': 1 }],
@@ -1295,6 +1558,7 @@ export const mockPrisma = {
         'alert',
         'certificateRevocation',
         'costRecord',
+        'carbonRecord',
         'cRL',
         'deadLetterEvent',
         'fLModel',
@@ -1308,6 +1572,8 @@ export const mockPrisma = {
         'workflowExecution',
         'workflowTaskRun',
         'outcomeLog',
+        'schedulingOutcome',
+        'metricRetentionPolicy',
       ];
 
       for (const modelName of models) {
@@ -1378,23 +1644,12 @@ export const mockPrisma = {
     }),
     findMany: async () => [],
     deleteMany: async () => ({ count: 0 }),
+    count: async () => 0,
   },
   apiKey: createMockModelStore('apiKey'),
   webhook: createMockModelStore('webhook'),
-  tenant: {
-    findUnique: async ({ where }: any) => ({
-      id: where.id || '00000000-0000-4000-a200-000000000000',
-      name: 'Test Tenant',
-      createdAt: new Date(),
-    }),
-    create: async ({ data }: any) => ({
-      ...data,
-      id: data.id || '00000000-0000-4000-a200-000000000000',
-      createdAt: new Date(),
-    }),
-    delete: async ({ where }: any) => ({ id: where.id }),
-    deleteMany: async () => ({ count: 1 }),
-  },
+  tenant: createMockModelStore('tenant'),
+  alertRule: createMockModelStore('alertRule'),
   nodeMetric: createMockModelStore('nodeMetric'),
   schedulingDecision: {
     create: async ({ data }: any) => {
@@ -1437,6 +1692,8 @@ export const mockPrisma = {
     }),
     findMany: async () => [],
     deleteMany: async () => ({ count: 0 }),
+    groupBy: createMockGroupBy('taskLog'),
+    aggregate: createMockAggregate('taskLog'),
   },
   taskExecution: {
     aggregate: async ({ where }: any = {}) => {
@@ -1464,7 +1721,7 @@ export const mockPrisma = {
     groupBy: async () => {
       return [
         {
-          nodeId: '00000000-0000-4000-a000-000000000001',
+          nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-111111111111',
           _sum: { costUSD: 150.0 },
           _count: { id: 10 },
         },
@@ -1578,8 +1835,10 @@ export const mockPrisma = {
     }),
   },
   alert: createMockModelStore('alert'),
+  schedulingPolicy: createMockModelStore('schedulingPolicy'),
   certificateRevocation: createMockModelStore('certificateRevocation'),
   costRecord: createMockModelStore('costRecord'),
+  carbonRecord: createMockModelStore('carbonRecord'),
   cRL: createMockModelStore('cRL'),
   deadLetterEvent: createMockModelStore('deadLetterEvent'),
   fLModel: createMockModelStore('fLModel'),
@@ -1592,6 +1851,8 @@ export const mockPrisma = {
   workflow: createMockModelStore('workflow'),
   workflowExecution: createMockModelStore('workflowExecution'),
   workflowTaskRun: createMockModelStore('workflowTaskRun'),
+  schedulingOutcome: createMockModelStore('schedulingOutcome'),
+  metricRetentionPolicy: createMockModelStore('metricRetentionPolicy'),
   outcomeLog: {
     createMany: async (args: any = {}) => {
       const data = args?.data || [];
@@ -1697,3 +1958,432 @@ export const mockPrisma = {
     },
   },
 };
+
+export function initMockData() {
+  const g = globalThis as any;
+
+  // Seed default tenant if empty
+  const tenantKey = '__mock_tenant';
+  if (!g[tenantKey]) g[tenantKey] = new Map<string, any>();
+  const mockTenants = g[tenantKey];
+  if (mockTenants.size === 0) {
+    mockTenants.set('tenant-demo-org', {
+      id: 'tenant-demo-org',
+      name: 'Demo Organization',
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    });
+  }
+
+  // 1. Seed Nodes (mockNodes) if empty
+  if (mockNodes.size === 0) {
+    const nodes = [
+      {
+        id: 'da2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        name: 'Edge Node Alpha',
+        location: 'New York, USA',
+        region: 'us-east-1',
+        latitude: 40.7128,
+        longitude: -74.0060,
+        status: 'ONLINE',
+        ipAddress: '10.0.1.10',
+        port: 4001,
+        url: 'http://10.0.1.10:4001',
+        cpuCores: 8,
+        memoryGB: 16,
+        storageGB: 256,
+        cpuUsage: 35.5,
+        memoryUsage: 42.0,
+        storageUsage: 50.0,
+        latency: 24.5,
+        tasksRunning: 2,
+        maxTasks: 10,
+        costPerHour: 0.04,
+        bandwidthInMbps: 100,
+        bandwidthOutMbps: 100,
+        isMaintenanceMode: false,
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      },
+      {
+        id: 'da2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        name: 'Edge Node Beta',
+        location: 'Dublin, Ireland',
+        region: 'eu-west-1',
+        latitude: 53.3498,
+        longitude: -6.2603,
+        status: 'ONLINE',
+        ipAddress: '10.0.2.10',
+        port: 4001,
+        url: 'http://10.0.2.10:4001',
+        cpuCores: 16,
+        memoryGB: 32,
+        storageGB: 512,
+        cpuUsage: 62.1,
+        memoryUsage: 78.5,
+        storageUsage: 65.0,
+        latency: 85.2,
+        tasksRunning: 4,
+        maxTasks: 20,
+        costPerHour: 0.08,
+        bandwidthInMbps: 1000,
+        bandwidthOutMbps: 1000,
+        isMaintenanceMode: false,
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      },
+      {
+        id: 'da2b5a5c-7d9a-4f5d-8f5b-333333333333',
+        name: 'Edge Node Gamma',
+        location: 'Tokyo, Japan',
+        region: 'ap-northeast-1',
+        latitude: 35.6762,
+        longitude: 139.6503,
+        status: 'ONLINE',
+        ipAddress: '10.0.3.10',
+        port: 4001,
+        url: 'http://10.0.3.10:4001',
+        cpuCores: 4,
+        memoryGB: 8,
+        storageGB: 128,
+        cpuUsage: 0.0,
+        memoryUsage: 0.0,
+        storageUsage: 0.0,
+        latency: 0.0,
+        tasksRunning: 0,
+        maxTasks: 5,
+        costPerHour: 0.02,
+        bandwidthInMbps: 50,
+        bandwidthOutMbps: 50,
+        isMaintenanceMode: false,
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      },
+      {
+        id: 'da2b5a5c-7d9a-4f5d-8f5b-444444444444',
+        name: 'Edge Node Delta',
+        location: 'Oregon, USA',
+        region: 'us-west-2',
+        latitude: 45.5152,
+        longitude: -122.6784,
+        status: 'ONLINE',
+        ipAddress: '10.0.4.10',
+        port: 4001,
+        url: 'http://10.0.4.10:4001',
+        cpuCores: 32,
+        memoryGB: 64,
+        storageGB: 1024,
+        cpuUsage: 12.4,
+        memoryUsage: 31.0,
+        storageUsage: 20.0,
+        latency: 50.1,
+        tasksRunning: 1,
+        maxTasks: 40,
+        costPerHour: 0.16,
+        bandwidthInMbps: 10000,
+        bandwidthOutMbps: 10000,
+        isMaintenanceMode: false,
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      },
+      {
+        id: 'da2b5a5c-7d9a-4f5d-8f5b-555555555555',
+        name: 'Edge Node Epsilon',
+        location: 'São Paulo, Brazil',
+        region: 'sa-east-1',
+        latitude: -23.5505,
+        longitude: -46.6333,
+        status: 'DEGRADED',
+        ipAddress: '10.0.5.10',
+        port: 4001,
+        url: 'http://10.0.5.10:4001',
+        cpuCores: 8,
+        memoryGB: 16,
+        storageGB: 256,
+        cpuUsage: 88.0,
+        memoryUsage: 92.5,
+        storageUsage: 85.0,
+        latency: 150.4,
+        tasksRunning: 6,
+        maxTasks: 10,
+        costPerHour: 0.04,
+        bandwidthInMbps: 100,
+        bandwidthOutMbps: 100,
+        isMaintenanceMode: false,
+        lastHeartbeat: new Date(),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      }
+    ];
+
+    for (const node of nodes) {
+      mockNodes.set(node.id, node as any);
+    }
+  }
+
+  // 2. Seed Tasks (mockTasks) if empty
+  if (mockTasks.size === 0) {
+    const tasks = [
+      {
+        id: 'ea2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        name: 'Image Inference Alpha',
+        type: 'IMAGE_CLASSIFICATION',
+        status: 'COMPLETED',
+        priority: 'HIGH',
+        target: 'EDGE',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        policy: 'latency',
+        reason: 'Lowest latency node in region',
+        runtime: 'DOCKER',
+        submittedAt: new Date(Date.now() - 1800000),
+        tenantId: 'tenant-demo-org',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'ea2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        name: 'Sensor Stream Fusion',
+        type: 'SENSOR_FUSION',
+        status: 'RUNNING',
+        priority: 'CRITICAL',
+        target: 'EDGE',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        policy: 'ml',
+        reason: 'ML optimized node selection',
+        runtime: 'WASM',
+        submittedAt: new Date(Date.now() - 900000),
+        tenantId: 'tenant-demo-org',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'ea2b5a5c-7d9a-4f5d-8f5b-333333333333',
+        name: 'Video Stream Processing',
+        type: 'VIDEO_PROCESSING',
+        status: 'PENDING',
+        priority: 'MEDIUM',
+        target: 'HYBRID',
+        nodeId: null,
+        policy: 'cost',
+        reason: 'Queued for optimal pricing window',
+        runtime: 'DOCKER',
+        submittedAt: new Date(Date.now() - 300000),
+        tenantId: 'tenant-demo-org',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'ea2b5a5c-7d9a-4f5d-8f5b-444444444444',
+        name: 'Log Pattern Detection',
+        type: 'ANOMALY_DETECTION',
+        status: 'FAILED',
+        priority: 'LOW',
+        target: 'CLOUD',
+        nodeId: null,
+        policy: 'cost',
+        reason: 'Cloud allocation fallback failed',
+        runtime: 'NATIVE',
+        submittedAt: new Date(Date.now() - 3600000),
+        tenantId: 'tenant-demo-org',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+
+    for (const task of tasks) {
+      mockTasks.set(task.id, task as any);
+    }
+  }
+
+  // 3. Seed FLModels
+  const flModelStoreKey = '__mock_fLModel';
+  if (!g[flModelStoreKey]) g[flModelStoreKey] = new Map<string, any>();
+  const flModelStore: Map<string, any> = g[flModelStoreKey];
+  if (flModelStore.size === 0) {
+    const models = [
+      {
+        id: 'fa2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        name: 'ResNet-50 Classifier',
+        version: '1.2.0',
+        architecture: 'CNN',
+        parameters: 25600000,
+        weightsUrl: 'http://storage.demo-org.com/resnet50.bin',
+        weightsSize: 102400000,
+        isActive: true,
+        tenantId: 'tenant-demo-org',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      },
+      {
+        id: 'fa2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        name: 'LSTM Sequence Predictor',
+        version: '0.9.5',
+        architecture: 'RNN',
+        parameters: 5400000,
+        weightsUrl: 'http://storage.demo-org.com/lstm.bin',
+        weightsSize: 22000000,
+        isActive: true,
+        tenantId: 'tenant-demo-org',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }
+    ];
+    for (const m of models) {
+      flModelStore.set(m.id, m);
+    }
+  }
+
+  // 4. Seed FLSessions
+  const flSessionStoreKey = '__mock_fLSession';
+  if (!g[flSessionStoreKey]) g[flSessionStoreKey] = new Map<string, any>();
+  const flSessionStore: Map<string, any> = g[flSessionStoreKey];
+  if (flSessionStore.size === 0) {
+    const sessions = [
+      {
+        id: 'ca2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        modelId: 'fa2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        status: 'RUNNING',
+        currentRound: 3,
+        totalRounds: 10,
+        config: { minClients: 5, learningRate: 0.01 },
+        metrics: { accuracy: 0.88, loss: 0.32 },
+        startedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      },
+      {
+        id: 'ca2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        modelId: 'fa2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        status: 'COMPLETED',
+        currentRound: 5,
+        totalRounds: 5,
+        config: { minClients: 3, learningRate: 0.05 },
+        metrics: { accuracy: 0.94, loss: 0.12 },
+        startedAt: new Date(Date.now() - 86400000),
+        completedAt: new Date(),
+        tenantId: 'tenant-demo-org',
+      }
+    ];
+    for (const s of sessions) {
+      flSessionStore.set(s.id, s);
+    }
+  }
+
+  // 5. Seed CostRecords
+  const costRecordStoreKey = '__mock_costRecord';
+  if (!g[costRecordStoreKey]) g[costRecordStoreKey] = new Map<string, any>();
+  const costRecordStore: Map<string, any> = g[costRecordStoreKey];
+  if (costRecordStore.size === 0) {
+    const records = [
+      {
+        id: 'ba2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        resourceType: 'COMPUTE',
+        amount: 10.0,
+        unit: 'HOURS',
+        cost: 15.40,
+        tenantId: 'tenant-demo-org',
+        recordedAt: new Date(),
+      },
+      {
+        id: 'ba2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        resourceType: 'STORAGE',
+        amount: 250.0,
+        unit: 'GB',
+        cost: 25.00,
+        tenantId: 'tenant-demo-org',
+        recordedAt: new Date(),
+      },
+      {
+        id: 'ba2b5a5c-7d9a-4f5d-8f5b-333333333333',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-444444444444',
+        resourceType: 'NETWORK',
+        amount: 1000.0,
+        unit: 'GB',
+        cost: 90.00,
+        tenantId: 'tenant-demo-org',
+        recordedAt: new Date(),
+      }
+    ];
+    for (const r of records) {
+      costRecordStore.set(r.id, r);
+    }
+  }
+
+  // 6. Seed CarbonRecords
+  const carbonRecordStoreKey = '__mock_carbonRecord';
+  if (!g[carbonRecordStoreKey]) g[carbonRecordStoreKey] = new Map<string, any>();
+  const carbonRecordStore: Map<string, any> = g[carbonRecordStoreKey];
+  if (carbonRecordStore.size === 0) {
+    const nowMs = Date.now();
+    const records = [
+      {
+        id: 'cr2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        taskId: 'task-1-carbon',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        region: 'us-east-1',
+        carbonIntensity: 350.0,
+        durationMs: 3600000,
+        estimatedGco2eq: 35.0,
+        estimatedWatts: 100.0,
+        wasDeferred: true,
+        baselineGco2eq: 50.0,
+        carbonSavedGco2eq: 15.0,
+        tenantId: 'tenant-demo-org',
+        recordedAt: new Date(nowMs - 3600000),
+      },
+      {
+        id: 'cr2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        taskId: 'task-2-carbon',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-222222222222',
+        region: 'eu-west-1',
+        carbonIntensity: 200.0,
+        durationMs: 7200000,
+        estimatedGco2eq: 40.0,
+        estimatedWatts: 100.0,
+        wasDeferred: false,
+        tenantId: 'tenant-demo-org',
+        recordedAt: new Date(nowMs - 86400000),
+      },
+      {
+        id: 'cr2b5a5c-7d9a-4f5d-8f5b-333333333333',
+        taskId: 'task-3-carbon',
+        nodeId: 'da2b5a5c-7d9a-4f5d-8f5b-111111111111',
+        region: 'us-east-1',
+        carbonIntensity: 380.0,
+        durationMs: 1800000,
+        estimatedGco2eq: 19.0,
+        estimatedWatts: 100.0,
+        wasDeferred: true,
+        baselineGco2eq: 25.0,
+        carbonSavedGco2eq: 6.0,
+        tenantId: 'tenant-demo-org',
+        recordedAt: new Date(nowMs - 172800000),
+      }
+    ];
+    for (const r of records) {
+      carbonRecordStore.set(r.id, r);
+    }
+  }
+
+  // Start background heartbeat simulation for mock nodes to prevent stale timeout
+  const heartbeatIntervalKey = '__mock_heartbeat_interval';
+  if (!g[heartbeatIntervalKey]) {
+    g[heartbeatIntervalKey] = setInterval(() => {
+      for (const node of mockNodes.values()) {
+        if (node.status === 'ONLINE' || node.status === 'DEGRADED') {
+          node.lastHeartbeat = new Date();
+        }
+      }
+    }, 10000);
+  }
+}

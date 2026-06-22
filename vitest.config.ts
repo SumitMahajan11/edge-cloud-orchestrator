@@ -36,5 +36,10 @@ export default defineConfig({
     deps: {
       interopDefault: true,
     },
+    server: {
+      deps: {
+        inline: [/@opentelemetry\/.*/],
+      },
+    },
   },
 });

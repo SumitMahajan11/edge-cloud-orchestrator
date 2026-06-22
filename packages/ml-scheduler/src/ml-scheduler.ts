@@ -14,27 +14,39 @@ import { DriftDetector } from "./drift-detector";
 import { SpanStatusCode } from "@opentelemetry/api";
 import { OutcomeCollector } from "./feedback/outcome-collector";
 import { GridCarbonClient } from "./carbon/grid-client";
+import { SchedulingBandit } from "./bandit";
+import { buildSchedulingContext } from "./context-builder";
 
 const logger = createLogger("ml-scheduler-orchestrator");
 
 export class MLScheduler {
   private scorer: MultiObjectiveScorer;
+  private shadowPredictor: SchedulingPredictor | null = null;
+  private shadowVersion: string | null = null;
+  private bandit: SchedulingBandit;
 
   constructor(
     private predictor: SchedulingPredictor,
     private registry: ModelRegistry,
     private driftDetector: DriftDetector,
     private metrics: IMetricsCollector,
-    private outcomeCollector: OutcomeCollector,
+    public outcomeCollector: OutcomeCollector,
     private carbonClient?: GridCarbonClient,
   ) {
     this.scorer = new MultiObjectiveScorer(this.predictor);
+    this.bandit = new SchedulingBandit();
+    const version = typeof this.predictor.getVersion === "function" ? this.predictor.getVersion() || "default" : "default";
+    const modelDir = this.registry?.MODEL_DIR || path.join(process.cwd(), "models");
+    const banditDir = path.join(modelDir, `bandit_${version}`);
+    this.bandit.loadModel(banditDir).catch((err) =>
+      logger.error({ err }, "Failed to initial load bandit model")
+    );
   }
 
   async schedule(
     task: Task,
     nodes: EdgeNode[],
-    _weights: ScoreWeights,
+    weights: ScoreWeights,
   ): Promise<{
     decision: NodeScoreResult;
     explanation: any;
@@ -75,35 +87,46 @@ export class MLScheduler {
           };
         }
 
-        // 1. Policy-specific adjustments
+        // 1. Determine active weights and policy-specific adjustments
+        let activeWeights = weights;
         let carbonWeight = 0.0;
-        if (task.policy === "CARBON_OPTIMIZED") {
-          carbonWeight = 0.4;
 
-          // Find fastest and lowest-carbon nodes for trade-off calculation
-          const firstNode = nodes[0]!;
-          const fastestNode = nodes.reduce(
-            (prev, curr) => (curr.latency < prev.latency ? curr : prev),
-            firstNode,
-          );
-          const lowestCarbonNode = nodes.reduce(
-            (prev, curr) =>
-              (curr.carbonIntensity || 1000) < (prev.carbonIntensity || 1000)
-                ? curr
-                : prev,
-            firstNode,
-          );
+        if (activeWeights) {
+          carbonWeight = activeWeights.carbon || 0.0;
+        } else {
+          // Fallback to legacy/task-specific policy weights if no custom weights are passed
+          if (task.policy === "CARBON_OPTIMIZED") {
+            carbonWeight = 0.4;
 
-          if (lowestCarbonNode.latency > fastestNode.latency * 2) {
-            logger.info(
-              "Carbon vs Latency trade-off: Capping carbon weight at 0.2",
+            // Find fastest and lowest-carbon nodes for trade-off calculation
+            const firstNode = nodes[0]!;
+            const fastestNode = nodes.reduce(
+              (prev, curr) => (curr.latency < prev.latency ? curr : prev),
+              firstNode,
             );
-            carbonWeight = 0.2;
+            const lowestCarbonNode = nodes.reduce(
+              (prev, curr) =>
+                (curr.carbonIntensity || 1000) < (prev.carbonIntensity || 1000)
+                  ? curr
+                  : prev,
+              firstNode,
+            );
+
+            if (lowestCarbonNode.latency > fastestNode.latency * 2) {
+              logger.info(
+                "Carbon vs Latency trade-off: Capping carbon weight at 0.2",
+              );
+              carbonWeight = 0.2;
+            }
           }
+          activeWeights = {
+            ...(this.scorer as any).weights,
+            carbon: carbonWeight,
+          };
         }
 
-        // 2. Fetch real-time carbon data if client is available
-        if (this.carbonClient) {
+        // 2. Fetch real-time carbon data if client is available and carbon weight is active
+        if (this.carbonClient && (carbonWeight > 0 || (activeWeights && activeWeights.carbon > 0))) {
           await Promise.all(
             nodes.map(async (node) => {
               if (node.region) {
@@ -115,18 +138,9 @@ export class MLScheduler {
           );
         }
 
-        // 3. Apply weights (save original for restoration)
-        const originalWeights = { ...(this.scorer as any).weights };
-        if (carbonWeight > 0) {
-          (this.scorer as any).weights = {
-            ...originalWeights,
-            carbon: carbonWeight,
-          };
-        }
-
         try {
           // 4. Contextual Bandit Layer: Epsilon-Greedy
-          const EXPLORE_RATE = 0.1; // 10%
+          const EXPLORE_RATE = (process.env.NODE_ENV === "test" || process.env.FORCE_MOCK_DB === "true") && process.env.ENABLE_BANDIT_EXPLORE !== "true" ? 0.0 : 0.1; // 10% in production, 0% in test unless explicitly enabled
           const explore = Math.random() < EXPLORE_RATE;
           this.metrics.recordMetric("ml_bandit_explore_rate", EXPLORE_RATE);
 
@@ -139,10 +153,28 @@ export class MLScheduler {
                 eligibleNodes[
                   Math.floor(Math.random() * eligibleNodes.length)
                 ]!;
+              const context = buildSchedulingContext(
+                task,
+                randomNode,
+                randomNode.carbonIntensity || 400
+              );
               const importance = await this.predictor.getFeatureImportance(
                 task,
                 randomNode,
               );
+
+              let shadowResult: any = null;
+              if (this.shadowPredictor) {
+                try {
+                  const shadowScore = await this.shadowPredictor.predictAsync(task, randomNode);
+                  shadowResult = {
+                    version: this.shadowVersion,
+                    score: shadowScore,
+                  };
+                } catch (err) {
+                  logger.error({ err }, "Shadow prediction failed");
+                }
+              }
 
               span.end();
               return {
@@ -154,6 +186,8 @@ export class MLScheduler {
                 explanation: {
                   top_features: importance.slice(0, 5),
                   bandit: "explore",
+                  shadowResult,
+                  context,
                 },
                 candidateNodes: [
                   {
@@ -169,8 +203,20 @@ export class MLScheduler {
           }
 
           span.setAttribute("ml.bandit.mode", "exploit");
-          // 3. Attempt ML-based scoring with bandit blending
-          const predictionPromise = this.scorer.rankNodes(task, nodes);
+          // 3. Attempt ML-based scoring with bandit prediction
+          const banditScores: Record<string, number> = {};
+          const contexts: Record<string, number[]> = {};
+          for (const node of nodes) {
+            const context = buildSchedulingContext(
+              task,
+              node,
+              node.carbonIntensity || 400
+            );
+            contexts[node.id] = context;
+            banditScores[node.id] = await this.bandit.scoreNode(node.id, context);
+          }
+
+          const predictionPromise = this.scorer.rankNodes(task, nodes, activeWeights, banditScores);
 
           const timeoutPromise = new Promise<null>((_, reject) =>
             setTimeout(() => reject(new Error("ML_TIMEOUT")), TIMEOUT_MS),
@@ -187,18 +233,14 @@ export class MLScheduler {
 
           const duration = Date.now() - startTime;
 
-          // 4. Blend Bandit Reward into final score
-          // finalScore = 0.7 * xgboostScore + 0.3 * banditReward
-          const blendedNodes = await Promise.all(
-            rankedNodes.map(async (res) => {
-              const reward = await this.outcomeCollector.getReward(res.nodeId);
-              return {
-                ...res,
-                score: 0.7 * res.score + 0.3 * reward,
-                banditReward: reward,
-              };
-            }),
-          );
+          // 4. Populate bandit scores into blended result
+          const blendedNodes = rankedNodes.map((res) => {
+            const reward = banditScores[res.nodeId] ?? 0.5;
+            return {
+              ...res,
+              banditReward: reward,
+            };
+          });
 
           blendedNodes.sort((a, b) => b.score - a.score);
           const bestNodeResult = blendedNodes[0]!;
@@ -209,6 +251,19 @@ export class MLScheduler {
             task,
             bestNode,
           );
+
+          let shadowResult: any = null;
+          if (this.shadowPredictor) {
+            try {
+              const shadowScore = await this.shadowPredictor.predictAsync(task, bestNode);
+              shadowResult = {
+                version: this.shadowVersion,
+                score: shadowScore,
+              };
+            } catch (err) {
+              logger.error({ err }, "Shadow prediction failed");
+            }
+          }
 
           this.metrics.recordSchedulingDecision(
             "ml-optimized",
@@ -233,15 +288,14 @@ export class MLScheduler {
           span.setAttribute("ml.carbon.saved", savedCarbon);
           span.setStatus({ code: SpanStatusCode.OK });
 
-          // Restore original weights
-          (this.scorer as any).weights = originalWeights;
-
           span.end();
           return {
             decision: bestNodeResult,
             explanation: {
               top_features: importance.slice(0, 5),
               banditReward: (bestNodeResult as any).banditReward,
+              shadowResult,
+              context: contexts[bestNodeResult.nodeId],
             },
             candidateNodes: blendedNodes.slice(0, 5).map((n) => ({
               nodeId: n.nodeId,
@@ -254,10 +308,7 @@ export class MLScheduler {
             modelVersion: this.predictor.getVersion(),
             fallbackUsed: false,
           };
-        } catch (error: any) {
-          // Restore original weights even on error
-          (this.scorer as any).weights = originalWeights;
-
+         } catch (error: any) {
           const reason = error.message === "ML_TIMEOUT" ? "timeout" : "error";
           span.setAttribute("ml.fallback_reason", reason);
           if (reason === "timeout") {
@@ -359,6 +410,43 @@ export class MLScheduler {
         path.join(process.cwd(), "models"),
         activeVersion.version,
       );
+
+      // Load bandit weights for the new version
+      const modelDir = this.registry?.MODEL_DIR || path.join(process.cwd(), "models");
+      const banditDir = path.join(modelDir, `bandit_${activeVersion.version}`);
+      await this.bandit.loadModel(banditDir);
     }
+
+    const shadowVersion = await this.registry?.redis.get("ml:shadow_model_version");
+    if (shadowVersion) {
+      if (!this.shadowPredictor || this.shadowVersion !== shadowVersion) {
+        logger.info(
+          { shadowVersion },
+          "Loading shadow ML model",
+        );
+        this.shadowPredictor = new SchedulingPredictor();
+        await this.shadowPredictor.loadModel(
+          path.join(process.cwd(), "models"),
+          shadowVersion,
+        );
+        this.shadowVersion = shadowVersion;
+      }
+    } else {
+      this.shadowPredictor = null;
+      this.shadowVersion = null;
+    }
+  }
+
+  getBandit(): SchedulingBandit {
+    return this.bandit;
+  }
+
+  async updateBandit(nodeId: string, context: number[], reward: number): Promise<void> {
+    await this.bandit.updateFromOutcome(nodeId, context, reward);
+    // Persist
+    const version = this.predictor.getVersion() || "default";
+    const modelDir = this.registry?.MODEL_DIR || path.join(process.cwd(), "models");
+    const banditDir = path.join(modelDir, `bandit_${version}`);
+    await this.bandit.saveModel(banditDir);
   }
 }

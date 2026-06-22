@@ -10,6 +10,7 @@ import { queryKeys, STALE, queryClient } from "../lib/query-client";
 import {
   transformNodesFromApi,
   transformNodeFromApi,
+  transformNodeToApi,
 } from "../lib/typeTransformers";
 
 export function useNodes() {
@@ -18,7 +19,7 @@ export function useNodes() {
     queryFn: async () => {
       const { data, error } = await getV2Nodes();
       if (error) throw error;
-      return transformNodesFromApi(data as any);
+      return transformNodesFromApi((data as any).data || []);
     },
     staleTime: STALE.nodeHealth,
   });
@@ -71,7 +72,8 @@ export function useForceOfflineNode() {
 export function useRegisterNode() {
   return useMutation({
     mutationFn: async (nodeData: any) => {
-      const { data, error } = await postV2Nodes({ body: nodeData as any });
+      const apiPayload = transformNodeToApi(nodeData);
+      const { data, error } = await postV2Nodes({ body: apiPayload });
       if (error) throw error;
       return data;
     },

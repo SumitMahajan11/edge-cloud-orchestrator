@@ -117,18 +117,19 @@ export class IdempotencyService {
       });
 
       if (existing) {
+        const parsedResult = this.parseResult(existing.result);
         // Update cache
-        if (this.config.cacheEnabled && existing.result) {
+        if (this.config.cacheEnabled && parsedResult) {
           await this.redis.setex(
             cacheKey,
             Math.floor(this.config.cacheTtlMs / 1000),
-            JSON.stringify(existing.result),
+            JSON.stringify(parsedResult),
           );
         }
 
         return {
           isDuplicate: true,
-          existingResult: existing.result as Record<string, unknown>,
+          existingResult: parsedResult as Record<string, unknown>,
         };
       }
 
@@ -173,7 +174,7 @@ export class IdempotencyService {
       where: { idempotencyKey },
       data: {
         status: 'COMPLETED',
-        result: result as any,
+        result: this.isSqlite() ? JSON.stringify(result) : (result as any),
       },
     });
 
@@ -193,11 +194,12 @@ export class IdempotencyService {
    * Mark idempotency record as failed
    */
   async fail(idempotencyKey: string, error?: string): Promise<void> {
+    const resultObj = error ? { error } : {};
     await this.prisma.idempotencyRecord.update({
       where: { idempotencyKey },
       data: {
         status: 'FAILED',
-        result: error ? { error } : ({} as any),
+        result: this.isSqlite() ? JSON.stringify(resultObj) : (resultObj as any),
       },
     });
 
@@ -259,6 +261,30 @@ export class IdempotencyService {
     return this.generateKey('task', taskId, nodeId);
   }
 
+  private isSqlite(): boolean {
+    const activeProvider = (this.prisma as any)._activeProvider || (this.prisma as any)._engineConfig?.activeProvider;
+    if (activeProvider === 'sqlite') {
+      return true;
+    }
+    const url = (this.prisma as any).$config?.datasources?.db?.url;
+    if (typeof url === 'string' && (url.startsWith('file:') || url.includes('sqlite'))) {
+      return true;
+    }
+    return false;
+  }
+
+  private parseResult(val: any): Record<string, unknown> | null {
+    if (!val) return null;
+    if (typeof val === 'string') {
+      try {
+        return JSON.parse(val);
+      } catch (err) {
+        return null;
+      }
+    }
+    return val as Record<string, unknown>;
+  }
+
   // Private methods
 
   private async acquireLock(key: string, ttlMs: number): Promise<boolean> {
@@ -290,7 +316,7 @@ export class IdempotencyService {
     const record = await this.prisma.idempotencyRecord.findUnique({
       where: { idempotencyKey },
     });
-    return record?.result as Record<string, unknown> | null;
+    return record ? this.parseResult(record.result) : null;
   }
 
   /**

@@ -9,7 +9,7 @@ export function useLogs(params?: Record<string, unknown>) {
     queryFn: async () => {
       const { data, error } = await getV2Logs({ query: params as any });
       if (error) throw error;
-      return transformLogsFromApi(data as any[]);
+      return transformLogsFromApi((data as any).data || []);
     },
     staleTime: STALE.live,
   });

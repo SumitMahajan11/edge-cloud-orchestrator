@@ -12,19 +12,18 @@ function sendAuthError(
   statusCode: 401 | 403,
   code: string,
   message: string,
-): void {
+): never {
   const requestId =
     (reply.request?.headers?.['x-request-id'] as string) ||
     reply.request?.id ||
     'unknown';
-  reply.status(statusCode).send({
-    error: {
-      code,
-      message,
-      requestId,
-      timestamp: new Date().toISOString(),
-    },
-  });
+  
+  const error = new Error(message) as any;
+  error.statusCode = statusCode;
+  error.code = code;
+  error.details = { requestId, timestamp: new Date().toISOString() };
+  
+  throw error;
 }
 
 export async function authenticate(
@@ -35,6 +34,7 @@ export async function authenticate(
 
   try {
     const authHeader = request.headers.authorization;
+    console.log('[AUTHENTICATE] URL:', request.url, 'authHeader:', authHeader);
 
     if (!authHeader?.startsWith('Bearer ')) {
       // Check for API Key

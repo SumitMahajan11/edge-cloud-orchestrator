@@ -1,0 +1,43 @@
+version: '3.8'
+services:
+  postgres:
+    image: ghcr.io/dbsystel/postgresql-partman:16
+    container_name: eco_postgres_real
+    environment:
+      POSTGRES_USER: edgecloud
+      POSTGRES_PASSWORD: edgecloud_dev_password
+      POSTGRES_DB: edgecloud
+    ports:
+      - "5433:5432"    # 5433 to avoid conflict with any existing Postgres
+    volumes:
+      - eco_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U edgecloud"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    container_name: eco_redis_real
+    ports:
+      - "6380:6379"    # 6380 to avoid conflict with any existing Redis
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  minio:
+    image: minio/minio:RELEASE.2024-01-28T22-35-53Z
+    container_name: eco_minio_real
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    command: server /data --console-address ":9001"
+
+volumes:
+  eco_pg_data:
+

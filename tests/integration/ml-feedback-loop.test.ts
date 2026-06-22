@@ -71,6 +71,7 @@ describe("ML Feedback Loop Integration", () => {
     await ctx.prisma.nodeMetric.create({
       data: {
         nodeId: node.id,
+        tenantId: ctx.tenantId,
         cpuUsage: 0.7, // Predicted was 0.4
         memoryUsage: 0.3, // Predicted was 0.1
         timestamp: new Date(Date.now() - 5000), // Within execution window

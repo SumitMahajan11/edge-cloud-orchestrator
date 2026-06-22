@@ -7,6 +7,7 @@ import { NodeMapSection } from "@/components/dashboard/NodeMapSection";
 import { TaskDistributionAndNodeStatus } from "@/components/dashboard/TaskDistributionAndNodeStatus";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { SystemAlertsBanner } from "@/components/dashboard/SystemAlertsBanner";
+import { CarbonSummaryWidget } from "@/components/dashboard/CarbonSummaryWidget";
 import { useSystemMetrics } from "@/hooks/useMetrics";
 import { useNodes } from "@/hooks/useNodes";
 
@@ -53,6 +54,9 @@ export default function DashboardPage() {
 
       {/* Section D — Task distribution + Node status */}
       <TaskDistributionAndNodeStatus metrics={metrics} nodes={nodes} />
+
+      {/* Carbon Attribution & Compliance Reporting */}
+      <CarbonSummaryWidget />
 
       {/* Section E — Recent activity */}
       <RecentActivity />

@@ -6,6 +6,8 @@ labels: enhancement
 assignees: ""
 ---
 
+> **Note**: Before opening a new issue, please review our [Contributing Guidelines](https://github.com/SumitMahajan11/edge-cloud-orchestrator/blob/main/CONTRIBUTING.md).
+
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
 

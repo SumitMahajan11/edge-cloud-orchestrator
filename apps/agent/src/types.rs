@@ -11,6 +11,7 @@ pub struct TaskSpec {
     pub task_id: String,
     pub runtime: TaskRuntime,
     pub image: String,
+    pub wasm_artifact_id: Option<String>,
     pub input: serde_json::Value,
     pub memory_limit_mb: u32,
     pub cpu_fuel: Option<u64>,

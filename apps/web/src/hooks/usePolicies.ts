@@ -86,3 +86,46 @@ export function useUpdateThreshold() {
     },
   });
 }
+
+import { api } from "../lib/api-client";
+
+export interface SchedulingPolicy {
+  id: string;
+  name: string;
+  type: string;
+  config: {
+    costWeight: number;
+    latencyWeight: number;
+    carbonWeight: number;
+  };
+  isActive: boolean;
+  tenantId: string;
+}
+
+export function useSchedulingPolicy() {
+  return useQuery({
+    queryKey: ["scheduling-policy"],
+    queryFn: async () => {
+      return api.get<SchedulingPolicy>("/v2/scheduling/policy");
+    },
+    staleTime: STALE.default,
+  });
+}
+
+export function useUpdateSchedulingPolicy() {
+  return useMutation({
+    mutationFn: async (weights: {
+      costWeight: number;
+      latencyWeight: number;
+      carbonWeight: number;
+    }) => {
+      return api.put<{ success: boolean; policy: SchedulingPolicy }>(
+        "/v2/scheduling/policy",
+        weights
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["scheduling-policy"] });
+    },
+  });
+}

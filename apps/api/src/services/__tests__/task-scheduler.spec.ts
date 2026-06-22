@@ -11,6 +11,7 @@ vi.mock('ioredis', () => {
     default: vi.fn().mockImplementation(() => ({
       set: vi.fn(),
       get: vi.fn(),
+      del: vi.fn(),
       eval: vi.fn(),
       zadd: vi.fn(),
       zrem: vi.fn(),
@@ -66,6 +67,23 @@ describe('TaskScheduler', () => {
         findUnique: vi.fn(),
         update: vi.fn(),
       } as unknown as PrismaClient['edgeNode'],
+      schedulingDecision: {
+        findUnique: vi.fn(),
+      } as any,
+      schedulingOutcome: {
+        create: vi.fn(),
+      } as any,
+      schedulingPolicy: {
+        findMany: vi.fn().mockResolvedValue([]),
+        findUnique: vi.fn(),
+      } as any,
+      nodeHealthScore: {
+        findUnique: vi.fn(),
+        upsert: vi.fn(),
+      } as any,
+      carbonRecord: {
+        create: vi.fn(),
+      } as any,
     } as Partial<PrismaClient>;
 
     mockRedis = new Redis();
@@ -172,6 +190,124 @@ describe('TaskScheduler', () => {
         }),
         'Task scheduler started',
       );
+    });
+  });
+
+  describe('Carbon-Aware Deferral (carbonShiftSchedule)', () => {
+    it('should not defer task if isDeferrable is false', async () => {
+      const task = {
+        id: 'task-non-defer',
+        isDeferrable: false,
+        maxDelayMinutes: 60,
+        submittedAt: new Date(),
+      };
+
+      const result = await scheduler['carbonShiftSchedule'](task);
+      expect(result).toBe(false);
+    });
+
+    it('should defer task to a low-carbon window if a lower carbon intensity window is forecasted', async () => {
+      const task = {
+        id: 'task-defer',
+        isDeferrable: true,
+        maxDelayMinutes: 60,
+        submittedAt: new Date(),
+      };
+
+      // Mock database returning nodes in region 'us-east-1'
+      const mockNodes = [
+        { region: 'us-east-1', carbonIntensity: 300 },
+      ];
+      (mockPrisma.edgeNode!.findMany as any).mockResolvedValue(mockNodes);
+
+      // Mock carbon intensity forecast
+      const now = Date.now();
+      const mockForecast = [
+        { datetime: new Date(now).toISOString(), carbonIntensity: 300 },
+        { datetime: new Date(now + 15 * 60 * 1000).toISOString(), carbonIntensity: 150 }, // lower carbon intensity window
+        { datetime: new Date(now + 30 * 60 * 1000).toISOString(), carbonIntensity: 300 },
+      ];
+      vi.spyOn(scheduler['carbonClient'], 'getCarbonIntensityForecast').mockResolvedValue(mockForecast);
+      vi.spyOn(scheduler['carbonClient'], 'mapRegionToZone').mockReturnValue('US-GD');
+
+      const result = await scheduler['carbonShiftSchedule'](task);
+      expect(result).toBe(true);
+
+      // Verify that Redis was updated with the target time
+      expect(mockRedis.set).toHaveBeenCalledWith(
+        `task:deferred:${task.id}:until`,
+        expect.any(String),
+        'PX',
+        expect.any(Number),
+      );
+    });
+
+    it('should not defer task if maximum delay has already elapsed', async () => {
+      const task = {
+        id: 'task-expired',
+        isDeferrable: true,
+        maxDelayMinutes: 10,
+        submittedAt: new Date(Date.now() - 15 * 60 * 1000), // submitted 15 minutes ago
+      };
+
+      const result = await scheduler['carbonShiftSchedule'](task);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('recordTaskOutcome', () => {
+    it('should run contextual bandit feedback loop and save outcome', async () => {
+      const task = {
+        id: 'task-bandit',
+        policy: 'ml-optimized',
+        nodeId: 'node-1',
+        tenantId: 'tenant-123',
+        metadata: JSON.stringify({
+          predictedScore: 0.8,
+          modelVersion: '1.0.0',
+        }),
+        submittedAt: new Date(),
+      };
+
+      const decision = {
+        taskId: 'task-bandit',
+        explanation: JSON.stringify({
+          context: new Array(12).fill(0.5),
+        }),
+      };
+
+      const edgeNode = {
+        id: 'node-1',
+        carbonIntensity: 350,
+        cpuUsage: 45,
+      };
+
+      vi.mocked(mockPrisma.task!.findUnique as any).mockResolvedValue(task);
+      vi.mocked((mockPrisma as any).schedulingDecision.findUnique).mockResolvedValue(decision);
+      vi.mocked(mockPrisma.edgeNode!.findUnique as any).mockResolvedValue(edgeNode);
+      vi.mocked((mockPrisma as any).schedulingOutcome.create).mockResolvedValue({ id: 'outcome-1' });
+
+      // Spy on MLScheduler.updateBandit
+      const updateBanditSpy = vi.spyOn(scheduler['mlScheduler'], 'updateBandit').mockResolvedValue();
+
+      await scheduler.recordTaskOutcome('task-bandit', 1500, 'COMPLETED');
+
+      expect(updateBanditSpy).toHaveBeenCalledWith('node-1', expect.any(Array), expect.any(Number));
+      expect((mockPrisma as any).schedulingOutcome.create).toHaveBeenCalledWith({
+        data: expect.objectContaining({
+          taskId: 'task-bandit',
+          nodeId: 'node-1',
+          tenantId: 'tenant-123',
+          assignedAt: expect.any(Date),
+          completedAt: expect.any(Date),
+          status: 'COMPLETED',
+          actualLatencyMs: 1500,
+          predictedLatencyMs: 5000,
+          carbonIntensityAtAssignment: 350,
+          nodeLoadAtAssignment: 45,
+          rewardScore: expect.any(Number),
+        }),
+      });
     });
   });
 });

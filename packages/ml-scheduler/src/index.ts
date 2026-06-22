@@ -21,3 +21,8 @@ export {
 } from "./feedback/outcome-collector";
 export { IncrementalUpdater } from "./training/incremental-updater";
 export { GridCarbonClient } from "./carbon/grid-client";
+export { calculateReward } from "./reward";
+export { buildSchedulingContext } from "./context-builder";
+export { SchedulingBandit } from "./bandit";
+export { FederatedAggregator } from "./federated-aggregator";
+

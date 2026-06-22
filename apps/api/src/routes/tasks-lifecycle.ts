@@ -8,6 +8,7 @@
 
 import { Permissions } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
+import { Prisma, TaskStatus, TaskType } from '@prisma/client';
 import { z } from 'zod';
 
 import { createTaskSchema, idParamSchema, taskQuerySchema } from '../schemas';
@@ -140,15 +141,17 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const task = await request.tPrisma.task.create({
         data: {
           name: data.name,
-          type: data.type as any,
+          type: data.type as TaskType,
           priority: data.priority,
           target: data.target,
           nodeId: data.nodeId ?? null,
           tenantId: request.user!.tenantId!,
-          policy: data.nodeId ? 'manual' : 'auto',
+          policy: data.policy ?? (data.nodeId ? 'manual' : 'auto'),
+          isDeferrable: data.isDeferrable ?? false,
+          maxDelayMinutes: data.maxDelayMinutes ?? 0,
           reason: 'User submitted',
-          input: (data.input ?? {}) as any,
-          metadata: (data.metadata ?? {}) as any,
+          input: (data.input ?? {}) as Prisma.InputJsonValue,
+          metadata: (data.metadata ?? {}) as Prisma.InputJsonValue,
           maxRetries: data.maxRetries ?? 3,
           executions: {
             create: {
@@ -165,7 +168,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Enqueue for scheduling
-      await fastify.taskScheduler.enqueue(task as any);
+      await fastify.taskScheduler.enqueue(task);
 
       // Audit log
       await request.tPrisma.auditLog.create({
@@ -263,11 +266,11 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         sortOrder,
         from,
         to,
-      } = request.query as any;
+      } = request.query as unknown as z.infer<typeof taskQuerySchema>;
 
-      const where: any = {
-        ...(status && { status }),
-        ...(type && { type }),
+      const where: Prisma.TaskWhereInput = {
+        ...(status && { status: status as TaskStatus }),
+        ...(type && { type: type as TaskType }),
         ...(nodeId && { nodeId }),
         ...(priority && { priority }),
         ...(from || to
@@ -283,9 +286,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const [tasks, total] = await Promise.all([
         request.tPrisma.task.findMany({
           where,
-          orderBy: { [sortBy]: sortOrder },
-          skip: (page - 1) * limit,
-          take: limit,
+          orderBy: { [sortBy ?? 'submittedAt']: sortOrder ?? 'desc' },
+          skip: ((page ?? 1) - 1) * (limit ?? 20),
+          take: limit ?? 20,
           include: {
             node: { select: { id: true, name: true, region: true } },
             executions: {
@@ -297,20 +300,20 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         request.tPrisma.task.count({ where }),
       ]);
 
-      const totalPages = Math.ceil(total / limit);
+      const totalPages = Math.ceil(total / (limit ?? 20));
 
       return {
-        data: tasks.map((t: any) => ({ ...t, _links: buildTaskLinks(t.id) })),
-        pagination: { page, limit, total, totalPages },
+        data: tasks.map((t) => ({ ...t, _links: buildTaskLinks(t.id) })),
+        pagination: { page: page ?? 1, limit: limit ?? 20, total, totalPages },
         _links: {
-          self: { href: `/api/v1/tasks?page=${page}&limit=${limit}` },
-          ...(page < totalPages && {
-            next: { href: `/api/v1/tasks?page=${page + 1}&limit=${limit}` },
+          self: { href: `/api/v1/tasks?page=${page ?? 1}&limit=${limit ?? 20}` },
+          ...(page! < totalPages && {
+            next: { href: `/api/v1/tasks?page=${(page ?? 1) + 1}&limit=${limit ?? 20}` },
           }),
-          ...(page > 1 && {
-            prev: { href: `/api/v1/tasks?page=${page - 1}&limit=${limit}` },
+          ...(page! > 1 && {
+            prev: { href: `/api/v1/tasks?page=${(page ?? 1) - 1}&limit=${limit ?? 20}` },
           }),
-          last: { href: `/api/v1/tasks?page=${totalPages}&limit=${limit}` },
+          last: { href: `/api/v1/tasks?page=${totalPages}&limit=${limit ?? 20}` },
         },
       };
     },
@@ -375,7 +378,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { id } = request.params as any;
+      const { id } = request.params as { id: string };
 
       const task = await request.tPrisma.task.findUnique({
         where: { id },
@@ -466,8 +469,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { id } = request.params as any;
-      const { reason, force } = (request.body ?? {}) as any;
+      const { id } = request.params as { id: string };
+      const { reason, force } = (request.body ?? {}) as z.infer<typeof cancelTaskSchema>;
 
       const task = await request.tPrisma.task.findUnique({
         where: { id },
@@ -533,6 +536,15 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       const updatedTask = results[0];
       const updatedExecution = results[1] ?? null;
 
+      // Decrement rate limiter pending count if scheduled or running
+      if (
+        ['SCHEDULED', 'RUNNING'].includes(previousStatus) &&
+        task.nodeId &&
+        fastify.taskScheduler?.schedulerRateLimiter
+      ) {
+        await fastify.taskScheduler.schedulerRateLimiter.recordTaskCompleted(task.nodeId);
+      }
+
       // If running, send kill command to edge agent
       if (previousStatus === 'RUNNING' && task.nodeId) {
         try {
@@ -571,7 +583,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           action: 'task.cancelled',
           entityType: 'task',
           entityId: id,
-          details: { reason, previousStatus, force } as any,
+          details: { reason, previousStatus, force } as Prisma.InputJsonValue,
           ipAddress: request.ip,
           userAgent: request.headers['user-agent'] ?? null,
         },
@@ -662,8 +674,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const { id } = request.params as any;
-      const overrides = (request.body ?? {}) as any;
+      const { id } = request.params as { id: string };
+      const overrides = (request.body ?? {}) as z.infer<typeof retryTaskSchema>;
 
       const originalTask = await request.tPrisma.task.findUnique({
         where: { id },
@@ -729,7 +741,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             status: 'PENDING',
             nodeId: overrides.nodeId ?? null,
             priority: overrides.priority ?? originalTask.priority,
-            input: (overrides.input ?? originalTask.input) as any,
+            input: (overrides.input ?? originalTask.input) as Prisma.InputJsonValue,
           },
         }),
         request.tPrisma.taskExecution.create({
@@ -752,7 +764,9 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       });
 
       // Enqueue for scheduling
-      await fastify.taskScheduler.enqueue(updatedTask as any);
+      if (updatedTask) {
+        await fastify.taskScheduler.enqueue(updatedTask);
+      }
 
       // Audit log
       await request.tPrisma.auditLog.create({
@@ -765,7 +779,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           details: {
             attemptNumber: allExecutions + 1,
             overrides,
-          } as any,
+          } as Prisma.InputJsonValue,
           ipAddress: request.ip,
           userAgent: request.headers['user-agent'] ?? null,
         },
@@ -852,15 +866,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
     async (request) => {
       const { id } = request.params as { id: string };
       const { level, executionId, source, from, to, limit, offset } =
-        request.query as {
-          level?: string;
-          executionId?: string;
-          source?: string;
-          from?: string;
-          to?: string;
-          limit: number;
-          offset: number;
-        };
+        request.query as unknown as z.infer<typeof taskLogsQuerySchema>;
 
       // Verify task exists
       const task = await request.tPrisma.task.findUnique({
@@ -876,7 +882,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         };
       }
 
-      const where: any = {
+      const where: Prisma.TaskLogWhereInput = {
         taskId: id,
         ...(level && { level }),
         ...(executionId && { executionId }),
@@ -906,13 +912,13 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         }),
       ]);
 
-      const firstLog = await (request.tPrisma as any).taskLog.findFirst({
+      const firstLog = await request.tPrisma.taskLog.findFirst({
         where: { taskId: id },
         orderBy: { timestamp: 'asc' },
         select: { timestamp: true },
       });
 
-      const lastLog = await (request.tPrisma as any).taskLog.findFirst({
+      const lastLog = await request.tPrisma.taskLog.findFirst({
         where: { taskId: id },
         orderBy: { timestamp: 'desc' },
         select: { timestamp: true },

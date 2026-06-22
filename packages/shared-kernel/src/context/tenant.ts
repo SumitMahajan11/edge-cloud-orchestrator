@@ -149,6 +149,7 @@ export function prismaForTenant(prisma: any, forcedTenantId?: string) {
             "TaskCostEstimate",
             "CostRecord",
             "CarbonMetric",
+            "CarbonRecord",
             "SagaInstance",
             "SagaStep",
             "EdgeNode",

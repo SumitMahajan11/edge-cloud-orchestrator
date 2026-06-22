@@ -103,7 +103,6 @@ describe("Saga Flow Integration", () => {
             orderBy: { attemptNumber: "desc" },
           });
           const state = await orchestrator.getSagaStatus(internalSagaId);
-
           return (
             updatedTask?.status === "PENDING" &&
             execution?.status === "CANCELLED" &&

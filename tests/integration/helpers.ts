@@ -41,6 +41,7 @@ export async function setupTestApp(): Promise<TestContext> {
   process.env.FORCE_MOCK_DB = "false";
   process.env.FORCE_MOCK_REDIS = "true";
   process.env.ALLOW_PRIVATE_IPS = "true";
+  process.env.WS_PORT = "0"; // Ephemeral port for websocket server
 
   // Run migrations/push dynamically on the SQLite DB
   const schemaPath = path.resolve(__dirname, "./client/schema.prisma");
@@ -190,47 +191,47 @@ export async function teardownTestApp(ctx?: TestContext): Promise<void> {
     console.warn("teardownTestApp called without context");
     return;
   }
-  // Clean up test data
+
+  // 1. Close Fastify app first. This stops all background loops, jobs, monitors,
+  // and the scheduler. It also closes HTTP connections safely.
+  if (ctx.app) {
+    try {
+      await ctx.app.close();
+    } catch (e) {
+      console.warn("Error closing fastify app:", e);
+    }
+  }
+
+  // 2. Disconnect prisma client
   if (ctx.prisma) {
     try {
-      await ctx.prisma.taskExecution.deleteMany({});
-      await ctx.prisma.taskLog.deleteMany({});
-      await ctx.prisma.task.deleteMany({});
-      await (ctx.prisma as any).nodeMetric.deleteMany({});
-      await (ctx.prisma as any).schedulingDecision.deleteMany({});
-      await (ctx.prisma as any).outcomeLog.deleteMany({});
-      await ctx.prisma.edgeNode.deleteMany({});
-      await ctx.prisma.apiKey.deleteMany({});
-      await ctx.prisma.webhook.deleteMany({});
-      await ctx.prisma.auditLog.deleteMany({});
-      await ctx.prisma.user.deleteMany({});
+      await ctx.prisma.$disconnect();
     } catch (e) {
-      console.warn("Error cleaning up tables:", e);
+      console.warn("Error disconnecting prisma:", e);
     }
-    await ctx.prisma.$disconnect();
   }
 
-  if (ctx.app) {
-    await ctx.app.close();
-  }
-
-  // Delete worker-specific DB file with retry to handle Windows file locks
+  // 3. Delete worker-specific DB file with retry to handle Windows file locks
   const workerId = process.env.VITEST_WORKER_ID || "0";
   const dbPath = path.resolve(__dirname, `../tmp/test-${workerId}.db`);
-  for (let i = 0; i < 5; i++) {
+  
+  // Wait a short bit to let the OS release the file handles
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  for (let i = 0; i < 10; i++) {
     try {
       if (fs.existsSync(dbPath)) {
         fs.rmSync(dbPath, { force: true });
       }
       break;
     } catch (err) {
-      if (i === 4) {
+      if (i === 9) {
         console.error(
-          `Failed to delete database file ${dbPath} after 5 attempts:`,
+          `Failed to delete database file ${dbPath} after 10 attempts:`,
           err,
         );
       } else {
-        await new Promise((resolve) => setTimeout(resolve, 200));
+        await new Promise((resolve) => setTimeout(resolve, 300));
       }
     }
   }
@@ -311,5 +312,13 @@ export async function createTestNode(
     throw new Error(`Failed to create test node: ${response.payload}`);
   }
 
-  return JSON.parse(response.payload);
+  const node = JSON.parse(response.payload);
+
+  // Update node status to ONLINE to bypass default OFFLINE status on register
+  await ctx.prisma.edgeNode.update({
+    where: { id: node.id },
+    data: { status: "ONLINE" },
+  });
+
+  return { ...node, status: "ONLINE" };
 }

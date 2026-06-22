@@ -11,6 +11,7 @@ import { queryKeys, STALE, queryClient } from "../lib/query-client";
 import {
   transformTasksFromApi,
   transformTaskFromApi,
+  transformTaskToApi,
 } from "../lib/typeTransformers";
 import type { TaskPriority, TaskType, RuntimeType } from "../types";
 
@@ -20,7 +21,7 @@ export function useTasks(params?: Record<string, unknown>) {
     queryFn: async () => {
       const { data, error } = await getV2Tasks({ query: params as any });
       if (error) throw error;
-      return transformTasksFromApi(data as any);
+      return transformTasksFromApi((data as any).data || []);
     },
     staleTime: STALE.taskStatus,
   });
@@ -45,11 +46,13 @@ export function useSubmitTask() {
       type: TaskType;
       priority: TaskPriority;
       runtime: RuntimeType;
+      image?: string | undefined;
       affinity?: string | undefined;
       specs?: { cpuCores: number; memoryGB: number } | undefined;
       policy?: string | undefined;
     }) => {
-      const { data, error } = await postV2Tasks({ body: task as any });
+      const apiPayload = transformTaskToApi(task);
+      const { data, error } = await postV2Tasks({ body: apiPayload });
       if (error) throw error;
       return data;
     },

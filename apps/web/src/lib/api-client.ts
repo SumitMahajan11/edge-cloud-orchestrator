@@ -53,6 +53,7 @@ async function buildHeaders(init?: HeadersInit): Promise<Headers> {
   if (!h.has("Content-Type")) h.set("Content-Type", "application/json");
 
   const token = authStorage.getToken();
+  console.log("[api-client] buildHeaders token from storage:", token ? `exists (${token.substring(0, 10)}...)` : "null/undefined");
   if (token) h.set("Authorization", `Bearer ${token}`);
 
   const tenantId = getActiveTenantId();
@@ -68,26 +69,36 @@ async function buildHeaders(init?: HeadersInit): Promise<Headers> {
   return h;
 }
 
+let refreshPromise: Promise<boolean> | null = null;
+
 async function refreshAuth(): Promise<boolean> {
-  const rt = authStorage.getRefreshToken();
-  if (!rt) return false;
-  try {
-    const res = await fetch(`${getBaseUrl()}/v2/auth/refresh`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ refreshToken: rt }),
-    });
-    if (!res.ok) return false;
-    const data = await res.json();
-    if (data?.token) {
-      authStorage.setToken(data.token);
-      if (data.refreshToken) authStorage.setRefreshToken(data.refreshToken);
-      return true;
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = (async () => {
+    const rt = authStorage.getRefreshToken();
+    if (!rt) return false;
+    try {
+      const res = await fetch(`${getBaseUrl()}/v2/auth/refresh`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ refreshToken: rt }),
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      if (data?.token) {
+        authStorage.setToken(data.token);
+        if (data.refreshToken) authStorage.setRefreshToken(data.refreshToken);
+        return true;
+      }
+    } catch {
+      /* fall through */
+    } finally {
+      refreshPromise = null;
     }
-  } catch {
-    /* fall through */
-  }
-  return false;
+    return false;
+  })();
+
+  return refreshPromise;
 }
 
 async function customFetch(
@@ -96,6 +107,9 @@ async function customFetch(
 ): Promise<Response> {
   let attempt = 0;
   let refreshed = false;
+
+  const url = input instanceof Request ? input.url : String(input);
+  console.log("[api-client] customFetch starting for:", url);
 
   while (true) {
     // When the @hey-api/openapi-ts client calls customFetch, it passes
@@ -108,7 +122,21 @@ async function customFetch(
       baseHeaders = input.headers;
     }
     const headers = await buildHeaders(baseHeaders);
-    const res = await fetch(input, { ...init, headers });
+    const headersObj: Record<string, string> = {};
+    headers.forEach((value, key) => {
+      headersObj[key] = value;
+    });
+
+    console.log("[api-client] customFetch headers for", url, ":", JSON.stringify(headersObj));
+
+    let req: Request;
+    if (input instanceof Request) {
+      req = new Request(input, { headers: headersObj });
+    } else {
+      req = new Request(input, { ...init, headers: headersObj });
+    }
+
+    const res = await fetch(req);
 
     if (res.status === 429 && attempt < 2) {
       const retryAfter = Number(res.headers.get("Retry-After") ?? "1");

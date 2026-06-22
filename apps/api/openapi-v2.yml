@@ -462,6 +462,9 @@ paths:
                     type: string
                   image:
                     type: string
+                  wasm_artifact_id:
+                    type: string
+                    nullable: true
                   input:
                     type: object
                     additionalProperties: true
@@ -1089,6 +1092,42 @@ paths:
                     type: boolean
                   carbonWeight:
                     type: number
+  /v2/carbon/report:
+    get:
+      summary: Get auditable tenant carbon report
+      tags:
+        - carbon
+      parameters:
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: from
+          required: false
+        - schema:
+            type: string
+            format: date-time
+          in: query
+          name: to
+          required: false
+        - schema:
+            type: string
+            format: uuid
+          in: query
+          name: tenantId
+          required: false
+        - schema:
+            type: string
+            enum:
+              - json
+              - csv
+            default: json
+          in: query
+          name: format
+          required: false
+      responses:
+        "200":
+          description: Default Response
   /v2/carbon/savings:
     get:
       summary: Get carbon savings metrics
@@ -1652,6 +1691,90 @@ paths:
                       type: string
                     score:
                       type: number
+  /v2/ml/federated/model/{modelId}/weights:
+    get:
+      summary: Download weights for a federated learning model
+      tags:
+        - ml
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: modelId
+          required: true
+      responses:
+        "200":
+          description: Default Response
+  /v2/ml/federated/round:
+    get:
+      summary: Get or initialize current active federated learning round
+      tags:
+        - ml
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  roundId:
+                    type: string
+                  roundNumber:
+                    type: number
+                  modelId:
+                    type: string
+                  status:
+                    type: string
+                  minParticipants:
+                    type: number
+                  submissionsCount:
+                    type: number
+  /v2/ml/federated/weights:
+    post:
+      summary: Submit local model weight deltas for federated aggregation
+      tags:
+        - ml
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - roundId
+                - nodeId
+                - weightsUrl
+                - sampleCount
+              properties:
+                roundId:
+                  type: string
+                nodeId:
+                  type: string
+                weightsUrl:
+                  type: string
+                sampleCount:
+                  type: number
+                avgReward:
+                  type: number
+                  nullable: true
+        required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+  /v2/ml/federated/weights/upload:
+    post:
+      responses:
+        "200":
+          description: Default Response
   /v2/ml/model/current:
     get:
       summary: Get current ML model status
@@ -1806,7 +1929,6 @@ paths:
                       properties:
                         id:
                           type: string
-                          format: uuid
                         name:
                           type: string
                         location:
@@ -1951,7 +2073,6 @@ paths:
                 properties:
                   id:
                     type: string
-                    format: uuid
                   name:
                     type: string
                   location:
@@ -2037,7 +2158,6 @@ paths:
                 properties:
                   id:
                     type: string
-                    format: uuid
                   name:
                     type: string
                   location:
@@ -2457,6 +2577,45 @@ paths:
                     type: number
                   efficiency:
                     type: number
+  /v2/scheduling/policy:
+    get:
+      summary: Get per-tenant scheduling policy
+      tags:
+        - scheduling
+      responses:
+        "200":
+          description: Default Response
+    put:
+      summary: Update per-tenant scheduling policy weights
+      tags:
+        - scheduling
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                costWeight:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                latencyWeight:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+                carbonWeight:
+                  type: number
+                  minimum: 0
+                  maximum: 1
+              required:
+                - costWeight
+                - latencyWeight
+                - carbonWeight
+              additionalProperties: false
+        required: true
+      responses:
+        "200":
+          description: Default Response
   /v2/status:
     get:
       responses:
@@ -2503,7 +2662,6 @@ paths:
           required: false
         - schema:
             type: string
-            format: uuid
           in: query
           name: nodeId
           required: false
@@ -2527,7 +2685,7 @@ paths:
         - schema:
             type: integer
             minimum: 1
-            maximum: 100
+            maximum: 10000
             default: 20
           in: query
           name: limit
@@ -2603,7 +2761,6 @@ paths:
                             - anyOf:
                                 - not: {}
                                 - type: string
-                                  format: uuid
                             - type: "null"
                         specs:
                           anyOf:
@@ -2653,7 +2810,17 @@ paths:
                             - DOCKER
                             - WASM
                         image:
-                          type: string
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                            - type: "null"
+                        wasmArtifactId:
+                          anyOf:
+                            - anyOf:
+                                - not: {}
+                                - type: string
+                            - type: "null"
                         affinity:
                           anyOf:
                             - anyOf:
@@ -2674,7 +2841,6 @@ paths:
                         - priority
                         - submittedAt
                         - runtime
-                        - image
                       additionalProperties: false
                   pagination:
                     type: object
@@ -2742,7 +2908,6 @@ paths:
                   default: EDGE
                 nodeId:
                   type: string
-                  format: uuid
                 specs:
                   type: object
                   properties:
@@ -2779,15 +2944,22 @@ paths:
                   default: DOCKER
                 image:
                   type: string
-                  minLength: 1
+                wasmArtifactId:
+                  type: string
                 affinity:
                   type: string
                 traceId:
                   type: string
+                isDeferrable:
+                  type: boolean
+                maxDelayMinutes:
+                  type: integer
+                  minimum: 0
+                policy:
+                  type: string
               required:
                 - name
                 - type
-                - image
               additionalProperties: false
         required: true
       responses:
@@ -2821,7 +2993,6 @@ paths:
                       - anyOf:
                           - not: {}
                           - type: string
-                            format: uuid
                       - type: "null"
                   specs:
                     anyOf:
@@ -2871,7 +3042,17 @@ paths:
                       - DOCKER
                       - WASM
                   image:
-                    type: string
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                  wasmArtifactId:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
                   affinity:
                     anyOf:
                       - anyOf:
@@ -2892,7 +3073,6 @@ paths:
                   - priority
                   - submittedAt
                   - runtime
-                  - image
                 additionalProperties: false
         "400":
           description: Default Response
@@ -2901,6 +3081,52 @@ paths:
               schema:
                 $ref: "#/components/schemas/def-0"
         "409":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/tasks/artifacts:
+    post:
+      summary: Upload a WASM task artifact
+      tags:
+        - tasks
+      responses:
+        "201":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  artifactId:
+                    type: string
+        "400":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/def-0"
+  /v2/tasks/artifacts/{id}:
+    get:
+      summary: Download a WASM task artifact
+      tags:
+        - tasks
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: string
+                format: binary
+        "404":
           description: Default Response
           content:
             application/json:
@@ -2957,7 +3183,6 @@ paths:
                       - anyOf:
                           - not: {}
                           - type: string
-                            format: uuid
                       - type: "null"
                   specs:
                     anyOf:
@@ -3007,7 +3232,17 @@ paths:
                       - DOCKER
                       - WASM
                   image:
-                    type: string
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
+                  wasmArtifactId:
+                    anyOf:
+                      - anyOf:
+                          - not: {}
+                          - type: string
+                      - type: "null"
                   affinity:
                     anyOf:
                       - anyOf:
@@ -3028,7 +3263,6 @@ paths:
                   - priority
                   - submittedAt
                   - runtime
-                  - image
                 additionalProperties: false
         "404":
           description: Default Response

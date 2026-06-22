@@ -274,11 +274,6 @@ export class SagaOrchestrator extends EventEmitter {
 
     // Store saga state in Redis with 10-minute TTL as a safety net
     if (this.redis) {
-      console.log("--- SAGA REDIS KEYS ---", Object.keys(this.redis));
-      console.log(
-        "--- SAGA REDIS SET TYPE ---",
-        typeof (this.redis as any).set,
-      );
       await this.redis.set(
         `saga:state:${saga.id}`,
         JSON.stringify({
@@ -331,8 +326,6 @@ export class SagaOrchestrator extends EventEmitter {
         throw new Error(`Saga ${sagaId} not found`);
       }
 
-      console.log(`[Orchestrator] Saga context:`, JSON.stringify(saga.context));
-
       const definition = this.sagaDefinitions.get(saga.sagaType);
       if (!definition) {
         throw new Error(`Saga definition not found: ${saga.sagaType}`);
@@ -351,7 +344,7 @@ export class SagaOrchestrator extends EventEmitter {
           sagaId,
           definition,
           saga.currentStep,
-          saga.context as any,
+          this.parseContext(saga.context),
           error,
         );
         return;
@@ -379,15 +372,10 @@ export class SagaOrchestrator extends EventEmitter {
           }
 
           // Execute steps sequentially with idempotency
-          let context = saga.context as Record<string, unknown>;
-          console.log(
-            `[Orchestrator] Initial context:`,
-            JSON.stringify(context),
-          );
+          let context = this.parseContext(saga.context);
 
           for (let i = saga.currentStep; i < definition.steps.length; i++) {
             const stepDef = definition.steps[i]!;
-            console.log(`[Orchestrator] Processing step ${i}: ${stepDef.name}`);
             const stepRecord = saga.steps[i]!;
 
             // Re-check global saga timeout between steps
@@ -559,7 +547,7 @@ export class SagaOrchestrator extends EventEmitter {
             sagaId,
             definition,
             saga.currentStep,
-            saga.context as any,
+            this.parseContext(saga.context),
             error,
           );
         }
@@ -607,6 +595,7 @@ export class SagaOrchestrator extends EventEmitter {
     context: any,
     error: Error,
   ): Promise<void> {
+    const parsedContext = this.parseContext(context);
     // Update failed step record if it exists
     try {
       await this.prisma.sagaStep.updateMany({
@@ -671,7 +660,7 @@ export class SagaOrchestrator extends EventEmitter {
 
           const compensateStep = async (stepSpan?: any) => {
             try {
-              await stepDef!.compensate(context, i);
+              await stepDef!.compensate(parsedContext, i);
 
               await this.prisma.sagaStep.update({
                 where: { id: stepRecord!.id },
@@ -873,6 +862,17 @@ export class SagaOrchestrator extends EventEmitter {
       compensated,
       failed,
     };
+  }
+
+  private parseContext(context: any): Record<string, any> {
+    if (typeof context === "string") {
+      try {
+        return JSON.parse(context);
+      } catch (err) {
+        return {};
+      }
+    }
+    return context || {};
   }
 
   /**

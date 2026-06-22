@@ -59,6 +59,8 @@ export class MultiObjectiveScorer {
     task: Task,
     node: EdgeNode,
     maxCarbon?: number,
+    weights?: ScoreWeights,
+    banditScore?: number,
   ): Promise<NodeScoreResult> {
     // Normalize metrics to 0-1 scale (higher is better)
     const latencyScore = this.normalizeLatency(node.latency);
@@ -70,18 +72,26 @@ export class MultiObjectiveScorer {
     const carbonScore = this.normalizeCarbon(node.carbonIntensity, maxCarbon);
 
     // ML prediction
-    const mlPrediction = await this.predictor.predictAsync(task, node);
+    const mlPrediction =
+      banditScore !== undefined
+        ? banditScore
+        : await this.predictor.predictAsync(task, node);
+
+    const activeWeights = weights || this.weights;
 
     // Weighted sum
-    const score =
-      this.weights.latency * latencyScore +
-      this.weights.cpu * cpuScore +
-      this.weights.memory * memoryScore +
-      this.weights.cost * costScore +
-      this.weights.network * networkScore +
-      this.weights.ml * mlPrediction +
-      this.weights.health * healthScore +
-      (this.weights as any).carbon * carbonScore;
+    const rawScore =
+      activeWeights.latency * latencyScore +
+      activeWeights.cpu * cpuScore +
+      activeWeights.memory * memoryScore +
+      activeWeights.cost * costScore +
+      activeWeights.network * networkScore +
+      activeWeights.ml * mlPrediction +
+      activeWeights.health * healthScore +
+      ((activeWeights as any).carbon || 0) * carbonScore;
+
+    const penaltyMultiplier = (node as any).penaltyMultiplier !== undefined ? (node as any).penaltyMultiplier : 1.0;
+    const score = rawScore * penaltyMultiplier;
 
     return {
       nodeId: node.id,
@@ -99,13 +109,26 @@ export class MultiObjectiveScorer {
     };
   }
 
-  async rankNodes(task: Task, nodes: EdgeNode[]): Promise<NodeScoreResult[]> {
+  async rankNodes(
+    task: Task,
+    nodes: EdgeNode[],
+    weights?: ScoreWeights,
+    banditScores?: Record<string, number>,
+  ): Promise<NodeScoreResult[]> {
     const maxCarbon = Math.max(
       ...nodes.map((n) => n.carbonIntensity || 400),
       1,
     );
     const scores = await Promise.all(
-      nodes.map((node) => this.calculateScore(task, node, maxCarbon)),
+      nodes.map((node) =>
+        this.calculateScore(
+          task,
+          node,
+          maxCarbon,
+          weights,
+          banditScores?.[node.id],
+        ),
+      ),
     );
     return scores.sort((a, b) => b.score - a.score);
   }
@@ -113,11 +136,13 @@ export class MultiObjectiveScorer {
   async selectBestNode(
     task: Task,
     nodes: EdgeNode[],
+    weights?: ScoreWeights,
+    banditScores?: Record<string, number>,
   ): Promise<NodeScoreResult | null> {
     if (nodes.length === 0) {
       return null;
     }
-    const ranked = await this.rankNodes(task, nodes);
+    const ranked = await this.rankNodes(task, nodes, weights, banditScores);
     return ranked[0] ?? null;
   }
 

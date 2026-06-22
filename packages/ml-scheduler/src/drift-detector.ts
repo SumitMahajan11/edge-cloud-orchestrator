@@ -1,5 +1,6 @@
 import { createLogger, IMetricsCollector } from "@edgecloud/shared-kernel";
 import { PrismaClient } from "@prisma/client";
+import { EventEmitter } from "events";
 
 const logger = createLogger("ml-drift-detector");
 
@@ -12,7 +13,7 @@ export interface PredictionOutcome {
   timestamp: Date;
 }
 
-export class DriftDetector {
+export class DriftDetector extends EventEmitter {
   private rollingMAE: number = 0;
   private readonly windowSize = 100;
   private outcomes: PredictionOutcome[] = [];
@@ -25,7 +26,9 @@ export class DriftDetector {
   constructor(
     private metrics: IMetricsCollector,
     private prisma?: PrismaClient,
-  ) {}
+  ) {
+    super();
+  }
 
   onDrift(callback: (mae: number) => void): void {
     this.onDriftCallback = callback;
@@ -49,12 +52,22 @@ export class DriftDetector {
         this.mlSuppressed = true;
         this.onDriftCallback?.(this.rollingMAE);
       }
+      this.emit("drift-detected", {
+        psi: this.rollingMAE,
+        feature: "mae",
+        detectedAt: new Date(),
+      });
     } else if (this.rollingMAE >= this.WARN_THRESHOLD) {
       logger.warn(
         { mae: this.rollingMAE, threshold: this.WARN_THRESHOLD },
         "Model drift warning: Performance degrading. Triggering retraining.",
       );
       this.onDriftCallback?.(this.rollingMAE);
+      this.emit("drift-detected", {
+        psi: this.rollingMAE,
+        feature: "mae",
+        detectedAt: new Date(),
+      });
       this.mlSuppressed = false;
     } else {
       this.mlSuppressed = false;
@@ -77,6 +90,13 @@ export class DriftDetector {
 
   isDrifting(): boolean {
     return this.mlSuppressed;
+  }
+
+  reset(): void {
+    this.outcomes = [];
+    this.rollingMAE = 0;
+    this.mlSuppressed = false;
+    logger.info("Drift detector state reset");
   }
 
   async getState() {

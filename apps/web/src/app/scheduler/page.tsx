@@ -51,6 +51,8 @@ import { useEffect } from "react";
 import { isApiClientError } from "@edgecloud/api-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { SubmitTaskModal } from "@/components/modals/SubmitTaskModal";
+
 
 export default function TaskSchedulerPage() {
   const router = useRouter();
@@ -61,6 +63,8 @@ export default function TaskSchedulerPage() {
   } = useTasks();
   const { data: nodes = [], error: nodesError } = useNodes();
   const [search, setSearch] = useState("");
+  const [isSubmitTaskModalOpen, setIsSubmitTaskModalOpen] = useState(false);
+
 
   useEffect(() => {
     const error = tasksError || nodesError;
@@ -99,7 +103,7 @@ export default function TaskSchedulerPage() {
           <Button variant="outline" className="gap-2">
             <Settings className="h-4 w-4" /> Global Config
           </Button>
-          <Button className="gap-2">
+          <Button className="gap-2" onClick={() => setIsSubmitTaskModalOpen(true)}>
             <Plus className="h-4 w-4" /> New Task
           </Button>
         </div>
@@ -286,6 +290,11 @@ export default function TaskSchedulerPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <SubmitTaskModal
+        isOpen={isSubmitTaskModalOpen}
+        onClose={() => setIsSubmitTaskModalOpen(false)}
+      />
     </div>
   );
 }

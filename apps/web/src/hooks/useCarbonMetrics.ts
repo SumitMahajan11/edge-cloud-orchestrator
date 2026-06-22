@@ -89,3 +89,42 @@ export function useCarbonMetrics() {
     },
   };
 }
+
+export function useCarbonReport(from?: string, to?: string) {
+  const query = useQuery({
+    queryKey: ["carbon", "report", from, to],
+    queryFn: async () => {
+      let path = "/v2/carbon/report?format=json";
+      if (from) path += `&from=${encodeURIComponent(from)}`;
+      if (to) path += `&to=${encodeURIComponent(to)}`;
+      return api.get<any>(path);
+    },
+    staleTime: 30_000,
+  });
+
+  const downloadCsv = async () => {
+    let path = "/v2/carbon/report?format=csv";
+    if (from) path += `&from=${encodeURIComponent(from)}`;
+    if (to) path += `&to=${encodeURIComponent(to)}`;
+    const csvContent = await api.get<string>(path);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    const filenameFrom = from ? from.split('T')[0] : 'start';
+    const filenameTo = to ? to.split('T')[0] : 'end';
+    link.setAttribute("download", `carbon-report-${filenameFrom}-to-${filenameTo}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  return {
+    data: query.data,
+    isLoading: query.isLoading,
+    error: query.error,
+    refetch: query.refetch,
+    downloadCsv,
+  };
+}

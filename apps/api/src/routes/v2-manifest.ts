@@ -16,6 +16,7 @@ import nodeRoutes from './nodes.js';
 import policyRoutes from './policies.js';
 import resilienceRoutes from './resilience.js';
 import schedulerRoutes from './scheduler.js';
+import schedulingRoutes from './scheduling.js';
 import systemRoutes from './system.js';
 import taskRoutes from './tasks.js';
 import webhookRoutes from './webhooks.js';
@@ -44,6 +45,7 @@ const v2Routes: FastifyPluginAsync = async (fastify) => {
   await fastify.register(logRoutes, { prefix: '/logs' });
   await fastify.register(systemRoutes, { prefix: '/system' });
   await fastify.register(schedulerRoutes, { prefix: '/scheduler' });
+  await fastify.register(schedulingRoutes, { prefix: '/scheduling' });
   await fastify.register(mlRoutes, { prefix: '/ml' });
   await fastify.register(resilienceRoutes, { prefix: '/circuit-breakers' });
   await fastify.register(apiKeyRoutes, { prefix: '/api-keys' });

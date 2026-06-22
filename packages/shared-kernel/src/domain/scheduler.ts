@@ -119,16 +119,23 @@ export async function calculateNodeScore(
 
   const mlScore = predictor ? await predictor(node, task) : 0.5;
   const healthScore = node.status === "ONLINE" ? 1.0 : 0.0;
+  const carbonScore = node.carbonIntensity !== undefined && node.carbonIntensity !== null
+    ? 1 - Math.min(node.carbonIntensity / 1000, 1)
+    : 0.5;
 
-  return (
+  const rawScore = (
     weights.latency * latencyScore +
     weights.cpu * cpuScore +
     weights.memory * memoryScore +
     weights.cost * costScore +
     weights.network * networkScore +
     weights.ml * mlScore +
-    weights.health * healthScore
+    weights.health * healthScore +
+    (weights.carbon || 0) * carbonScore
   );
+
+  const multiplier = node.penaltyMultiplier !== undefined ? node.penaltyMultiplier : 1.0;
+  return rawScore * multiplier;
 }
 
 export function validateWeights(weights: ScoreWeights): boolean {

@@ -103,6 +103,9 @@ export class SchedulerRateLimiter extends EventEmitter {
   /**
    * Check if a task scheduling request is allowed
    */
+  /**
+   * Check if a task scheduling request is allowed
+   */
   async checkRateLimit(
     _taskId: string,
     userId: string,
@@ -156,23 +159,25 @@ export class SchedulerRateLimiter extends EventEmitter {
       }
 
       // Check per-node rate limit
-      const nodeLimit =
-        this.config.maxTasksPerNodePerMinute * (1 + this.config.burstAllowance);
-      if (usage.nodeTasksPerMinute >= nodeLimit) {
-        this.emit('violation', {
-          type: 'node_rate',
-          identifier: nodeId,
-          current: usage.nodeTasksPerMinute,
-          limit: nodeLimit,
-          timestamp: new Date(),
-        } as RateLimitViolation);
+      if (nodeId && nodeId !== 'pending') {
+        const nodeLimit =
+          this.config.maxTasksPerNodePerMinute * (1 + this.config.burstAllowance);
+        if (usage.nodeTasksPerMinute >= nodeLimit) {
+          this.emit('violation', {
+            type: 'node_rate',
+            identifier: nodeId,
+            current: usage.nodeTasksPerMinute,
+            limit: nodeLimit,
+            timestamp: new Date(),
+          } as RateLimitViolation);
 
-        return {
-          allowed: false,
-          reason: `Node ${nodeId} rate limit exceeded`,
-          retryAfterMs: 60000 - (Date.now() % 60000),
-          currentUsage: usage,
-        };
+          return {
+            allowed: false,
+            reason: `Node ${nodeId} rate limit exceeded`,
+            retryAfterMs: 60000 - (Date.now() % 60000),
+            currentUsage: usage,
+          };
+        }
       }
 
       // Check pending tasks limits
@@ -184,13 +189,15 @@ export class SchedulerRateLimiter extends EventEmitter {
         };
       }
 
-      const nodePending = usage.pendingPerNode[nodeId] || 0;
-      if (nodePending >= this.config.maxPendingTasksPerNode) {
-        return {
-          allowed: false,
-          reason: `Node ${nodeId} pending task limit exceeded`,
-          currentUsage: usage,
-        };
+      if (nodeId && nodeId !== 'pending') {
+        const nodePending = usage.pendingPerNode[nodeId] || 0;
+        if (nodePending >= this.config.maxPendingTasksPerNode) {
+          return {
+            allowed: false,
+            reason: `Node ${nodeId} pending task limit exceeded`,
+            currentUsage: usage,
+          };
+        }
       }
 
       return {
@@ -209,6 +216,19 @@ export class SchedulerRateLimiter extends EventEmitter {
   }
 
   private checkFallbackRateLimit(nodeId: string): RateLimitCheck {
+    if (!nodeId || nodeId === 'pending') {
+      return {
+        allowed: true,
+        degraded: true,
+        currentUsage: {
+          globalTasksPerMinute: 0,
+          userTasksPerHour: 0,
+          nodeTasksPerMinute: 0,
+          pendingGlobal: 0,
+          pendingPerNode: {},
+        },
+      };
+    }
     const now = Date.now();
     const oneMinuteAgo = now - 60000;
 
@@ -327,12 +347,17 @@ export class SchedulerRateLimiter extends EventEmitter {
       return;
     }
     try {
-      const pipeline = this.redis.pipeline();
-
-      pipeline.decr(REDIS_KEYS.pendingGlobal);
-      pipeline.decr(REDIS_KEYS.pendingNode(nodeId));
-
-      await pipeline.exec();
+      const script = `
+        local g = tonumber(redis.call('GET', KEYS[1]) or '0')
+        if g > 0 then
+          redis.call('DECR', KEYS[1])
+        end
+        local n = tonumber(redis.call('GET', KEYS[2]) or '0')
+        if n > 0 then
+          redis.call('DECR', KEYS[2])
+        end
+      `;
+      await this.redis.eval(script, 2, REDIS_KEYS.pendingGlobal, REDIS_KEYS.pendingNode(nodeId));
     } catch (err) {
       this.logger.error(
         err,
@@ -340,6 +365,78 @@ export class SchedulerRateLimiter extends EventEmitter {
       );
       this.redisAvailable = false;
       this.startRecoveryCheck();
+    }
+  }
+
+  /**
+   * Reconciles pending counters against actual DB state.
+   * Run periodically (e.g. every 5 minutes) to correct drift.
+   */
+  async reconcilePendingCounters(prisma: any): Promise<{
+    before: { global: number };
+    after: { global: number };
+    corrected: boolean;
+  }> {
+    if (!this.redisAvailable) {
+      return { before: { global: 0 }, after: { global: 0 }, corrected: false };
+    }
+    try {
+      const actualPendingCount = await prisma.task.count({
+        where: { status: { in: ['SCHEDULED', 'RUNNING'] } }
+      });
+
+      const currentValue = parseInt(
+        (await this.redis.get(REDIS_KEYS.pendingGlobal)) || '0',
+        10
+      );
+
+      const corrected = Math.abs(currentValue - actualPendingCount) > 5;
+      if (corrected) {
+        this.logger.warn(
+          { redisValue: currentValue, actualValue: actualPendingCount },
+          'Pending global counter drift detected — reconciling',
+        );
+        await this.redis.set(REDIS_KEYS.pendingGlobal, actualPendingCount);
+      }
+
+      // Also reconcile per-node pending counters
+      try {
+        const nodeCounts = await prisma.task.groupBy({
+          by: ['nodeId'],
+          where: {
+            status: { in: ['SCHEDULED', 'RUNNING'] },
+            nodeId: { not: null }
+          },
+          _count: { id: true }
+        });
+
+        const dbNodeMap = new Map<string, number>();
+        for (const nc of nodeCounts) {
+          if (nc.nodeId) {
+            dbNodeMap.set(nc.nodeId, nc._count.id);
+          }
+        }
+
+        const allNodes = await prisma.edgeNode.findMany({ select: { id: true } });
+        const pipeline = this.redis.pipeline();
+        for (const node of allNodes) {
+          const actualCount = dbNodeMap.get(node.id) || 0;
+          const key = REDIS_KEYS.pendingNode(node.id);
+          pipeline.set(key, actualCount);
+        }
+        await pipeline.exec();
+      } catch (err) {
+        this.logger.error(err, 'Failed to reconcile per-node pending counters');
+      }
+
+      return {
+        before: { global: currentValue },
+        after: { global: actualPendingCount },
+        corrected
+      };
+    } catch (err) {
+      this.logger.error(err, 'Failed to reconcile pending counters');
+      return { before: { global: 0 }, after: { global: 0 }, corrected: false };
     }
   }
 

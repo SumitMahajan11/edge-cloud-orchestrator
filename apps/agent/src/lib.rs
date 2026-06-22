@@ -6,3 +6,4 @@ pub mod persistence;
 pub mod agent;
 pub mod telemetry;
 pub mod metrics;
+pub mod federated;
