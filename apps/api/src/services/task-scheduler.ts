@@ -1499,6 +1499,11 @@ export class TaskScheduler extends EventEmitter {
         await this.schedulerRateLimiter.recordTaskCompleted(task.nodeId);
       }
 
+      // Record carbon footprint attribution record if completed
+      if (status === 'COMPLETED' && task.nodeId) {
+        await this.recordCarbonFootprint(task.id, task.nodeId, durationMs);
+      }
+
       if (task.policy !== 'ml-optimized') {
         return;
       }
@@ -1754,6 +1759,15 @@ export class TaskScheduler extends EventEmitter {
         select: { tenantId: true, isDeferrable: true, metadata: true },
       });
       if (!task) return;
+
+      // Check if a carbon record already exists for this taskId to prevent duplicate key errors
+      const existingRecord = await (this.prisma as any).carbonRecord.findUnique({
+        where: { taskId },
+      });
+      if (existingRecord) {
+        this.logger.debug({ taskId }, 'Carbon record already exists, skipping duplicate creation');
+        return;
+      }
 
       // 2. Fetch the node's region to map to the carbon zone
       const node = await this.prisma.edgeNode.findUnique({
@@ -2397,6 +2411,21 @@ export class TaskScheduler extends EventEmitter {
       }
     } catch (err) {
       this.logger.warn({ taskId, err }, 'Failed to record ML outcome');
+    }
+
+    // Contextual Bandit feedback loop — persist SchedulingOutcome and update bandit weights.
+    // This mirrors the logic in recordTaskOutcome so that completions routed through
+    // handleTaskCompletion (integration tests, direct invocations) are also captured.
+    if (task.policy === 'ml-optimized') {
+      const banditStatus: 'COMPLETED' | 'FAILED' =
+        result.status === 'completed' ? 'COMPLETED' : 'FAILED';
+      this.processBanditOutcome(task as any, result.duration, banditStatus).catch(
+        (err) =>
+          this.logger.error(
+            { taskId, err },
+            'handleTaskCompletion: processBanditOutcome failed',
+          ),
+      );
     }
   }
 

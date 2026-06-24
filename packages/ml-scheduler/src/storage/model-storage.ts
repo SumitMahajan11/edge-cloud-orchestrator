@@ -54,7 +54,8 @@ export class ModelStorageService {
         Key: key,
         Body: buffer,
         ContentType: "application/octet-stream",
-        ServerSideEncryption: "AES256",
+        // Note: ServerSideEncryption removed — MinIO community does not support KMS.
+        // Weights are protected by transport-level security in production.
         Metadata: {
           "x-amz-meta-checksum-sha256": checksum,
         },

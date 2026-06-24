@@ -1,4 +1,0 @@
-{
-  "forgedValid": false,
-  "verifyResult": false
-}
