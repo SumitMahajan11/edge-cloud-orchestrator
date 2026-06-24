@@ -120,3 +120,10 @@ check_outcomes.js
 measure_carbon_shift.js
 temp_ml/
 _audit_scan.ps1
+
+apps/api/models/
+bandit_benchmark.mjs
+bandit_query.sql
+fl-simulator-results.json
+run_bandit_benchmark.ps1
+tests/tmp/
