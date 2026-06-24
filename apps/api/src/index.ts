@@ -509,7 +509,7 @@ async function registerRoutes() {
     return { error: 'Mock DB not enabled' };
   });
 
-  app.post('/debug/rate-limit/reset', { config: { public: true, rateLimit: false } }, async (request, reply) => {
+  app.post('/debug/rate-limit/reset', { config: { public: true, rateLimit: false } }, async (_request, reply) => {
     console.log('[DEBUG] Hit /debug/rate-limit/reset');
     if (env.NODE_ENV !== 'production') {
       try {

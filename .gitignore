@@ -108,3 +108,15 @@ target/
 query_engine-*.node
 query_engine-*.node.tmp*
 
+
+# Agent session debug outputs
+*.log
+fix_before.txt
+fix_after.txt
+ml_setup_confirmed.txt
+BENCHMARK.md
+test_query.js
+check_outcomes.js
+measure_carbon_shift.js
+temp_ml/
+_audit_scan.ps1

@@ -23,6 +23,7 @@ export interface MockUser {
   lastLoginAt: Date | null;
   apiKey?: string | undefined;
   tenantId?: string | undefined;
+  tenantUsers?: Array<{ tenantId: string; role: string }>;
 }
 
 export interface MockSession {
@@ -192,7 +193,7 @@ function createMockGroupBy(storeName: string) {
     }
 
     const results = [];
-    for (const [groupKey, groupItems] of groups.entries()) {
+    for (const [_groupKey, groupItems] of groups.entries()) {
       const firstItem = groupItems[0];
       const resObj: any = {};
       for (const f of byFields) {
@@ -499,91 +500,6 @@ function createMockModelStore<T extends { id: string }>(storeName: string) {
       };
       store.set(id, created);
       return created;
-    },
-    aggregate: async (args: any = {}) => {
-      const where = args?.where || {};
-      let items = Array.from(store.values());
-
-      if (where) {
-        items = items.filter((item: any) => {
-          for (const [k, v] of Object.entries(where)) {
-            const val = v as any;
-            if (val !== undefined) {
-              if (val && typeof val === 'object' && val.in) {
-                if (!val.in.includes(item[k])) return false;
-              } else if (
-                val &&
-                typeof val === 'object' &&
-                (val.lt || val.gte || val.gt || val.lte)
-              ) {
-                if (val.lt !== undefined && item[k] >= val.lt) return false;
-                if (val.gte !== undefined && item[k] < val.gte) return false;
-                if (val.gt !== undefined && item[k] <= val.gt) return false;
-                if (val.lte !== undefined && item[k] > val.lte) return false;
-              } else if (item[k] !== val) {
-                return false;
-              }
-            }
-          }
-          return true;
-        });
-      }
-
-      const result: any = {};
-
-      if (args._sum) {
-        result._sum = {};
-        for (const key of Object.keys(args._sum)) {
-          let total = 0;
-          for (const item of items) {
-            total += Number((item as any)[key]) || 0;
-          }
-          result._sum[key] = total;
-        }
-      }
-
-      if (args._avg) {
-        result._avg = {};
-        for (const key of Object.keys(args._avg)) {
-          let total = 0;
-          for (const item of items) {
-            total += Number((item as any)[key]) || 0;
-          }
-          result._avg[key] = items.length > 0 ? total / items.length : 0;
-        }
-      }
-
-      if (args._min) {
-        result._min = {};
-        for (const key of Object.keys(args._min)) {
-          let minVal =
-            items.length > 0 ? Number((items[0] as any)[key]) || 0 : 0;
-          for (const item of items) {
-            const v = Number((item as any)[key]) || 0;
-            if (v < minVal) minVal = v;
-          }
-          result._min[key] = minVal;
-        }
-      }
-
-      if (args._max) {
-        result._max = {};
-        for (const key of Object.keys(args._max)) {
-          let maxVal =
-            items.length > 0 ? Number((items[0] as any)[key]) || 0 : 0;
-          for (const item of items) {
-            const v = Number((item as any)[key]) || 0;
-            if (v > maxVal) maxVal = v;
-          }
-          result._max[key] = maxVal;
-        }
-      }
-
-      if (args._count) {
-        result._count = items.length;
-      }
-
-      return result;
     },
   };
 }
