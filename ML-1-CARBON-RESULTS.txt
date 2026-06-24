@@ -1,0 +1,29 @@
+CARBON SHIFT EFFECTIVENESS trial results
+===========================================
+Date: 2026-06-22T19:06:19.068Z
+Total Tasks Processed: 10
+Deferred Tasks Count: 5
+
+Metrics Summary:
+- Total Carbon Emitted (gCO2eq): 91.0000
+- Baseline Carbon Emitted (gCO2eq): 124.3333
+- Total Carbon Saved (gCO2eq): 33.3333
+- Total Duration (ms): 12000000
+
+Workload Details:
+- Task: 1a8077b5-8e19-4491-9385-83823a96e43d, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 1.0000, Saved: 0.0000, Deferred: NO
+- Task: d51bc8eb-ad7f-45c0-abbb-9dda9a1e6123, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
+- Task: 91a97f61-c12b-408d-8765-ace9f1d775b9, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
+- Task: 1cf24bde-280b-4d9f-9114-75d64b9f40b7, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
+- Task: 7db89c7c-ead6-43d6-a49a-1f75f6b7c6cd, Type: CUSTOM, Region: asia-east, Node: 36210cb5-6900-4024-a6a8-3d115324ba1f, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
+- Task: 117b4e34-c0e3-4866-ba98-e2e182e49cb2, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
+- Task: bbc33fbe-f858-4cf1-af06-11c4bc5d3698, Type: CUSTOM, Region: eu-central, Node: 55739c85-edd9-4d18-b5a2-cafb890249c5, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
+- Task: 9521faf4-9f51-4bea-ab53-e24463c5736c, Type: CUSTOM, Region: us-west, Node: ddcdca48-3a63-4710-9f26-a7f952087111, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
+- Task: b3f41e28-9203-4c87-8136-32f706f0b681, Type: CUSTOM, Region: asia-east, Node: 36210cb5-6900-4024-a6a8-3d115324ba1f, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
+- Task: dcf78463-4fdb-4671-9d3d-e0f67ff09971, Type: CUSTOM, Region: eu-central, Node: 605332d8-89a2-49f9-98cf-43efad1c21c3, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
+
+Analysis:
+Baseline tasks emitted carbon at full load without delay.
+Carbon-aware tasks were successfully delayed to periods of lower carbon intensity (from 500 gCO2eq/kWh at submission to 300 gCO2eq/kWh at execution).
+Average carbon savings per deferred task: 6.6667 gCO2eq.
+This validates the carbon-aware scheduling policy efficacy.
