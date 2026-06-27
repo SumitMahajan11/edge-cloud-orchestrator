@@ -17,6 +17,9 @@ export function useMLMetrics() {
       return api.get<any>("/v2/ml/drift/current");
     },
     refetchInterval: 30_000, // Background poll every 30s
+    staleTime: 25_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 2. Drift History Query
@@ -25,7 +28,10 @@ export function useMLMetrics() {
     queryFn: async () => {
       return api.get<any[]>("/v2/ml/drift/history?hours=24");
     },
-    staleTime: 60_000, // 1 minute stale time
+    refetchInterval: 120_000, // Poll history every 120s
+    staleTime: 115_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 3. Model Status Query
@@ -35,6 +41,8 @@ export function useMLMetrics() {
       return api.get<any>("/v2/ml/model/current");
     },
     staleTime: 300_000, // 5 minutes stale time
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 4. Outcome & Bandit Stats Query
@@ -43,7 +51,10 @@ export function useMLMetrics() {
     queryFn: async () => {
       return api.get<any>("/v2/ml/outcomes/stats");
     },
-    refetchInterval: 15_000, // More frequent polling for outcomes
+    refetchInterval: 60_000, // Outcomes accumulated slowly (60s)
+    staleTime: 55_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 5. Retrain Status Query (Polled when active)
@@ -52,14 +63,23 @@ export function useMLMetrics() {
     queryFn: async () => {
       return api.get<any>("/v2/ml/retrain/status");
     },
-    // Poll every 5 seconds if a retraining job is in progress
+    // Poll every 15 seconds if a retraining job is in progress
     refetchInterval: (query) => {
       const data = query.state.data;
       if (!data) return false;
       return ["QUEUED", "TRAINING", "VALIDATING"].includes(data.status)
-        ? 5_000
+        ? 15_000
         : false;
     },
+    staleTime: (query) => {
+      const data = query.state.data;
+      if (!data) return 0;
+      return ["QUEUED", "TRAINING", "VALIDATING"].includes(data.status)
+        ? 10_000
+        : 30_000;
+    },
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 6. Retrain Mutation

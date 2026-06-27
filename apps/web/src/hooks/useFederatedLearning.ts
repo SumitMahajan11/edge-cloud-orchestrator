@@ -11,7 +11,10 @@ export function useFederatedLearning() {
       const response = await api.get<{ data: any[] }>("/v2/fl/models");
       return response.data || [];
     },
-    refetchInterval: 15_000, // refresh every 15s
+    refetchInterval: 60_000, // refresh every 60s
+    staleTime: 55_000,
+    refetchOnWindowFocus: false,
+    refetchOnMount: false,
   });
 
   // 2. Start FL Session Mutation
