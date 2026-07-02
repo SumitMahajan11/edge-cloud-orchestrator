@@ -1,4 +1,4 @@
-# Stage 1: Builder
+﻿# Stage 1: Builder
 FROM node:22-alpine AS builder
 RUN apk add --no-cache libc6-compat openssl
 WORKDIR /app
@@ -16,8 +16,7 @@ RUN corepack enable pnpm
 COPY . .
 
 # Install ONLY backend dependencies (frozen lockfile for reproducibility) using buildkit cache
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm install --filter=@edgecloud/api... --frozen-lockfile --ignore-scripts
+RUN pnpm install --filter=@edgecloud/api... --frozen-lockfile --ignore-scripts
 
 # Generate Prisma client for typescript compilation in builder stage
 RUN cd apps/api && pnpm exec prisma generate
@@ -26,8 +25,7 @@ RUN cd apps/api && pnpm exec prisma generate
 RUN pnpm --filter "@edgecloud/api..." build
 
 # Deploy isolated production application to /deploy
-RUN --mount=type=cache,target=/root/.local/share/pnpm/store \
-    pnpm --filter=@edgecloud/api --prod deploy /deploy --legacy
+RUN pnpm --filter=@edgecloud/api --prod deploy /deploy --legacy
 
 # Copy the generated Prisma client to the deploy directory dynamically
 RUN PRISMA_DIR=$(find /app/node_modules -name ".prisma" -type d | head -n 1) && \
@@ -59,3 +57,4 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
 CMD ["node", "dist/src/index.js"]
+
