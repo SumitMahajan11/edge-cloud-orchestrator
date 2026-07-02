@@ -1,4 +1,4 @@
-# Logs
+﻿# Logs
 logs
 *.log
 npm-debug.log*
@@ -29,6 +29,7 @@ dist-ssr
 *.cer
 certs/
 secrets/
+!packages/shared-kernel/src/secrets/
 !infra/vault/certs/*.example.crt
 
 # Database files
@@ -58,7 +59,7 @@ coverage/
 .nyc_output/
 *.tsbuildinfo
 
-# Certificates and private keys — NEVER commit these
+# Certificates and private keys â€” NEVER commit these
 *.crt
 *.pfx
 *.pem
