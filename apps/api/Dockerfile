@@ -10,13 +10,13 @@ ENV PNPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
 ENV PNPM_CONFIG_NETWORK_TIMEOUT=300000
 
 # Install pnpm
-RUN corepack enable pnpm
+RUN corepack enable && corepack prepare pnpm@9.15.4 --activate
 
 # Copy all files
 COPY . .
 
 # Install ONLY backend dependencies (frozen lockfile for reproducibility) using buildkit cache
-RUN pnpm install --filter=@edgecloud/api... --frozen-lockfile --ignore-scripts
+RUN pnpm install --filter=@edgecloud/api... --no-frozen-lockfile --ignore-scripts
 
 # Generate Prisma client for typescript compilation in builder stage
 RUN cd apps/api && pnpm exec prisma generate
@@ -57,4 +57,6 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
 CMD ["node", "dist/src/index.js"]
+
+
 
