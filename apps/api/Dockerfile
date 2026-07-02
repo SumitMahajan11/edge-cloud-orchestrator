@@ -25,7 +25,7 @@ RUN cd apps/api && pnpm exec prisma generate
 RUN pnpm --filter "@edgecloud/api..." build
 
 # Deploy isolated production application to /deploy
-RUN pnpm --filter=@edgecloud/api --prod deploy /deploy --legacy
+RUN pnpm --filter=@edgecloud/api --prod deploy /deploy
 
 # Copy the generated Prisma client to the deploy directory dynamically
 RUN PRISMA_DIR=$(find /app/node_modules -name ".prisma" -type d | head -n 1) && \
@@ -57,6 +57,7 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
 CMD ["node", "dist/src/index.js"]
+
 
 
 
