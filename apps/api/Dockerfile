@@ -27,9 +27,10 @@ RUN pnpm --filter "@edgecloud/api..." build
 # Deploy isolated production application to /deploy
 RUN pnpm --filter=@edgecloud/api --prod deploy /deploy
 
-# Copy the generated Prisma client to the deploy directory dynamically
-RUN PRISMA_DIR=$(find /app/node_modules -name ".prisma" -type d | head -n 1) && \
-    if [ -n "$PRISMA_DIR" ]; then cp -R "$PRISMA_DIR" /deploy/node_modules/; fi
+# Copy Prisma schema into deploy folder and regenerate the client there directly,
+# so it resolves correctly relative to /deploy/node_modules at runtime
+RUN cp -r apps/api/prisma /deploy/prisma
+RUN cd /deploy && /app/node_modules/.bin/prisma generate --schema=./prisma/schema.prisma
 
 # Stage 2: Runner
 FROM node:22-alpine AS runner
@@ -57,6 +58,7 @@ HEALTHCHECK --interval=10s --timeout=3s --start-period=30s --retries=3 \
   CMD wget -qO- http://localhost:3000/health || exit 1
 
 CMD ["node", "dist/src/index.js"]
+
 
 
 
