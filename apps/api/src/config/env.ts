@@ -41,11 +41,19 @@ const envSchema = baseEnvSchema.extend({
   ENCRYPTION_KEY: z
     .string()
     .min(32, 'ENCRYPTION_KEY must be at least 32 characters'),
+  REQUEST_SIGNATURE_SECRET: z
+    .string()
+    .min(32, 'REQUEST_SIGNATURE_SECRET must be at least 32 characters')
+    .default('your-agent-signature-secret-minimum-32-chars'),
+
 
   // --- Rate Limiting & Auth Policy ---
   MAX_LOGIN_ATTEMPTS: z.coerce.number().default(5),
   LOCKOUT_DURATION_MINUTES: z.coerce.number().default(15),
   RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
+
+  // --- Scheduler ---
+  SCHEDULER_POLL_INTERVAL_MS: z.coerce.number().default(2000),
 
   // --- Networking & CORS ---
   ALLOWED_ORIGINS: z
@@ -161,3 +169,4 @@ const envSchema = baseEnvSchema.extend({
  */
 export const env = validateEnv(envSchema);
 export type Env = z.infer<typeof envSchema>;
+

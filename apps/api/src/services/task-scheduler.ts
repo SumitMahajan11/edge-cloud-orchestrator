@@ -44,6 +44,7 @@ import {
   calculateReward,
 } from '@edgecloud/ml-scheduler';
 import axios from 'axios';
+import crypto from 'crypto';
 import { CircuitBreakerRegistry } from '@edgecloud/circuit-breaker';
 import { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
@@ -91,6 +92,7 @@ interface Task {
   affinity?: string | null;
   traceId?: string | null;
   tenantId: string;
+  image?: string | null;
 }
 
 // Scheduling decision - pure control plane output
@@ -340,7 +342,7 @@ export class TaskScheduler extends EventEmitter {
           'Not currently leader, skipping processQueue',
         );
       }
-    }, 50); // High performance for load testing
+    }, env.SCHEDULER_POLL_INTERVAL_MS); // Configurable via SCHEDULER_POLL_INTERVAL_MS env var (default 2000ms); set lower only for load testing
 
     // ML Model Hot-swap monitoring (poll every 60s)
     this.hotswapInterval = setInterval(async () => {
@@ -2026,17 +2028,25 @@ export class TaskScheduler extends EventEmitter {
             },
             async (span) => {
               try {
+                const payload = {
+                  taskId: task.id,
+                  taskName: task.name,
+                  type: task.type,
+                  input: task.input,
+                  runtime: task.runtime,
+                  affinity: task.affinity,
+                  timeout: TASK_TIMEOUT,
+                  image: task.image || 'alpine:3.18',
+                };
+
+                const signature = crypto
+                  .createHmac('sha256', env.REQUEST_SIGNATURE_SECRET)
+                  .update(JSON.stringify(payload))
+                  .digest('hex');
+
                 await axios.post(
                   `${node.url}/run-task`,
-                  {
-                    taskId: task.id,
-                    taskName: task.name,
-                    type: task.type,
-                    input: task.input,
-                    runtime: task.runtime,
-                    affinity: task.affinity,
-                    timeout: TASK_TIMEOUT,
-                  },
+                  payload,
                   {
                     timeout: REQUEST_TIMEOUT,
                     signal: controller.signal,
@@ -2044,6 +2054,7 @@ export class TaskScheduler extends EventEmitter {
                       'X-Request-ID': requestId,
                       'X-Trace-ID': traceId,
                       'X-Source': 'task-scheduler',
+                      'x-signature': signature,
                     },
                   },
                 );
@@ -2666,3 +2677,4 @@ export class TaskScheduler extends EventEmitter {
     this.logger.info({ priority, tenantId }, 'Task submission recorded');
   }
 }
+
