@@ -114,6 +114,20 @@ export class AuthController {
       throw err;
     }
 
+    // Find or create default tenant 'demo-org'
+    let tenant = await prisma.tenant.findUnique({
+      where: { slug: 'demo-org' },
+    });
+    if (!tenant) {
+      tenant = await prisma.tenant.create({
+        data: {
+          name: 'Demo Organization',
+          slug: 'demo-org',
+          config: {},
+        },
+      });
+    }
+
     const passwordHash = await this.authService.hashPassword(password);
     const user = await prisma.user.create({
       data: {
@@ -121,6 +135,12 @@ export class AuthController {
         passwordHash,
         name,
         role: 'VIEWER',
+        tenantUsers: {
+          create: {
+            tenantId: tenant.id,
+            role: 'VIEWER',
+          },
+        },
       },
       include: { tenantUsers: { take: 1 } },
     });

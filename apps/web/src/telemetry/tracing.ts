@@ -37,20 +37,22 @@ export function initTracing() {
     }),
   });
 
-  // 1. Console Exporter for Development
-  if (isDev) {
+  // 1. Console Exporter for Development (only if debug is explicitly enabled)
+  const otelDebug = process.env.NEXT_PUBLIC_OTEL_DEBUG === "true" || process.env.NEXT_PUBLIC_OTLP_DEBUG === "true";
+  if (otelDebug) {
     provider.addSpanProcessor(
       new SimpleSpanProcessor(new ConsoleSpanExporter()),
     );
   }
 
-  // 2. OTLP HTTP Exporter for Production (and Dev collector)
-  const otlpEndpoint =
-    process.env.NEXT_PUBLIC_OTLP_ENDPOINT || "http://localhost:4318/v1/traces";
-  const otlpExporter = new OTLPTraceExporter({
-    url: otlpEndpoint,
-  });
-  provider.addSpanProcessor(new BatchSpanProcessor(otlpExporter));
+  // 2. OTLP HTTP Exporter (only if endpoint is explicitly set)
+  const otlpEndpoint = process.env.NEXT_PUBLIC_OTLP_ENDPOINT;
+  if (otlpEndpoint) {
+    const otlpExporter = new OTLPTraceExporter({
+      url: otlpEndpoint,
+    });
+    provider.addSpanProcessor(new BatchSpanProcessor(otlpExporter));
+  }
 
   // 3. Register Provider
   provider.register();

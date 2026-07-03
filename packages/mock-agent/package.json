@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "tsx src/index.ts"
+    "dev": "tsx src/index.ts",
+    "build": "echo 'No build required for mock-agent'"
   },
   "dependencies": {
     "axios": "^1.16.0",

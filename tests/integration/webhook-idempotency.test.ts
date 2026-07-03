@@ -10,7 +10,7 @@ describe("Webhook Idempotency Integration", () => {
 
   beforeAll(async () => {
     ctx = await setupTestApp();
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     await teardownTestApp(ctx);

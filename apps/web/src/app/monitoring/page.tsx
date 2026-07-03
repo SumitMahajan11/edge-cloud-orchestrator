@@ -196,7 +196,7 @@ export default function MonitoringPage() {
             />
             <MetricSummaryCard
               title="Avg Latency"
-              value={`${metrics?.avgLatency || 0}ms`}
+              value={`${Math.round(metrics?.avgLatency || 0)}ms`}
               change="-15ms"
               trend="down"
             />

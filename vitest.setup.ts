@@ -4,56 +4,70 @@ import { vi } from "vitest";
 // Mock Opentelemetry and Trace APIs to avoid binary/resolution issues in monorepo tests
 vi.mock("@opentelemetry/api", async (importOriginal) => {
   const actual = (await importOriginal()) as any;
+  const mockSpan = {
+    end: () => {},
+    spanContext: () => ({ traceId: "1", spanId: "1" }),
+    setStatus: () => {},
+    setAttribute: () => {},
+    setAttributes: () => {},
+    recordException: () => {},
+  };
   return {
     ...actual,
     trace: {
-      getSpan: vi.fn(),
-      getTracer: vi.fn().mockReturnValue({
-        startSpan: vi.fn().mockReturnValue({
-          end: vi.fn(),
-          spanContext: vi.fn().mockReturnValue({ traceId: "1", spanId: "1" }),
-          setStatus: vi.fn(),
-          setAttribute: vi.fn(),
-        }),
+      getSpan: () => null,
+      getTracer: () => ({
+        startSpan: () => mockSpan,
+        startActiveSpan: (name: string, options: any, fn?: any) => {
+          const callback = typeof options === "function" ? options : fn;
+          return callback(mockSpan);
+        },
       }),
     },
-    context: {
-      active: vi.fn(),
-    },
-    propagation: {
-      inject: vi.fn(),
-      extract: vi.fn(),
-    },
+    context: Object.assign(Object.create(actual.context), {
+      active: () => ({}),
+    }),
+    propagation: Object.assign(Object.create(actual.propagation), {
+      inject: () => {},
+      extract: () => ({}),
+    }),
   };
 });
 
 // Mock @opentelemetry/resources to avoid ES module resolution issues on Windows
 vi.mock("@opentelemetry/resources", () => ({
-  Resource: vi.fn().mockImplementation(() => ({})),
+  Resource: class {},
 }));
 
 // Mock @opentelemetry/sdk-node to prevent importing the actual package
 vi.mock("@opentelemetry/sdk-node", () => ({
-  NodeSDK: vi.fn().mockImplementation(() => ({
-    start: vi.fn(),
-    shutdown: vi.fn().mockResolvedValue(undefined),
-  })),
+  NodeSDK: class {
+    start() {}
+    async shutdown() {}
+  },
 }));
 
 // Mock @opentelemetry/auto-instrumentations-node
 vi.mock("@opentelemetry/auto-instrumentations-node", () => ({
-  getNodeAutoInstrumentations: vi.fn().mockReturnValue([]),
+  getNodeAutoInstrumentations: () => [],
 }));
 
 // Mock @opentelemetry/exporter-jaeger
 vi.mock("@opentelemetry/exporter-jaeger", () => ({
-  JaegerExporter: vi.fn().mockImplementation(() => ({})),
+  JaegerExporter: class {},
 }));
 
 // Mock fastify-plugin which often fails in Vite/CJS environments
-vi.mock("fastify-plugin", () => ({
-  default: (fn: any) => fn,
-}));
+vi.mock("fastify-plugin", () => {
+  const fp = (fn: any) => {
+    fn[Symbol.for('skip-override')] = true;
+    return fn;
+  };
+  return {
+    default: fp,
+    __esModule: true,
+  };
+});
 
 // Mock pino-pretty
 vi.mock("pino-pretty", () => ({
@@ -61,21 +75,32 @@ vi.mock("pino-pretty", () => ({
 }));
 
 // Mock observability package to prevent deep transitive dependency failures
-vi.mock("@edgecloud/observability", () => ({
-  initTracing: vi.fn(),
-  MetricsCollector: vi.fn().mockImplementation(() => ({
-    recordMLFallback: vi.fn(),
-    recordSchedulingDecision: vi.fn(),
-    updateMLDrift: vi.fn(),
-    incrementCounter: vi.fn(),
-    recordGauge: vi.fn(),
-    recordMetric: vi.fn(),
-    recordCarbonMetrics: vi.fn(),
-  })),
-  createTracer: vi.fn().mockReturnValue({
-    startActiveSpan: vi.fn((name, fn) => fn({ end: vi.fn() })),
-  }),
-}));
+vi.mock("@edgecloud/observability", () => {
+  const mockSpan = {
+    end: () => {},
+    spanContext: () => ({ traceId: "1", spanId: "1" }),
+    setStatus: () => {},
+    setAttribute: () => {},
+    setAttributes: () => {},
+    recordException: () => {},
+  };
+  return {
+    initTracing: () => {},
+    MetricsCollector: class {
+      recordMLFallback() {}
+      recordSchedulingDecision() {}
+      updateMLDrift() {}
+      incrementCounter() {}
+      recordGauge() {}
+      recordMetric() {}
+      recordCarbonMetrics() {}
+      recordTaskCreated() {}
+    },
+    createTracer: () => ({
+      startActiveSpan: (name: string, fn: any) => fn(mockSpan),
+    }),
+  };
+});
 
 process.env.NODE_ENV = process.env.NODE_ENV || "test";
 process.env.LOG_LEVEL = process.env.LOG_LEVEL || "fatal";

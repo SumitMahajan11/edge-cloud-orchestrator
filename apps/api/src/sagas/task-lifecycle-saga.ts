@@ -17,7 +17,9 @@
 import { SagaDefinition, SagaStepDefinition } from '@edgecloud/saga';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
+import crypto from 'crypto';
 import type { Logger } from 'pino';
+import { env } from '../config/env';
 
 import {
   circuitBreakerConfigs,
@@ -368,6 +370,12 @@ export function createTaskLifecycleSaga(
         },
       });
 
+      const dbTask = await prisma.task.findUnique({
+        where: { id: context.taskId },
+        select: { image: true },
+      });
+      const image = dbTask?.image || 'alpine:3.18';
+
       const startTime = Date.now();
 
       try {
@@ -378,20 +386,29 @@ export function createTaskLifecycleSaga(
             name: `node-agent-${context.nodeId}`,
           },
           () => {
+            const payload = {
+              taskId: context.taskId,
+              taskName: context.taskName,
+              type: context.taskType,
+              input: context.input,
+              timeout: TASK_TIMEOUT,
+              image,
+            };
+
+            const signature = crypto
+              .createHmac('sha256', env.REQUEST_SIGNATURE_SECRET)
+              .update(JSON.stringify(payload))
+              .digest('hex');
+
             return axios.post(
               `${context.nodeUrl}/run-task`,
-              {
-                taskId: context.taskId,
-                taskName: context.taskName,
-                type: context.taskType,
-                input: context.input,
-                timeout: TASK_TIMEOUT,
-              },
+              payload,
               {
                 timeout: 10000,
                 headers: {
                   'X-Request-ID': `${context.taskId}-${Date.now()}`,
                   'X-Saga-ID': context.taskId,
+                  'x-signature': signature,
                 },
               },
             );

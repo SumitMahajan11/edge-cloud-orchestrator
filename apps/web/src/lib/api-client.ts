@@ -48,9 +48,9 @@ export class ApiError extends Error {
   }
 }
 
-async function buildHeaders(init?: HeadersInit): Promise<Headers> {
+async function buildHeaders(init?: HeadersInit, hasBody?: boolean): Promise<Headers> {
   const h = new Headers(init);
-  if (!h.has("Content-Type")) h.set("Content-Type", "application/json");
+  if (hasBody && !h.has("Content-Type")) h.set("Content-Type", "application/json");
 
   const token = authStorage.getToken();
   console.log("[api-client] buildHeaders token from storage:", token ? `exists (${token.substring(0, 10)}...)` : "null/undefined");
@@ -118,10 +118,14 @@ async function customFetch(
     // We must extract those headers and merge them with our auth headers,
     // otherwise fetch(requestObj, { headers }) completely replaces them.
     let baseHeaders: HeadersInit | undefined = init?.headers;
+    let hasBody = false;
     if (!baseHeaders && input instanceof Request) {
       baseHeaders = input.headers;
+      hasBody = input.body !== null;
+    } else {
+      hasBody = init?.body != null || (input instanceof Request && input.body !== null);
     }
-    const headers = await buildHeaders(baseHeaders);
+    const headers = await buildHeaders(baseHeaders, hasBody);
     const headersObj: Record<string, string> = {};
     headers.forEach((value, key) => {
       headersObj[key] = value;

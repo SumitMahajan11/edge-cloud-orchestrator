@@ -26,8 +26,9 @@ import { formatDistanceToNow } from "date-fns";
 export function CarbonSummaryWidget() {
   const [days, setDays] = useState(30);
 
-  const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-  const toDate = new Date().toISOString();
+  const roundedNow = Math.floor(Date.now() / 30000) * 30000;
+  const fromDate = new Date(roundedNow - days * 24 * 60 * 60 * 1000).toISOString();
+  const toDate = new Date(roundedNow).toISOString();
 
   const { data, isLoading, error, downloadCsv } = useCarbonReport(fromDate, toDate);
 

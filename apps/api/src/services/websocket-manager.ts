@@ -224,6 +224,17 @@ export class WebSocketManager {
         tenantId?: string;
       };
 
+      this.logger.info(
+        {
+          clientId,
+          userId: decoded.id,
+          role: decoded.role,
+          tenantId: decoded.tenantId,
+          hasTenantId: !!decoded.tenantId,
+        },
+        'Decoded WebSocket connection token claims',
+      );
+
       // Reject non-admin connections without tenantId
       if (
         !decoded.tenantId &&

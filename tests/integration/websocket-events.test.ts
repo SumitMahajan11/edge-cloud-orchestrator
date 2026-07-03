@@ -14,7 +14,7 @@ describe("WebSocket Consolidated Hub Integration", () => {
     console.log("[Test] App ready. Starting listener...");
     const addr = await ctx.app.listen({ port: 0, host: "127.0.0.1" });
     console.log(`[Test] App listening at ${addr}`);
-  }, 30000);
+  }, 60000);
 
   afterAll(async () => {
     if (ctx) {

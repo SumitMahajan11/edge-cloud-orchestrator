@@ -29,7 +29,7 @@ process.env.KAFKAJS_NO_PARTITIONER_WARNING = "1";
 process.env.ALLOW_PRIVATE_IPS = "true";
 
 // Shared in-memory state
-const dbState = {
+const mockDbState = {
   edgeNodes: new Map(),
   tasks: new Map(),
   executions: new Map(),
@@ -57,7 +57,7 @@ const TASK_SERVICE_PORT = 4011;
 const AGENT_PORT = 4012;
 
 // Shared state for mocks
-const kafkaHandlers: Map<string, Function[]> = new Map();
+const mockKafkaHandlers: Map<string, Function[]> = new Map();
 
 // Mock jsonwebtoken
 vi.mock("jsonwebtoken", () => ({
@@ -83,7 +83,7 @@ vi.mock("pg", () => ({
     query: async (text: string, params: any[]) => {
       if (text.includes("UPDATE tasks")) {
         const id = params[params.length - 1];
-        const task = dbState.tasks.get(id);
+        const task = mockDbState.tasks.get(id);
         if (task) {
           if (text.includes("status = $1")) {
             task.status = params[0];
@@ -101,17 +101,17 @@ vi.mock("pg", () => ({
       }
       if (text.includes("SELECT COUNT(*) FROM tasks")) {
         const status = params[0];
-        const count = Array.from(dbState.tasks.values()).filter(
+        const count = Array.from(mockDbState.tasks.values()).filter(
           (t) => t.status === status,
         ).length;
         return { rows: [{ count: count.toString() }] };
       }
       if (text.includes("SELECT * FROM tasks WHERE id =")) {
-        const task = dbState.tasks.get(params[0]);
+        const task = mockDbState.tasks.get(params[0]);
         return { rows: task ? [task] : [] };
       }
       if (text.includes("SELECT * FROM tasks")) {
-        return { rows: Array.from(dbState.tasks.values()) };
+        return { rows: Array.from(mockDbState.tasks.values()) };
       }
       return { rowCount: 0, rows: [] };
     },
@@ -130,7 +130,7 @@ vi.mock("kafkajs", () => ({
     producer: vi.fn().mockReturnValue({
       connect: vi.fn().mockResolvedValue(undefined),
       send: vi.fn().mockImplementation(async ({ topic, messages }) => {
-        const handlers = kafkaHandlers.get(topic) || [];
+        const handlers = mockKafkaHandlers.get(topic) || [];
         for (const msg of messages) {
           for (const handler of handlers) {
             handler({ topic, partition: 0, message: msg });
@@ -142,12 +142,12 @@ vi.mock("kafkajs", () => ({
     consumer: vi.fn().mockReturnValue({
       connect: vi.fn().mockResolvedValue(undefined),
       subscribe: vi.fn().mockImplementation(async ({ topic }) => {
-        if (!kafkaHandlers.has(topic)) {
-          kafkaHandlers.set(topic, []);
+        if (!mockKafkaHandlers.has(topic)) {
+          mockKafkaHandlers.set(topic, []);
         }
       }),
       run: vi.fn().mockImplementation(async ({ eachMessage }) => {
-        kafkaHandlers.forEach((handlers) => handlers.push(eachMessage));
+        mockKafkaHandlers.forEach((handlers) => handlers.push(eachMessage));
       }),
       disconnect: vi.fn().mockResolvedValue(undefined),
       stop: vi.fn().mockResolvedValue(undefined),
@@ -162,31 +162,31 @@ vi.mock("kafkajs", () => ({
 }));
 
 const resetDbState = () => {
-  dbState.edgeNodes.clear();
-  dbState.tasks.clear();
-  dbState.executions.clear();
-  dbState.tenants.clear();
-  dbState.users.clear();
-  dbState.auditLogs.clear();
-  dbState.metrics.clear();
-  dbState.alerts.clear();
-  dbState.alertRules.clear();
-  dbState.webhooks.clear();
-  dbState.webhookDeliveries.clear();
-  dbState.schedulingDecisions.clear();
-  dbState.certificateAuthorities.clear();
-  dbState.nodeCertificates.clear();
-  dbState.certificateRevocations.clear();
-  dbState.bootstrapTokens.clear();
-  dbState.schedulingPolicies.clear();
-  dbState.nodeHealthScores.clear();
-  dbState.carbonRecords.clear();
-  dbState.users.set("admin", {
+  mockDbState.edgeNodes.clear();
+  mockDbState.tasks.clear();
+  mockDbState.executions.clear();
+  mockDbState.tenants.clear();
+  mockDbState.users.clear();
+  mockDbState.auditLogs.clear();
+  mockDbState.metrics.clear();
+  mockDbState.alerts.clear();
+  mockDbState.alertRules.clear();
+  mockDbState.webhooks.clear();
+  mockDbState.webhookDeliveries.clear();
+  mockDbState.schedulingDecisions.clear();
+  mockDbState.certificateAuthorities.clear();
+  mockDbState.nodeCertificates.clear();
+  mockDbState.certificateRevocations.clear();
+  mockDbState.bootstrapTokens.clear();
+  mockDbState.schedulingPolicies.clear();
+  mockDbState.nodeHealthScores.clear();
+  mockDbState.carbonRecords.clear();
+  mockDbState.users.set("admin", {
     id: "admin",
     role: "ADMIN",
     tenantId: "default",
   });
-  dbState.tenants.set("default", {
+  mockDbState.tenants.set("default", {
     id: "default",
     name: "Default Tenant",
     createdAt: new Date(),
@@ -195,7 +195,7 @@ const resetDbState = () => {
 };
 
 // Helper to create a mock model
-const createMockModel = (stateKey: string) => ({
+const mockCreateMockModel = (stateKey: string) => ({
   create: async ({ data }: any) => {
     const id =
       data.id ||
@@ -230,12 +230,12 @@ const createMockModel = (stateKey: string) => ({
       traceId: data.traceId,
       tenantId: data.tenantId || "default",
     };
-    (dbState as any)[stateKey].set(id, item);
+    (mockDbState as any)[stateKey].set(id, item);
     return item;
   },
   update: async ({ where, data }: any) => {
     const id = where.id || where.taskId;
-    const item = (dbState as any)[stateKey].get(id);
+    const item = (mockDbState as any)[stateKey].get(id);
     if (item) {
       Object.assign(item, data);
     }
@@ -243,7 +243,7 @@ const createMockModel = (stateKey: string) => ({
   },
   upsert: async ({ where, update, create }: any) => {
     const id = where.id || where.taskId;
-    let item = (dbState as any)[stateKey].get(id);
+    let item = (mockDbState as any)[stateKey].get(id);
     if (item) {
       Object.assign(item, update);
       return item;
@@ -260,19 +260,19 @@ const createMockModel = (stateKey: string) => ({
       updatedAt: new Date(),
       tenantId: create.tenantId || "default",
     };
-    (dbState as any)[stateKey].set(newItemId, item);
+    (mockDbState as any)[stateKey].set(newItemId, item);
     return item;
   },
   findUnique: async ({ where }: any) => {
     if (where.name) {
-      return Array.from((dbState as any)[stateKey].values()).find(
+      return Array.from((mockDbState as any)[stateKey].values()).find(
         (n: any) => n.name === where.name,
       );
     }
-    return (dbState as any)[stateKey].get(where.id || where.taskId);
+    return (mockDbState as any)[stateKey].get(where.id || where.taskId);
   },
   findMany: async (args: any) => {
-    let results = Array.from((dbState as any)[stateKey].values());
+    let results = Array.from((mockDbState as any)[stateKey].values());
     if (args?.where) {
       results = results.filter((item: any) => {
         return Object.entries(args.where).every(([key, value]) => {
@@ -303,13 +303,13 @@ const createMockModel = (stateKey: string) => ({
     return results;
   },
   findFirst: async (args: any) => {
-    const results = await createMockModel(stateKey).findMany(args);
+    const results = await mockCreateMockModel(stateKey).findMany(args);
     return results[0] || null;
   },
-  count: async () => (dbState as any)[stateKey].size,
-  deleteMany: async () => ({ count: (dbState as any)[stateKey].size }),
+  count: async () => (mockDbState as any)[stateKey].size,
+  deleteMany: async () => ({ count: (mockDbState as any)[stateKey].size }),
   delete: async ({ where }: any) => {
-    (dbState as any)[stateKey].delete(where.id || where.taskId);
+    (mockDbState as any)[stateKey].delete(where.id || where.taskId);
     return { id: where.id || where.taskId };
   },
 });
@@ -327,26 +327,26 @@ const mockPrismaInstance = {
   },
   $queryRaw: async () => [{ 1: 1 }],
   $executeRawUnsafe: async () => ({}),
-  edgeNode: createMockModel("edgeNodes"),
-  task: createMockModel("tasks"),
-  taskExecution: createMockModel("executions"),
-  user: createMockModel("users"),
-  tenant: createMockModel("tenants"),
-  sagaInstance: createMockModel("executions"),
-  auditLog: createMockModel("auditLogs"),
-  nodeMetric: createMockModel("metrics"),
-  alert: createMockModel("alerts"),
-  alertRule: createMockModel("alertRules"),
-  webhook: createMockModel("webhooks"),
-  webhookDelivery: createMockModel("webhookDeliveries"),
-  schedulingDecision: createMockModel("schedulingDecisions"),
-  certificateAuthority: createMockModel("certificateAuthorities"),
-  nodeCertificate: createMockModel("nodeCertificates"),
-  certificateRevocation: createMockModel("certificateRevocations"),
-  bootstrapToken: createMockModel("bootstrapTokens"),
-  schedulingPolicy: createMockModel("schedulingPolicies"),
-  nodeHealthScore: createMockModel("nodeHealthScores"),
-  carbonRecord: createMockModel("carbonRecords"),
+  edgeNode: mockCreateMockModel("edgeNodes"),
+  task: mockCreateMockModel("tasks"),
+  taskExecution: mockCreateMockModel("executions"),
+  user: mockCreateMockModel("users"),
+  tenant: mockCreateMockModel("tenants"),
+  sagaInstance: mockCreateMockModel("executions"),
+  auditLog: mockCreateMockModel("auditLogs"),
+  nodeMetric: mockCreateMockModel("metrics"),
+  alert: mockCreateMockModel("alerts"),
+  alertRule: mockCreateMockModel("alertRules"),
+  webhook: mockCreateMockModel("webhooks"),
+  webhookDelivery: mockCreateMockModel("webhookDeliveries"),
+  schedulingDecision: mockCreateMockModel("schedulingDecisions"),
+  certificateAuthority: mockCreateMockModel("certificateAuthorities"),
+  nodeCertificate: mockCreateMockModel("nodeCertificates"),
+  certificateRevocation: mockCreateMockModel("certificateRevocations"),
+  bootstrapToken: mockCreateMockModel("bootstrapTokens"),
+  schedulingPolicy: mockCreateMockModel("schedulingPolicies"),
+  nodeHealthScore: mockCreateMockModel("nodeHealthScores"),
+  carbonRecord: mockCreateMockModel("carbonRecords"),
 };
 
 // Mock dependencies at the top level
@@ -650,7 +650,7 @@ describe("Scheduling Flow E2E", () => {
       data: { cpuUsage: 10, memoryUsage: 20, tasksRunning: 0 },
       headers: { Authorization: "Bearer admin-token" },
     });
-    dbState.edgeNodes.get(nodeId).status = "ONLINE";
+    mockDbState.edgeNodes.get(nodeId).status = "ONLINE";
     console.log("Node is ONLINE.");
 
     console.log("Step 2: Submitting Task...");
@@ -733,7 +733,7 @@ describe("Scheduling Flow E2E", () => {
       data: { cpuUsage: 10, memoryUsage: 20, tasksRunning: 0 },
       headers: { Authorization: "Bearer admin-token" },
     });
-    dbState.edgeNodes.get(nodeId).status = "ONLINE";
+    mockDbState.edgeNodes.get(nodeId).status = "ONLINE";
 
     console.log("Step 2: Submitting Task with Affinity and WASM runtime...");
     const taskRes = await safeAxios({
@@ -786,7 +786,7 @@ describe("Scheduling Flow E2E", () => {
       headers: { Authorization: "Bearer admin-token" },
     });
     const nodeId = nodeRes.data.id;
-    dbState.edgeNodes.get(nodeId).status = "ONLINE";
+    mockDbState.edgeNodes.get(nodeId).status = "ONLINE";
 
     console.log("Step 2: Submitting Task...");
     const taskRes = await safeAxios({
@@ -889,7 +889,7 @@ describe("Scheduling Flow E2E", () => {
       },
       headers: { Authorization: "Bearer admin-token" },
     });
-    dbState.edgeNodes.get(nodeRes.data.id).status = "ONLINE";
+    mockDbState.edgeNodes.get(nodeRes.data.id).status = "ONLINE";
 
     const taskRes = await safeAxios({
       method: "post",
@@ -905,7 +905,7 @@ describe("Scheduling Flow E2E", () => {
     });
 
     // Explicitly set policy to ml-optimized in the mock DB and invalidate cache
-    dbState.tasks.get(taskRes.data.id).policy = "ml-optimized";
+    mockDbState.tasks.get(taskRes.data.id).policy = "ml-optimized";
     scheduler.onlineNodesCache = null;
 
     // 3. Trigger scheduling

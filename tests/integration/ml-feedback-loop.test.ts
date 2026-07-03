@@ -34,7 +34,7 @@ describe("ML Feedback Loop Integration", () => {
       type: "DATA_PROCESSING",
       priority: "HIGH",
       policy: "ml-optimized",
-      tenantId: "tenant-1",
+      tenantId: ctx.tenantId,
       image: "edgecloud/processor:v1",
     });
 
@@ -48,7 +48,7 @@ describe("ML Feedback Loop Integration", () => {
         selectedNodeId: node.id,
         policy: "ml-optimized",
         score: 1.0,
-        tenantId: "tenant-1",
+        tenantId: ctx.tenantId,
         mlModelVersion: "v1.2.3",
         explanation: {
           predictions: {
@@ -90,7 +90,7 @@ describe("ML Feedback Loop Integration", () => {
         nodeId: node.id,
         status: "RUNNING",
         startedAt,
-        tenantId: "tenant-1",
+        tenantId: ctx.tenantId,
         nodeUrl: node.url,
       },
     });
@@ -150,7 +150,7 @@ describe("ML Feedback Loop Integration", () => {
     const node = await createTestNode(ctx);
     const task = await createTestTask(ctx, {
       policy: "ml-optimized",
-      tenantId: "tenant-1",
+      tenantId: ctx.tenantId,
       image: "edgecloud/processor:v1",
     });
 
@@ -160,7 +160,7 @@ describe("ML Feedback Loop Integration", () => {
         selectedNodeId: node.id,
         policy: "ml-optimized",
         score: 1.0,
-        tenantId: "tenant-1",
+        tenantId: ctx.tenantId,
         explanation: {}, // No predictions
         candidateNodes: [],
         timestamp: new Date(),
@@ -173,7 +173,7 @@ describe("ML Feedback Loop Integration", () => {
         nodeId: node.id,
         status: "RUNNING",
         startedAt: new Date(),
-        tenantId: "tenant-1",
+        tenantId: ctx.tenantId,
         nodeUrl: node.url,
       },
     });

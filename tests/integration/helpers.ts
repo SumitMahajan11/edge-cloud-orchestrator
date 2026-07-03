@@ -8,7 +8,6 @@ import { FastifyInstance } from "fastify";
 import fs from "fs";
 import path from "path";
 
-import { buildApp } from "../../backend/src/app";
 
 let testApp: FastifyInstance | null = null;
 let testPrisma: PrismaClient | null = null;

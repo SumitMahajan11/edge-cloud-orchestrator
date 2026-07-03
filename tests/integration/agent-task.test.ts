@@ -57,15 +57,22 @@ describe("Agent Task Execution Integration", () => {
       .update(JSON.stringify(payload))
       .digest("hex");
 
-    const response = await axios.post(
-      "http://localhost:4005/run-task",
-      payload,
-      {
-        headers: {
-          "x-signature": signature,
+    let response: any;
+    try {
+      response = await axios.post(
+        "http://localhost:4005/run-task",
+        payload,
+        {
+          headers: {
+            "x-signature": signature,
+          },
         },
-      },
-    );
+      );
+    } catch (err: any) {
+      throw new Error(
+        `Request failed: ${err.message} (status: ${err.response?.status}, data: ${JSON.stringify(err.response?.data)})`
+      );
+    }
 
     expect(response.status).toBe(200);
     expect(response.data.status).toBe("completed");
@@ -85,17 +92,25 @@ describe("Agent Task Execution Integration", () => {
       .update(JSON.stringify(payload))
       .digest("hex");
 
+    let responseStatus: number | undefined;
+    let responseError: string | undefined;
+    let caughtError: any = null;
+
     try {
       await axios.post("http://localhost:4005/run-task", payload, {
         headers: {
           "x-signature": signature,
         },
       });
-      throw new Error("Should have failed");
     } catch (err: any) {
-      expect(err.response.status).toBe(400);
-      expect(err.response.data.error).toContain("latest is strictly forbidden");
+      caughtError = err;
+      responseStatus = err.response?.status;
+      responseError = err.response?.data?.error;
     }
+
+    expect(caughtError).not.toBeNull();
+    expect(responseStatus).toBe(400);
+    expect(responseError).toContain("latest is strictly forbidden");
   });
 
   it("should fail for invalid signature", async () => {
@@ -105,15 +120,21 @@ describe("Agent Task Execution Integration", () => {
       command: ["echo", "fail"],
     };
 
+    let responseStatus: number | undefined;
+    let caughtError: any = null;
+
     try {
       await axios.post("http://localhost:4005/run-task", payload, {
         headers: {
           "x-signature": "invalid-signature",
         },
       });
-      throw new Error("Should have failed");
     } catch (err: any) {
-      expect(err.response.status).toBe(401);
+      caughtError = err;
+      responseStatus = err.response?.status;
     }
+
+    expect(caughtError).not.toBeNull();
+    expect(responseStatus).toBe(401);
   });
 });

@@ -1,26 +1,44 @@
 {
-  "root": true,
+  "env": {
+    "node": true,
+    "es2021": true
+  },
   "parser": "@typescript-eslint/parser",
   "parserOptions": {
-    "ecmaVersion": 2022,
+    "ecmaVersion": "latest",
     "sourceType": "module",
     "project": "./tsconfig.json"
   },
-  "plugins": ["@typescript-eslint", "import", "simple-import-sort"],
-  "extends": [],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
   "rules": {
-    "import/no-internal-modules": "off"
+    "@typescript-eslint/no-explicit-any": "warn",
+    "@typescript-eslint/no-unused-vars": "error",
+    "@typescript-eslint/no-floating-promises": "warn",
+    "@typescript-eslint/require-await": "off",
+    "@typescript-eslint/no-misused-promises": "warn",
+    "@typescript-eslint/no-unnecessary-type-assertion": "warn",
+    "@typescript-eslint/no-var-requires": "error",
+    "@typescript-eslint/no-base-to-string": "warn",
+    "@typescript-eslint/no-non-null-assertion": "warn",
+
+    "no-unused-vars": "off",
+    "no-undef": "error",
+    "no-empty": "warn",
+    "no-case-declarations": "off",
+    "no-nested-ternary": "warn",
+    "default-case": "warn",
+
+    "curly": "error",
+    "prefer-template": "error"
   },
-  "overrides": [],
   "ignorePatterns": [
-    "node_modules",
-    "dist",
-    "build",
-    "*.js",
-    "*.d.ts",
-    "coverage",
-    ".eslintrc.js",
-    "scratch",
-    "docs"
+    "node_modules/",
+    "dist/",
+    "coverage/",
+    "**/*.js",
+    "**/*.d.ts"
   ]
 }

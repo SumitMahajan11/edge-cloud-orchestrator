@@ -54,7 +54,7 @@ export class MLScheduler {
     modelVersion: string | null;
     fallbackUsed: boolean;
   } | null> {
-    return await tracer.startActiveSpan(
+    const result = await tracer.startActiveSpan(
       "ml:node_score_calculation",
       async (span) => {
         const startTime = Date.now();
@@ -354,6 +354,7 @@ export class MLScheduler {
         }
       },
     );
+    return result;
   }
 
   private ruleBasedFallback(

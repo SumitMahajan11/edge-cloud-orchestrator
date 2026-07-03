@@ -1,4 +1,5 @@
 // WebSocket client for real-time communication with the backend
+import { authStorage } from "./auth-storage";
 
 type MessageHandler = (data: any) => void;
 type ConnectionHandler = () => void;
@@ -59,7 +60,33 @@ class WebSocketClient {
       this.isConnecting = true;
 
       try {
+        // Retrieve fresh token from storage to handle reconnects/rotation
+        if (typeof window !== "undefined") {
+          const freshToken = authStorage.getToken();
+          if (freshToken) {
+            this.token = freshToken;
+          }
+        }
+
+        // Add logging for client-side token claims
+        if (this.token) {
+          try {
+            const parts = this.token.split(".");
+            if (parts.length >= 2) {
+              const payload = JSON.parse(atob(parts[1]!.replace(/-/g, "+").replace(/_/g, "/")));
+              console.log("[WebSocket] Client token claims:", {
+                userId: payload.id,
+                role: payload.role,
+                tenantId: payload.tenantId,
+              });
+            }
+          } catch (e) {
+            console.error("[WebSocket] Failed to log token claims:", e);
+          }
+        }
+
         const wsUrl = this.token ? `${this.url}?token=${this.token}` : this.url;
+        console.log(`[WebSocket] Connecting to ${this.url} with token: ${this.token ? 'present' : 'missing'}`);
 
         this.ws = new WebSocket(wsUrl);
 

@@ -1,54 +1,287 @@
-﻿# Edge-Cloud Orchestrator
-A system that decides which computer (cloud or edge device) should run a given task, taking into account cost, speed, and the carbon footprint of the electricity grid at that moment.
-It features ML-driven task scheduling, mTLS mutual authentication, real-time observability, and a React dashboard - all structured as a pnpm monorepo.
+﻿# Edge-Cloud Compute Orchestrator
 
-## What's in this repo
-| Part | What it does | Where |
-|---|---|---|
-| **API** | The brain - decides where tasks run, tracks everything, exposes REST endpoints | `apps/api` |
-| **Agent** | Runs on edge devices, executes tasks, reports back metrics/heartbeats | `apps/agent` |
-| **Web Dashboard** | React-based user interface to see what's happening and configure settings | `apps/web` |
-| **Shared packages** | Modular libraries shared across the API, Agent, and Dashboard | `packages/` |
+> A **production-grade distributed edge-cloud orchestration platform** for intelligent task scheduling, real-time execution, and resilient system management.
 
-## Quick start (5 minutes)
-You can run the entire system locally in **mock mode** without needing Docker, PostgreSQL, or Redis running:
+---
+
+## 🚀 GSD Implementation
+
+This project follows **GitHub Standard Development (GSD)** practices for consistent, high-quality code delivery.
+
+### Quick Start
 
 ```bash
-pnpm install
-pnpm dev
+# Setup GSD workflow
+pnpm gsd:setup
+
+# Run quality checks
+pnpm gsd:check
+
+# Auto-fix issues
+pnpm gsd:fix
 ```
 
-Open `http://localhost:5173` to view the React dashboard. The API runs on `http://localhost:3090`.
+### Development Workflow
 
-## Quick start with real infrastructure
-1. `cp config/.env.example config/.env.local`
-2. `docker compose -f infra/docker/docker-compose.yml up -d`
-3. `pnpm --filter @edgecloud/api exec prisma migrate dev && pnpm dev`
+1. **Pre-commit**: Automatic linting, formatting, and type checking
+2. **CI/CD**: Comprehensive quality gates and security checks
+3. **Code Review**: Required for all changes to main branches
 
-For a comprehensive guide, see the [Onboarding Guide](docs/ONBOARDING.md).
+### Quality Standards
 
-## How it works
-1. **Submit**: A client submits a task to the API.
-2. **Schedule**: The TaskScheduler picks the best node using ML models and policy heuristics (latency, cost, node health, carbon intensity).
-3. **Dispatch**: The task is sent over WebSockets to the selected Edge Agent.
-4. **Execute**: The Edge Agent runs the task in a Docker sandbox and streams metrics back.
-5. **Complete**: Results are saved and the dashboard updates in real time.
+- ✅ **Linting**: ESLint with TypeScript support
+- ✅ **Formatting**: Prettier for consistent style
+- ✅ **Type Safety**: Strict TypeScript configuration
+- ✅ **Testing**: 80%+ code coverage required
+- ✅ **Security**: Automated dependency auditing
 
-## Architecture
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the deep dive, or [docs/decisions/](docs/decisions/) for why specific technical choices were made.
+---
 
-## Performance
-Tested against real PostgreSQL and Redis (no mocks).
+## Overview
 
-| Metric | Result |
-|---|---|
-| Tasks scheduled | 1000/1000 (100%) |
-| P50 scheduling latency | 250ms |
-| P99 scheduling latency | 508ms |
-| Carbon reduction (deferrable tasks) | ~26% vs naive scheduling |
+The **Edge-Cloud Compute Orchestrator** is a highly scalable distributed system designed to manage compute workloads across **edge nodes and cloud environments**.
 
-## Contributing
-See [CONTRIBUTING.md](CONTRIBUTING.md). Good first issues are tagged `good-first-issue` on the [issues page](https://github.com/SumitMahajan11/edge-cloud-orchestrator/issues).
+It enables:
 
-## License
-MIT - see [LICENSE](LICENSE) for details.
+* Intelligent task scheduling
+* Real-time execution on distributed nodes
+* Fault-tolerant orchestration
+* Observability and monitoring
+
+---
+
+##  Problem Statement
+
+Modern applications require:
+
+* Low latency 
+* Cost efficiency 
+* High availability 
+
+Traditional cloud-only systems fail to:
+
+* Handle edge workloads efficiently
+* Optimize latency-sensitive tasks
+* Recover gracefully from failures
+
+This project solves these challenges using a **distributed, event-driven architecture**.
+
+---
+
+##  Key Features
+
+### Core System
+
+* Distributed microservices architecture
+* Kafka-based event-driven communication
+* Real-time task scheduling (Edge vs Cloud)
+* Multi-node orchestration
+
+---
+
+### Reliability & Fault Tolerance
+
+*  Saga Pattern (distributed transactions)
+*  Transactional Outbox Pattern
+*  Circuit Breaker + Retry strategies
+*  Dead Letter Queue (DLQ)
+
+---
+
+###  Intelligent Scheduling
+
+*  Multi-objective scoring (latency, CPU, cost, memory)
+*  Predictive scheduling (ML/heuristic-based)
+*  Load-aware and cost-aware routing
+
+---
+
+###  System Resilience
+
+*  Auto-healing system
+*  Backpressure control
+*  Graceful degradation
+*  Recovery storm prevention
+
+---
+
+###  Observability
+
+*  Prometheus (metrics)
+*  Grafana (dashboards)
+*  Jaeger (distributed tracing)
+*  Correlation IDs for tracking
+
+---
+
+###  Security
+
+*  mTLS authentication
+*  Vault integration
+*  Role-based access control
+
+---
+
+##  Architecture
+
+```
+                ┌──────────────────────────┐
+                │     Frontend (React)     │
+                └──────────┬───────────────┘
+                           │
+                    API Gateway (Kong/Nginx)
+                           │
+        ┌──────────────────┼──────────────────┐
+        │                  │                  │
+   Task Service     Scheduler Service    Node Service
+        │                  │                  │
+        └─────────── Kafka Event Bus ─────────┘
+                           │
+                    Distributed Workers
+                           │
+                    Edge Nodes / Cloud
+```
+
+---
+
+##  Workflow
+
+1. User submits task
+2. API Gateway routes request
+3. Task Service stores request
+4. Outbox publishes event → Kafka
+5. Scheduler selects optimal node
+6. Node executes task (Docker container)
+7. Metrics + logs collected
+8. Result returned to user
+
+---
+
+##  Tech Stack
+
+###  Frontend
+
+* React + TypeScript
+* Vite
+* Tailwind CSS
+
+---
+
+###  Backend
+
+* Node.js (Fastify/Express)
+* Kafka (event streaming)
+* Redis (cache + rate limiting)
+* CockroachDB (distributed SQL)
+
+---
+
+###  Infrastructure
+
+* Docker
+* Kubernetes (Helm)
+* Nginx / Kong API Gateway
+
+---
+
+###  Observability
+
+* Prometheus
+* Grafana
+* Jaeger
+
+---
+
+##  Getting Started
+
+###  Setup
+
+```bash
+# Install dependencies
+npm install
+
+# Setup environment
+cp .env.example .env
+
+# Start system
+docker-compose up -d
+```
+
+---
+
+### Run Application
+
+```bash
+npm run dev
+```
+
+ Open:
+
+```
+http://localhost:5173
+```
+
+---
+
+##  Testing
+
+```bash
+# Unit tests
+npm test
+
+# Load testing
+k6 run tests/load-test.js
+```
+
+---
+
+##  Project Structure
+
+```
+edge-cloud-orchestrator/
+├── src/                # Frontend
+├── backend/            # Backend services
+├── packages/           # Shared modules
+├── infrastructure/     # Deployment configs
+├── docs/               # Documentation
+└── docker-compose.yml
+```
+
+---
+
+##  Why This Project is Unique
+
+*  Combines **edge computing + distributed systems**
+*  Implements **real production patterns (Saga, Outbox)**
+*  Includes **intelligent scheduling logic**
+*  Designed for **fault tolerance & scalability**
+*  Full **observability stack**
+
+---
+
+##  Use Cases
+
+* Edge AI workloads
+* IoT data processing
+* Distributed compute platforms
+* Real-time analytics systems
+
+---
+
+##  License
+
+MIT License
+
+---
+
+##  Author
+
+**Sumit Mahajan**
+
+---
+
+##  Final Note
+
+This project demonstrates:
+
+> **Advanced distributed systems design, real-world architecture patterns, and production-grade engineering practices.**
