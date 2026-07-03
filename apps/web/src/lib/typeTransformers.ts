@@ -252,8 +252,8 @@ export function transformMetricsFromApi(apiMetrics: any): SystemMetrics {
     throughput: apiMetrics.throughput || 0,
     cpuHistory: apiMetrics.cpuHistory || [],
     taskDistribution: apiMetrics.taskDistribution || { edge: 0, cloud: 0 },
-    healthScore: apiMetrics.healthScore || 100,
-    completionRate: apiMetrics.completionRate || 0,
+    healthScore: apiMetrics.healthScore ?? 0,
+    completionRate: apiMetrics.completionRate ?? 0,
     costOverTime: apiMetrics.costOverTime || [],
   };
 }

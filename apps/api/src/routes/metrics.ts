@@ -46,20 +46,22 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
 
     const offlineNodes = totalNodes - onlineNodes;
     const healthScore =
-      totalNodes > 0 ? Math.round((onlineNodes / totalNodes) * 100) : 100;
+      totalNodes > 0 ? Math.round((onlineNodes / totalNodes) * 100) : 0;
     const completionRate =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
     const now = new Date();
-    const cpuHistory = Array.from({ length: 12 }, (_, i) => ({
-      timestamp: new Date(now.getTime() - (11 - i) * 3600000).toISOString(),
+    // 24 hourly data points — matches the monitoring page "Resource Utilization (24h)" lookback
+    const cpuHistory = Array.from({ length: 24 }, (_, i) => ({
+      timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
       value: totalNodes > 0 ? Math.round(40 + Math.sin(i) * 15 + Math.random() * 5) : 0,
     }));
 
     const costVal = totalCost._sum?.cost || 0;
-    const costOverTime = Array.from({ length: 12 }, (_, i) => ({
-      timestamp: new Date(now.getTime() - (11 - i) * 3600000).toISOString(),
-      value: costVal > 0 ? Math.round((costVal / 12) * (i + 1) * 100) / 100 : 0,
+    // Match cpuHistory's 24-point 24h lookback
+    const costOverTime = Array.from({ length: 24 }, (_, i) => ({
+      timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
+      value: costVal > 0 ? Math.round((costVal / 24) * (i + 1) * 100) / 100 : 0,
     }));
 
     return {

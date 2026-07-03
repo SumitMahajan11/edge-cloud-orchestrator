@@ -17,13 +17,9 @@ export function useAlerts() {
   return useQuery({
     queryKey: ["alerts"],
     queryFn: async () => {
-      try {
-        const { data, error } = await getV2Alerts();
-        if (error) throw error;
-        return ((data as any)?.alerts || []) as SystemAlert[];
-      } catch (err) {
-        return MOCK_ALERTS;
-      }
+      const { data, error } = await getV2Alerts();
+      if (error) throw error;
+      return ((data as any)?.alerts || []) as SystemAlert[];
     },
     refetchInterval: 10000,
   });
@@ -40,33 +36,3 @@ export function useAcknowledgeAlert() {
     },
   });
 }
-
-const MOCK_ALERTS: SystemAlert[] = [
-  {
-    id: "alt-1",
-    severity: "CRITICAL",
-    title: "Edge Node Latency Spike",
-    description: "Multiple nodes in us-east region reporting p99 latency > 2s.",
-    source: "monitoring.latency",
-    firedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-    acknowledgedAt: null,
-  },
-  {
-    id: "alt-2",
-    severity: "HIGH",
-    title: "Model Drift Detected",
-    description: "Scheduling accuracy dropped below 90% threshold in APAC.",
-    source: "ml.optimizer",
-    firedAt: new Date(Date.now() - 1000 * 60 * 45).toISOString(),
-    acknowledgedAt: null,
-  },
-  {
-    id: "alt-3",
-    severity: "LOW",
-    title: "Scheduled Retraining Started",
-    description: "Auto-retraining job initiated for global scheduler model.",
-    source: "system.cron",
-    firedAt: new Date(Date.now() - 1000 * 60 * 120).toISOString(),
-    acknowledgedAt: new Date(Date.now() - 1000 * 60 * 115).toISOString(),
-  },
-];

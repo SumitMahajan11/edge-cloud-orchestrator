@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { AlertTriangle, AlertCircle, X } from "lucide-react";
 import Link from "next/link";
 import { useWsEventStream } from "../../stores/websocket";
+import { useNodes } from "../../hooks/useNodes";
 import { cn } from "../../lib/utils";
 
 export interface SystemAlert {
@@ -23,12 +24,29 @@ export interface SystemAlert {
  */
 export function SystemAlertsBanner() {
   const events = useWsEventStream();
+  const { data: nodes } = useNodes();
   const [dismissed, setDismissed] = useState<Set<string>>(new Set());
 
   // Derive alerts from recent events (last 100)
   const derived = useMemo<SystemAlert[]>(() => {
     const recent = events.slice(-100);
     const seen = new Map<string, SystemAlert>();
+
+    // Seed offline nodes from backend state on init
+    if (nodes) {
+      for (const node of nodes) {
+        if (node.status === "offline") {
+          const key = `node-offline:${node.id}`;
+          seen.set(key, {
+            id: key,
+            severity: "warning",
+            title: `Node offline: ${node.name}`,
+            description: `Node in ${node.region} is offline`,
+            createdAt: node.lastHeartbeat ? node.lastHeartbeat.getTime() : Date.now(),
+          });
+        }
+      }
+    }
 
     for (const e of recent) {
       const d: any = e.data ?? {};
@@ -99,7 +117,7 @@ export function SystemAlertsBanner() {
     return [...seen.values()].filter(
       (a): a is SystemAlert => !!a && "title" in a,
     );
-  }, [events]);
+  }, [events, nodes]);
 
   // Prune dismissed-set to ids that no longer exist
   useEffect(() => {

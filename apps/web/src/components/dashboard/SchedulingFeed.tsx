@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Pause, Play, Terminal, Layers } from "lucide-react";
 import { useWsEventStream } from "../../stores/websocket";
@@ -16,7 +16,7 @@ import {
 } from "recharts";
 
 interface SchedulingFeedProps {
-  cpuHistory: { timestamp: Date; value: number }[];
+  cpuHistory: { timestamp: string; value: number }[];
   paused?: boolean;
   onTogglePaused?: () => void;
 }
@@ -27,6 +27,15 @@ export function SchedulingFeed({
   onTogglePaused,
 }: SchedulingFeedProps) {
   const [tab, setTab] = useState<"feed" | "events" | "cpu">("feed");
+  const [timedOut, setTimedOut] = useState(false);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setTimedOut(true);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
   const schedulingEvents = useWsEventStream("scheduler.");
   const allEvents = useWsEventStream();
 
@@ -41,8 +50,11 @@ export function SchedulingFeed({
 
   const cpuChart = useMemo(
     () =>
-      cpuHistory.map((p, i) => ({
-        name: `${i * 2}s`,
+      cpuHistory.map((p) => ({
+        name: new Date(p.timestamp).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        }),
         cpu: Math.round(p.value),
       })),
     [cpuHistory],
@@ -113,7 +125,11 @@ export function SchedulingFeed({
                   {feedRows.length === 0 && (
                     <div className="flex flex-col items-center justify-center py-20 text-muted-foreground opacity-30">
                       <Layers className="h-8 w-8 mb-2" />
-                      <p>Initializing Decision Matrix...</p>
+                      <p>
+                        {timedOut
+                          ? "No scheduling decisions available"
+                          : "Initializing Decision Matrix..."}
+                      </p>
                     </div>
                   )}
                   {feedRows.map((e) => {

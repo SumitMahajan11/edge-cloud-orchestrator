@@ -53,6 +53,7 @@ export default function MLIntelligencePage() {
   const {
     models = [],
     isLoading: isFlLoading,
+    isError: isFlError,
     startSession,
     isStarting,
     stopSession,
@@ -356,7 +357,11 @@ export default function MLIntelligencePage() {
           <CardDescription>Registered neural net architectures and real-time training sessions.</CardDescription>
         </CardHeader>
         <CardContent>
-          {isFlLoading ? (
+          {isFlError ? (
+            <div className="text-center py-6 text-rose-400 text-sm">
+              Failed to load registry. Check API connectivity and try refreshing.
+            </div>
+          ) : isFlLoading ? (
             <div className="text-center py-6 text-muted-foreground text-sm">
               Loading registry database...
             </div>

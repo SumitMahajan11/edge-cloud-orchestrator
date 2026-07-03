@@ -44,11 +44,23 @@ export default async function alertRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const alerting = getAlertingService();
-      if (!alerting) {
-        return { alerts: [] };
-      }
-      const alerts = await alerting.getAlerts(request.user!.tenantId!);
+      const tenantId = request.user!.tenantId!;
+      const dbAlerts = await fastify.prisma.alert.findMany({
+        where: { tenantId },
+        orderBy: { createdAt: 'desc' },
+        take: 100,
+      });
+      // Map DB Alert model to the API response shape
+      const alerts = dbAlerts.map((a) => ({
+        id: a.id,
+        severity: a.severity.toUpperCase() as 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW',
+        title: a.message,
+        description: a.message,
+        source: a.entityType ? `${a.entityType}:${a.entityId}` : 'system',
+        firedAt: a.createdAt.toISOString(),
+        acknowledgedAt: (a as any).acknowledgedAt?.toISOString() ?? null,
+        resolvedAt: null,
+      }));
       return { alerts };
     },
   );
@@ -75,22 +87,14 @@ export default async function alertRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, reply) => {
-      const alerting = getAlertingService();
-      if (!alerting) {
-        return reply.status(503).send({
-          error: {
-            code: 'SERVICE_UNAVAILABLE',
-            message: 'Alerting service unavailable',
-            requestId: request.id,
-          },
-        });
-      }
+      const { id } = request.params;
+      const tenantId = request.user!.tenantId!;
 
-      const success = await alerting.acknowledge(
-        request.params.id,
-        request.user!.tenantId!,
-      );
-      if (!success) {
+      const alert = await fastify.prisma.alert.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!alert) {
         return reply.status(404).send({
           error: {
             code: 'NOT_FOUND',
@@ -99,6 +103,11 @@ export default async function alertRoutes(fastify: FastifyInstance) {
           },
         });
       }
+
+      await fastify.prisma.alert.update({
+        where: { id },
+        data: { acknowledged: true, acknowledgedAt: new Date() },
+      });
 
       return { success: true };
     },

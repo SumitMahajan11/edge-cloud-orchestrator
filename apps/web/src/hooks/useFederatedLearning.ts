@@ -14,7 +14,7 @@ export function useFederatedLearning() {
     refetchInterval: 60_000, // refresh every 60s
     staleTime: 55_000,
     refetchOnWindowFocus: false,
-    refetchOnMount: false,
+    retry: 1,
   });
 
   // 2. Start FL Session Mutation

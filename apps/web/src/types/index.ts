@@ -140,11 +140,11 @@ export interface SystemMetrics {
   edgeUtilization: number;
   cloudUtilization: number;
   throughput: number;
-  cpuHistory: { timestamp: Date; value: number }[];
+  cpuHistory: { timestamp: string; value: number }[];
   taskDistribution: { edge: number; cloud: number };
   healthScore: number;
   completionRate: number;
-  costOverTime: { timestamp: Date; value: number }[];
+  costOverTime: { timestamp: string; value: number }[];
 }
 
 export interface SchedulingResult {

@@ -76,7 +76,14 @@ export function SubmitTaskModal({ isOpen, onClose }: SubmitTaskModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(2)) return;
+    // Validate all steps before final submission
+    const step1Valid = validateStep(1);
+    const step2Valid = validateStep(2);
+    if (!step1Valid || !step2Valid) {
+      // Jump back to the first step that has errors
+      if (!step1Valid) setStep(1);
+      return;
+    }
 
     try {
       const payload: any = {

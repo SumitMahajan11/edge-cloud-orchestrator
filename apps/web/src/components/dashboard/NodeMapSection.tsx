@@ -13,6 +13,17 @@ interface NodeMapSectionProps {
 export function NodeMapSection({ nodes, className }: NodeMapSectionProps) {
   const [carbonMode, setCarbonMode] = useState(false);
 
+  const uniqueRegions = Array.from(new Set(nodes.map((n) => n.region).filter(Boolean)));
+  const totalRegions = uniqueRegions.length;
+  const activeRegions = Array.from(
+    new Set(
+      nodes
+        .filter((n) => n.status === "online")
+        .map((n) => n.region)
+        .filter(Boolean),
+    ),
+  ).length;
+
   return (
     <div className={cn("card-brief p-6 flex flex-col h-[400px]", className)}>
       <div className="flex items-center justify-between mb-4 border-b border-border/50 pb-4">
@@ -79,7 +90,7 @@ export function NodeMapSection({ nodes, className }: NodeMapSectionProps) {
               Active Regions
             </span>
             <span className="text-xs font-black font-mono text-foreground">
-              12 / 12
+              {activeRegions} / {totalRegions}
             </span>
           </div>
           <div className="flex flex-col">
