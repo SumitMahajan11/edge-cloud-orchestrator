@@ -464,7 +464,7 @@ export function computeMetrics(
       : 0;
 
   const cpuHistory = onlineNodes.map((n) => ({
-    timestamp: new Date(),
+    timestamp: new Date().toISOString(),
     value: n.cpu,
   }));
 
@@ -503,7 +503,7 @@ export function computeMetrics(
     taskDistribution: { edge: edgeTasks, cloud: cloudTaskCount },
     healthScore: clamp(healthScore, 0, 100),
     completionRate,
-    costOverTime: [{ timestamp: new Date(), value: totalCost }],
+    costOverTime: [{ timestamp: new Date().toISOString(), value: totalCost }],
   };
 }
 
