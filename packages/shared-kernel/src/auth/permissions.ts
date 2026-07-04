@@ -37,7 +37,7 @@ export const Permissions = {
   // API Key permissions
   API_KEY_MANAGE: "api_key:manage",
 
-  // System permissions (super admin only)
+  // System permissions
   SYSTEM_READ: "system:read",
   AUDIT_READ: "system:audit_read",
   CIRCUIT_BREAKER_RESET: "system:circuit_breaker_reset",
@@ -79,6 +79,7 @@ export const RolePermissions: Record<string, Permission[]> = {
     Permissions.CARBON_READ,
     Permissions.CARBON_POLICY_WRITE,
     Permissions.AUDIT_READ,
+    Permissions.SYSTEM_READ,
     Permissions.API_KEY_MANAGE,
     Permissions.ALERT_READ,
     Permissions.ALERT_MANAGE,
@@ -115,6 +116,7 @@ export const RolePermissions: Record<string, Permission[]> = {
     Permissions.ML_RETRAIN,
     Permissions.CARBON_READ,
     Permissions.AUDIT_READ,
+    Permissions.SYSTEM_READ,
     Permissions.API_KEY_MANAGE,
     Permissions.ALERT_READ,
     Permissions.ALERT_MANAGE,
