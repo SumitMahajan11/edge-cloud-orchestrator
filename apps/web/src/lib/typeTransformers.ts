@@ -195,6 +195,7 @@ export function transformTaskFromApi(apiTask: any): Task {
     retryCount: apiTask.retryCount || 0,
     maxRetries: apiTask.maxRetries || 3,
     runtime: apiTask.runtime || "docker",
+    specs: apiTask.specs || undefined,
     metadata: apiTask.metadata,
   };
 }
@@ -230,6 +231,9 @@ export function transformLogFromApi(apiLog: any): LogEntry {
     source: apiLog.source || "System",
     message: apiLog.message,
     metadata: apiLog.metadata,
+    taskId: apiLog.taskId ?? undefined,
+    // nodeId: prefer explicit field, fall back to entityId when source is 'node'
+    nodeId: apiLog.nodeId ?? (apiLog.source === "node" ? apiLog.entityId : undefined),
   };
 }
 

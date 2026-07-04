@@ -28,7 +28,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useSchedulingPolicy, useUpdateSchedulingPolicy } from "@/hooks/usePolicies";
+import {
+  useSchedulingPolicy,
+  useUpdateSchedulingPolicy,
+  useGovernanceMetrics,
+  useSchedulingPolicies,
+} from "@/hooks/usePolicies";
 import { useWebSocketChannel } from "@/lib/websocketClient";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -39,6 +44,18 @@ export default function PoliciesPage() {
   // Fetch tenant-specific policy
   const { data: policy, isLoading, isError } = useSchedulingPolicy();
   const updatePolicyMutation = useUpdateSchedulingPolicy();
+
+  // Fetch governance metrics and policies
+  const { data: governanceMetrics } = useGovernanceMetrics();
+  const { data: schedulingPolicies } = useSchedulingPolicies();
+
+  const metrics = governanceMetrics || {
+    activeConstraints: 12,
+    policyViolations: 0,
+    complianceScore: 0,
+    totalNodes: 0,
+    onlineNodes: 0,
+  };
 
   // Local state for weights, normalized to 0-100 for sliders
   const [weights, setWeights] = useState({
@@ -63,6 +80,8 @@ export default function PoliciesPage() {
     if (event?.type === "scheduler.policy_updated") {
       console.log("[WebSocket] Policy updated event received:", event);
       void queryClient.invalidateQueries({ queryKey: ["scheduling-policy"] });
+      void queryClient.invalidateQueries({ queryKey: ["scheduling-policies"] });
+      void queryClient.invalidateQueries({ queryKey: ["governance-metrics"] });
     }
   });
 
@@ -116,44 +135,15 @@ export default function PoliciesPage() {
     updatePolicyMutation.mutate(payload);
   };
 
-  const policies = [
-    {
-      id: "pol-001",
-      name: "Global Latency SLA",
-      type: "LATENCY",
-      target: "< 50ms",
-      status: "active",
-      nodes: 42,
-      lastEvaluated: "2m ago",
-    },
-    {
-      id: "pol-002",
-      name: "Eco-First Optimization",
-      type: "CARBON",
-      target: "Min Intensity",
-      status: "active",
-      nodes: 128,
-      lastEvaluated: "5m ago",
-    },
-    {
-      id: "pol-003",
-      name: "Critical Workload Affinity",
-      type: "AFFINITY",
-      target: "Region: US-East",
-      status: "warning",
-      nodes: 12,
-      lastEvaluated: "1m ago",
-    },
-    {
-      id: "pol-004",
-      name: "Cost Guardrail",
-      type: "COST",
-      target: "< $0.05/hr",
-      status: "inactive",
-      nodes: 0,
-      lastEvaluated: "N/A",
-    },
-  ];
+  const filteredPolicies = (schedulingPolicies || []).filter((p) => {
+    if (!search) return true;
+    const cleanName = p.name.replace(/ - [a-f0-9-]+$/, "");
+    return (
+      cleanName.toLowerCase().includes(search.toLowerCase()) ||
+      p.type.toLowerCase().includes(search.toLowerCase())
+    );
+  });
+
 
   return (
     <div className="space-y-6">
@@ -325,8 +315,8 @@ export default function PoliciesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">14</div>
-              <p className="text-xs text-muted-foreground mt-1">Applying to 182 edge nodes</p>
+              <div className="text-2xl font-bold">{metrics.activeConstraints}</div>
+              <p className="text-xs text-muted-foreground mt-1">Applying to {metrics.totalNodes} edge nodes</p>
             </CardContent>
           </Card>
           <Card className="bg-card/50 border-border">
@@ -336,8 +326,20 @@ export default function PoliciesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">3</div>
-              <p className="text-xs text-muted-foreground mt-1">Drift detected in AP-South region</p>
+              <div className="text-2xl font-bold">{metrics.policyViolations}</div>
+              <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
+                {metrics.policyViolations > 0 ? (
+                  <>
+                    <span className="relative flex h-2 w-2">
+                      <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                      <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500"></span>
+                    </span>
+                    <span>Anomalies detected across fleet</span>
+                  </>
+                ) : (
+                  <span>All nodes operating within margins</span>
+                )}
+              </p>
             </CardContent>
           </Card>
           <Card className="bg-card/50 border-border">
@@ -347,8 +349,14 @@ export default function PoliciesPage() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-teal-400">98.2%</div>
-              <p className="text-xs text-muted-foreground mt-1">+0.5% from last month</p>
+              <div className="text-2xl font-bold text-teal-400">{metrics.complianceScore}%</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                {metrics.complianceScore === 100 && metrics.totalNodes > 0 && metrics.onlineNodes === metrics.totalNodes
+                  ? "Optimal system alignment"
+                  : metrics.totalNodes > 0
+                  ? `${metrics.onlineNodes}/${metrics.totalNodes} nodes online`
+                  : "No nodes registered"}
+              </p>
             </CardContent>
           </Card>
         </div>
@@ -391,49 +399,64 @@ export default function PoliciesPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {policies.map((policyItem) => (
-                <TableRow key={policyItem.id} className="border-border/50 group">
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-mono text-[10px] text-muted-foreground">
-                        {policyItem.id}
-                      </span>
-                      <span className="font-medium">{policyItem.name}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="text-[10px] uppercase">
-                      {policyItem.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-teal-400">{policyItem.target}</TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div
-                        className={`h-2 w-2 rounded-full ${
-                          policyItem.status === "active"
-                            ? "bg-emerald-400"
-                            : policyItem.status === "warning"
-                              ? "bg-amber-400"
+              {filteredPolicies.map((policyItem) => {
+                let targetDisplay = "N/A";
+                if (policyItem.type === "TUNABLE") {
+                  targetDisplay = `L: ${weights.latency}% | C: ${weights.cost}% | CO2: ${weights.carbon}%`;
+                } else if (policyItem.type === "LATENCY") {
+                  targetDisplay = `< ${policyItem.config?.maxLatencyMs ?? 150}ms`;
+                } else if (policyItem.type === "CARBON") {
+                  targetDisplay = `> ${policyItem.config?.minGreenPercent ?? 80}% clean`;
+                } else if (policyItem.type === "COST") {
+                  targetDisplay = `< $${policyItem.config?.maxCostUSD ?? 0.05}/hr`;
+                }
+
+                const statusDisplay = policyItem.isActive ? "active" : "inactive";
+                const nodesImpacted = policyItem.isActive ? metrics.totalNodes : 0;
+                const displayName = policyItem.name.replace(/ - [a-f0-9-]+$/, "");
+
+                return (
+                  <TableRow key={policyItem.id} className="border-border/50 group">
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-mono text-[10px] text-muted-foreground">
+                          {policyItem.id}
+                        </span>
+                        <span className="font-medium">{displayName}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="text-[10px] uppercase">
+                        {policyItem.type}
+                      </Badge>
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-teal-400">{targetDisplay}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div
+                          className={`h-2 w-2 rounded-full ${
+                            statusDisplay === "active"
+                              ? "bg-emerald-400"
                               : "bg-muted-foreground/30"
-                        }`}
-                      />
-                      <span className="capitalize text-sm">{policyItem.status}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">{policyItem.nodes} nodes</TableCell>
-                  <TableCell className="text-right">
-                    <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Button variant="ghost" size="icon" className="h-8 w-8">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-400">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+                          }`}
+                        />
+                        <span className="capitalize text-sm">{statusDisplay}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground text-sm">{nodesImpacted} nodes</TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Edit2 className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-400">
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                );
+              })}
             </TableBody>
           </Table>
         </CardContent>

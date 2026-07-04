@@ -150,4 +150,102 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       };
     },
   );
+
+  /**
+   * GET /v2/analytics/governance
+   *
+   * Returns aggregated governance analytics for the policies dashboard.
+   */
+  fastify.get(
+    '/governance',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
+      schema: {
+        tags: ['analytics'],
+        summary: 'Get governance metrics',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              activeConstraints: { type: 'number' },
+              policyViolations: { type: 'number' },
+              complianceScore: { type: 'number' },
+              totalNodes: { type: 'number' },
+              onlineNodes: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+    async (request) => {
+      const tenantId = request.user!.tenantId!;
+
+      // 1. Active Constraints: SchedulingPolicies (isActive) + AlertRules (enabled) + 12 baseline constraints
+      const activePolicies = await request.tPrisma.schedulingPolicy.count({
+        where: { tenantId, isActive: true },
+      });
+      const activeAlertRules = await request.tPrisma.alertRule.count({
+        where: { tenantId, enabled: true },
+      });
+      const activeConstraints = activePolicies + activeAlertRules + 12;
+
+      // 2. Policy Violations: anomalies in NodeHealthScore + offline nodes
+      const allNodes = await request.tPrisma.edgeNode.findMany({
+        where: { tenantId },
+        select: { id: true, status: true },
+      });
+      const totalNodes = allNodes.length;
+      const onlineNodes = allNodes.filter((n) => n.status === 'ONLINE').length;
+      const offlineNodesCount = totalNodes - onlineNodes;
+
+      const healthScores = await request.tPrisma.nodeHealthScore.findMany({
+        where: { tenantId },
+        select: { nodeId: true, isAnomaly: true, successRate: true },
+      });
+
+      const anomalyNodeIds = new Set(
+        healthScores.filter((h) => h.isAnomaly).map((h) => h.nodeId)
+      );
+
+      const onlineAnomalyCount = allNodes.filter(
+        (node) => node.status === 'ONLINE' && anomalyNodeIds.has(node.id)
+      ).length;
+
+      const policyViolations = offlineNodesCount + onlineAnomalyCount;
+
+      // 4. Compliance Score
+      // A node is compliant if it is ONLINE and has no active anomalies.
+      // Every offline node contributes 0% compliance.
+      // Every online node contributes its quality (successRate). If no health score is recorded, it defaults to 1.0 (100%).
+      const healthScoreMap = new Map<string, number>();
+      healthScores.forEach((h) => {
+        healthScoreMap.set(h.nodeId, h.successRate);
+      });
+
+      let totalComplianceSum = 0;
+      allNodes.forEach((node) => {
+        if (node.status === 'ONLINE') {
+          const successRate = healthScoreMap.get(node.id) ?? 1.0;
+          totalComplianceSum += successRate;
+        } else {
+          // offline nodes contribute 0% compliant
+          totalComplianceSum += 0;
+        }
+      });
+
+      const complianceScore = totalNodes > 0 ? (totalComplianceSum / totalNodes) * 100 : 0;
+
+      return {
+        activeConstraints,
+        policyViolations,
+        complianceScore: Math.round(complianceScore * 10) / 10,
+        totalNodes,
+        onlineNodes,
+      };
+    },
+  );
 }
+

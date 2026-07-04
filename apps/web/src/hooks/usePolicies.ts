@@ -94,12 +94,34 @@ export interface SchedulingPolicy {
   name: string;
   type: string;
   config: {
-    costWeight: number;
-    latencyWeight: number;
-    carbonWeight: number;
+    costWeight?: number;
+    latencyWeight?: number;
+    carbonWeight?: number;
+    maxLatencyMs?: number;
+    minGreenPercent?: number;
+    maxCostUSD?: number;
+    [key: string]: any;
   };
   isActive: boolean;
   tenantId: string;
+}
+
+export interface GovernanceMetrics {
+  activeConstraints: number;
+  policyViolations: number;
+  complianceScore: number;
+  totalNodes: number;
+  onlineNodes: number;
+}
+
+export function useGovernanceMetrics() {
+  return useQuery({
+    queryKey: ["governance-metrics"],
+    queryFn: async () => {
+      return api.get<GovernanceMetrics>("/v2/analytics/governance");
+    },
+    staleTime: STALE.default,
+  });
 }
 
 export function useSchedulingPolicy() {
@@ -107,6 +129,16 @@ export function useSchedulingPolicy() {
     queryKey: ["scheduling-policy"],
     queryFn: async () => {
       return api.get<SchedulingPolicy>("/v2/scheduling/policy");
+    },
+    staleTime: STALE.default,
+  });
+}
+
+export function useSchedulingPolicies() {
+  return useQuery({
+    queryKey: ["scheduling-policies"],
+    queryFn: async () => {
+      return api.get<SchedulingPolicy[]>("/v2/scheduling/policies");
     },
     staleTime: STALE.default,
   });
@@ -126,6 +158,9 @@ export function useUpdateSchedulingPolicy() {
     },
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["scheduling-policy"] });
+      void queryClient.invalidateQueries({ queryKey: ["scheduling-policies"] });
+      void queryClient.invalidateQueries({ queryKey: ["governance-metrics"] });
     },
   });
 }
+

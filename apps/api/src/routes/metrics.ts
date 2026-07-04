@@ -9,6 +9,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     const [
       totalNodes,
       onlineNodes,
+      degradedNodes,
       totalTasks,
       pendingTasks,
       runningTasks,
@@ -18,6 +19,9 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       fastify.prisma.edgeNode.count({ where: { tenantId } }),
       fastify.prisma.edgeNode.count({
         where: { status: 'ONLINE' as any, tenantId },
+      }),
+      fastify.prisma.edgeNode.count({
+        where: { status: 'DEGRADED' as any, tenantId },
       }),
       fastify.prisma.task.count({ where: { tenantId } }),
       fastify.prisma.task.count({
@@ -35,7 +39,10 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     ]);
 
     const avgLatency = await (fastify.prisma.edgeNode as any).aggregate({
-      where: { status: 'ONLINE', tenantId },
+      where: {
+        status: { in: ['ONLINE', 'DEGRADED'] } as any,
+        tenantId,
+      },
       _avg: { latency: true },
     });
 
@@ -44,9 +51,9 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       _sum: { cost: true },
     });
 
-    const offlineNodes = totalNodes - onlineNodes;
+    const offlineNodes = Math.max(0, totalNodes - onlineNodes - degradedNodes);
     const healthScore =
-      totalNodes > 0 ? Math.round((onlineNodes / totalNodes) * 100) : 0;
+      totalNodes > 0 ? Math.round(((onlineNodes + degradedNodes * 0.5) / totalNodes) * 100) : 0;
     const completionRate =
       totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
@@ -68,7 +75,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       totalNodes,
       onlineNodes,
       offlineNodes,
-      degradedNodes: 0,
+      degradedNodes,
       totalTasks,
       pendingTasks,
       runningTasks,
@@ -76,7 +83,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       failedTasks,
       avgLatency: avgLatency._avg?.latency || 0,
       totalCost: costVal,
-      edgeUtilization: onlineNodes > 0 ? Math.min(95, runningTasks * 10) : 0,
+      edgeUtilization: (onlineNodes + degradedNodes) > 0 ? Math.min(95, runningTasks * 10) : 0,
       cloudUtilization: 30,
       throughput: completedTasks,
       healthScore,

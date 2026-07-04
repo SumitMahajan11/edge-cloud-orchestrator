@@ -226,6 +226,8 @@ export function transformLogFromApi(apiLog: any): LogEntry {
     source: apiLog.source || "System",
     message: apiLog.message,
     metadata: apiLog.metadata,
+    taskId: apiLog.taskId ?? undefined,
+    nodeId: apiLog.nodeId ?? (apiLog.source === "node" ? apiLog.entityId : undefined),
   };
 }
 
