@@ -143,6 +143,16 @@ export type NodeHealthScore = $Result.DefaultSelection<Prisma.$NodeHealthScorePa
  * 
  */
 export type SchedulingOutcome = $Result.DefaultSelection<Prisma.$SchedulingOutcomePayload>
+/**
+ * Model AlertRule
+ * 
+ */
+export type AlertRule = $Result.DefaultSelection<Prisma.$AlertRulePayload>
+/**
+ * Model Alert
+ * 
+ */
+export type Alert = $Result.DefaultSelection<Prisma.$AlertPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -526,6 +536,26 @@ export class PrismaClient<
     * ```
     */
   get schedulingOutcome(): Prisma.SchedulingOutcomeDelegate<ExtArgs>;
+
+  /**
+   * `prisma.alertRule`: Exposes CRUD operations for the **AlertRule** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more AlertRules
+    * const alertRules = await prisma.alertRule.findMany()
+    * ```
+    */
+  get alertRule(): Prisma.AlertRuleDelegate<ExtArgs>;
+
+  /**
+   * `prisma.alert`: Exposes CRUD operations for the **Alert** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Alerts
+    * const alerts = await prisma.alert.findMany()
+    * ```
+    */
+  get alert(): Prisma.AlertDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -992,7 +1022,9 @@ export namespace Prisma {
     CarbonMetric: 'CarbonMetric',
     CarbonRecord: 'CarbonRecord',
     NodeHealthScore: 'NodeHealthScore',
-    SchedulingOutcome: 'SchedulingOutcome'
+    SchedulingOutcome: 'SchedulingOutcome',
+    AlertRule: 'AlertRule',
+    Alert: 'Alert'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1008,7 +1040,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "tenant" | "schedulingPolicy" | "tenantUser" | "metricRetentionPolicy" | "userSession" | "apiKey" | "webhook" | "webhookDelivery" | "auditLog" | "edgeNode" | "task" | "taskExecution" | "taskLog" | "certificateAuthority" | "nodeMetric" | "sagaInstance" | "sagaStep" | "schedulingDecision" | "outcomeLog" | "idempotencyRecord" | "costRecord" | "carbonMetric" | "carbonRecord" | "nodeHealthScore" | "schedulingOutcome"
+      modelProps: "user" | "tenant" | "schedulingPolicy" | "tenantUser" | "metricRetentionPolicy" | "userSession" | "apiKey" | "webhook" | "webhookDelivery" | "auditLog" | "edgeNode" | "task" | "taskExecution" | "taskLog" | "certificateAuthority" | "nodeMetric" | "sagaInstance" | "sagaStep" | "schedulingDecision" | "outcomeLog" | "idempotencyRecord" | "costRecord" | "carbonMetric" | "carbonRecord" | "nodeHealthScore" | "schedulingOutcome" | "alertRule" | "alert"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2832,6 +2864,146 @@ export namespace Prisma {
           }
         }
       }
+      AlertRule: {
+        payload: Prisma.$AlertRulePayload<ExtArgs>
+        fields: Prisma.AlertRuleFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AlertRuleFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AlertRuleFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>
+          }
+          findFirst: {
+            args: Prisma.AlertRuleFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AlertRuleFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>
+          }
+          findMany: {
+            args: Prisma.AlertRuleFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>[]
+          }
+          create: {
+            args: Prisma.AlertRuleCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>
+          }
+          createMany: {
+            args: Prisma.AlertRuleCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AlertRuleCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>[]
+          }
+          delete: {
+            args: Prisma.AlertRuleDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>
+          }
+          update: {
+            args: Prisma.AlertRuleUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>
+          }
+          deleteMany: {
+            args: Prisma.AlertRuleDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AlertRuleUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AlertRuleUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertRulePayload>
+          }
+          aggregate: {
+            args: Prisma.AlertRuleAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAlertRule>
+          }
+          groupBy: {
+            args: Prisma.AlertRuleGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AlertRuleGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AlertRuleCountArgs<ExtArgs>
+            result: $Utils.Optional<AlertRuleCountAggregateOutputType> | number
+          }
+        }
+      }
+      Alert: {
+        payload: Prisma.$AlertPayload<ExtArgs>
+        fields: Prisma.AlertFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.AlertFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.AlertFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>
+          }
+          findFirst: {
+            args: Prisma.AlertFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.AlertFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>
+          }
+          findMany: {
+            args: Prisma.AlertFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>[]
+          }
+          create: {
+            args: Prisma.AlertCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>
+          }
+          createMany: {
+            args: Prisma.AlertCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.AlertCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>[]
+          }
+          delete: {
+            args: Prisma.AlertDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>
+          }
+          update: {
+            args: Prisma.AlertUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>
+          }
+          deleteMany: {
+            args: Prisma.AlertDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.AlertUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.AlertUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$AlertPayload>
+          }
+          aggregate: {
+            args: Prisma.AlertAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateAlert>
+          }
+          groupBy: {
+            args: Prisma.AlertGroupByArgs<ExtArgs>
+            result: $Utils.Optional<AlertGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.AlertCountArgs<ExtArgs>
+            result: $Utils.Optional<AlertCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3068,6 +3240,8 @@ export namespace Prisma {
     NodeMetric: number
     SchedulingPolicy: number
     SchedulingOutcome: number
+    alertRules: number
+    alerts: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3088,6 +3262,8 @@ export namespace Prisma {
     NodeMetric?: boolean | TenantCountOutputTypeCountNodeMetricArgs
     SchedulingPolicy?: boolean | TenantCountOutputTypeCountSchedulingPolicyArgs
     SchedulingOutcome?: boolean | TenantCountOutputTypeCountSchedulingOutcomeArgs
+    alertRules?: boolean | TenantCountOutputTypeCountAlertRulesArgs
+    alerts?: boolean | TenantCountOutputTypeCountAlertsArgs
   }
 
   // Custom InputTypes
@@ -3218,6 +3394,20 @@ export namespace Prisma {
    */
   export type TenantCountOutputTypeCountSchedulingOutcomeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SchedulingOutcomeWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountAlertRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertRuleWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountAlertsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertWhereInput
   }
 
 
@@ -3369,6 +3559,37 @@ export namespace Prisma {
    */
   export type SagaInstanceCountOutputTypeCountStepsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: SagaStepWhereInput
+  }
+
+
+  /**
+   * Count Type AlertRuleCountOutputType
+   */
+
+  export type AlertRuleCountOutputType = {
+    alerts: number
+  }
+
+  export type AlertRuleCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    alerts?: boolean | AlertRuleCountOutputTypeCountAlertsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * AlertRuleCountOutputType without action
+   */
+  export type AlertRuleCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRuleCountOutputType
+     */
+    select?: AlertRuleCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * AlertRuleCountOutputType without action
+   */
+  export type AlertRuleCountOutputTypeCountAlertsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertWhereInput
   }
 
 
@@ -4652,6 +4873,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: boolean | Tenant$MetricRetentionPolicyArgs<ExtArgs>
     SchedulingPolicy?: boolean | Tenant$SchedulingPolicyArgs<ExtArgs>
     SchedulingOutcome?: boolean | Tenant$SchedulingOutcomeArgs<ExtArgs>
+    alertRules?: boolean | Tenant$alertRulesArgs<ExtArgs>
+    alerts?: boolean | Tenant$alertsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -4694,6 +4917,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: boolean | Tenant$MetricRetentionPolicyArgs<ExtArgs>
     SchedulingPolicy?: boolean | Tenant$SchedulingPolicyArgs<ExtArgs>
     SchedulingOutcome?: boolean | Tenant$SchedulingOutcomeArgs<ExtArgs>
+    alertRules?: boolean | Tenant$alertRulesArgs<ExtArgs>
+    alerts?: boolean | Tenant$alertsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -4719,6 +4944,8 @@ export namespace Prisma {
       MetricRetentionPolicy: Prisma.$MetricRetentionPolicyPayload<ExtArgs> | null
       SchedulingPolicy: Prisma.$SchedulingPolicyPayload<ExtArgs>[]
       SchedulingOutcome: Prisma.$SchedulingOutcomePayload<ExtArgs>[]
+      alertRules: Prisma.$AlertRulePayload<ExtArgs>[]
+      alerts: Prisma.$AlertPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5110,6 +5337,8 @@ export namespace Prisma {
     MetricRetentionPolicy<T extends Tenant$MetricRetentionPolicyArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$MetricRetentionPolicyArgs<ExtArgs>>): Prisma__MetricRetentionPolicyClient<$Result.GetResult<Prisma.$MetricRetentionPolicyPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     SchedulingPolicy<T extends Tenant$SchedulingPolicyArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$SchedulingPolicyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulingPolicyPayload<ExtArgs>, T, "findMany"> | Null>
     SchedulingOutcome<T extends Tenant$SchedulingOutcomeArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$SchedulingOutcomeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulingOutcomePayload<ExtArgs>, T, "findMany"> | Null>
+    alertRules<T extends Tenant$alertRulesArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$alertRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findMany"> | Null>
+    alerts<T extends Tenant$alertsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$alertsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -5810,6 +6039,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: SchedulingOutcomeScalarFieldEnum | SchedulingOutcomeScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.alertRules
+   */
+  export type Tenant$alertRulesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    where?: AlertRuleWhereInput
+    orderBy?: AlertRuleOrderByWithRelationInput | AlertRuleOrderByWithRelationInput[]
+    cursor?: AlertRuleWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AlertRuleScalarFieldEnum | AlertRuleScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.alerts
+   */
+  export type Tenant$alertsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    where?: AlertWhereInput
+    orderBy?: AlertOrderByWithRelationInput | AlertOrderByWithRelationInput[]
+    cursor?: AlertWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AlertScalarFieldEnum | AlertScalarFieldEnum[]
   }
 
   /**
@@ -30757,6 +31026,2046 @@ export namespace Prisma {
 
 
   /**
+   * Model AlertRule
+   */
+
+  export type AggregateAlertRule = {
+    _count: AlertRuleCountAggregateOutputType | null
+    _avg: AlertRuleAvgAggregateOutputType | null
+    _sum: AlertRuleSumAggregateOutputType | null
+    _min: AlertRuleMinAggregateOutputType | null
+    _max: AlertRuleMaxAggregateOutputType | null
+  }
+
+  export type AlertRuleAvgAggregateOutputType = {
+    threshold: number | null
+    duration: number | null
+  }
+
+  export type AlertRuleSumAggregateOutputType = {
+    threshold: number | null
+    duration: number | null
+  }
+
+  export type AlertRuleMinAggregateOutputType = {
+    id: string | null
+    name: string | null
+    metric: string | null
+    operator: string | null
+    threshold: number | null
+    duration: number | null
+    enabled: boolean | null
+    createdAt: Date | null
+    tenantId: string | null
+  }
+
+  export type AlertRuleMaxAggregateOutputType = {
+    id: string | null
+    name: string | null
+    metric: string | null
+    operator: string | null
+    threshold: number | null
+    duration: number | null
+    enabled: boolean | null
+    createdAt: Date | null
+    tenantId: string | null
+  }
+
+  export type AlertRuleCountAggregateOutputType = {
+    id: number
+    name: number
+    metric: number
+    operator: number
+    threshold: number
+    duration: number
+    enabled: number
+    createdAt: number
+    tenantId: number
+    _all: number
+  }
+
+
+  export type AlertRuleAvgAggregateInputType = {
+    threshold?: true
+    duration?: true
+  }
+
+  export type AlertRuleSumAggregateInputType = {
+    threshold?: true
+    duration?: true
+  }
+
+  export type AlertRuleMinAggregateInputType = {
+    id?: true
+    name?: true
+    metric?: true
+    operator?: true
+    threshold?: true
+    duration?: true
+    enabled?: true
+    createdAt?: true
+    tenantId?: true
+  }
+
+  export type AlertRuleMaxAggregateInputType = {
+    id?: true
+    name?: true
+    metric?: true
+    operator?: true
+    threshold?: true
+    duration?: true
+    enabled?: true
+    createdAt?: true
+    tenantId?: true
+  }
+
+  export type AlertRuleCountAggregateInputType = {
+    id?: true
+    name?: true
+    metric?: true
+    operator?: true
+    threshold?: true
+    duration?: true
+    enabled?: true
+    createdAt?: true
+    tenantId?: true
+    _all?: true
+  }
+
+  export type AlertRuleAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AlertRule to aggregate.
+     */
+    where?: AlertRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertRules to fetch.
+     */
+    orderBy?: AlertRuleOrderByWithRelationInput | AlertRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AlertRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned AlertRules
+    **/
+    _count?: true | AlertRuleCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: AlertRuleAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: AlertRuleSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AlertRuleMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AlertRuleMaxAggregateInputType
+  }
+
+  export type GetAlertRuleAggregateType<T extends AlertRuleAggregateArgs> = {
+        [P in keyof T & keyof AggregateAlertRule]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAlertRule[P]>
+      : GetScalarType<T[P], AggregateAlertRule[P]>
+  }
+
+
+
+
+  export type AlertRuleGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertRuleWhereInput
+    orderBy?: AlertRuleOrderByWithAggregationInput | AlertRuleOrderByWithAggregationInput[]
+    by: AlertRuleScalarFieldEnum[] | AlertRuleScalarFieldEnum
+    having?: AlertRuleScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AlertRuleCountAggregateInputType | true
+    _avg?: AlertRuleAvgAggregateInputType
+    _sum?: AlertRuleSumAggregateInputType
+    _min?: AlertRuleMinAggregateInputType
+    _max?: AlertRuleMaxAggregateInputType
+  }
+
+  export type AlertRuleGroupByOutputType = {
+    id: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled: boolean
+    createdAt: Date
+    tenantId: string
+    _count: AlertRuleCountAggregateOutputType | null
+    _avg: AlertRuleAvgAggregateOutputType | null
+    _sum: AlertRuleSumAggregateOutputType | null
+    _min: AlertRuleMinAggregateOutputType | null
+    _max: AlertRuleMaxAggregateOutputType | null
+  }
+
+  type GetAlertRuleGroupByPayload<T extends AlertRuleGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AlertRuleGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AlertRuleGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AlertRuleGroupByOutputType[P]>
+            : GetScalarType<T[P], AlertRuleGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AlertRuleSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    metric?: boolean
+    operator?: boolean
+    threshold?: boolean
+    duration?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    tenantId?: boolean
+    alerts?: boolean | AlertRule$alertsArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    _count?: boolean | AlertRuleCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["alertRule"]>
+
+  export type AlertRuleSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    name?: boolean
+    metric?: boolean
+    operator?: boolean
+    threshold?: boolean
+    duration?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    tenantId?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["alertRule"]>
+
+  export type AlertRuleSelectScalar = {
+    id?: boolean
+    name?: boolean
+    metric?: boolean
+    operator?: boolean
+    threshold?: boolean
+    duration?: boolean
+    enabled?: boolean
+    createdAt?: boolean
+    tenantId?: boolean
+  }
+
+  export type AlertRuleInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    alerts?: boolean | AlertRule$alertsArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    _count?: boolean | AlertRuleCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type AlertRuleIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $AlertRulePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "AlertRule"
+    objects: {
+      alerts: Prisma.$AlertPayload<ExtArgs>[]
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      name: string
+      metric: string
+      operator: string
+      threshold: number
+      duration: number
+      enabled: boolean
+      createdAt: Date
+      tenantId: string
+    }, ExtArgs["result"]["alertRule"]>
+    composites: {}
+  }
+
+  type AlertRuleGetPayload<S extends boolean | null | undefined | AlertRuleDefaultArgs> = $Result.GetResult<Prisma.$AlertRulePayload, S>
+
+  type AlertRuleCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AlertRuleFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AlertRuleCountAggregateInputType | true
+    }
+
+  export interface AlertRuleDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['AlertRule'], meta: { name: 'AlertRule' } }
+    /**
+     * Find zero or one AlertRule that matches the filter.
+     * @param {AlertRuleFindUniqueArgs} args - Arguments to find a AlertRule
+     * @example
+     * // Get one AlertRule
+     * const alertRule = await prisma.alertRule.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AlertRuleFindUniqueArgs>(args: SelectSubset<T, AlertRuleFindUniqueArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one AlertRule that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AlertRuleFindUniqueOrThrowArgs} args - Arguments to find a AlertRule
+     * @example
+     * // Get one AlertRule
+     * const alertRule = await prisma.alertRule.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AlertRuleFindUniqueOrThrowArgs>(args: SelectSubset<T, AlertRuleFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first AlertRule that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleFindFirstArgs} args - Arguments to find a AlertRule
+     * @example
+     * // Get one AlertRule
+     * const alertRule = await prisma.alertRule.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AlertRuleFindFirstArgs>(args?: SelectSubset<T, AlertRuleFindFirstArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first AlertRule that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleFindFirstOrThrowArgs} args - Arguments to find a AlertRule
+     * @example
+     * // Get one AlertRule
+     * const alertRule = await prisma.alertRule.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AlertRuleFindFirstOrThrowArgs>(args?: SelectSubset<T, AlertRuleFindFirstOrThrowArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more AlertRules that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all AlertRules
+     * const alertRules = await prisma.alertRule.findMany()
+     * 
+     * // Get first 10 AlertRules
+     * const alertRules = await prisma.alertRule.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const alertRuleWithIdOnly = await prisma.alertRule.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AlertRuleFindManyArgs>(args?: SelectSubset<T, AlertRuleFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a AlertRule.
+     * @param {AlertRuleCreateArgs} args - Arguments to create a AlertRule.
+     * @example
+     * // Create one AlertRule
+     * const AlertRule = await prisma.alertRule.create({
+     *   data: {
+     *     // ... data to create a AlertRule
+     *   }
+     * })
+     * 
+     */
+    create<T extends AlertRuleCreateArgs>(args: SelectSubset<T, AlertRuleCreateArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many AlertRules.
+     * @param {AlertRuleCreateManyArgs} args - Arguments to create many AlertRules.
+     * @example
+     * // Create many AlertRules
+     * const alertRule = await prisma.alertRule.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AlertRuleCreateManyArgs>(args?: SelectSubset<T, AlertRuleCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many AlertRules and returns the data saved in the database.
+     * @param {AlertRuleCreateManyAndReturnArgs} args - Arguments to create many AlertRules.
+     * @example
+     * // Create many AlertRules
+     * const alertRule = await prisma.alertRule.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many AlertRules and only return the `id`
+     * const alertRuleWithIdOnly = await prisma.alertRule.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AlertRuleCreateManyAndReturnArgs>(args?: SelectSubset<T, AlertRuleCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a AlertRule.
+     * @param {AlertRuleDeleteArgs} args - Arguments to delete one AlertRule.
+     * @example
+     * // Delete one AlertRule
+     * const AlertRule = await prisma.alertRule.delete({
+     *   where: {
+     *     // ... filter to delete one AlertRule
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AlertRuleDeleteArgs>(args: SelectSubset<T, AlertRuleDeleteArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one AlertRule.
+     * @param {AlertRuleUpdateArgs} args - Arguments to update one AlertRule.
+     * @example
+     * // Update one AlertRule
+     * const alertRule = await prisma.alertRule.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AlertRuleUpdateArgs>(args: SelectSubset<T, AlertRuleUpdateArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more AlertRules.
+     * @param {AlertRuleDeleteManyArgs} args - Arguments to filter AlertRules to delete.
+     * @example
+     * // Delete a few AlertRules
+     * const { count } = await prisma.alertRule.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AlertRuleDeleteManyArgs>(args?: SelectSubset<T, AlertRuleDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more AlertRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many AlertRules
+     * const alertRule = await prisma.alertRule.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AlertRuleUpdateManyArgs>(args: SelectSubset<T, AlertRuleUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one AlertRule.
+     * @param {AlertRuleUpsertArgs} args - Arguments to update or create a AlertRule.
+     * @example
+     * // Update or create a AlertRule
+     * const alertRule = await prisma.alertRule.upsert({
+     *   create: {
+     *     // ... data to create a AlertRule
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the AlertRule we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AlertRuleUpsertArgs>(args: SelectSubset<T, AlertRuleUpsertArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of AlertRules.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleCountArgs} args - Arguments to filter AlertRules to count.
+     * @example
+     * // Count the number of AlertRules
+     * const count = await prisma.alertRule.count({
+     *   where: {
+     *     // ... the filter for the AlertRules we want to count
+     *   }
+     * })
+    **/
+    count<T extends AlertRuleCountArgs>(
+      args?: Subset<T, AlertRuleCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AlertRuleCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a AlertRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AlertRuleAggregateArgs>(args: Subset<T, AlertRuleAggregateArgs>): Prisma.PrismaPromise<GetAlertRuleAggregateType<T>>
+
+    /**
+     * Group by AlertRule.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertRuleGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AlertRuleGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AlertRuleGroupByArgs['orderBy'] }
+        : { orderBy?: AlertRuleGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AlertRuleGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAlertRuleGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the AlertRule model
+   */
+  readonly fields: AlertRuleFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for AlertRule.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AlertRuleClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    alerts<T extends AlertRule$alertsArgs<ExtArgs> = {}>(args?: Subset<T, AlertRule$alertsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findMany"> | Null>
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the AlertRule model
+   */ 
+  interface AlertRuleFieldRefs {
+    readonly id: FieldRef<"AlertRule", 'String'>
+    readonly name: FieldRef<"AlertRule", 'String'>
+    readonly metric: FieldRef<"AlertRule", 'String'>
+    readonly operator: FieldRef<"AlertRule", 'String'>
+    readonly threshold: FieldRef<"AlertRule", 'Float'>
+    readonly duration: FieldRef<"AlertRule", 'Int'>
+    readonly enabled: FieldRef<"AlertRule", 'Boolean'>
+    readonly createdAt: FieldRef<"AlertRule", 'DateTime'>
+    readonly tenantId: FieldRef<"AlertRule", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * AlertRule findUnique
+   */
+  export type AlertRuleFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which AlertRule to fetch.
+     */
+    where: AlertRuleWhereUniqueInput
+  }
+
+  /**
+   * AlertRule findUniqueOrThrow
+   */
+  export type AlertRuleFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which AlertRule to fetch.
+     */
+    where: AlertRuleWhereUniqueInput
+  }
+
+  /**
+   * AlertRule findFirst
+   */
+  export type AlertRuleFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which AlertRule to fetch.
+     */
+    where?: AlertRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertRules to fetch.
+     */
+    orderBy?: AlertRuleOrderByWithRelationInput | AlertRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AlertRules.
+     */
+    cursor?: AlertRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AlertRules.
+     */
+    distinct?: AlertRuleScalarFieldEnum | AlertRuleScalarFieldEnum[]
+  }
+
+  /**
+   * AlertRule findFirstOrThrow
+   */
+  export type AlertRuleFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which AlertRule to fetch.
+     */
+    where?: AlertRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertRules to fetch.
+     */
+    orderBy?: AlertRuleOrderByWithRelationInput | AlertRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for AlertRules.
+     */
+    cursor?: AlertRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertRules.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of AlertRules.
+     */
+    distinct?: AlertRuleScalarFieldEnum | AlertRuleScalarFieldEnum[]
+  }
+
+  /**
+   * AlertRule findMany
+   */
+  export type AlertRuleFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * Filter, which AlertRules to fetch.
+     */
+    where?: AlertRuleWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of AlertRules to fetch.
+     */
+    orderBy?: AlertRuleOrderByWithRelationInput | AlertRuleOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing AlertRules.
+     */
+    cursor?: AlertRuleWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` AlertRules from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` AlertRules.
+     */
+    skip?: number
+    distinct?: AlertRuleScalarFieldEnum | AlertRuleScalarFieldEnum[]
+  }
+
+  /**
+   * AlertRule create
+   */
+  export type AlertRuleCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to create a AlertRule.
+     */
+    data: XOR<AlertRuleCreateInput, AlertRuleUncheckedCreateInput>
+  }
+
+  /**
+   * AlertRule createMany
+   */
+  export type AlertRuleCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many AlertRules.
+     */
+    data: AlertRuleCreateManyInput | AlertRuleCreateManyInput[]
+  }
+
+  /**
+   * AlertRule createManyAndReturn
+   */
+  export type AlertRuleCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many AlertRules.
+     */
+    data: AlertRuleCreateManyInput | AlertRuleCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * AlertRule update
+   */
+  export type AlertRuleUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * The data needed to update a AlertRule.
+     */
+    data: XOR<AlertRuleUpdateInput, AlertRuleUncheckedUpdateInput>
+    /**
+     * Choose, which AlertRule to update.
+     */
+    where: AlertRuleWhereUniqueInput
+  }
+
+  /**
+   * AlertRule updateMany
+   */
+  export type AlertRuleUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update AlertRules.
+     */
+    data: XOR<AlertRuleUpdateManyMutationInput, AlertRuleUncheckedUpdateManyInput>
+    /**
+     * Filter which AlertRules to update
+     */
+    where?: AlertRuleWhereInput
+  }
+
+  /**
+   * AlertRule upsert
+   */
+  export type AlertRuleUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * The filter to search for the AlertRule to update in case it exists.
+     */
+    where: AlertRuleWhereUniqueInput
+    /**
+     * In case the AlertRule found by the `where` argument doesn't exist, create a new AlertRule with this data.
+     */
+    create: XOR<AlertRuleCreateInput, AlertRuleUncheckedCreateInput>
+    /**
+     * In case the AlertRule was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AlertRuleUpdateInput, AlertRuleUncheckedUpdateInput>
+  }
+
+  /**
+   * AlertRule delete
+   */
+  export type AlertRuleDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+    /**
+     * Filter which AlertRule to delete.
+     */
+    where: AlertRuleWhereUniqueInput
+  }
+
+  /**
+   * AlertRule deleteMany
+   */
+  export type AlertRuleDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which AlertRules to delete
+     */
+    where?: AlertRuleWhereInput
+  }
+
+  /**
+   * AlertRule.alerts
+   */
+  export type AlertRule$alertsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    where?: AlertWhereInput
+    orderBy?: AlertOrderByWithRelationInput | AlertOrderByWithRelationInput[]
+    cursor?: AlertWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: AlertScalarFieldEnum | AlertScalarFieldEnum[]
+  }
+
+  /**
+   * AlertRule without action
+   */
+  export type AlertRuleDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the AlertRule
+     */
+    select?: AlertRuleSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertRuleInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model Alert
+   */
+
+  export type AggregateAlert = {
+    _count: AlertCountAggregateOutputType | null
+    _min: AlertMinAggregateOutputType | null
+    _max: AlertMaxAggregateOutputType | null
+  }
+
+  export type AlertMinAggregateOutputType = {
+    id: string | null
+    ruleId: string | null
+    entityId: string | null
+    entityType: string | null
+    severity: string | null
+    message: string | null
+    acknowledged: boolean | null
+    createdAt: Date | null
+    acknowledgedAt: Date | null
+    tenantId: string | null
+  }
+
+  export type AlertMaxAggregateOutputType = {
+    id: string | null
+    ruleId: string | null
+    entityId: string | null
+    entityType: string | null
+    severity: string | null
+    message: string | null
+    acknowledged: boolean | null
+    createdAt: Date | null
+    acknowledgedAt: Date | null
+    tenantId: string | null
+  }
+
+  export type AlertCountAggregateOutputType = {
+    id: number
+    ruleId: number
+    entityId: number
+    entityType: number
+    severity: number
+    message: number
+    acknowledged: number
+    createdAt: number
+    acknowledgedAt: number
+    tenantId: number
+    _all: number
+  }
+
+
+  export type AlertMinAggregateInputType = {
+    id?: true
+    ruleId?: true
+    entityId?: true
+    entityType?: true
+    severity?: true
+    message?: true
+    acknowledged?: true
+    createdAt?: true
+    acknowledgedAt?: true
+    tenantId?: true
+  }
+
+  export type AlertMaxAggregateInputType = {
+    id?: true
+    ruleId?: true
+    entityId?: true
+    entityType?: true
+    severity?: true
+    message?: true
+    acknowledged?: true
+    createdAt?: true
+    acknowledgedAt?: true
+    tenantId?: true
+  }
+
+  export type AlertCountAggregateInputType = {
+    id?: true
+    ruleId?: true
+    entityId?: true
+    entityType?: true
+    severity?: true
+    message?: true
+    acknowledged?: true
+    createdAt?: true
+    acknowledgedAt?: true
+    tenantId?: true
+    _all?: true
+  }
+
+  export type AlertAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Alert to aggregate.
+     */
+    where?: AlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Alerts to fetch.
+     */
+    orderBy?: AlertOrderByWithRelationInput | AlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: AlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Alerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Alerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Alerts
+    **/
+    _count?: true | AlertCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: AlertMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: AlertMaxAggregateInputType
+  }
+
+  export type GetAlertAggregateType<T extends AlertAggregateArgs> = {
+        [P in keyof T & keyof AggregateAlert]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateAlert[P]>
+      : GetScalarType<T[P], AggregateAlert[P]>
+  }
+
+
+
+
+  export type AlertGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: AlertWhereInput
+    orderBy?: AlertOrderByWithAggregationInput | AlertOrderByWithAggregationInput[]
+    by: AlertScalarFieldEnum[] | AlertScalarFieldEnum
+    having?: AlertScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: AlertCountAggregateInputType | true
+    _min?: AlertMinAggregateInputType
+    _max?: AlertMaxAggregateInputType
+  }
+
+  export type AlertGroupByOutputType = {
+    id: string
+    ruleId: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged: boolean
+    createdAt: Date
+    acknowledgedAt: Date | null
+    tenantId: string
+    _count: AlertCountAggregateOutputType | null
+    _min: AlertMinAggregateOutputType | null
+    _max: AlertMaxAggregateOutputType | null
+  }
+
+  type GetAlertGroupByPayload<T extends AlertGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<AlertGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof AlertGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], AlertGroupByOutputType[P]>
+            : GetScalarType<T[P], AlertGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type AlertSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ruleId?: boolean
+    entityId?: boolean
+    entityType?: boolean
+    severity?: boolean
+    message?: boolean
+    acknowledged?: boolean
+    createdAt?: boolean
+    acknowledgedAt?: boolean
+    tenantId?: boolean
+    rule?: boolean | AlertRuleDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["alert"]>
+
+  export type AlertSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    ruleId?: boolean
+    entityId?: boolean
+    entityType?: boolean
+    severity?: boolean
+    message?: boolean
+    acknowledged?: boolean
+    createdAt?: boolean
+    acknowledgedAt?: boolean
+    tenantId?: boolean
+    rule?: boolean | AlertRuleDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["alert"]>
+
+  export type AlertSelectScalar = {
+    id?: boolean
+    ruleId?: boolean
+    entityId?: boolean
+    entityType?: boolean
+    severity?: boolean
+    message?: boolean
+    acknowledged?: boolean
+    createdAt?: boolean
+    acknowledgedAt?: boolean
+    tenantId?: boolean
+  }
+
+  export type AlertInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    rule?: boolean | AlertRuleDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+  export type AlertIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    rule?: boolean | AlertRuleDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $AlertPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Alert"
+    objects: {
+      rule: Prisma.$AlertRulePayload<ExtArgs>
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      ruleId: string
+      entityId: string
+      entityType: string
+      severity: string
+      message: string
+      acknowledged: boolean
+      createdAt: Date
+      acknowledgedAt: Date | null
+      tenantId: string
+    }, ExtArgs["result"]["alert"]>
+    composites: {}
+  }
+
+  type AlertGetPayload<S extends boolean | null | undefined | AlertDefaultArgs> = $Result.GetResult<Prisma.$AlertPayload, S>
+
+  type AlertCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<AlertFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: AlertCountAggregateInputType | true
+    }
+
+  export interface AlertDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Alert'], meta: { name: 'Alert' } }
+    /**
+     * Find zero or one Alert that matches the filter.
+     * @param {AlertFindUniqueArgs} args - Arguments to find a Alert
+     * @example
+     * // Get one Alert
+     * const alert = await prisma.alert.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends AlertFindUniqueArgs>(args: SelectSubset<T, AlertFindUniqueArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Alert that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {AlertFindUniqueOrThrowArgs} args - Arguments to find a Alert
+     * @example
+     * // Get one Alert
+     * const alert = await prisma.alert.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends AlertFindUniqueOrThrowArgs>(args: SelectSubset<T, AlertFindUniqueOrThrowArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Alert that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertFindFirstArgs} args - Arguments to find a Alert
+     * @example
+     * // Get one Alert
+     * const alert = await prisma.alert.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends AlertFindFirstArgs>(args?: SelectSubset<T, AlertFindFirstArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Alert that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertFindFirstOrThrowArgs} args - Arguments to find a Alert
+     * @example
+     * // Get one Alert
+     * const alert = await prisma.alert.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends AlertFindFirstOrThrowArgs>(args?: SelectSubset<T, AlertFindFirstOrThrowArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Alerts that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Alerts
+     * const alerts = await prisma.alert.findMany()
+     * 
+     * // Get first 10 Alerts
+     * const alerts = await prisma.alert.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const alertWithIdOnly = await prisma.alert.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends AlertFindManyArgs>(args?: SelectSubset<T, AlertFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Alert.
+     * @param {AlertCreateArgs} args - Arguments to create a Alert.
+     * @example
+     * // Create one Alert
+     * const Alert = await prisma.alert.create({
+     *   data: {
+     *     // ... data to create a Alert
+     *   }
+     * })
+     * 
+     */
+    create<T extends AlertCreateArgs>(args: SelectSubset<T, AlertCreateArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Alerts.
+     * @param {AlertCreateManyArgs} args - Arguments to create many Alerts.
+     * @example
+     * // Create many Alerts
+     * const alert = await prisma.alert.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends AlertCreateManyArgs>(args?: SelectSubset<T, AlertCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Alerts and returns the data saved in the database.
+     * @param {AlertCreateManyAndReturnArgs} args - Arguments to create many Alerts.
+     * @example
+     * // Create many Alerts
+     * const alert = await prisma.alert.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Alerts and only return the `id`
+     * const alertWithIdOnly = await prisma.alert.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends AlertCreateManyAndReturnArgs>(args?: SelectSubset<T, AlertCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Alert.
+     * @param {AlertDeleteArgs} args - Arguments to delete one Alert.
+     * @example
+     * // Delete one Alert
+     * const Alert = await prisma.alert.delete({
+     *   where: {
+     *     // ... filter to delete one Alert
+     *   }
+     * })
+     * 
+     */
+    delete<T extends AlertDeleteArgs>(args: SelectSubset<T, AlertDeleteArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Alert.
+     * @param {AlertUpdateArgs} args - Arguments to update one Alert.
+     * @example
+     * // Update one Alert
+     * const alert = await prisma.alert.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends AlertUpdateArgs>(args: SelectSubset<T, AlertUpdateArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Alerts.
+     * @param {AlertDeleteManyArgs} args - Arguments to filter Alerts to delete.
+     * @example
+     * // Delete a few Alerts
+     * const { count } = await prisma.alert.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends AlertDeleteManyArgs>(args?: SelectSubset<T, AlertDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Alerts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Alerts
+     * const alert = await prisma.alert.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends AlertUpdateManyArgs>(args: SelectSubset<T, AlertUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Alert.
+     * @param {AlertUpsertArgs} args - Arguments to update or create a Alert.
+     * @example
+     * // Update or create a Alert
+     * const alert = await prisma.alert.upsert({
+     *   create: {
+     *     // ... data to create a Alert
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Alert we want to update
+     *   }
+     * })
+     */
+    upsert<T extends AlertUpsertArgs>(args: SelectSubset<T, AlertUpsertArgs<ExtArgs>>): Prisma__AlertClient<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Alerts.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertCountArgs} args - Arguments to filter Alerts to count.
+     * @example
+     * // Count the number of Alerts
+     * const count = await prisma.alert.count({
+     *   where: {
+     *     // ... the filter for the Alerts we want to count
+     *   }
+     * })
+    **/
+    count<T extends AlertCountArgs>(
+      args?: Subset<T, AlertCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], AlertCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Alert.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends AlertAggregateArgs>(args: Subset<T, AlertAggregateArgs>): Prisma.PrismaPromise<GetAlertAggregateType<T>>
+
+    /**
+     * Group by Alert.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {AlertGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends AlertGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: AlertGroupByArgs['orderBy'] }
+        : { orderBy?: AlertGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, AlertGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetAlertGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Alert model
+   */
+  readonly fields: AlertFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Alert.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__AlertClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    rule<T extends AlertRuleDefaultArgs<ExtArgs> = {}>(args?: Subset<T, AlertRuleDefaultArgs<ExtArgs>>): Prisma__AlertRuleClient<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Alert model
+   */ 
+  interface AlertFieldRefs {
+    readonly id: FieldRef<"Alert", 'String'>
+    readonly ruleId: FieldRef<"Alert", 'String'>
+    readonly entityId: FieldRef<"Alert", 'String'>
+    readonly entityType: FieldRef<"Alert", 'String'>
+    readonly severity: FieldRef<"Alert", 'String'>
+    readonly message: FieldRef<"Alert", 'String'>
+    readonly acknowledged: FieldRef<"Alert", 'Boolean'>
+    readonly createdAt: FieldRef<"Alert", 'DateTime'>
+    readonly acknowledgedAt: FieldRef<"Alert", 'DateTime'>
+    readonly tenantId: FieldRef<"Alert", 'String'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Alert findUnique
+   */
+  export type AlertFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * Filter, which Alert to fetch.
+     */
+    where: AlertWhereUniqueInput
+  }
+
+  /**
+   * Alert findUniqueOrThrow
+   */
+  export type AlertFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * Filter, which Alert to fetch.
+     */
+    where: AlertWhereUniqueInput
+  }
+
+  /**
+   * Alert findFirst
+   */
+  export type AlertFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * Filter, which Alert to fetch.
+     */
+    where?: AlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Alerts to fetch.
+     */
+    orderBy?: AlertOrderByWithRelationInput | AlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Alerts.
+     */
+    cursor?: AlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Alerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Alerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Alerts.
+     */
+    distinct?: AlertScalarFieldEnum | AlertScalarFieldEnum[]
+  }
+
+  /**
+   * Alert findFirstOrThrow
+   */
+  export type AlertFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * Filter, which Alert to fetch.
+     */
+    where?: AlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Alerts to fetch.
+     */
+    orderBy?: AlertOrderByWithRelationInput | AlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Alerts.
+     */
+    cursor?: AlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Alerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Alerts.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Alerts.
+     */
+    distinct?: AlertScalarFieldEnum | AlertScalarFieldEnum[]
+  }
+
+  /**
+   * Alert findMany
+   */
+  export type AlertFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * Filter, which Alerts to fetch.
+     */
+    where?: AlertWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Alerts to fetch.
+     */
+    orderBy?: AlertOrderByWithRelationInput | AlertOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Alerts.
+     */
+    cursor?: AlertWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Alerts from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Alerts.
+     */
+    skip?: number
+    distinct?: AlertScalarFieldEnum | AlertScalarFieldEnum[]
+  }
+
+  /**
+   * Alert create
+   */
+  export type AlertCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Alert.
+     */
+    data: XOR<AlertCreateInput, AlertUncheckedCreateInput>
+  }
+
+  /**
+   * Alert createMany
+   */
+  export type AlertCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Alerts.
+     */
+    data: AlertCreateManyInput | AlertCreateManyInput[]
+  }
+
+  /**
+   * Alert createManyAndReturn
+   */
+  export type AlertCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Alerts.
+     */
+    data: AlertCreateManyInput | AlertCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Alert update
+   */
+  export type AlertUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Alert.
+     */
+    data: XOR<AlertUpdateInput, AlertUncheckedUpdateInput>
+    /**
+     * Choose, which Alert to update.
+     */
+    where: AlertWhereUniqueInput
+  }
+
+  /**
+   * Alert updateMany
+   */
+  export type AlertUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Alerts.
+     */
+    data: XOR<AlertUpdateManyMutationInput, AlertUncheckedUpdateManyInput>
+    /**
+     * Filter which Alerts to update
+     */
+    where?: AlertWhereInput
+  }
+
+  /**
+   * Alert upsert
+   */
+  export type AlertUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Alert to update in case it exists.
+     */
+    where: AlertWhereUniqueInput
+    /**
+     * In case the Alert found by the `where` argument doesn't exist, create a new Alert with this data.
+     */
+    create: XOR<AlertCreateInput, AlertUncheckedCreateInput>
+    /**
+     * In case the Alert was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<AlertUpdateInput, AlertUncheckedUpdateInput>
+  }
+
+  /**
+   * Alert delete
+   */
+  export type AlertDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+    /**
+     * Filter which Alert to delete.
+     */
+    where: AlertWhereUniqueInput
+  }
+
+  /**
+   * Alert deleteMany
+   */
+  export type AlertDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Alerts to delete
+     */
+    where?: AlertWhereInput
+  }
+
+  /**
+   * Alert without action
+   */
+  export type AlertDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Alert
+     */
+    select?: AlertSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: AlertInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -31212,6 +33521,37 @@ export namespace Prisma {
   export type SchedulingOutcomeScalarFieldEnum = (typeof SchedulingOutcomeScalarFieldEnum)[keyof typeof SchedulingOutcomeScalarFieldEnum]
 
 
+  export const AlertRuleScalarFieldEnum: {
+    id: 'id',
+    name: 'name',
+    metric: 'metric',
+    operator: 'operator',
+    threshold: 'threshold',
+    duration: 'duration',
+    enabled: 'enabled',
+    createdAt: 'createdAt',
+    tenantId: 'tenantId'
+  };
+
+  export type AlertRuleScalarFieldEnum = (typeof AlertRuleScalarFieldEnum)[keyof typeof AlertRuleScalarFieldEnum]
+
+
+  export const AlertScalarFieldEnum: {
+    id: 'id',
+    ruleId: 'ruleId',
+    entityId: 'entityId',
+    entityType: 'entityType',
+    severity: 'severity',
+    message: 'message',
+    acknowledged: 'acknowledged',
+    createdAt: 'createdAt',
+    acknowledgedAt: 'acknowledgedAt',
+    tenantId: 'tenantId'
+  };
+
+  export type AlertScalarFieldEnum = (typeof AlertScalarFieldEnum)[keyof typeof AlertScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -31389,6 +33729,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: XOR<MetricRetentionPolicyNullableRelationFilter, MetricRetentionPolicyWhereInput> | null
     SchedulingPolicy?: SchedulingPolicyListRelationFilter
     SchedulingOutcome?: SchedulingOutcomeListRelationFilter
+    alertRules?: AlertRuleListRelationFilter
+    alerts?: AlertListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -31417,6 +33759,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyOrderByWithRelationInput
     SchedulingPolicy?: SchedulingPolicyOrderByRelationAggregateInput
     SchedulingOutcome?: SchedulingOutcomeOrderByRelationAggregateInput
+    alertRules?: AlertRuleOrderByRelationAggregateInput
+    alerts?: AlertOrderByRelationAggregateInput
   }
 
   export type TenantWhereUniqueInput = Prisma.AtLeast<{
@@ -31448,6 +33792,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: XOR<MetricRetentionPolicyNullableRelationFilter, MetricRetentionPolicyWhereInput> | null
     SchedulingPolicy?: SchedulingPolicyListRelationFilter
     SchedulingOutcome?: SchedulingOutcomeListRelationFilter
+    alertRules?: AlertRuleListRelationFilter
+    alerts?: AlertListRelationFilter
   }, "id" | "name" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -33624,6 +35970,169 @@ export namespace Prisma {
     createdAt?: DateTimeWithAggregatesFilter<"SchedulingOutcome"> | Date | string
   }
 
+  export type AlertRuleWhereInput = {
+    AND?: AlertRuleWhereInput | AlertRuleWhereInput[]
+    OR?: AlertRuleWhereInput[]
+    NOT?: AlertRuleWhereInput | AlertRuleWhereInput[]
+    id?: StringFilter<"AlertRule"> | string
+    name?: StringFilter<"AlertRule"> | string
+    metric?: StringFilter<"AlertRule"> | string
+    operator?: StringFilter<"AlertRule"> | string
+    threshold?: FloatFilter<"AlertRule"> | number
+    duration?: IntFilter<"AlertRule"> | number
+    enabled?: BoolFilter<"AlertRule"> | boolean
+    createdAt?: DateTimeFilter<"AlertRule"> | Date | string
+    tenantId?: StringFilter<"AlertRule"> | string
+    alerts?: AlertListRelationFilter
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }
+
+  export type AlertRuleOrderByWithRelationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    metric?: SortOrder
+    operator?: SortOrder
+    threshold?: SortOrder
+    duration?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    tenantId?: SortOrder
+    alerts?: AlertOrderByRelationAggregateInput
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type AlertRuleWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AlertRuleWhereInput | AlertRuleWhereInput[]
+    OR?: AlertRuleWhereInput[]
+    NOT?: AlertRuleWhereInput | AlertRuleWhereInput[]
+    name?: StringFilter<"AlertRule"> | string
+    metric?: StringFilter<"AlertRule"> | string
+    operator?: StringFilter<"AlertRule"> | string
+    threshold?: FloatFilter<"AlertRule"> | number
+    duration?: IntFilter<"AlertRule"> | number
+    enabled?: BoolFilter<"AlertRule"> | boolean
+    createdAt?: DateTimeFilter<"AlertRule"> | Date | string
+    tenantId?: StringFilter<"AlertRule"> | string
+    alerts?: AlertListRelationFilter
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }, "id">
+
+  export type AlertRuleOrderByWithAggregationInput = {
+    id?: SortOrder
+    name?: SortOrder
+    metric?: SortOrder
+    operator?: SortOrder
+    threshold?: SortOrder
+    duration?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    tenantId?: SortOrder
+    _count?: AlertRuleCountOrderByAggregateInput
+    _avg?: AlertRuleAvgOrderByAggregateInput
+    _max?: AlertRuleMaxOrderByAggregateInput
+    _min?: AlertRuleMinOrderByAggregateInput
+    _sum?: AlertRuleSumOrderByAggregateInput
+  }
+
+  export type AlertRuleScalarWhereWithAggregatesInput = {
+    AND?: AlertRuleScalarWhereWithAggregatesInput | AlertRuleScalarWhereWithAggregatesInput[]
+    OR?: AlertRuleScalarWhereWithAggregatesInput[]
+    NOT?: AlertRuleScalarWhereWithAggregatesInput | AlertRuleScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"AlertRule"> | string
+    name?: StringWithAggregatesFilter<"AlertRule"> | string
+    metric?: StringWithAggregatesFilter<"AlertRule"> | string
+    operator?: StringWithAggregatesFilter<"AlertRule"> | string
+    threshold?: FloatWithAggregatesFilter<"AlertRule"> | number
+    duration?: IntWithAggregatesFilter<"AlertRule"> | number
+    enabled?: BoolWithAggregatesFilter<"AlertRule"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"AlertRule"> | Date | string
+    tenantId?: StringWithAggregatesFilter<"AlertRule"> | string
+  }
+
+  export type AlertWhereInput = {
+    AND?: AlertWhereInput | AlertWhereInput[]
+    OR?: AlertWhereInput[]
+    NOT?: AlertWhereInput | AlertWhereInput[]
+    id?: StringFilter<"Alert"> | string
+    ruleId?: StringFilter<"Alert"> | string
+    entityId?: StringFilter<"Alert"> | string
+    entityType?: StringFilter<"Alert"> | string
+    severity?: StringFilter<"Alert"> | string
+    message?: StringFilter<"Alert"> | string
+    acknowledged?: BoolFilter<"Alert"> | boolean
+    createdAt?: DateTimeFilter<"Alert"> | Date | string
+    acknowledgedAt?: DateTimeNullableFilter<"Alert"> | Date | string | null
+    tenantId?: StringFilter<"Alert"> | string
+    rule?: XOR<AlertRuleRelationFilter, AlertRuleWhereInput>
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }
+
+  export type AlertOrderByWithRelationInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    entityId?: SortOrder
+    entityType?: SortOrder
+    severity?: SortOrder
+    message?: SortOrder
+    acknowledged?: SortOrder
+    createdAt?: SortOrder
+    acknowledgedAt?: SortOrderInput | SortOrder
+    tenantId?: SortOrder
+    rule?: AlertRuleOrderByWithRelationInput
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type AlertWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: AlertWhereInput | AlertWhereInput[]
+    OR?: AlertWhereInput[]
+    NOT?: AlertWhereInput | AlertWhereInput[]
+    ruleId?: StringFilter<"Alert"> | string
+    entityId?: StringFilter<"Alert"> | string
+    entityType?: StringFilter<"Alert"> | string
+    severity?: StringFilter<"Alert"> | string
+    message?: StringFilter<"Alert"> | string
+    acknowledged?: BoolFilter<"Alert"> | boolean
+    createdAt?: DateTimeFilter<"Alert"> | Date | string
+    acknowledgedAt?: DateTimeNullableFilter<"Alert"> | Date | string | null
+    tenantId?: StringFilter<"Alert"> | string
+    rule?: XOR<AlertRuleRelationFilter, AlertRuleWhereInput>
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }, "id">
+
+  export type AlertOrderByWithAggregationInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    entityId?: SortOrder
+    entityType?: SortOrder
+    severity?: SortOrder
+    message?: SortOrder
+    acknowledged?: SortOrder
+    createdAt?: SortOrder
+    acknowledgedAt?: SortOrderInput | SortOrder
+    tenantId?: SortOrder
+    _count?: AlertCountOrderByAggregateInput
+    _max?: AlertMaxOrderByAggregateInput
+    _min?: AlertMinOrderByAggregateInput
+  }
+
+  export type AlertScalarWhereWithAggregatesInput = {
+    AND?: AlertScalarWhereWithAggregatesInput | AlertScalarWhereWithAggregatesInput[]
+    OR?: AlertScalarWhereWithAggregatesInput[]
+    NOT?: AlertScalarWhereWithAggregatesInput | AlertScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Alert"> | string
+    ruleId?: StringWithAggregatesFilter<"Alert"> | string
+    entityId?: StringWithAggregatesFilter<"Alert"> | string
+    entityType?: StringWithAggregatesFilter<"Alert"> | string
+    severity?: StringWithAggregatesFilter<"Alert"> | string
+    message?: StringWithAggregatesFilter<"Alert"> | string
+    acknowledged?: BoolWithAggregatesFilter<"Alert"> | boolean
+    createdAt?: DateTimeWithAggregatesFilter<"Alert"> | Date | string
+    acknowledgedAt?: DateTimeNullableWithAggregatesFilter<"Alert"> | Date | string | null
+    tenantId?: StringWithAggregatesFilter<"Alert"> | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -33757,6 +36266,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -33785,6 +36296,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -33813,6 +36326,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -33841,6 +36356,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -36280,6 +38797,182 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AlertRuleCreateInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    alerts?: AlertCreateNestedManyWithoutRuleInput
+    tenant: TenantCreateNestedOneWithoutAlertRulesInput
+  }
+
+  export type AlertRuleUncheckedCreateInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    tenantId: string
+    alerts?: AlertUncheckedCreateNestedManyWithoutRuleInput
+  }
+
+  export type AlertRuleUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    alerts?: AlertUpdateManyWithoutRuleNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutAlertRulesNestedInput
+  }
+
+  export type AlertRuleUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    alerts?: AlertUncheckedUpdateManyWithoutRuleNestedInput
+  }
+
+  export type AlertRuleCreateManyInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    tenantId: string
+  }
+
+  export type AlertRuleUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertRuleUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type AlertCreateInput = {
+    id?: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    rule: AlertRuleCreateNestedOneWithoutAlertsInput
+    tenant: TenantCreateNestedOneWithoutAlertsInput
+  }
+
+  export type AlertUncheckedCreateInput = {
+    id?: string
+    ruleId: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    tenantId: string
+  }
+
+  export type AlertUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rule?: AlertRuleUpdateOneRequiredWithoutAlertsNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutAlertsNestedInput
+  }
+
+  export type AlertUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenantId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type AlertCreateManyInput = {
+    id?: string
+    ruleId: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    tenantId: string
+  }
+
+  export type AlertUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AlertUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenantId?: StringFieldUpdateOperationsInput | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -36553,6 +39246,18 @@ export namespace Prisma {
     none?: SchedulingOutcomeWhereInput
   }
 
+  export type AlertRuleListRelationFilter = {
+    every?: AlertRuleWhereInput
+    some?: AlertRuleWhereInput
+    none?: AlertRuleWhereInput
+  }
+
+  export type AlertListRelationFilter = {
+    every?: AlertWhereInput
+    some?: AlertWhereInput
+    none?: AlertWhereInput
+  }
+
   export type TaskOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -36610,6 +39315,14 @@ export namespace Prisma {
   }
 
   export type SchedulingOutcomeOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AlertRuleOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type AlertOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -38082,6 +40795,96 @@ export namespace Prisma {
     rewardScore?: SortOrder
   }
 
+  export type AlertRuleCountOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    metric?: SortOrder
+    operator?: SortOrder
+    threshold?: SortOrder
+    duration?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    tenantId?: SortOrder
+  }
+
+  export type AlertRuleAvgOrderByAggregateInput = {
+    threshold?: SortOrder
+    duration?: SortOrder
+  }
+
+  export type AlertRuleMaxOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    metric?: SortOrder
+    operator?: SortOrder
+    threshold?: SortOrder
+    duration?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    tenantId?: SortOrder
+  }
+
+  export type AlertRuleMinOrderByAggregateInput = {
+    id?: SortOrder
+    name?: SortOrder
+    metric?: SortOrder
+    operator?: SortOrder
+    threshold?: SortOrder
+    duration?: SortOrder
+    enabled?: SortOrder
+    createdAt?: SortOrder
+    tenantId?: SortOrder
+  }
+
+  export type AlertRuleSumOrderByAggregateInput = {
+    threshold?: SortOrder
+    duration?: SortOrder
+  }
+
+  export type AlertRuleRelationFilter = {
+    is?: AlertRuleWhereInput
+    isNot?: AlertRuleWhereInput
+  }
+
+  export type AlertCountOrderByAggregateInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    entityId?: SortOrder
+    entityType?: SortOrder
+    severity?: SortOrder
+    message?: SortOrder
+    acknowledged?: SortOrder
+    createdAt?: SortOrder
+    acknowledgedAt?: SortOrder
+    tenantId?: SortOrder
+  }
+
+  export type AlertMaxOrderByAggregateInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    entityId?: SortOrder
+    entityType?: SortOrder
+    severity?: SortOrder
+    message?: SortOrder
+    acknowledged?: SortOrder
+    createdAt?: SortOrder
+    acknowledgedAt?: SortOrder
+    tenantId?: SortOrder
+  }
+
+  export type AlertMinOrderByAggregateInput = {
+    id?: SortOrder
+    ruleId?: SortOrder
+    entityId?: SortOrder
+    entityType?: SortOrder
+    severity?: SortOrder
+    message?: SortOrder
+    acknowledged?: SortOrder
+    createdAt?: SortOrder
+    acknowledgedAt?: SortOrder
+    tenantId?: SortOrder
+  }
+
   export type TenantUserCreateNestedManyWithoutUserInput = {
     create?: XOR<TenantUserCreateWithoutUserInput, TenantUserUncheckedCreateWithoutUserInput> | TenantUserCreateWithoutUserInput[] | TenantUserUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TenantUserCreateOrConnectWithoutUserInput | TenantUserCreateOrConnectWithoutUserInput[]
@@ -38391,6 +41194,20 @@ export namespace Prisma {
     connect?: SchedulingOutcomeWhereUniqueInput | SchedulingOutcomeWhereUniqueInput[]
   }
 
+  export type AlertRuleCreateNestedManyWithoutTenantInput = {
+    create?: XOR<AlertRuleCreateWithoutTenantInput, AlertRuleUncheckedCreateWithoutTenantInput> | AlertRuleCreateWithoutTenantInput[] | AlertRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertRuleCreateOrConnectWithoutTenantInput | AlertRuleCreateOrConnectWithoutTenantInput[]
+    createMany?: AlertRuleCreateManyTenantInputEnvelope
+    connect?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+  }
+
+  export type AlertCreateNestedManyWithoutTenantInput = {
+    create?: XOR<AlertCreateWithoutTenantInput, AlertUncheckedCreateWithoutTenantInput> | AlertCreateWithoutTenantInput[] | AlertUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutTenantInput | AlertCreateOrConnectWithoutTenantInput[]
+    createMany?: AlertCreateManyTenantInputEnvelope
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+  }
+
   export type TaskUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<TaskCreateWithoutTenantInput, TaskUncheckedCreateWithoutTenantInput> | TaskCreateWithoutTenantInput[] | TaskUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutTenantInput | TaskCreateOrConnectWithoutTenantInput[]
@@ -38514,6 +41331,20 @@ export namespace Prisma {
     connectOrCreate?: SchedulingOutcomeCreateOrConnectWithoutTenantInput | SchedulingOutcomeCreateOrConnectWithoutTenantInput[]
     createMany?: SchedulingOutcomeCreateManyTenantInputEnvelope
     connect?: SchedulingOutcomeWhereUniqueInput | SchedulingOutcomeWhereUniqueInput[]
+  }
+
+  export type AlertRuleUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<AlertRuleCreateWithoutTenantInput, AlertRuleUncheckedCreateWithoutTenantInput> | AlertRuleCreateWithoutTenantInput[] | AlertRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertRuleCreateOrConnectWithoutTenantInput | AlertRuleCreateOrConnectWithoutTenantInput[]
+    createMany?: AlertRuleCreateManyTenantInputEnvelope
+    connect?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+  }
+
+  export type AlertUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<AlertCreateWithoutTenantInput, AlertUncheckedCreateWithoutTenantInput> | AlertCreateWithoutTenantInput[] | AlertUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutTenantInput | AlertCreateOrConnectWithoutTenantInput[]
+    createMany?: AlertCreateManyTenantInputEnvelope
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
   }
 
   export type TaskUpdateManyWithoutTenantNestedInput = {
@@ -38764,6 +41595,34 @@ export namespace Prisma {
     deleteMany?: SchedulingOutcomeScalarWhereInput | SchedulingOutcomeScalarWhereInput[]
   }
 
+  export type AlertRuleUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<AlertRuleCreateWithoutTenantInput, AlertRuleUncheckedCreateWithoutTenantInput> | AlertRuleCreateWithoutTenantInput[] | AlertRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertRuleCreateOrConnectWithoutTenantInput | AlertRuleCreateOrConnectWithoutTenantInput[]
+    upsert?: AlertRuleUpsertWithWhereUniqueWithoutTenantInput | AlertRuleUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: AlertRuleCreateManyTenantInputEnvelope
+    set?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    disconnect?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    delete?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    connect?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    update?: AlertRuleUpdateWithWhereUniqueWithoutTenantInput | AlertRuleUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: AlertRuleUpdateManyWithWhereWithoutTenantInput | AlertRuleUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: AlertRuleScalarWhereInput | AlertRuleScalarWhereInput[]
+  }
+
+  export type AlertUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<AlertCreateWithoutTenantInput, AlertUncheckedCreateWithoutTenantInput> | AlertCreateWithoutTenantInput[] | AlertUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutTenantInput | AlertCreateOrConnectWithoutTenantInput[]
+    upsert?: AlertUpsertWithWhereUniqueWithoutTenantInput | AlertUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: AlertCreateManyTenantInputEnvelope
+    set?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    disconnect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    delete?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    update?: AlertUpdateWithWhereUniqueWithoutTenantInput | AlertUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: AlertUpdateManyWithWhereWithoutTenantInput | AlertUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: AlertScalarWhereInput | AlertScalarWhereInput[]
+  }
+
   export type TaskUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<TaskCreateWithoutTenantInput, TaskUncheckedCreateWithoutTenantInput> | TaskCreateWithoutTenantInput[] | TaskUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutTenantInput | TaskCreateOrConnectWithoutTenantInput[]
@@ -39010,6 +41869,34 @@ export namespace Prisma {
     update?: SchedulingOutcomeUpdateWithWhereUniqueWithoutTenantInput | SchedulingOutcomeUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: SchedulingOutcomeUpdateManyWithWhereWithoutTenantInput | SchedulingOutcomeUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: SchedulingOutcomeScalarWhereInput | SchedulingOutcomeScalarWhereInput[]
+  }
+
+  export type AlertRuleUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<AlertRuleCreateWithoutTenantInput, AlertRuleUncheckedCreateWithoutTenantInput> | AlertRuleCreateWithoutTenantInput[] | AlertRuleUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertRuleCreateOrConnectWithoutTenantInput | AlertRuleCreateOrConnectWithoutTenantInput[]
+    upsert?: AlertRuleUpsertWithWhereUniqueWithoutTenantInput | AlertRuleUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: AlertRuleCreateManyTenantInputEnvelope
+    set?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    disconnect?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    delete?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    connect?: AlertRuleWhereUniqueInput | AlertRuleWhereUniqueInput[]
+    update?: AlertRuleUpdateWithWhereUniqueWithoutTenantInput | AlertRuleUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: AlertRuleUpdateManyWithWhereWithoutTenantInput | AlertRuleUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: AlertRuleScalarWhereInput | AlertRuleScalarWhereInput[]
+  }
+
+  export type AlertUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<AlertCreateWithoutTenantInput, AlertUncheckedCreateWithoutTenantInput> | AlertCreateWithoutTenantInput[] | AlertUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutTenantInput | AlertCreateOrConnectWithoutTenantInput[]
+    upsert?: AlertUpsertWithWhereUniqueWithoutTenantInput | AlertUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: AlertCreateManyTenantInputEnvelope
+    set?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    disconnect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    delete?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    update?: AlertUpdateWithWhereUniqueWithoutTenantInput | AlertUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: AlertUpdateManyWithWhereWithoutTenantInput | AlertUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: AlertScalarWhereInput | AlertScalarWhereInput[]
   }
 
   export type TenantCreateNestedOneWithoutSchedulingPolicyInput = {
@@ -39752,6 +42639,90 @@ export namespace Prisma {
     upsert?: TenantUpsertWithoutSchedulingOutcomeInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutSchedulingOutcomeInput, TenantUpdateWithoutSchedulingOutcomeInput>, TenantUncheckedUpdateWithoutSchedulingOutcomeInput>
+  }
+
+  export type AlertCreateNestedManyWithoutRuleInput = {
+    create?: XOR<AlertCreateWithoutRuleInput, AlertUncheckedCreateWithoutRuleInput> | AlertCreateWithoutRuleInput[] | AlertUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutRuleInput | AlertCreateOrConnectWithoutRuleInput[]
+    createMany?: AlertCreateManyRuleInputEnvelope
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutAlertRulesInput = {
+    create?: XOR<TenantCreateWithoutAlertRulesInput, TenantUncheckedCreateWithoutAlertRulesInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutAlertRulesInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type AlertUncheckedCreateNestedManyWithoutRuleInput = {
+    create?: XOR<AlertCreateWithoutRuleInput, AlertUncheckedCreateWithoutRuleInput> | AlertCreateWithoutRuleInput[] | AlertUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutRuleInput | AlertCreateOrConnectWithoutRuleInput[]
+    createMany?: AlertCreateManyRuleInputEnvelope
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+  }
+
+  export type AlertUpdateManyWithoutRuleNestedInput = {
+    create?: XOR<AlertCreateWithoutRuleInput, AlertUncheckedCreateWithoutRuleInput> | AlertCreateWithoutRuleInput[] | AlertUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutRuleInput | AlertCreateOrConnectWithoutRuleInput[]
+    upsert?: AlertUpsertWithWhereUniqueWithoutRuleInput | AlertUpsertWithWhereUniqueWithoutRuleInput[]
+    createMany?: AlertCreateManyRuleInputEnvelope
+    set?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    disconnect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    delete?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    update?: AlertUpdateWithWhereUniqueWithoutRuleInput | AlertUpdateWithWhereUniqueWithoutRuleInput[]
+    updateMany?: AlertUpdateManyWithWhereWithoutRuleInput | AlertUpdateManyWithWhereWithoutRuleInput[]
+    deleteMany?: AlertScalarWhereInput | AlertScalarWhereInput[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutAlertRulesNestedInput = {
+    create?: XOR<TenantCreateWithoutAlertRulesInput, TenantUncheckedCreateWithoutAlertRulesInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutAlertRulesInput
+    upsert?: TenantUpsertWithoutAlertRulesInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutAlertRulesInput, TenantUpdateWithoutAlertRulesInput>, TenantUncheckedUpdateWithoutAlertRulesInput>
+  }
+
+  export type AlertUncheckedUpdateManyWithoutRuleNestedInput = {
+    create?: XOR<AlertCreateWithoutRuleInput, AlertUncheckedCreateWithoutRuleInput> | AlertCreateWithoutRuleInput[] | AlertUncheckedCreateWithoutRuleInput[]
+    connectOrCreate?: AlertCreateOrConnectWithoutRuleInput | AlertCreateOrConnectWithoutRuleInput[]
+    upsert?: AlertUpsertWithWhereUniqueWithoutRuleInput | AlertUpsertWithWhereUniqueWithoutRuleInput[]
+    createMany?: AlertCreateManyRuleInputEnvelope
+    set?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    disconnect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    delete?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+    update?: AlertUpdateWithWhereUniqueWithoutRuleInput | AlertUpdateWithWhereUniqueWithoutRuleInput[]
+    updateMany?: AlertUpdateManyWithWhereWithoutRuleInput | AlertUpdateManyWithWhereWithoutRuleInput[]
+    deleteMany?: AlertScalarWhereInput | AlertScalarWhereInput[]
+  }
+
+  export type AlertRuleCreateNestedOneWithoutAlertsInput = {
+    create?: XOR<AlertRuleCreateWithoutAlertsInput, AlertRuleUncheckedCreateWithoutAlertsInput>
+    connectOrCreate?: AlertRuleCreateOrConnectWithoutAlertsInput
+    connect?: AlertRuleWhereUniqueInput
+  }
+
+  export type TenantCreateNestedOneWithoutAlertsInput = {
+    create?: XOR<TenantCreateWithoutAlertsInput, TenantUncheckedCreateWithoutAlertsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutAlertsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type AlertRuleUpdateOneRequiredWithoutAlertsNestedInput = {
+    create?: XOR<AlertRuleCreateWithoutAlertsInput, AlertRuleUncheckedCreateWithoutAlertsInput>
+    connectOrCreate?: AlertRuleCreateOrConnectWithoutAlertsInput
+    upsert?: AlertRuleUpsertWithoutAlertsInput
+    connect?: AlertRuleWhereUniqueInput
+    update?: XOR<XOR<AlertRuleUpdateToOneWithWhereWithoutAlertsInput, AlertRuleUpdateWithoutAlertsInput>, AlertRuleUncheckedUpdateWithoutAlertsInput>
+  }
+
+  export type TenantUpdateOneRequiredWithoutAlertsNestedInput = {
+    create?: XOR<TenantCreateWithoutAlertsInput, TenantUncheckedCreateWithoutAlertsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutAlertsInput
+    upsert?: TenantUpsertWithoutAlertsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutAlertsInput, TenantUpdateWithoutAlertsInput>, TenantUncheckedUpdateWithoutAlertsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -40905,6 +43876,72 @@ export namespace Prisma {
     data: SchedulingOutcomeCreateManyTenantInput | SchedulingOutcomeCreateManyTenantInput[]
   }
 
+  export type AlertRuleCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    alerts?: AlertCreateNestedManyWithoutRuleInput
+  }
+
+  export type AlertRuleUncheckedCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    alerts?: AlertUncheckedCreateNestedManyWithoutRuleInput
+  }
+
+  export type AlertRuleCreateOrConnectWithoutTenantInput = {
+    where: AlertRuleWhereUniqueInput
+    create: XOR<AlertRuleCreateWithoutTenantInput, AlertRuleUncheckedCreateWithoutTenantInput>
+  }
+
+  export type AlertRuleCreateManyTenantInputEnvelope = {
+    data: AlertRuleCreateManyTenantInput | AlertRuleCreateManyTenantInput[]
+  }
+
+  export type AlertCreateWithoutTenantInput = {
+    id?: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    rule: AlertRuleCreateNestedOneWithoutAlertsInput
+  }
+
+  export type AlertUncheckedCreateWithoutTenantInput = {
+    id?: string
+    ruleId: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+  }
+
+  export type AlertCreateOrConnectWithoutTenantInput = {
+    where: AlertWhereUniqueInput
+    create: XOR<AlertCreateWithoutTenantInput, AlertUncheckedCreateWithoutTenantInput>
+  }
+
+  export type AlertCreateManyTenantInputEnvelope = {
+    data: AlertCreateManyTenantInput | AlertCreateManyTenantInput[]
+  }
+
   export type TaskUpsertWithWhereUniqueWithoutTenantInput = {
     where: TaskWhereUniqueInput
     update: XOR<TaskUpdateWithoutTenantInput, TaskUncheckedUpdateWithoutTenantInput>
@@ -41488,6 +44525,69 @@ export namespace Prisma {
     createdAt?: DateTimeFilter<"SchedulingOutcome"> | Date | string
   }
 
+  export type AlertRuleUpsertWithWhereUniqueWithoutTenantInput = {
+    where: AlertRuleWhereUniqueInput
+    update: XOR<AlertRuleUpdateWithoutTenantInput, AlertRuleUncheckedUpdateWithoutTenantInput>
+    create: XOR<AlertRuleCreateWithoutTenantInput, AlertRuleUncheckedCreateWithoutTenantInput>
+  }
+
+  export type AlertRuleUpdateWithWhereUniqueWithoutTenantInput = {
+    where: AlertRuleWhereUniqueInput
+    data: XOR<AlertRuleUpdateWithoutTenantInput, AlertRuleUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type AlertRuleUpdateManyWithWhereWithoutTenantInput = {
+    where: AlertRuleScalarWhereInput
+    data: XOR<AlertRuleUpdateManyMutationInput, AlertRuleUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type AlertRuleScalarWhereInput = {
+    AND?: AlertRuleScalarWhereInput | AlertRuleScalarWhereInput[]
+    OR?: AlertRuleScalarWhereInput[]
+    NOT?: AlertRuleScalarWhereInput | AlertRuleScalarWhereInput[]
+    id?: StringFilter<"AlertRule"> | string
+    name?: StringFilter<"AlertRule"> | string
+    metric?: StringFilter<"AlertRule"> | string
+    operator?: StringFilter<"AlertRule"> | string
+    threshold?: FloatFilter<"AlertRule"> | number
+    duration?: IntFilter<"AlertRule"> | number
+    enabled?: BoolFilter<"AlertRule"> | boolean
+    createdAt?: DateTimeFilter<"AlertRule"> | Date | string
+    tenantId?: StringFilter<"AlertRule"> | string
+  }
+
+  export type AlertUpsertWithWhereUniqueWithoutTenantInput = {
+    where: AlertWhereUniqueInput
+    update: XOR<AlertUpdateWithoutTenantInput, AlertUncheckedUpdateWithoutTenantInput>
+    create: XOR<AlertCreateWithoutTenantInput, AlertUncheckedCreateWithoutTenantInput>
+  }
+
+  export type AlertUpdateWithWhereUniqueWithoutTenantInput = {
+    where: AlertWhereUniqueInput
+    data: XOR<AlertUpdateWithoutTenantInput, AlertUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type AlertUpdateManyWithWhereWithoutTenantInput = {
+    where: AlertScalarWhereInput
+    data: XOR<AlertUpdateManyMutationInput, AlertUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type AlertScalarWhereInput = {
+    AND?: AlertScalarWhereInput | AlertScalarWhereInput[]
+    OR?: AlertScalarWhereInput[]
+    NOT?: AlertScalarWhereInput | AlertScalarWhereInput[]
+    id?: StringFilter<"Alert"> | string
+    ruleId?: StringFilter<"Alert"> | string
+    entityId?: StringFilter<"Alert"> | string
+    entityType?: StringFilter<"Alert"> | string
+    severity?: StringFilter<"Alert"> | string
+    message?: StringFilter<"Alert"> | string
+    acknowledged?: BoolFilter<"Alert"> | boolean
+    createdAt?: DateTimeFilter<"Alert"> | Date | string
+    acknowledgedAt?: DateTimeNullableFilter<"Alert"> | Date | string | null
+    tenantId?: StringFilter<"Alert"> | string
+  }
+
   export type TenantCreateWithoutSchedulingPolicyInput = {
     id?: string
     name: string
@@ -41513,6 +44613,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSchedulingPolicyInput = {
@@ -41540,6 +44642,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSchedulingPolicyInput = {
@@ -41583,6 +44687,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSchedulingPolicyInput = {
@@ -41610,6 +44716,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutTenantUsersInput = {
@@ -41637,6 +44745,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTenantUsersInput = {
@@ -41664,6 +44774,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTenantUsersInput = {
@@ -41744,6 +44856,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTenantUsersInput = {
@@ -41771,6 +44885,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutTenantUsersInput = {
@@ -41841,6 +44957,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMetricRetentionPolicyInput = {
@@ -41868,6 +44986,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMetricRetentionPolicyInput = {
@@ -41911,6 +45031,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMetricRetentionPolicyInput = {
@@ -41938,6 +45060,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutUserSessionsInput = {
@@ -42162,6 +45286,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutWebhooksInput = {
@@ -42189,6 +45315,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutWebhooksInput = {
@@ -42248,6 +45376,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutWebhooksInput = {
@@ -42275,6 +45405,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type WebhookCreateWithoutDeliveriesInput = {
@@ -42329,6 +45461,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutWebhookDeliveriesInput = {
@@ -42356,6 +45490,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutWebhookDeliveriesInput = {
@@ -42432,6 +45568,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutWebhookDeliveriesInput = {
@@ -42459,6 +45597,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutAuditLogsInput = {
@@ -42486,6 +45626,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAuditLogsInput = {
@@ -42513,6 +45655,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAuditLogsInput = {
@@ -42593,6 +45737,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAuditLogsInput = {
@@ -42620,6 +45766,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -42843,6 +45991,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutNodesInput = {
@@ -42870,6 +46020,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutNodesInput = {
@@ -42961,6 +46113,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutNodesInput = {
@@ -42988,6 +46142,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type EdgeNodeCreateWithoutTasksInput = {
@@ -43168,6 +46324,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTasksInput = {
@@ -43195,6 +46353,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTasksInput = {
@@ -43349,6 +46509,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTasksInput = {
@@ -43376,6 +46538,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type EdgeNodeCreateWithoutTaskExecutionsInput = {
@@ -43533,6 +46697,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTaskExecutionsInput = {
@@ -43560,6 +46726,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTaskExecutionsInput = {
@@ -43745,6 +46913,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTaskExecutionsInput = {
@@ -43772,6 +46942,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TaskCreateWithoutLogsInput = {
@@ -43856,6 +47028,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTaskLogsInput = {
@@ -43883,6 +47057,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTaskLogsInput = {
@@ -43989,6 +47165,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTaskLogsInput = {
@@ -44016,6 +47194,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type EdgeNodeCreateWithoutMetricsInput = {
@@ -44116,6 +47296,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutNodeMetricInput = {
@@ -44143,6 +47325,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutNodeMetricInput = {
@@ -44265,6 +47449,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutNodeMetricInput = {
@@ -44292,6 +47478,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SagaStepCreateWithoutSagaInput = {
@@ -44356,6 +47544,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSagaInstancesInput = {
@@ -44383,6 +47573,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSagaInstancesInput = {
@@ -44442,6 +47634,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSagaInstancesInput = {
@@ -44469,6 +47663,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SagaInstanceCreateWithoutStepsInput = {
@@ -44531,6 +47727,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSagaStepsInput = {
@@ -44558,6 +47756,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSagaStepsInput = {
@@ -44642,6 +47842,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSagaStepsInput = {
@@ -44669,6 +47871,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutSchedulingDecisionsInput = {
@@ -44696,6 +47900,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSchedulingDecisionsInput = {
@@ -44723,6 +47929,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSchedulingDecisionsInput = {
@@ -44766,6 +47974,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSchedulingDecisionsInput = {
@@ -44793,6 +48003,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutCostRecordsInput = {
@@ -44820,6 +48032,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCostRecordsInput = {
@@ -44847,6 +48061,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCostRecordsInput = {
@@ -44890,6 +48106,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCostRecordsInput = {
@@ -44917,6 +48135,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutCarbonMetricsInput = {
@@ -44944,6 +48164,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCarbonMetricsInput = {
@@ -44971,6 +48193,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCarbonMetricsInput = {
@@ -45014,6 +48238,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCarbonMetricsInput = {
@@ -45041,6 +48267,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutCarbonRecordsInput = {
@@ -45068,6 +48296,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCarbonRecordsInput = {
@@ -45095,6 +48325,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCarbonRecordsInput = {
@@ -45138,6 +48370,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCarbonRecordsInput = {
@@ -45165,6 +48399,8 @@ export namespace Prisma {
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutSchedulingOutcomeInput = {
@@ -45192,6 +48428,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
     MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSchedulingOutcomeInput = {
@@ -45219,6 +48457,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSchedulingOutcomeInput = {
@@ -45262,6 +48502,8 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
     MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSchedulingOutcomeInput = {
@@ -45289,6 +48531,385 @@ export namespace Prisma {
     NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
     MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type AlertCreateWithoutRuleInput = {
+    id?: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    tenant: TenantCreateNestedOneWithoutAlertsInput
+  }
+
+  export type AlertUncheckedCreateWithoutRuleInput = {
+    id?: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    tenantId: string
+  }
+
+  export type AlertCreateOrConnectWithoutRuleInput = {
+    where: AlertWhereUniqueInput
+    create: XOR<AlertCreateWithoutRuleInput, AlertUncheckedCreateWithoutRuleInput>
+  }
+
+  export type AlertCreateManyRuleInputEnvelope = {
+    data: AlertCreateManyRuleInput | AlertCreateManyRuleInput[]
+  }
+
+  export type TenantCreateWithoutAlertRulesInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutAlertRulesInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskUncheckedCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeUncheckedCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionUncheckedCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserUncheckedCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceUncheckedCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepUncheckedCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionUncheckedCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordUncheckedCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricUncheckedCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordUncheckedCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogUncheckedCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutAlertRulesInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutAlertRulesInput, TenantUncheckedCreateWithoutAlertRulesInput>
+  }
+
+  export type AlertUpsertWithWhereUniqueWithoutRuleInput = {
+    where: AlertWhereUniqueInput
+    update: XOR<AlertUpdateWithoutRuleInput, AlertUncheckedUpdateWithoutRuleInput>
+    create: XOR<AlertCreateWithoutRuleInput, AlertUncheckedCreateWithoutRuleInput>
+  }
+
+  export type AlertUpdateWithWhereUniqueWithoutRuleInput = {
+    where: AlertWhereUniqueInput
+    data: XOR<AlertUpdateWithoutRuleInput, AlertUncheckedUpdateWithoutRuleInput>
+  }
+
+  export type AlertUpdateManyWithWhereWithoutRuleInput = {
+    where: AlertScalarWhereInput
+    data: XOR<AlertUpdateManyMutationInput, AlertUncheckedUpdateManyWithoutRuleInput>
+  }
+
+  export type TenantUpsertWithoutAlertRulesInput = {
+    update: XOR<TenantUpdateWithoutAlertRulesInput, TenantUncheckedUpdateWithoutAlertRulesInput>
+    create: XOR<TenantCreateWithoutAlertRulesInput, TenantUncheckedCreateWithoutAlertRulesInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutAlertRulesInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutAlertRulesInput, TenantUncheckedUpdateWithoutAlertRulesInput>
+  }
+
+  export type TenantUpdateWithoutAlertRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutAlertRulesInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUncheckedUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUncheckedUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUncheckedUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUncheckedUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUncheckedUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUncheckedUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUncheckedUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUncheckedUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUncheckedUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUncheckedUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUncheckedUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type AlertRuleCreateWithoutAlertsInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutAlertRulesInput
+  }
+
+  export type AlertRuleUncheckedCreateWithoutAlertsInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+    tenantId: string
+  }
+
+  export type AlertRuleCreateOrConnectWithoutAlertsInput = {
+    where: AlertRuleWhereUniqueInput
+    create: XOR<AlertRuleCreateWithoutAlertsInput, AlertRuleUncheckedCreateWithoutAlertsInput>
+  }
+
+  export type TenantCreateWithoutAlertsInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutAlertsInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskUncheckedCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeUncheckedCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionUncheckedCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserUncheckedCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceUncheckedCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepUncheckedCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionUncheckedCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordUncheckedCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricUncheckedCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordUncheckedCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogUncheckedCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutAlertsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutAlertsInput, TenantUncheckedCreateWithoutAlertsInput>
+  }
+
+  export type AlertRuleUpsertWithoutAlertsInput = {
+    update: XOR<AlertRuleUpdateWithoutAlertsInput, AlertRuleUncheckedUpdateWithoutAlertsInput>
+    create: XOR<AlertRuleCreateWithoutAlertsInput, AlertRuleUncheckedCreateWithoutAlertsInput>
+    where?: AlertRuleWhereInput
+  }
+
+  export type AlertRuleUpdateToOneWithWhereWithoutAlertsInput = {
+    where?: AlertRuleWhereInput
+    data: XOR<AlertRuleUpdateWithoutAlertsInput, AlertRuleUncheckedUpdateWithoutAlertsInput>
+  }
+
+  export type AlertRuleUpdateWithoutAlertsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutAlertRulesNestedInput
+  }
+
+  export type AlertRuleUncheckedUpdateWithoutAlertsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type TenantUpsertWithoutAlertsInput = {
+    update: XOR<TenantUpdateWithoutAlertsInput, TenantUncheckedUpdateWithoutAlertsInput>
+    create: XOR<TenantCreateWithoutAlertsInput, TenantUncheckedCreateWithoutAlertsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutAlertsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutAlertsInput, TenantUncheckedUpdateWithoutAlertsInput>
+  }
+
+  export type TenantUpdateWithoutAlertsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutAlertsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUncheckedUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUncheckedUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUncheckedUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUncheckedUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUncheckedUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUncheckedUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUncheckedUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUncheckedUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUncheckedUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUncheckedUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUncheckedUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUserCreateManyUserInput = {
@@ -45702,6 +49323,29 @@ export namespace Prisma {
     nodeLoadAtAssignment: number
     rewardScore?: number | null
     createdAt?: Date | string
+  }
+
+  export type AlertRuleCreateManyTenantInput = {
+    id?: string
+    name: string
+    metric: string
+    operator: string
+    threshold: number
+    duration: number
+    enabled?: boolean
+    createdAt?: Date | string
+  }
+
+  export type AlertCreateManyTenantInput = {
+    id?: string
+    ruleId: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
   }
 
   export type TaskUpdateWithoutTenantInput = {
@@ -46453,6 +50097,77 @@ export namespace Prisma {
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type AlertRuleUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    alerts?: AlertUpdateManyWithoutRuleNestedInput
+  }
+
+  export type AlertRuleUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    alerts?: AlertUncheckedUpdateManyWithoutRuleNestedInput
+  }
+
+  export type AlertRuleUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    metric?: StringFieldUpdateOperationsInput | string
+    operator?: StringFieldUpdateOperationsInput | string
+    threshold?: FloatFieldUpdateOperationsInput | number
+    duration?: IntFieldUpdateOperationsInput | number
+    enabled?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type AlertUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    rule?: AlertRuleUpdateOneRequiredWithoutAlertsNestedInput
+  }
+
+  export type AlertUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type AlertUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    ruleId?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type WebhookDeliveryCreateManyWebhookInput = {
     id?: string
     event: string
@@ -46937,6 +50652,54 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type AlertCreateManyRuleInput = {
+    id?: string
+    entityId: string
+    entityType: string
+    severity: string
+    message: string
+    acknowledged?: boolean
+    createdAt?: Date | string
+    acknowledgedAt?: Date | string | null
+    tenantId: string
+  }
+
+  export type AlertUpdateWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenant?: TenantUpdateOneRequiredWithoutAlertsNestedInput
+  }
+
+  export type AlertUncheckedUpdateWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenantId?: StringFieldUpdateOperationsInput | string
+  }
+
+  export type AlertUncheckedUpdateManyWithoutRuleInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    entityId?: StringFieldUpdateOperationsInput | string
+    entityType?: StringFieldUpdateOperationsInput | string
+    severity?: StringFieldUpdateOperationsInput | string
+    message?: StringFieldUpdateOperationsInput | string
+    acknowledged?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    tenantId?: StringFieldUpdateOperationsInput | string
+  }
+
 
 
   /**
@@ -46966,6 +50729,10 @@ export namespace Prisma {
      * @deprecated Use SagaInstanceCountOutputTypeDefaultArgs instead
      */
     export type SagaInstanceCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SagaInstanceCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AlertRuleCountOutputTypeDefaultArgs instead
+     */
+    export type AlertRuleCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertRuleCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use UserDefaultArgs instead
      */
@@ -47070,6 +50837,14 @@ export namespace Prisma {
      * @deprecated Use SchedulingOutcomeDefaultArgs instead
      */
     export type SchedulingOutcomeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = SchedulingOutcomeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AlertRuleDefaultArgs instead
+     */
+    export type AlertRuleArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertRuleDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use AlertDefaultArgs instead
+     */
+    export type AlertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

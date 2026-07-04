@@ -14,10 +14,6 @@ export type Def0 = {
          */
         code: string;
         /**
-         * Optional error details
-         */
-        details?: unknown;
-        /**
          * Human-readable error description
          */
         message: string;
@@ -26,13 +22,17 @@ export type Def0 = {
          */
         requestId?: string;
         /**
-         * Error stack trace (non-production only)
-         */
-        stack?: string;
-        /**
          * ISO 8601 timestamp
          */
         timestamp?: Date;
+        /**
+         * Optional error details
+         */
+        details?: unknown;
+        /**
+         * Error stack trace (non-production only)
+         */
+        stack?: string;
     };
 };
 
@@ -40,12 +40,12 @@ export type Def0 = {
  * HealthSchema
  */
 export type Def1 = {
+    status: 'healthy' | 'degraded' | 'unhealthy';
+    service: string;
+    timestamp: Date;
     checks?: {
         [key: string]: boolean;
     };
-    service: string;
-    status: 'degraded' | 'healthy' | 'unhealthy';
-    timestamp: Date;
     version?: string;
 };
 
@@ -89,7 +89,7 @@ export type GetV2AdminDlqEventsData = {
     path?: never;
     query?: {
         topic?: string;
-        status?: 'PENDING' | 'PERMANENTLY_FAILED' | 'REPROCESSED' | 'RETRYING';
+        status?: 'PENDING' | 'RETRYING' | 'REPROCESSED' | 'PERMANENTLY_FAILED';
         limit?: number;
         offset?: number;
     };
@@ -151,8 +151,8 @@ export type GetV2AdminDlqStatsResponses = {
 
 export type PostV2AdminEventsRepublishData = {
     body: {
-        entityId: string;
         eventType: string;
+        entityId: string;
         targetTopic?: string;
     };
     path?: never;
@@ -169,10 +169,10 @@ export type PostV2AdminEventsRepublishResponses = {
 
 export type PostV2AdminEventsRepublishRangeData = {
     body: {
-        dryRun?: boolean;
         eventType: string;
         fromTimestamp: string;
         toTimestamp: string;
+        dryRun?: boolean;
     };
     path?: never;
     query?: never;
@@ -246,7 +246,7 @@ export type PostV2AdminUsersByIdDeactivateResponses = {
 
 export type PatchV2AdminUsersByIdRoleData = {
     body: {
-        role: 'ADMIN' | 'OPERATOR' | 'SUPER_ADMIN' | 'VIEWER';
+        role: 'SUPER_ADMIN' | 'ADMIN' | 'OPERATOR' | 'VIEWER';
     };
     path: {
         id: string;
@@ -297,21 +297,21 @@ export type GetV2AgentsCaResponse = GetV2AgentsCaResponses[keyof GetV2AgentsCaRe
 export type PostV2AgentsCertificatesSignData = {
     body: {
         /**
-         * One-time bootstrap token
-         */
-        bootstrapToken: string;
-        cpuCores?: number;
-        /**
          * PEM encoded Certificate Signing Request
          */
         csr: string;
-        hardwareId?: string;
-        ipAddress?: string;
-        memoryGB?: number;
+        /**
+         * One-time bootstrap token
+         */
+        bootstrapToken: string;
         nodeName: string;
-        port?: number;
         region: string;
+        ipAddress?: string;
+        port?: number;
+        cpuCores?: number;
+        memoryGB?: number;
         storageGB?: number;
+        hardwareId?: string;
     };
     path?: never;
     query?: never;
@@ -340,10 +340,10 @@ export type PostV2AgentsCertificatesSignResponses = {
      * Default Response
      */
     200: {
-        caCertificate?: string;
         certificate?: string;
-        expiresAt?: Date;
+        caCertificate?: string;
         nodeId?: string;
+        expiresAt?: Date;
     };
 };
 
@@ -351,12 +351,12 @@ export type PostV2AgentsCertificatesSignResponse = PostV2AgentsCertificatesSignR
 
 export type PostV2AgentsHeartbeatData = {
     body?: {
+        timestamp?: number;
+        status?: string;
         metrics?: {
             cpu_usage?: number;
             memory_usage?: number;
         };
-        status?: string;
-        timestamp?: number;
     };
     path?: never;
     query?: never;
@@ -391,16 +391,16 @@ export type GetV2AgentsTasksPendingResponses = {
      * Default Response
      */
     200: {
-        cpu_fuel?: number | null;
+        task_id?: string;
+        runtime?: string;
         image?: string;
+        wasm_artifact_id?: string | null;
         input?: {
             [key: string]: unknown;
         };
         memory_limit_mb?: number;
-        runtime?: string;
-        task_id?: string;
+        cpu_fuel?: number | null;
         timeout_seconds?: number;
-        wasm_artifact_id?: string | null;
     };
 };
 
@@ -408,18 +408,18 @@ export type GetV2AgentsTasksPendingResponse = GetV2AgentsTasksPendingResponses[k
 
 export type PostV2AgentsTasksByTaskIdResultData = {
     body: {
+        status: string;
+        exit_code: number;
+        stdout?: string;
+        stderr?: string;
         duration_ms?: number;
         error?: string | null;
-        exit_code: number;
         metrics?: {
             cpu_usage_avg?: number;
             memory_usage_max?: number;
-            network_egress_bytes?: number;
             network_ingress_bytes?: number;
+            network_egress_bytes?: number;
         };
-        status: string;
-        stderr?: string;
-        stdout?: string;
     };
     path: {
         taskId: string;
@@ -466,14 +466,14 @@ export type GetV2AlertsResponses = {
      */
     200: {
         alerts?: Array<{
-            acknowledgedAt?: string | null;
-            description?: string;
-            firedAt?: string;
             id?: string;
-            resolvedAt?: string | null;
-            severity?: 'CRITICAL' | 'HIGH' | 'LOW' | 'MEDIUM';
-            source?: string;
+            severity?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
             title?: string;
+            description?: string;
+            source?: string;
+            firedAt?: string;
+            acknowledgedAt?: string | null;
+            resolvedAt?: string | null;
         }>;
     };
 };
@@ -482,9 +482,9 @@ export type GetV2AlertsResponse = GetV2AlertsResponses[keyof GetV2AlertsResponse
 
 export type PostV2AlertsTestData = {
     body: {
-        description: string;
-        severity: 'CRITICAL' | 'HIGH' | 'LOW' | 'MEDIUM';
+        severity: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
         title: string;
+        description: string;
     };
     path?: never;
     query?: never;
@@ -530,22 +530,44 @@ export type GetV2AnalyticsCostResponses = {
      * Default Response
      */
     200: {
+        totalActualCost?: number;
+        totalSavings?: number;
         costByNode?: Array<{
-            cost?: number;
             nodeId?: string;
             nodeName?: string;
+            cost?: number;
             taskCount?: number;
         }>;
         costOverTime?: Array<{
-            cost?: number;
             date?: string;
+            cost?: number;
         }>;
-        totalActualCost?: number;
-        totalSavings?: number;
     };
 };
 
 export type GetV2AnalyticsCostResponse = GetV2AnalyticsCostResponses[keyof GetV2AnalyticsCostResponses];
+
+export type GetV2AnalyticsGovernanceData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v2/analytics/governance';
+};
+
+export type GetV2AnalyticsGovernanceResponses = {
+    /**
+     * Default Response
+     */
+    200: {
+        activeConstraints?: number;
+        policyViolations?: number;
+        complianceScore?: number;
+        totalNodes?: number;
+        onlineNodes?: number;
+    };
+};
+
+export type GetV2AnalyticsGovernanceResponse = GetV2AnalyticsGovernanceResponses[keyof GetV2AnalyticsGovernanceResponses];
 
 export type GetV2ApiKeysData = {
     body?: never;
@@ -563,9 +585,9 @@ export type GetV2ApiKeysResponses = {
 
 export type PostV2ApiKeysData = {
     body: {
-        expiresAt?: unknown | Date | unknown;
         name: string;
         permissions?: Array<string>;
+        expiresAt?: unknown | Date | unknown;
     };
     path?: never;
     query?: never;
@@ -623,13 +645,13 @@ export type PostV2AuthLoginResponses = {
      * Default Response
      */
     200: {
-        accessToken: string;
-        expiresAt: Date;
-        refreshToken: string;
         token: string;
+        accessToken: string;
+        refreshToken: string;
+        expiresAt: Date;
         user: {
-            email: string;
             id: string;
+            email: string;
             name?: unknown | string | unknown;
             role: string;
         };
@@ -689,8 +711,8 @@ export type PostV2AuthRefreshResponses = {
 export type PostV2AuthRegisterData = {
     body: {
         email: string;
-        name: string;
         password: string;
+        name: string;
     };
     path?: never;
     query?: never;
@@ -715,13 +737,13 @@ export type PostV2AuthRegisterResponses = {
      * Default Response
      */
     201: {
-        accessToken: string;
-        expiresAt: Date;
-        refreshToken: string;
         token: string;
+        accessToken: string;
+        refreshToken: string;
+        expiresAt: Date;
         user: {
-            email: string;
             id: string;
+            email: string;
             name?: unknown | string | unknown;
             role: string;
         };
@@ -786,10 +808,10 @@ export type GetV2CarbonByRegionResponses = {
      * Default Response
      */
     200: Array<{
+        zone?: string;
         carbonIntensityGco2?: number;
         lastUpdatedAt?: string;
         source?: string;
-        zone?: string;
     }>;
 };
 
@@ -808,10 +830,10 @@ export type GetV2CarbonIntensityResponses = {
      */
     200: {
         regions?: Array<{
+            zone?: string;
             carbonIntensityGco2?: number;
             lastUpdatedAt?: string;
             source?: string;
-            zone?: string;
         }>;
     };
 };
@@ -830,9 +852,9 @@ export type GetV2CarbonPolicyResponses = {
      * Default Response
      */
     200: {
-        activePolicy?: string;
         carbonWeight?: number;
         isActive?: boolean;
+        activePolicy?: string;
     };
 };
 
@@ -852,8 +874,8 @@ export type PatchV2CarbonPolicyResponses = {
      * Default Response
      */
     200: {
-        carbonWeight?: number;
         success?: boolean;
+        carbonWeight?: number;
     };
 };
 
@@ -866,7 +888,7 @@ export type GetV2CarbonReportData = {
         from?: Date;
         to?: Date;
         tenantId?: string;
-        format?: 'csv' | 'json';
+        format?: 'json' | 'csv';
     };
     url: '/v2/carbon/report';
 };
@@ -892,13 +914,13 @@ export type GetV2CarbonSavingsResponses = {
      * Default Response
      */
     200: {
+        totalSavedGco2Today?: number;
+        totalSavedGco2Week?: number;
         equivalentTreesPlanted?: number;
         savingsHistory?: Array<{
             date?: string;
             savedGco2?: number;
         }>;
-        totalSavedGco2Today?: number;
-        totalSavedGco2Week?: number;
     };
 };
 
@@ -916,9 +938,9 @@ export type GetV2CarbonSummaryResponses = {
      * Default Response
      */
     200: {
-        equivalentTreesPlanted?: number;
         totalSavedGco2Today?: number;
         totalSavedGco2Week?: number;
+        equivalentTreesPlanted?: number;
     };
 };
 
@@ -936,13 +958,13 @@ export type GetV2CircuitBreakersResponses = {
      * Default Response
      */
     200: Array<{
-        failureCount?: number;
+        name?: string;
+        state?: 'CLOSED' | 'OPEN' | 'HALF_OPEN';
         failureRate?: number;
         lastStateChange?: string;
-        name?: string;
-        nextRetryAt?: string;
-        state?: 'CLOSED' | 'HALF_OPEN' | 'OPEN';
         successCount?: number;
+        failureCount?: number;
+        nextRetryAt?: string;
     }>;
 };
 
@@ -971,8 +993,8 @@ export type PostV2CircuitBreakersByNameResetResponses = {
      * Default Response
      */
     200: {
-        message?: string;
         success?: boolean;
+        message?: string;
     };
 };
 
@@ -1014,7 +1036,7 @@ export type GetV2CostRecordsData = {
         resourceType?: string;
         from?: Date;
         to?: Date;
-        granularity?: 'day' | 'hour' | 'month' | 'week';
+        granularity?: 'hour' | 'day' | 'week' | 'month';
     };
     url: '/v2/cost/records';
 };
@@ -1056,12 +1078,12 @@ export type GetV2FlModelsResponses = {
 
 export type PostV2FlModelsData = {
     body: {
-        architecture: string;
         name: string;
-        parameters: number;
         version: string;
-        weightsSize?: number;
+        architecture: string;
+        parameters: number;
         weightsUrl?: string;
+        weightsSize?: number;
     };
     path?: never;
     query?: never;
@@ -1125,18 +1147,18 @@ export type PostV2FlModelsByIdWeightsResponses = {
 
 export type PostV2FlSessionsData = {
     body: {
-        config?: {
-            aggregationStrategy?: 'fedadam' | 'fedavg' | 'fedprox';
-            gradientClipNorm?: number;
-            learningRate?: number;
-            localEpochs?: number;
-            maxClients?: number;
-            minClients?: number;
-            noiseMultiplier?: number;
-            privacyBudget?: number;
-        };
         modelId: string;
         totalRounds?: number;
+        config?: {
+            minClients?: number;
+            maxClients?: number;
+            localEpochs?: number;
+            learningRate?: number;
+            aggregationStrategy?: 'fedavg' | 'fedprox' | 'fedadam';
+            privacyBudget?: number;
+            noiseMultiplier?: number;
+            gradientClipNorm?: number;
+        };
     };
     path?: never;
     query?: never;
@@ -1188,7 +1210,7 @@ export type GetV2LogsData = {
     query?: {
         taskId?: string;
         nodeId?: string;
-        level?: 'DEBUG' | 'ERROR' | 'INFO' | 'WARN';
+        level?: 'DEBUG' | 'INFO' | 'WARN' | 'ERROR';
         limit?: number;
         offset?: number;
     };
@@ -1243,9 +1265,9 @@ export type GetV2MetricsMlResponses = {
      */
     200: {
         activeModels?: number;
+        trainingJobs?: number;
         avgAccuracy?: number;
         totalPredictions?: number;
-        trainingJobs?: number;
     };
 };
 
@@ -1263,9 +1285,9 @@ export type GetV2MetricsNetworkResponses = {
      * Default Response
      */
     200: {
-        avgLatency?: number;
-        egressGbps?: number;
         ingressGbps?: number;
+        egressGbps?: number;
+        avgLatency?: number;
         packetLoss?: number;
     };
 };
@@ -1343,11 +1365,11 @@ export type GetV2MlDriftCurrentResponses = {
      */
     200: {
         driftScore?: number;
+        isDrifting?: boolean;
+        lastCheckedAt?: string;
         featureDrift?: {
             [key: string]: number;
         };
-        isDrifting?: boolean;
-        lastCheckedAt?: string;
     };
 };
 
@@ -1367,8 +1389,8 @@ export type GetV2MlDriftHistoryResponses = {
      * Default Response
      */
     200: Array<{
-        score?: number;
         timestamp?: string;
+        score?: number;
     }>;
 };
 
@@ -1402,11 +1424,11 @@ export type GetV2MlFederatedRoundResponses = {
      * Default Response
      */
     200: {
-        minParticipants?: number;
-        modelId?: string;
         roundId?: string;
         roundNumber?: number;
+        modelId?: string;
         status?: string;
+        minParticipants?: number;
         submissionsCount?: number;
     };
 };
@@ -1415,11 +1437,11 @@ export type GetV2MlFederatedRoundResponse = GetV2MlFederatedRoundResponses[keyof
 
 export type PostV2MlFederatedWeightsData = {
     body: {
-        avgReward?: number | null;
-        nodeId: string;
         roundId: string;
-        sampleCount: number;
+        nodeId: string;
         weightsUrl: string;
+        sampleCount: number;
+        avgReward?: number | null;
     };
     path?: never;
     query?: never;
@@ -1431,8 +1453,8 @@ export type PostV2MlFederatedWeightsResponses = {
      * Default Response
      */
     200: {
-        message?: string;
         success?: boolean;
+        message?: string;
     };
 };
 
@@ -1464,12 +1486,12 @@ export type GetV2MlModelCurrentResponses = {
      * Default Response
      */
     200: {
+        version?: string;
+        trainedAt?: string;
         accuracy?: number;
         fallbackRate?: number;
         lastUpdatedAt?: string;
         modelType?: string;
-        trainedAt?: string;
-        version?: string;
     };
 };
 
@@ -1487,10 +1509,10 @@ export type GetV2MlOutcomesStatsResponses = {
      * Default Response
      */
     200: {
-        banditExplorationRate?: number;
-        nextUpdateAt?: number;
         outcomesBuffered?: number;
+        banditExplorationRate?: number;
         predictionErrorP99Ms?: number;
+        nextUpdateAt?: number;
     };
 };
 
@@ -1508,8 +1530,8 @@ export type PostV2MlRetrainResponses = {
      * Default Response
      */
     200: {
-        message?: string;
         success?: boolean;
+        message?: string;
     };
 };
 
@@ -1527,9 +1549,9 @@ export type GetV2MlRetrainStatusResponses = {
      * Default Response
      */
     200: {
+        status?: string;
         error?: string | null;
         lastStartedAt?: string;
-        status?: string;
     };
 };
 
@@ -1540,10 +1562,10 @@ export type GetV2NodesData = {
     path?: never;
     query?: {
         region?: string;
-        status?: 'DEGRADED' | 'MAINTENANCE' | 'OFFLINE' | 'ONLINE';
+        status?: 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE';
         page?: number;
         limit?: number;
-        sortBy?: 'createdAt' | 'name' | 'region' | 'status';
+        sortBy?: 'name' | 'region' | 'status' | 'createdAt';
         sortOrder?: 'asc' | 'desc';
     };
     url: '/v2/nodes/';
@@ -1556,27 +1578,27 @@ export type GetV2NodesResponses = {
     200: {
         data?: Array<{
             id: string;
-            ipAddress: string;
-            lastHeartbeat: Date;
-            load?: {
-                activeTasks: number;
-                cpuUsage?: number;
-                memoryUsage?: number;
-            };
-            location: string;
             name: string;
-            port: number;
+            location: string;
             region: string;
+            status: 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE';
+            ipAddress: string;
+            port: number;
             specs: {
                 cpuCores: number;
                 memoryGB: number;
                 storageGB: number;
             };
-            status: 'DEGRADED' | 'MAINTENANCE' | 'OFFLINE' | 'ONLINE';
+            load?: {
+                cpuUsage?: number;
+                memoryUsage?: number;
+                activeTasks: number;
+            };
+            lastHeartbeat: Date;
         }>;
         pagination?: {
-            limit?: number;
             page?: number;
+            limit?: number;
             total?: number;
             totalPages?: number;
         };
@@ -1587,18 +1609,18 @@ export type GetV2NodesResponse = GetV2NodesResponses[keyof GetV2NodesResponses];
 
 export type PostV2NodesData = {
     body: {
+        name: string;
+        location: string;
+        region: string;
+        ipAddress: string;
+        port: number;
+        cpuCores: number;
+        memoryGB: number;
+        storageGB: number;
+        costPerHour?: number;
+        maxTasks?: number;
         bandwidthInMbps?: number;
         bandwidthOutMbps?: number;
-        costPerHour?: number;
-        cpuCores: number;
-        ipAddress: string;
-        location: string;
-        maxTasks?: number;
-        memoryGB: number;
-        name: string;
-        port: number;
-        region: string;
-        storageGB: number;
     };
     path?: never;
     query?: never;
@@ -1620,23 +1642,23 @@ export type PostV2NodesResponses = {
      */
     201: {
         id: string;
-        ipAddress: string;
-        lastHeartbeat: Date;
-        load?: {
-            activeTasks: number;
-            cpuUsage?: number;
-            memoryUsage?: number;
-        };
-        location: string;
         name: string;
-        port: number;
+        location: string;
         region: string;
+        status: 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE';
+        ipAddress: string;
+        port: number;
         specs: {
             cpuCores: number;
             memoryGB: number;
             storageGB: number;
         };
-        status: 'DEGRADED' | 'MAINTENANCE' | 'OFFLINE' | 'ONLINE';
+        load?: {
+            cpuUsage?: number;
+            memoryUsage?: number;
+            activeTasks: number;
+        };
+        lastHeartbeat: Date;
     };
 };
 
@@ -1682,23 +1704,23 @@ export type GetV2NodesByIdResponses = {
      */
     200: {
         id: string;
-        ipAddress: string;
-        lastHeartbeat: Date;
-        load?: {
-            activeTasks: number;
-            cpuUsage?: number;
-            memoryUsage?: number;
-        };
-        location: string;
         name: string;
-        port: number;
+        location: string;
         region: string;
+        status: 'ONLINE' | 'OFFLINE' | 'DEGRADED' | 'MAINTENANCE';
+        ipAddress: string;
+        port: number;
         specs: {
             cpuCores: number;
             memoryGB: number;
             storageGB: number;
         };
-        status: 'DEGRADED' | 'MAINTENANCE' | 'OFFLINE' | 'ONLINE';
+        load?: {
+            cpuUsage?: number;
+            memoryUsage?: number;
+            activeTasks: number;
+        };
+        lastHeartbeat: Date;
     };
 };
 
@@ -1706,15 +1728,15 @@ export type GetV2NodesByIdResponse = GetV2NodesByIdResponses[keyof GetV2NodesByI
 
 export type PatchV2NodesByIdData = {
     body?: {
-        costPerHour?: number;
-        cpuCores?: number;
-        isMaintenanceMode?: boolean;
-        location?: string;
-        maxTasks?: number;
-        memoryGB?: number;
         name?: string;
+        location?: string;
         region?: string;
+        cpuCores?: number;
+        memoryGB?: number;
         storageGB?: number;
+        costPerHour?: number;
+        maxTasks?: number;
+        isMaintenanceMode?: boolean;
     };
     path: {
         id: string;
@@ -1744,8 +1766,8 @@ export type PostV2NodesByIdDrainResponses = {
      * Default Response
      */
     200: {
-        message?: string;
         success?: boolean;
+        message?: string;
     };
 };
 
@@ -1754,12 +1776,12 @@ export type PostV2NodesByIdDrainResponse = PostV2NodesByIdDrainResponses[keyof P
 export type PostV2NodesByIdHeartbeatData = {
     body: {
         cpuUsage: number;
-        latency?: number;
         memoryUsage: number;
+        storageUsage?: number;
+        latency?: number;
+        tasksRunning?: number;
         networkIn?: number;
         networkOut?: number;
-        storageUsage?: number;
-        tasksRunning?: number;
     };
     path: {
         id: string;
@@ -1827,8 +1849,8 @@ export type PostV2NodesByIdOfflineResponses = {
      * Default Response
      */
     200: {
-        message?: string;
         success?: boolean;
+        message?: string;
     };
 };
 
@@ -1927,8 +1949,8 @@ export type GetV2PoliciesThresholdsResponses = {
 export type PatchV2PoliciesThresholdsData = {
     body?: {
         cpu?: number;
-        latency?: number;
         memory?: number;
+        latency?: number;
     };
     path?: never;
     query?: never;
@@ -1971,14 +1993,28 @@ export type GetV2SchedulerMetricsResponses = {
      * Default Response
      */
     200: {
-        avgSchedulingTime?: number;
-        efficiency?: number;
         queueLength?: number;
+        avgSchedulingTime?: number;
         throughput?: number;
+        efficiency?: number;
     };
 };
 
 export type GetV2SchedulerMetricsResponse = GetV2SchedulerMetricsResponses[keyof GetV2SchedulerMetricsResponses];
+
+export type GetV2SchedulingPoliciesData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/v2/scheduling/policies';
+};
+
+export type GetV2SchedulingPoliciesResponses = {
+    /**
+     * Default Response
+     */
+    200: unknown;
+};
 
 export type GetV2SchedulingPolicyData = {
     body?: never;
@@ -1996,9 +2032,9 @@ export type GetV2SchedulingPolicyResponses = {
 
 export type PutV2SchedulingPolicyData = {
     body: {
-        carbonWeight: number;
         costWeight: number;
         latencyWeight: number;
+        carbonWeight: number;
     };
     path?: never;
     query?: never;
@@ -2058,13 +2094,13 @@ export type GetV2TasksData = {
     body?: never;
     path?: never;
     query?: {
-        status?: 'CANCELLED' | 'COMPLETED' | 'FAILED' | 'PENDING' | 'RUNNING' | 'SCHEDULED';
+        status?: 'PENDING' | 'SCHEDULED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
         type?: string;
         nodeId?: string;
-        priority?: 'CRITICAL' | 'HIGH' | 'LOW' | 'MEDIUM';
+        priority?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
         page?: number;
         limit?: number;
-        sortBy?: 'createdAt' | 'duration' | 'name' | 'priority' | 'status' | 'submittedAt' | 'updatedAt';
+        sortBy?: 'submittedAt' | 'priority' | 'status' | 'duration' | 'createdAt' | 'updatedAt' | 'name';
         sortOrder?: 'asc' | 'desc';
         from?: Date;
         to?: Date;
@@ -2078,32 +2114,32 @@ export type GetV2TasksResponses = {
      */
     200: {
         data?: Array<{
-            affinity?: unknown | string | unknown;
-            completedAt?: unknown | Date | unknown;
-            error?: unknown | string | unknown;
             id: string;
-            image?: unknown | string | unknown;
-            metadata?: {
-                [key: string]: unknown;
-            };
             name: string;
-            nodeId?: unknown | string | unknown;
+            type: string;
+            status: 'PENDING' | 'SCHEDULED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
             priority: string;
-            runtime: 'DOCKER' | 'NATIVE' | 'WASM';
+            nodeId?: unknown | string | unknown;
             specs?: unknown | {
                 cpuCores: number;
                 memoryGB: number;
             } | unknown;
-            startedAt?: unknown | Date | unknown;
-            status: 'CANCELLED' | 'COMPLETED' | 'FAILED' | 'PENDING' | 'RUNNING' | 'SCHEDULED';
             submittedAt: Date;
-            traceId?: unknown | string | unknown;
-            type: string;
+            startedAt?: unknown | Date | unknown;
+            completedAt?: unknown | Date | unknown;
+            error?: unknown | string | unknown;
+            metadata?: {
+                [key: string]: unknown;
+            };
+            runtime: 'NATIVE' | 'DOCKER' | 'WASM';
+            image?: unknown | string | unknown;
             wasmArtifactId?: unknown | string | unknown;
+            affinity?: unknown | string | unknown;
+            traceId?: unknown | string | unknown;
         }>;
         pagination?: {
-            limit?: number;
             page?: number;
+            limit?: number;
             total?: number;
             totalPages?: number;
         };
@@ -2114,31 +2150,31 @@ export type GetV2TasksResponse = GetV2TasksResponses[keyof GetV2TasksResponses];
 
 export type PostV2TasksData = {
     body: {
-        affinity?: string;
-        image?: string;
-        input?: {
-            [key: string]: unknown;
-        };
-        isDeferrable?: boolean;
-        maxDelayMinutes?: number;
-        maxRetries?: number;
-        metadata?: {
-            [key: string]: unknown;
-        };
         name: string;
+        type: 'IMAGE_CLASSIFICATION' | 'DATA_AGGREGATION' | 'MODEL_INFERENCE' | 'SENSOR_FUSION' | 'VIDEO_PROCESSING' | 'LOG_ANALYSIS' | 'ANOMALY_DETECTION' | 'DATA_PROCESSING' | 'ETL_PIPELINE' | 'ML_TRAINING' | 'NLP' | 'COMPUTER_VISION' | 'SPEECH_RECOGNITION' | 'RECOMMENDATION_ENGINE' | 'FRAUD_DETECTION' | 'IOT_DATA_INGESTION' | 'REALTIME_ANALYTICS' | 'BATCH_PROCESSING' | 'CONTAINER_BUILD' | 'CICD_PIPELINE' | 'CUSTOM';
+        priority?: 'CRITICAL' | 'HIGH' | 'MEDIUM' | 'LOW';
+        target?: 'EDGE' | 'CLOUD' | 'HYBRID';
         nodeId?: string;
-        policy?: string;
-        priority?: 'CRITICAL' | 'HIGH' | 'LOW' | 'MEDIUM';
-        runtime?: 'DOCKER' | 'NATIVE' | 'WASM';
         specs?: {
             cpuCores?: number;
             memoryGB?: number;
             memoryMB?: number;
         };
-        target?: 'CLOUD' | 'EDGE' | 'HYBRID';
-        traceId?: string;
-        type: 'ANOMALY_DETECTION' | 'BATCH_PROCESSING' | 'CICD_PIPELINE' | 'COMPUTER_VISION' | 'CONTAINER_BUILD' | 'CUSTOM' | 'DATA_AGGREGATION' | 'DATA_PROCESSING' | 'ETL_PIPELINE' | 'FRAUD_DETECTION' | 'IMAGE_CLASSIFICATION' | 'IOT_DATA_INGESTION' | 'LOG_ANALYSIS' | 'ML_TRAINING' | 'MODEL_INFERENCE' | 'NLP' | 'REALTIME_ANALYTICS' | 'RECOMMENDATION_ENGINE' | 'SENSOR_FUSION' | 'SPEECH_RECOGNITION' | 'VIDEO_PROCESSING';
+        input?: {
+            [key: string]: unknown;
+        };
+        metadata?: {
+            [key: string]: unknown;
+        };
+        maxRetries?: number;
+        runtime?: 'NATIVE' | 'DOCKER' | 'WASM';
+        image?: string;
         wasmArtifactId?: string;
+        affinity?: string;
+        traceId?: string;
+        isDeferrable?: boolean;
+        maxDelayMinutes?: number;
+        policy?: string;
     };
     path?: never;
     query?: never;
@@ -2163,28 +2199,28 @@ export type PostV2TasksResponses = {
      * Default Response
      */
     201: {
-        affinity?: unknown | string | unknown;
-        completedAt?: unknown | Date | unknown;
-        error?: unknown | string | unknown;
         id: string;
-        image?: unknown | string | unknown;
-        metadata?: {
-            [key: string]: unknown;
-        };
         name: string;
-        nodeId?: unknown | string | unknown;
+        type: string;
+        status: 'PENDING' | 'SCHEDULED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
         priority: string;
-        runtime: 'DOCKER' | 'NATIVE' | 'WASM';
+        nodeId?: unknown | string | unknown;
         specs?: unknown | {
             cpuCores: number;
             memoryGB: number;
         } | unknown;
-        startedAt?: unknown | Date | unknown;
-        status: 'CANCELLED' | 'COMPLETED' | 'FAILED' | 'PENDING' | 'RUNNING' | 'SCHEDULED';
         submittedAt: Date;
-        traceId?: unknown | string | unknown;
-        type: string;
+        startedAt?: unknown | Date | unknown;
+        completedAt?: unknown | Date | unknown;
+        error?: unknown | string | unknown;
+        metadata?: {
+            [key: string]: unknown;
+        };
+        runtime: 'NATIVE' | 'DOCKER' | 'WASM';
+        image?: unknown | string | unknown;
         wasmArtifactId?: unknown | string | unknown;
+        affinity?: unknown | string | unknown;
+        traceId?: unknown | string | unknown;
     };
 };
 
@@ -2281,28 +2317,28 @@ export type GetV2TasksByIdResponses = {
      * Default Response
      */
     200: {
-        affinity?: unknown | string | unknown;
-        completedAt?: unknown | Date | unknown;
-        error?: unknown | string | unknown;
         id: string;
-        image?: unknown | string | unknown;
-        metadata?: {
-            [key: string]: unknown;
-        };
         name: string;
-        nodeId?: unknown | string | unknown;
+        type: string;
+        status: 'PENDING' | 'SCHEDULED' | 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
         priority: string;
-        runtime: 'DOCKER' | 'NATIVE' | 'WASM';
+        nodeId?: unknown | string | unknown;
         specs?: unknown | {
             cpuCores: number;
             memoryGB: number;
         } | unknown;
-        startedAt?: unknown | Date | unknown;
-        status: 'CANCELLED' | 'COMPLETED' | 'FAILED' | 'PENDING' | 'RUNNING' | 'SCHEDULED';
         submittedAt: Date;
-        traceId?: unknown | string | unknown;
-        type: string;
+        startedAt?: unknown | Date | unknown;
+        completedAt?: unknown | Date | unknown;
+        error?: unknown | string | unknown;
+        metadata?: {
+            [key: string]: unknown;
+        };
+        runtime: 'NATIVE' | 'DOCKER' | 'WASM';
+        image?: unknown | string | unknown;
         wasmArtifactId?: unknown | string | unknown;
+        affinity?: unknown | string | unknown;
+        traceId?: unknown | string | unknown;
     };
 };
 
@@ -2391,11 +2427,11 @@ export type GetV2WebhooksResponses = {
 
 export type PostV2WebhooksData = {
     body: {
-        enabled?: boolean;
-        events: Array<string>;
         name: string;
-        secret?: string;
         url: string;
+        events: Array<string>;
+        secret?: string;
+        enabled?: boolean;
     };
     path?: never;
     query?: never;
@@ -2423,8 +2459,8 @@ export type PostV2WebhooksDeliveriesByIdRetryResponses = {
      * Default Response
      */
     200: {
-        message?: string;
         success?: boolean;
+        message?: string;
     };
 };
 
@@ -2442,10 +2478,10 @@ export type GetV2WebhooksStatsResponses = {
      * Default Response
      */
     200: {
-        active?: number;
-        avgLatency?: number;
-        failedLast24h?: number;
         total?: number;
+        active?: number;
+        failedLast24h?: number;
+        avgLatency?: number;
     };
 };
 
@@ -2469,11 +2505,11 @@ export type DeleteV2WebhooksByIdResponses = {
 
 export type PatchV2WebhooksByIdData = {
     body?: {
-        enabled?: boolean;
-        events?: Array<string>;
         name?: string;
-        secret?: string;
         url?: string;
+        events?: Array<string>;
+        secret?: string;
+        enabled?: boolean;
     };
     path: {
         id: string;
@@ -2538,8 +2574,8 @@ export type PostV2WebhooksByIdTestResponses = {
      * Default Response
      */
     200: {
-        deliveryId?: string;
         success?: boolean;
+        deliveryId?: string;
     };
 };
 
@@ -2561,34 +2597,34 @@ export type GetV2WorkflowsResponses = {
 
 export type PostV2WorkflowsData = {
     body: {
-        edges: Array<{
-            condition?: string;
-            from: string;
-            id: string;
-            to: string;
-        }>;
         name: string;
+        version: string;
         nodes: Array<{
+            id: string;
+            name: string;
+            type: 'task' | 'decision' | 'parallel' | 'wait' | 'subworkflow';
             config: {
                 [key: string]: unknown;
             };
-            id: string;
             inputs: Array<string>;
-            name: string;
             outputs: Array<string>;
-            type: 'decision' | 'parallel' | 'subworkflow' | 'task' | 'wait';
         }>;
-        retryPolicy?: {
-            initialDelay?: number;
-            maxDelay?: number;
-            maxRetries?: number;
-            multiplier?: number;
-        };
-        timeout?: number;
+        edges: Array<{
+            id: string;
+            from: string;
+            to: string;
+            condition?: string;
+        }>;
         variables?: {
             [key: string]: unknown;
         };
-        version: string;
+        timeout?: number;
+        retryPolicy?: {
+            maxRetries?: number;
+            initialDelay?: number;
+            maxDelay?: number;
+            multiplier?: number;
+        };
     };
     path?: never;
     query?: never;

@@ -8,11 +8,11 @@ import { z } from 'zod';
 export const zDef0 = z.object({
     error: z.object({
         code: z.string(),
-        details: z.unknown().optional(),
         message: z.string(),
         requestId: z.string().optional(),
-        stack: z.string().optional(),
-        timestamp: z.string().datetime().optional()
+        timestamp: z.string().datetime().optional(),
+        details: z.unknown().optional(),
+        stack: z.string().optional()
     })
 });
 
@@ -20,14 +20,14 @@ export const zDef0 = z.object({
  * HealthSchema
  */
 export const zDef1 = z.object({
-    checks: z.record(z.boolean()).optional(),
-    service: z.string(),
     status: z.enum([
-        'degraded',
         'healthy',
+        'degraded',
         'unhealthy'
     ]),
+    service: z.string(),
     timestamp: z.string().datetime(),
+    checks: z.record(z.boolean()).optional(),
     version: z.string().optional()
 });
 
@@ -46,9 +46,9 @@ export const zGetV2AdminDlqEventsQuery = z.object({
     topic: z.string().optional(),
     status: z.enum([
         'PENDING',
-        'PERMANENTLY_FAILED',
+        'RETRYING',
         'REPROCESSED',
-        'RETRYING'
+        'PERMANENTLY_FAILED'
     ]).optional(),
     limit: z.number().int().gte(1).lte(100).optional(),
     offset: z.number().int().gte(0).optional()
@@ -63,16 +63,16 @@ export const zPostV2AdminDlqPurgeBody = z.object({
 });
 
 export const zPostV2AdminEventsRepublishBody = z.object({
-    entityId: z.string(),
     eventType: z.string(),
+    entityId: z.string(),
     targetTopic: z.string().optional()
 });
 
 export const zPostV2AdminEventsRepublishRangeBody = z.object({
-    dryRun: z.boolean().optional(),
     eventType: z.string(),
     fromTimestamp: z.string(),
-    toTimestamp: z.string()
+    toTimestamp: z.string(),
+    dryRun: z.boolean().optional()
 });
 
 export const zPostV2AdminUsersByIdDeactivatePath = z.object({
@@ -81,9 +81,9 @@ export const zPostV2AdminUsersByIdDeactivatePath = z.object({
 
 export const zPatchV2AdminUsersByIdRoleBody = z.object({
     role: z.enum([
+        'SUPER_ADMIN',
         'ADMIN',
         'OPERATOR',
-        'SUPER_ADMIN',
         'VIEWER'
     ])
 });
@@ -100,64 +100,64 @@ export const zGetV2AgentsCaResponse = z.object({
 });
 
 export const zPostV2AgentsCertificatesSignBody = z.object({
-    bootstrapToken: z.string(),
-    cpuCores: z.number().optional(),
     csr: z.string(),
-    hardwareId: z.string().optional(),
-    ipAddress: z.string().optional(),
-    memoryGB: z.number().optional(),
+    bootstrapToken: z.string(),
     nodeName: z.string(),
-    port: z.number().optional(),
     region: z.string(),
-    storageGB: z.number().optional()
+    ipAddress: z.string().optional(),
+    port: z.number().optional(),
+    cpuCores: z.number().optional(),
+    memoryGB: z.number().optional(),
+    storageGB: z.number().optional(),
+    hardwareId: z.string().optional()
 });
 
 /**
  * Default Response
  */
 export const zPostV2AgentsCertificatesSignResponse = z.object({
-    caCertificate: z.string().optional(),
     certificate: z.string().optional(),
-    expiresAt: z.string().datetime().optional(),
-    nodeId: z.string().optional()
+    caCertificate: z.string().optional(),
+    nodeId: z.string().optional(),
+    expiresAt: z.string().datetime().optional()
 });
 
 export const zPostV2AgentsHeartbeatBody = z.object({
+    timestamp: z.number().optional(),
+    status: z.string().optional(),
     metrics: z.object({
         cpu_usage: z.number().optional(),
         memory_usage: z.number().optional()
-    }).optional(),
-    status: z.string().optional(),
-    timestamp: z.number().optional()
+    }).optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2AgentsTasksPendingResponse = z.object({
-    cpu_fuel: z.number().nullish(),
+    task_id: z.string().optional(),
+    runtime: z.string().optional(),
     image: z.string().optional(),
+    wasm_artifact_id: z.string().nullish(),
     input: z.record(z.unknown()).optional(),
     memory_limit_mb: z.number().optional(),
-    runtime: z.string().optional(),
-    task_id: z.string().optional(),
-    timeout_seconds: z.number().optional(),
-    wasm_artifact_id: z.string().nullish()
+    cpu_fuel: z.number().nullish(),
+    timeout_seconds: z.number().optional()
 });
 
 export const zPostV2AgentsTasksByTaskIdResultBody = z.object({
+    status: z.string(),
+    exit_code: z.number(),
+    stdout: z.string().optional(),
+    stderr: z.string().optional(),
     duration_ms: z.number().optional(),
     error: z.string().nullish(),
-    exit_code: z.number(),
     metrics: z.object({
         cpu_usage_avg: z.number().optional(),
         memory_usage_max: z.number().optional(),
-        network_egress_bytes: z.number().optional(),
-        network_ingress_bytes: z.number().optional()
-    }).optional(),
-    status: z.string(),
-    stderr: z.string().optional(),
-    stdout: z.string().optional()
+        network_ingress_bytes: z.number().optional(),
+        network_egress_bytes: z.number().optional()
+    }).optional()
 });
 
 export const zPostV2AgentsTasksByTaskIdResultPath = z.object({
@@ -177,31 +177,31 @@ export const zPostV2AgentsTasksByTaskIdStatusPath = z.object({
  */
 export const zGetV2AlertsResponse = z.object({
     alerts: z.array(z.object({
-        acknowledgedAt: z.string().nullish(),
-        description: z.string().optional(),
-        firedAt: z.string().optional(),
         id: z.string().optional(),
-        resolvedAt: z.string().nullish(),
         severity: z.enum([
             'CRITICAL',
             'HIGH',
-            'LOW',
-            'MEDIUM'
+            'MEDIUM',
+            'LOW'
         ]).optional(),
+        title: z.string().optional(),
+        description: z.string().optional(),
         source: z.string().optional(),
-        title: z.string().optional()
+        firedAt: z.string().optional(),
+        acknowledgedAt: z.string().nullish(),
+        resolvedAt: z.string().nullish()
     })).optional()
 });
 
 export const zPostV2AlertsTestBody = z.object({
-    description: z.string(),
     severity: z.enum([
         'CRITICAL',
         'HIGH',
-        'LOW',
-        'MEDIUM'
+        'MEDIUM',
+        'LOW'
     ]),
-    title: z.string()
+    title: z.string(),
+    description: z.string()
 });
 
 export const zPostV2AlertsByIdAcknowledgePath = z.object({
@@ -218,30 +218,41 @@ export const zGetV2AnalyticsCostQuery = z.object({
  * Default Response
  */
 export const zGetV2AnalyticsCostResponse = z.object({
+    totalActualCost: z.number().optional(),
+    totalSavings: z.number().optional(),
     costByNode: z.array(z.object({
-        cost: z.number().optional(),
         nodeId: z.string().optional(),
         nodeName: z.string().optional(),
+        cost: z.number().optional(),
         taskCount: z.number().optional()
     })).optional(),
     costOverTime: z.array(z.object({
-        cost: z.number().optional(),
-        date: z.string().optional()
-    })).optional(),
-    totalActualCost: z.number().optional(),
-    totalSavings: z.number().optional()
+        date: z.string().optional(),
+        cost: z.number().optional()
+    })).optional()
+});
+
+/**
+ * Default Response
+ */
+export const zGetV2AnalyticsGovernanceResponse = z.object({
+    activeConstraints: z.number().optional(),
+    policyViolations: z.number().optional(),
+    complianceScore: z.number().optional(),
+    totalNodes: z.number().optional(),
+    onlineNodes: z.number().optional()
 });
 
 export const zPostV2ApiKeysBody = z.object({
+    name: z.string().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/),
+    permissions: z.array(z.string()).optional(),
     expiresAt: z.union([
         z.union([
             z.unknown(),
             z.string().datetime()
         ]),
         z.unknown()
-    ]).optional(),
-    name: z.string().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/),
-    permissions: z.array(z.string()).optional()
+    ]).optional()
 });
 
 export const zDeleteV2ApiKeysByIdPath = z.object({
@@ -257,13 +268,13 @@ export const zPostV2AuthLoginBody = z.object({
  * Default Response
  */
 export const zPostV2AuthLoginResponse = z.object({
-    accessToken: z.string(),
-    expiresAt: z.string().datetime(),
-    refreshToken: z.string(),
     token: z.string(),
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresAt: z.string().datetime(),
     user: z.object({
-        email: z.string().email(),
         id: z.string().uuid(),
+        email: z.string().email(),
         name: z.union([
             z.union([
                 z.unknown(),
@@ -288,21 +299,21 @@ export const zPostV2AuthRefreshBody = z.object({
 
 export const zPostV2AuthRegisterBody = z.object({
     email: z.string().email(),
-    name: z.string().min(2).max(100).regex(/^[a-zA-Z\s\-\.]+$/),
-    password: z.string().min(12).max(128)
+    password: z.string().min(12).max(128),
+    name: z.string().min(2).max(100).regex(/^[a-zA-Z\s\-\.]+$/)
 });
 
 /**
  * Default Response
  */
 export const zPostV2AuthRegisterResponse = z.object({
-    accessToken: z.string(),
-    expiresAt: z.string().datetime(),
-    refreshToken: z.string(),
     token: z.string(),
+    accessToken: z.string(),
+    refreshToken: z.string(),
+    expiresAt: z.string().datetime(),
     user: z.object({
-        email: z.string().email(),
         id: z.string().uuid(),
+        email: z.string().email(),
         name: z.union([
             z.union([
                 z.unknown(),
@@ -322,10 +333,10 @@ export const zDeleteV2AuthSessionsByIdPath = z.object({
  * Default Response
  */
 export const zGetV2CarbonByRegionResponse = z.array(z.object({
+    zone: z.string().optional(),
     carbonIntensityGco2: z.number().optional(),
     lastUpdatedAt: z.string().optional(),
-    source: z.string().optional(),
-    zone: z.string().optional()
+    source: z.string().optional()
 }));
 
 /**
@@ -333,10 +344,10 @@ export const zGetV2CarbonByRegionResponse = z.array(z.object({
  */
 export const zGetV2CarbonIntensityResponse = z.object({
     regions: z.array(z.object({
+        zone: z.string().optional(),
         carbonIntensityGco2: z.number().optional(),
         lastUpdatedAt: z.string().optional(),
-        source: z.string().optional(),
-        zone: z.string().optional()
+        source: z.string().optional()
     })).optional()
 });
 
@@ -344,9 +355,9 @@ export const zGetV2CarbonIntensityResponse = z.object({
  * Default Response
  */
 export const zGetV2CarbonPolicyResponse = z.object({
-    activePolicy: z.string().optional(),
     carbonWeight: z.number().optional(),
-    isActive: z.boolean().optional()
+    isActive: z.boolean().optional(),
+    activePolicy: z.string().optional()
 });
 
 export const zPatchV2CarbonPolicyBody = z.object({
@@ -357,15 +368,15 @@ export const zPatchV2CarbonPolicyBody = z.object({
  * Default Response
  */
 export const zPatchV2CarbonPolicyResponse = z.object({
-    carbonWeight: z.number().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    carbonWeight: z.number().optional()
 });
 
 export const zGetV2CarbonReportQuery = z.object({
     from: z.string().datetime().optional(),
     to: z.string().datetime().optional(),
     tenantId: z.string().uuid().optional(),
-    format: z.enum(['csv', 'json']).optional().default('json')
+    format: z.enum(['json', 'csv']).optional().default('json')
 });
 
 export const zGetV2CarbonSavingsQuery = z.object({
@@ -376,39 +387,39 @@ export const zGetV2CarbonSavingsQuery = z.object({
  * Default Response
  */
 export const zGetV2CarbonSavingsResponse = z.object({
+    totalSavedGco2Today: z.number().optional(),
+    totalSavedGco2Week: z.number().optional(),
     equivalentTreesPlanted: z.number().optional(),
     savingsHistory: z.array(z.object({
         date: z.string().optional(),
         savedGco2: z.number().optional()
-    })).optional(),
-    totalSavedGco2Today: z.number().optional(),
-    totalSavedGco2Week: z.number().optional()
+    })).optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2CarbonSummaryResponse = z.object({
-    equivalentTreesPlanted: z.number().optional(),
     totalSavedGco2Today: z.number().optional(),
-    totalSavedGco2Week: z.number().optional()
+    totalSavedGco2Week: z.number().optional(),
+    equivalentTreesPlanted: z.number().optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2CircuitBreakersResponse = z.array(z.object({
-    failureCount: z.number().optional(),
-    failureRate: z.number().optional(),
-    lastStateChange: z.string().optional(),
     name: z.string().optional(),
-    nextRetryAt: z.string().optional(),
     state: z.enum([
         'CLOSED',
-        'HALF_OPEN',
-        'OPEN'
+        'OPEN',
+        'HALF_OPEN'
     ]).optional(),
-    successCount: z.number().optional()
+    failureRate: z.number().optional(),
+    lastStateChange: z.string().optional(),
+    successCount: z.number().optional(),
+    failureCount: z.number().optional(),
+    nextRetryAt: z.string().optional()
 }));
 
 export const zPostV2CircuitBreakersByNameResetPath = z.object({
@@ -419,8 +430,8 @@ export const zPostV2CircuitBreakersByNameResetPath = z.object({
  * Default Response
  */
 export const zPostV2CircuitBreakersByNameResetResponse = z.object({
-    message: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    message: z.string().optional()
 });
 
 export const zGetV2CostRecordsQuery = z.object({
@@ -429,20 +440,20 @@ export const zGetV2CostRecordsQuery = z.object({
     from: z.string().datetime().optional(),
     to: z.string().datetime().optional(),
     granularity: z.enum([
-        'day',
         'hour',
-        'month',
-        'week'
+        'day',
+        'week',
+        'month'
     ]).optional().default('day')
 });
 
 export const zPostV2FlModelsBody = z.object({
-    architecture: z.string().min(1),
     name: z.string().min(1).max(200),
-    parameters: z.number().int().gte(1),
     version: z.string().regex(/^\d+\.\d+\.\d+$/),
-    weightsSize: z.number().int().gte(0).optional(),
-    weightsUrl: z.string().url().optional()
+    architecture: z.string().min(1),
+    parameters: z.number().int().gte(1),
+    weightsUrl: z.string().url().optional(),
+    weightsSize: z.number().int().gte(0).optional()
 });
 
 export const zGetV2FlModelsByIdPath = z.object({
@@ -458,22 +469,22 @@ export const zPostV2FlModelsByIdWeightsPath = z.object({
 });
 
 export const zPostV2FlSessionsBody = z.object({
-    config: z.object({
-        aggregationStrategy: z.enum([
-            'fedadam',
-            'fedavg',
-            'fedprox'
-        ]).optional().default('fedavg'),
-        gradientClipNorm: z.number().gte(0).lte(100).optional(),
-        learningRate: z.number().gte(0.0001).lte(1).optional().default(0.01),
-        localEpochs: z.number().int().gte(1).lte(100).optional().default(5),
-        maxClients: z.number().int().gte(1).lte(1000).optional().default(10),
-        minClients: z.number().int().gte(1).lte(100).optional().default(3),
-        noiseMultiplier: z.number().gte(0).lte(10).optional(),
-        privacyBudget: z.number().gte(0).lte(10).optional()
-    }).optional(),
     modelId: z.string().uuid(),
-    totalRounds: z.number().int().gte(1).lte(100).optional().default(10)
+    totalRounds: z.number().int().gte(1).lte(100).optional().default(10),
+    config: z.object({
+        minClients: z.number().int().gte(1).lte(100).optional().default(3),
+        maxClients: z.number().int().gte(1).lte(1000).optional().default(10),
+        localEpochs: z.number().int().gte(1).lte(100).optional().default(5),
+        learningRate: z.number().gte(0.0001).lte(1).optional().default(0.01),
+        aggregationStrategy: z.enum([
+            'fedavg',
+            'fedprox',
+            'fedadam'
+        ]).optional().default('fedavg'),
+        privacyBudget: z.number().gte(0).lte(10).optional(),
+        noiseMultiplier: z.number().gte(0).lte(10).optional(),
+        gradientClipNorm: z.number().gte(0).lte(100).optional()
+    }).optional()
 });
 
 export const zGetV2FlSessionsByIdPath = z.object({
@@ -489,9 +500,9 @@ export const zGetV2LogsQuery = z.object({
     nodeId: z.string().optional(),
     level: z.enum([
         'DEBUG',
-        'ERROR',
         'INFO',
-        'WARN'
+        'WARN',
+        'ERROR'
     ]).optional(),
     limit: z.number().optional().default(100),
     offset: z.number().optional().default(0)
@@ -502,18 +513,18 @@ export const zGetV2LogsQuery = z.object({
  */
 export const zGetV2MetricsMlResponse = z.object({
     activeModels: z.number().optional(),
+    trainingJobs: z.number().optional(),
     avgAccuracy: z.number().optional(),
-    totalPredictions: z.number().optional(),
-    trainingJobs: z.number().optional()
+    totalPredictions: z.number().optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2MetricsNetworkResponse = z.object({
-    avgLatency: z.number().optional(),
-    egressGbps: z.number().optional(),
     ingressGbps: z.number().optional(),
+    egressGbps: z.number().optional(),
+    avgLatency: z.number().optional(),
     packetLoss: z.number().optional()
 });
 
@@ -522,9 +533,9 @@ export const zGetV2MetricsNetworkResponse = z.object({
  */
 export const zGetV2MlDriftCurrentResponse = z.object({
     driftScore: z.number().optional(),
-    featureDrift: z.record(z.number()).optional(),
     isDrifting: z.boolean().optional(),
-    lastCheckedAt: z.string().optional()
+    lastCheckedAt: z.string().optional(),
+    featureDrift: z.record(z.number()).optional()
 });
 
 export const zGetV2MlDriftHistoryQuery = z.object({
@@ -535,8 +546,8 @@ export const zGetV2MlDriftHistoryQuery = z.object({
  * Default Response
  */
 export const zGetV2MlDriftHistoryResponse = z.array(z.object({
-    score: z.number().optional(),
-    timestamp: z.string().optional()
+    timestamp: z.string().optional(),
+    score: z.number().optional()
 }));
 
 export const zGetV2MlFederatedModelByModelIdWeightsPath = z.object({
@@ -547,84 +558,84 @@ export const zGetV2MlFederatedModelByModelIdWeightsPath = z.object({
  * Default Response
  */
 export const zGetV2MlFederatedRoundResponse = z.object({
-    minParticipants: z.number().optional(),
-    modelId: z.string().optional(),
     roundId: z.string().optional(),
     roundNumber: z.number().optional(),
+    modelId: z.string().optional(),
     status: z.string().optional(),
+    minParticipants: z.number().optional(),
     submissionsCount: z.number().optional()
 });
 
 export const zPostV2MlFederatedWeightsBody = z.object({
-    avgReward: z.number().nullish(),
-    nodeId: z.string(),
     roundId: z.string(),
+    nodeId: z.string(),
+    weightsUrl: z.string(),
     sampleCount: z.number(),
-    weightsUrl: z.string()
+    avgReward: z.number().nullish()
 });
 
 /**
  * Default Response
  */
 export const zPostV2MlFederatedWeightsResponse = z.object({
-    message: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    message: z.string().optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2MlModelCurrentResponse = z.object({
+    version: z.string().optional(),
+    trainedAt: z.string().optional(),
     accuracy: z.number().optional(),
     fallbackRate: z.number().optional(),
     lastUpdatedAt: z.string().optional(),
-    modelType: z.string().optional(),
-    trainedAt: z.string().optional(),
-    version: z.string().optional()
+    modelType: z.string().optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2MlOutcomesStatsResponse = z.object({
-    banditExplorationRate: z.number().optional(),
-    nextUpdateAt: z.number().optional(),
     outcomesBuffered: z.number().optional(),
-    predictionErrorP99Ms: z.number().optional()
+    banditExplorationRate: z.number().optional(),
+    predictionErrorP99Ms: z.number().optional(),
+    nextUpdateAt: z.number().optional()
 });
 
 /**
  * Default Response
  */
 export const zPostV2MlRetrainResponse = z.object({
-    message: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    message: z.string().optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2MlRetrainStatusResponse = z.object({
+    status: z.string().optional(),
     error: z.string().nullish(),
-    lastStartedAt: z.string().optional(),
-    status: z.string().optional()
+    lastStartedAt: z.string().optional()
 });
 
 export const zGetV2NodesQuery = z.object({
     region: z.string().optional(),
     status: z.enum([
-        'DEGRADED',
-        'MAINTENANCE',
+        'ONLINE',
         'OFFLINE',
-        'ONLINE'
+        'DEGRADED',
+        'MAINTENANCE'
     ]).optional(),
     page: z.number().int().gte(1).optional().default(1),
     limit: z.number().int().gte(1).lte(100).optional().default(20),
     sortBy: z.enum([
-        'createdAt',
         'name',
         'region',
-        'status'
+        'status',
+        'createdAt'
     ]).optional().default('createdAt'),
     sortOrder: z.enum(['asc', 'desc']).optional().default('desc')
 });
@@ -635,50 +646,50 @@ export const zGetV2NodesQuery = z.object({
 export const zGetV2NodesResponse = z.object({
     data: z.array(z.object({
         id: z.string(),
-        ipAddress: z.string(),
-        lastHeartbeat: z.string().datetime(),
-        load: z.object({
-            activeTasks: z.number(),
-            cpuUsage: z.number().optional(),
-            memoryUsage: z.number().optional()
-        }).optional(),
-        location: z.string(),
         name: z.string(),
-        port: z.number(),
+        location: z.string(),
         region: z.string(),
+        status: z.enum([
+            'ONLINE',
+            'OFFLINE',
+            'DEGRADED',
+            'MAINTENANCE'
+        ]),
+        ipAddress: z.string(),
+        port: z.number(),
         specs: z.object({
             cpuCores: z.number(),
             memoryGB: z.number(),
             storageGB: z.number()
         }),
-        status: z.enum([
-            'DEGRADED',
-            'MAINTENANCE',
-            'OFFLINE',
-            'ONLINE'
-        ])
+        load: z.object({
+            cpuUsage: z.number().optional(),
+            memoryUsage: z.number().optional(),
+            activeTasks: z.number()
+        }).optional(),
+        lastHeartbeat: z.string().datetime()
     })).optional(),
     pagination: z.object({
-        limit: z.number().optional(),
         page: z.number().optional(),
+        limit: z.number().optional(),
         total: z.number().optional(),
         totalPages: z.number().optional()
     }).optional()
 });
 
 export const zPostV2NodesBody = z.object({
-    bandwidthInMbps: z.number().int().gte(1).optional(),
-    bandwidthOutMbps: z.number().int().gte(1).optional(),
-    costPerHour: z.number().gte(0).lte(100).optional(),
-    cpuCores: z.number().int().gte(1).lte(128),
-    ipAddress: z.string().ip(),
-    location: z.string().min(1).max(200),
-    maxTasks: z.number().int().gte(1).lte(1000).optional(),
-    memoryGB: z.number().int().gte(1).lte(1024),
     name: z.string().min(1).max(100),
-    port: z.number().int().gte(1).lte(65535),
+    location: z.string().min(1).max(200),
     region: z.string().min(1).max(50),
-    storageGB: z.number().int().gte(1).lte(10000)
+    ipAddress: z.string().ip(),
+    port: z.number().int().gte(1).lte(65535),
+    cpuCores: z.number().int().gte(1).lte(128),
+    memoryGB: z.number().int().gte(1).lte(1024),
+    storageGB: z.number().int().gte(1).lte(10000),
+    costPerHour: z.number().gte(0).lte(100).optional(),
+    maxTasks: z.number().int().gte(1).lte(1000).optional(),
+    bandwidthInMbps: z.number().int().gte(1).optional(),
+    bandwidthOutMbps: z.number().int().gte(1).optional()
 });
 
 /**
@@ -686,28 +697,28 @@ export const zPostV2NodesBody = z.object({
  */
 export const zPostV2NodesResponse = z.object({
     id: z.string(),
-    ipAddress: z.string(),
-    lastHeartbeat: z.string().datetime(),
-    load: z.object({
-        activeTasks: z.number(),
-        cpuUsage: z.number().optional(),
-        memoryUsage: z.number().optional()
-    }).optional(),
-    location: z.string(),
     name: z.string(),
-    port: z.number(),
+    location: z.string(),
     region: z.string(),
+    status: z.enum([
+        'ONLINE',
+        'OFFLINE',
+        'DEGRADED',
+        'MAINTENANCE'
+    ]),
+    ipAddress: z.string(),
+    port: z.number(),
     specs: z.object({
         cpuCores: z.number(),
         memoryGB: z.number(),
         storageGB: z.number()
     }),
-    status: z.enum([
-        'DEGRADED',
-        'MAINTENANCE',
-        'OFFLINE',
-        'ONLINE'
-    ])
+    load: z.object({
+        cpuUsage: z.number().optional(),
+        memoryUsage: z.number().optional(),
+        activeTasks: z.number()
+    }).optional(),
+    lastHeartbeat: z.string().datetime()
 });
 
 export const zDeleteV2NodesByIdPath = z.object({
@@ -723,40 +734,40 @@ export const zGetV2NodesByIdPath = z.object({
  */
 export const zGetV2NodesByIdResponse = z.object({
     id: z.string(),
-    ipAddress: z.string(),
-    lastHeartbeat: z.string().datetime(),
-    load: z.object({
-        activeTasks: z.number(),
-        cpuUsage: z.number().optional(),
-        memoryUsage: z.number().optional()
-    }).optional(),
-    location: z.string(),
     name: z.string(),
-    port: z.number(),
+    location: z.string(),
     region: z.string(),
+    status: z.enum([
+        'ONLINE',
+        'OFFLINE',
+        'DEGRADED',
+        'MAINTENANCE'
+    ]),
+    ipAddress: z.string(),
+    port: z.number(),
     specs: z.object({
         cpuCores: z.number(),
         memoryGB: z.number(),
         storageGB: z.number()
     }),
-    status: z.enum([
-        'DEGRADED',
-        'MAINTENANCE',
-        'OFFLINE',
-        'ONLINE'
-    ])
+    load: z.object({
+        cpuUsage: z.number().optional(),
+        memoryUsage: z.number().optional(),
+        activeTasks: z.number()
+    }).optional(),
+    lastHeartbeat: z.string().datetime()
 });
 
 export const zPatchV2NodesByIdBody = z.object({
-    costPerHour: z.number().gte(0).lte(100).optional(),
-    cpuCores: z.number().int().gte(1).lte(128).optional(),
-    isMaintenanceMode: z.boolean().optional(),
-    location: z.string().min(1).max(200).optional(),
-    maxTasks: z.number().int().gte(1).lte(1000).optional(),
-    memoryGB: z.number().int().gte(1).lte(1024).optional(),
     name: z.string().min(1).max(100).optional(),
+    location: z.string().min(1).max(200).optional(),
     region: z.string().min(1).max(50).optional(),
-    storageGB: z.number().int().gte(1).lte(10000).optional()
+    cpuCores: z.number().int().gte(1).lte(128).optional(),
+    memoryGB: z.number().int().gte(1).lte(1024).optional(),
+    storageGB: z.number().int().gte(1).lte(10000).optional(),
+    costPerHour: z.number().gte(0).lte(100).optional(),
+    maxTasks: z.number().int().gte(1).lte(1000).optional(),
+    isMaintenanceMode: z.boolean().optional()
 });
 
 export const zPatchV2NodesByIdPath = z.object({
@@ -771,18 +782,18 @@ export const zPostV2NodesByIdDrainPath = z.object({
  * Default Response
  */
 export const zPostV2NodesByIdDrainResponse = z.object({
-    message: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    message: z.string().optional()
 });
 
 export const zPostV2NodesByIdHeartbeatBody = z.object({
     cpuUsage: z.number(),
-    latency: z.number().optional(),
     memoryUsage: z.number(),
-    networkIn: z.number().optional(),
-    networkOut: z.number().optional(),
     storageUsage: z.number().optional(),
-    tasksRunning: z.number().optional()
+    latency: z.number().optional(),
+    tasksRunning: z.number().optional(),
+    networkIn: z.number().optional(),
+    networkOut: z.number().optional()
 });
 
 export const zPostV2NodesByIdHeartbeatPath = z.object({
@@ -815,8 +826,8 @@ export const zPostV2NodesByIdOfflinePath = z.object({
  * Default Response
  */
 export const zPostV2NodesByIdOfflineResponse = z.object({
-    message: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    message: z.string().optional()
 });
 
 export const zGetV2NodesByIdSchedulingHistoryPath = z.object({
@@ -833,8 +844,8 @@ export const zPatchV2PoliciesActiveBody = z.object({
 
 export const zPatchV2PoliciesThresholdsBody = z.object({
     cpu: z.number().gte(0).lte(100).optional(),
-    latency: z.number().gte(0).optional(),
-    memory: z.number().gte(0).lte(100).optional()
+    memory: z.number().gte(0).lte(100).optional(),
+    latency: z.number().gte(0).optional()
 });
 
 export const zGetV2SchedulerDecisionsQuery = z.object({
@@ -846,45 +857,45 @@ export const zGetV2SchedulerDecisionsQuery = z.object({
  * Default Response
  */
 export const zGetV2SchedulerMetricsResponse = z.object({
-    avgSchedulingTime: z.number().optional(),
-    efficiency: z.number().optional(),
     queueLength: z.number().optional(),
-    throughput: z.number().optional()
+    avgSchedulingTime: z.number().optional(),
+    throughput: z.number().optional(),
+    efficiency: z.number().optional()
 });
 
 export const zPutV2SchedulingPolicyBody = z.object({
-    carbonWeight: z.number().gte(0).lte(1),
     costWeight: z.number().gte(0).lte(1),
-    latencyWeight: z.number().gte(0).lte(1)
+    latencyWeight: z.number().gte(0).lte(1),
+    carbonWeight: z.number().gte(0).lte(1)
 });
 
 export const zGetV2TasksQuery = z.object({
     status: z.enum([
-        'CANCELLED',
+        'PENDING',
+        'SCHEDULED',
+        'RUNNING',
         'COMPLETED',
         'FAILED',
-        'PENDING',
-        'RUNNING',
-        'SCHEDULED'
+        'CANCELLED'
     ]).optional(),
     type: z.string().optional(),
     nodeId: z.string().optional(),
     priority: z.enum([
         'CRITICAL',
         'HIGH',
-        'LOW',
-        'MEDIUM'
+        'MEDIUM',
+        'LOW'
     ]).optional(),
     page: z.number().int().gte(1).optional().default(1),
     limit: z.number().int().gte(1).lte(10000).optional().default(20),
     sortBy: z.enum([
-        'createdAt',
-        'duration',
-        'name',
+        'submittedAt',
         'priority',
         'status',
-        'submittedAt',
-        'updatedAt'
+        'duration',
+        'createdAt',
+        'updatedAt',
+        'name'
     ]).optional().default('submittedAt'),
     sortOrder: z.enum(['asc', 'desc']).optional().default('desc'),
     from: z.string().datetime().optional(),
@@ -896,10 +907,40 @@ export const zGetV2TasksQuery = z.object({
  */
 export const zGetV2TasksResponse = z.object({
     data: z.array(z.object({
-        affinity: z.union([
+        id: z.string().uuid(),
+        name: z.string(),
+        type: z.string(),
+        status: z.enum([
+            'PENDING',
+            'SCHEDULED',
+            'RUNNING',
+            'COMPLETED',
+            'FAILED',
+            'CANCELLED'
+        ]),
+        priority: z.string(),
+        nodeId: z.union([
             z.union([
                 z.unknown(),
                 z.string()
+            ]),
+            z.unknown()
+        ]).optional(),
+        specs: z.union([
+            z.union([
+                z.unknown(),
+                z.object({
+                    cpuCores: z.number(),
+                    memoryGB: z.number()
+                })
+            ]),
+            z.unknown()
+        ]).optional(),
+        submittedAt: z.string().datetime(),
+        startedAt: z.union([
+            z.union([
+                z.unknown(),
+                z.string().datetime()
             ]),
             z.unknown()
         ]).optional(),
@@ -917,7 +958,12 @@ export const zGetV2TasksResponse = z.object({
             ]),
             z.unknown()
         ]).optional(),
-        id: z.string().uuid(),
+        metadata: z.record(z.unknown()).optional(),
+        runtime: z.enum([
+            'NATIVE',
+            'DOCKER',
+            'WASM'
+        ]),
         image: z.union([
             z.union([
                 z.unknown(),
@@ -925,56 +971,21 @@ export const zGetV2TasksResponse = z.object({
             ]),
             z.unknown()
         ]).optional(),
-        metadata: z.record(z.unknown()).optional(),
-        name: z.string(),
-        nodeId: z.union([
-            z.union([
-                z.unknown(),
-                z.string()
-            ]),
-            z.unknown()
-        ]).optional(),
-        priority: z.string(),
-        runtime: z.enum([
-            'DOCKER',
-            'NATIVE',
-            'WASM'
-        ]),
-        specs: z.union([
-            z.union([
-                z.unknown(),
-                z.object({
-                    cpuCores: z.number(),
-                    memoryGB: z.number()
-                })
-            ]),
-            z.unknown()
-        ]).optional(),
-        startedAt: z.union([
-            z.union([
-                z.unknown(),
-                z.string().datetime()
-            ]),
-            z.unknown()
-        ]).optional(),
-        status: z.enum([
-            'CANCELLED',
-            'COMPLETED',
-            'FAILED',
-            'PENDING',
-            'RUNNING',
-            'SCHEDULED'
-        ]),
-        submittedAt: z.string().datetime(),
-        traceId: z.union([
-            z.union([
-                z.unknown(),
-                z.string()
-            ]),
-            z.unknown()
-        ]).optional(),
-        type: z.string(),
         wasmArtifactId: z.union([
+            z.union([
+                z.unknown(),
+                z.string()
+            ]),
+            z.unknown()
+        ]).optional(),
+        affinity: z.union([
+            z.union([
+                z.unknown(),
+                z.string()
+            ]),
+            z.unknown()
+        ]).optional(),
+        traceId: z.union([
             z.union([
                 z.unknown(),
                 z.string()
@@ -983,80 +994,110 @@ export const zGetV2TasksResponse = z.object({
         ]).optional()
     })).optional(),
     pagination: z.object({
-        limit: z.number().optional(),
         page: z.number().optional(),
+        limit: z.number().optional(),
         total: z.number().optional(),
         totalPages: z.number().optional()
     }).optional()
 });
 
 export const zPostV2TasksBody = z.object({
-    affinity: z.string().optional(),
-    image: z.string().optional(),
-    input: z.record(z.unknown()).optional(),
-    isDeferrable: z.boolean().optional(),
-    maxDelayMinutes: z.number().int().gte(0).optional(),
-    maxRetries: z.number().int().gte(0).lte(10).optional().default(3),
-    metadata: z.record(z.unknown()).optional(),
     name: z.string().min(1).max(200),
-    nodeId: z.string().optional(),
-    policy: z.string().optional(),
+    type: z.enum([
+        'IMAGE_CLASSIFICATION',
+        'DATA_AGGREGATION',
+        'MODEL_INFERENCE',
+        'SENSOR_FUSION',
+        'VIDEO_PROCESSING',
+        'LOG_ANALYSIS',
+        'ANOMALY_DETECTION',
+        'DATA_PROCESSING',
+        'ETL_PIPELINE',
+        'ML_TRAINING',
+        'NLP',
+        'COMPUTER_VISION',
+        'SPEECH_RECOGNITION',
+        'RECOMMENDATION_ENGINE',
+        'FRAUD_DETECTION',
+        'IOT_DATA_INGESTION',
+        'REALTIME_ANALYTICS',
+        'BATCH_PROCESSING',
+        'CONTAINER_BUILD',
+        'CICD_PIPELINE',
+        'CUSTOM'
+    ]),
     priority: z.enum([
         'CRITICAL',
         'HIGH',
-        'LOW',
-        'MEDIUM'
+        'MEDIUM',
+        'LOW'
     ]).optional().default('MEDIUM'),
-    runtime: z.enum([
-        'DOCKER',
-        'NATIVE',
-        'WASM'
-    ]).optional().default('DOCKER'),
+    target: z.enum([
+        'EDGE',
+        'CLOUD',
+        'HYBRID'
+    ]).optional().default('EDGE'),
+    nodeId: z.string().optional(),
     specs: z.object({
         cpuCores: z.number().int().gte(1).lte(128).optional(),
         memoryGB: z.number().int().gte(1).lte(1024).optional(),
         memoryMB: z.number().int().gte(1).lte(262144).optional()
     }).optional(),
-    target: z.enum([
-        'CLOUD',
-        'EDGE',
-        'HYBRID'
-    ]).optional().default('EDGE'),
+    input: z.record(z.unknown()).optional(),
+    metadata: z.record(z.unknown()).optional(),
+    maxRetries: z.number().int().gte(0).lte(10).optional().default(3),
+    runtime: z.enum([
+        'NATIVE',
+        'DOCKER',
+        'WASM'
+    ]).optional().default('DOCKER'),
+    image: z.string().optional(),
+    wasmArtifactId: z.string().optional(),
+    affinity: z.string().optional(),
     traceId: z.string().optional(),
-    type: z.enum([
-        'ANOMALY_DETECTION',
-        'BATCH_PROCESSING',
-        'CICD_PIPELINE',
-        'COMPUTER_VISION',
-        'CONTAINER_BUILD',
-        'CUSTOM',
-        'DATA_AGGREGATION',
-        'DATA_PROCESSING',
-        'ETL_PIPELINE',
-        'FRAUD_DETECTION',
-        'IMAGE_CLASSIFICATION',
-        'IOT_DATA_INGESTION',
-        'LOG_ANALYSIS',
-        'ML_TRAINING',
-        'MODEL_INFERENCE',
-        'NLP',
-        'REALTIME_ANALYTICS',
-        'RECOMMENDATION_ENGINE',
-        'SENSOR_FUSION',
-        'SPEECH_RECOGNITION',
-        'VIDEO_PROCESSING'
-    ]),
-    wasmArtifactId: z.string().optional()
+    isDeferrable: z.boolean().optional(),
+    maxDelayMinutes: z.number().int().gte(0).optional(),
+    policy: z.string().optional()
 });
 
 /**
  * Default Response
  */
 export const zPostV2TasksResponse = z.object({
-    affinity: z.union([
+    id: z.string().uuid(),
+    name: z.string(),
+    type: z.string(),
+    status: z.enum([
+        'PENDING',
+        'SCHEDULED',
+        'RUNNING',
+        'COMPLETED',
+        'FAILED',
+        'CANCELLED'
+    ]),
+    priority: z.string(),
+    nodeId: z.union([
         z.union([
             z.unknown(),
             z.string()
+        ]),
+        z.unknown()
+    ]).optional(),
+    specs: z.union([
+        z.union([
+            z.unknown(),
+            z.object({
+                cpuCores: z.number(),
+                memoryGB: z.number()
+            })
+        ]),
+        z.unknown()
+    ]).optional(),
+    submittedAt: z.string().datetime(),
+    startedAt: z.union([
+        z.union([
+            z.unknown(),
+            z.string().datetime()
         ]),
         z.unknown()
     ]).optional(),
@@ -1074,7 +1115,12 @@ export const zPostV2TasksResponse = z.object({
         ]),
         z.unknown()
     ]).optional(),
-    id: z.string().uuid(),
+    metadata: z.record(z.unknown()).optional(),
+    runtime: z.enum([
+        'NATIVE',
+        'DOCKER',
+        'WASM'
+    ]),
     image: z.union([
         z.union([
             z.unknown(),
@@ -1082,56 +1128,21 @@ export const zPostV2TasksResponse = z.object({
         ]),
         z.unknown()
     ]).optional(),
-    metadata: z.record(z.unknown()).optional(),
-    name: z.string(),
-    nodeId: z.union([
-        z.union([
-            z.unknown(),
-            z.string()
-        ]),
-        z.unknown()
-    ]).optional(),
-    priority: z.string(),
-    runtime: z.enum([
-        'DOCKER',
-        'NATIVE',
-        'WASM'
-    ]),
-    specs: z.union([
-        z.union([
-            z.unknown(),
-            z.object({
-                cpuCores: z.number(),
-                memoryGB: z.number()
-            })
-        ]),
-        z.unknown()
-    ]).optional(),
-    startedAt: z.union([
-        z.union([
-            z.unknown(),
-            z.string().datetime()
-        ]),
-        z.unknown()
-    ]).optional(),
-    status: z.enum([
-        'CANCELLED',
-        'COMPLETED',
-        'FAILED',
-        'PENDING',
-        'RUNNING',
-        'SCHEDULED'
-    ]),
-    submittedAt: z.string().datetime(),
-    traceId: z.union([
-        z.union([
-            z.unknown(),
-            z.string()
-        ]),
-        z.unknown()
-    ]).optional(),
-    type: z.string(),
     wasmArtifactId: z.union([
+        z.union([
+            z.unknown(),
+            z.string()
+        ]),
+        z.unknown()
+    ]).optional(),
+    affinity: z.union([
+        z.union([
+            z.unknown(),
+            z.string()
+        ]),
+        z.unknown()
+    ]).optional(),
+    traceId: z.union([
         z.union([
             z.unknown(),
             z.string()
@@ -1164,10 +1175,40 @@ export const zGetV2TasksByIdPath = z.object({
  * Default Response
  */
 export const zGetV2TasksByIdResponse = z.object({
-    affinity: z.union([
+    id: z.string().uuid(),
+    name: z.string(),
+    type: z.string(),
+    status: z.enum([
+        'PENDING',
+        'SCHEDULED',
+        'RUNNING',
+        'COMPLETED',
+        'FAILED',
+        'CANCELLED'
+    ]),
+    priority: z.string(),
+    nodeId: z.union([
         z.union([
             z.unknown(),
             z.string()
+        ]),
+        z.unknown()
+    ]).optional(),
+    specs: z.union([
+        z.union([
+            z.unknown(),
+            z.object({
+                cpuCores: z.number(),
+                memoryGB: z.number()
+            })
+        ]),
+        z.unknown()
+    ]).optional(),
+    submittedAt: z.string().datetime(),
+    startedAt: z.union([
+        z.union([
+            z.unknown(),
+            z.string().datetime()
         ]),
         z.unknown()
     ]).optional(),
@@ -1185,7 +1226,12 @@ export const zGetV2TasksByIdResponse = z.object({
         ]),
         z.unknown()
     ]).optional(),
-    id: z.string().uuid(),
+    metadata: z.record(z.unknown()).optional(),
+    runtime: z.enum([
+        'NATIVE',
+        'DOCKER',
+        'WASM'
+    ]),
     image: z.union([
         z.union([
             z.unknown(),
@@ -1193,56 +1239,21 @@ export const zGetV2TasksByIdResponse = z.object({
         ]),
         z.unknown()
     ]).optional(),
-    metadata: z.record(z.unknown()).optional(),
-    name: z.string(),
-    nodeId: z.union([
-        z.union([
-            z.unknown(),
-            z.string()
-        ]),
-        z.unknown()
-    ]).optional(),
-    priority: z.string(),
-    runtime: z.enum([
-        'DOCKER',
-        'NATIVE',
-        'WASM'
-    ]),
-    specs: z.union([
-        z.union([
-            z.unknown(),
-            z.object({
-                cpuCores: z.number(),
-                memoryGB: z.number()
-            })
-        ]),
-        z.unknown()
-    ]).optional(),
-    startedAt: z.union([
-        z.union([
-            z.unknown(),
-            z.string().datetime()
-        ]),
-        z.unknown()
-    ]).optional(),
-    status: z.enum([
-        'CANCELLED',
-        'COMPLETED',
-        'FAILED',
-        'PENDING',
-        'RUNNING',
-        'SCHEDULED'
-    ]),
-    submittedAt: z.string().datetime(),
-    traceId: z.union([
-        z.union([
-            z.unknown(),
-            z.string()
-        ]),
-        z.unknown()
-    ]).optional(),
-    type: z.string(),
     wasmArtifactId: z.union([
+        z.union([
+            z.unknown(),
+            z.string()
+        ]),
+        z.unknown()
+    ]).optional(),
+    affinity: z.union([
+        z.union([
+            z.unknown(),
+            z.string()
+        ]),
+        z.unknown()
+    ]).optional(),
+    traceId: z.union([
         z.union([
             z.unknown(),
             z.string()
@@ -1273,11 +1284,11 @@ export const zGetV2TasksByIdSchedulingDecisionPath = z.object({
 });
 
 export const zPostV2WebhooksBody = z.object({
-    enabled: z.boolean().optional().default(true),
-    events: z.array(z.string()).min(1),
     name: z.string().min(1).max(100).regex(/^[a-zA-Z0-9\s\-_]+$/),
+    url: z.string().url(),
+    events: z.array(z.string()).min(1),
     secret: z.string().min(32).max(128).optional(),
-    url: z.string().url()
+    enabled: z.boolean().optional().default(true)
 });
 
 export const zPostV2WebhooksDeliveriesByIdRetryPath = z.object({
@@ -1288,18 +1299,18 @@ export const zPostV2WebhooksDeliveriesByIdRetryPath = z.object({
  * Default Response
  */
 export const zPostV2WebhooksDeliveriesByIdRetryResponse = z.object({
-    message: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    message: z.string().optional()
 });
 
 /**
  * Default Response
  */
 export const zGetV2WebhooksStatsResponse = z.object({
+    total: z.number().optional(),
     active: z.number().optional(),
-    avgLatency: z.number().optional(),
     failedLast24h: z.number().optional(),
-    total: z.number().optional()
+    avgLatency: z.number().optional()
 });
 
 export const zDeleteV2WebhooksByIdPath = z.object({
@@ -1307,11 +1318,11 @@ export const zDeleteV2WebhooksByIdPath = z.object({
 });
 
 export const zPatchV2WebhooksByIdBody = z.object({
-    enabled: z.boolean().optional(),
-    events: z.array(z.string()).min(1).optional(),
     name: z.string().min(1).max(100).optional(),
+    url: z.string().url().optional(),
+    events: z.array(z.string()).min(1).optional(),
     secret: z.string().min(16).max(100).optional(),
-    url: z.string().url().optional()
+    enabled: z.boolean().optional()
 });
 
 export const zPatchV2WebhooksByIdPath = z.object({
@@ -1339,41 +1350,41 @@ export const zPostV2WebhooksByIdTestPath = z.object({
  * Default Response
  */
 export const zPostV2WebhooksByIdTestResponse = z.object({
-    deliveryId: z.string().optional(),
-    success: z.boolean().optional()
+    success: z.boolean().optional(),
+    deliveryId: z.string().optional()
 });
 
 export const zPostV2WorkflowsBody = z.object({
-    edges: z.array(z.object({
-        condition: z.string().optional(),
-        from: z.string(),
-        id: z.string(),
-        to: z.string()
-    })),
     name: z.string().min(1).max(200),
+    version: z.string().regex(/^\d+\.\d+\.\d+$/),
     nodes: z.array(z.object({
-        config: z.record(z.unknown()),
         id: z.string().min(1).max(100).regex(/^[a-zA-Z0-9\-_]+$/),
-        inputs: z.array(z.string()),
         name: z.string().min(1).max(100),
-        outputs: z.array(z.string()),
         type: z.enum([
+            'task',
             'decision',
             'parallel',
-            'subworkflow',
-            'task',
-            'wait'
-        ])
+            'wait',
+            'subworkflow'
+        ]),
+        config: z.record(z.unknown()),
+        inputs: z.array(z.string()),
+        outputs: z.array(z.string())
     })).min(1),
+    edges: z.array(z.object({
+        id: z.string(),
+        from: z.string(),
+        to: z.string(),
+        condition: z.string().optional()
+    })),
+    variables: z.record(z.unknown()).optional(),
+    timeout: z.number().int().gte(1000).lte(86400000).optional().default(60000),
     retryPolicy: z.object({
+        maxRetries: z.number().int().gte(0).lte(10).optional().default(3),
         initialDelay: z.number().int().gte(100).optional().default(1000),
         maxDelay: z.number().int().gte(1000).optional().default(60000),
-        maxRetries: z.number().int().gte(0).lte(10).optional().default(3),
         multiplier: z.number().gte(1).optional().default(2)
-    }).optional(),
-    timeout: z.number().int().gte(1000).lte(86400000).optional().default(60000),
-    variables: z.record(z.unknown()).optional(),
-    version: z.string().regex(/^\d+\.\d+\.\d+$/)
+    }).optional()
 });
 
 export const zGetV2WorkflowsExecutionsByExecutionIdPath = z.object({

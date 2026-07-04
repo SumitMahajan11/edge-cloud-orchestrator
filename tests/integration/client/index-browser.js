@@ -486,6 +486,31 @@ exports.Prisma.SchedulingOutcomeScalarFieldEnum = {
   createdAt: 'createdAt'
 };
 
+exports.Prisma.AlertRuleScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  metric: 'metric',
+  operator: 'operator',
+  threshold: 'threshold',
+  duration: 'duration',
+  enabled: 'enabled',
+  createdAt: 'createdAt',
+  tenantId: 'tenantId'
+};
+
+exports.Prisma.AlertScalarFieldEnum = {
+  id: 'id',
+  ruleId: 'ruleId',
+  entityId: 'entityId',
+  entityType: 'entityType',
+  severity: 'severity',
+  message: 'message',
+  acknowledged: 'acknowledged',
+  createdAt: 'createdAt',
+  acknowledgedAt: 'acknowledgedAt',
+  tenantId: 'tenantId'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -523,7 +548,9 @@ exports.Prisma.ModelName = {
   CarbonMetric: 'CarbonMetric',
   CarbonRecord: 'CarbonRecord',
   NodeHealthScore: 'NodeHealthScore',
-  SchedulingOutcome: 'SchedulingOutcome'
+  SchedulingOutcome: 'SchedulingOutcome',
+  AlertRule: 'AlertRule',
+  Alert: 'Alert'
 };
 
 /**

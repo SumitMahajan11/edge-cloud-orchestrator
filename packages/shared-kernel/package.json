@@ -25,6 +25,8 @@
     "@opentelemetry/resources": "^1.19.0",
     "@opentelemetry/sdk-node": "^0.46.0",
     "@opentelemetry/semantic-conventions": "^1.19.0",
+    "@prisma/client": "^5.22.0",
+    "fastify-plugin": "^4.5.1",
     "@types/node-vault": "^0.9.13",
     "eventemitter3": "^5.0.4",
     "ioredis": "^5.3.0",
@@ -51,3 +53,4 @@
     "vitest": "^1.6.0"
   }
 }
+

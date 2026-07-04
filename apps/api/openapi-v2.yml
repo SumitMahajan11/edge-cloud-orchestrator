@@ -697,6 +697,29 @@ paths:
                           type: string
                         cost:
                           type: number
+  /v2/analytics/governance:
+    get:
+      summary: Get governance metrics
+      tags:
+        - analytics
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  activeConstraints:
+                    type: number
+                  policyViolations:
+                    type: number
+                  complianceScore:
+                    type: number
+                  totalNodes:
+                    type: number
+                  onlineNodes:
+                    type: number
   /v2/api-keys/:
     get:
       summary: List my API keys
@@ -2577,6 +2600,14 @@ paths:
                     type: number
                   efficiency:
                     type: number
+  /v2/scheduling/policies:
+    get:
+      summary: Get all scheduling policies for the tenant
+      tags:
+        - scheduling
+      responses:
+        "200":
+          description: Default Response
   /v2/scheduling/policy:
     get:
       summary: Get per-tenant scheduling policy
