@@ -68,37 +68,39 @@ export class SimulatedAgent {
     const baseUrl = `http://127.0.0.1:${env.PORT}`;
 
     // 2. Register nodes or retrieve IDs if they already exist
+    const runId = Math.random().toString(36).substring(7);
     for (const nodeConfig of this.nodesConfig) {
+      const nodeName = `${nodeConfig.name}-${runId}`;
       try {
-        logger.info(`Registering simulated node: ${nodeConfig.name}...`);
-        const response = await axios.post(`${baseUrl}/v2/nodes`, nodeConfig, {
+        logger.info(`Registering simulated node: ${nodeName}...`);
+        const response = await axios.post(`${baseUrl}/v2/nodes`, { ...nodeConfig, name: nodeName }, {
           headers: authHeaders,
         });
         const nodeId = response.data.id;
         this.nodeIds.push(nodeId);
-        logger.info(`Node ${nodeConfig.name} registered successfully with ID: ${nodeId}`);
+        logger.info(`Node ${nodeName} registered successfully with ID: ${nodeId}`);
       } catch (err: any) {
         if (err.response?.status === 409) {
-          logger.info(`Node ${nodeConfig.name} already exists. Retrieving ID...`);
+          logger.info(`Node ${nodeName} already exists. Retrieving ID...`);
           try {
             const listResponse = await axios.get(`${baseUrl}/v2/nodes`, {
               headers: authHeaders,
               params: { limit: 100 },
             });
             const existingNode = listResponse.data.data.find(
-              (n: any) => n.name === nodeConfig.name
+              (n: any) => n.name === nodeName
             );
             if (existingNode) {
               this.nodeIds.push(existingNode.id);
-              logger.info(`Found existing node ${nodeConfig.name} with ID: ${existingNode.id}`);
+              logger.info(`Found existing node ${nodeName} with ID: ${existingNode.id}`);
             } else {
-              logger.error(`Node conflict reported, but ${nodeConfig.name} not found in nodes list.`);
+              logger.error(`Node conflict reported, but ${nodeName} not found in nodes list.`);
             }
           } catch (listErr: any) {
             logger.error(`Failed to retrieve nodes list: ${listErr.message}`);
           }
         } else {
-          logger.error(`Failed to register node ${nodeConfig.name}: ${err.response?.data?.error?.message || err.message}`);
+          logger.error(`Failed to register node ${nodeName}: ${err.response?.data?.error?.message || err.message}`);
         }
       }
     }

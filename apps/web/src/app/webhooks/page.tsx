@@ -32,9 +32,12 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useWebhooks, useWebhookStats } from "@/hooks/useWebhooks";
+import { RegisterWebhookModal } from "@/components/modals/RegisterWebhookModal";
+import { toast } from "sonner";
 
 export default function WebhooksPage() {
   const [search, setSearch] = useState("");
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { data: webhooksRaw, isLoading: webhooksLoading } = useWebhooks();
   const { data: stats, isLoading: statsLoading } = useWebhookStats();
@@ -67,7 +70,7 @@ export default function WebhooksPage() {
             Subscribe to real-time system events
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
           <Plus className="h-4 w-4" /> Register Webhook
         </Button>
       </div>
@@ -268,6 +271,14 @@ export default function WebhooksPage() {
           )}
         </CardContent>
       </Card>
+      <RegisterWebhookModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={(data) => {
+          console.log('Registered webhook', data);
+          toast.success("Webhook registered successfully");
+        }}
+      />
     </div>
   );
 }

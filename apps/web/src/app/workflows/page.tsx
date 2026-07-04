@@ -36,6 +36,7 @@ import { useWorkflows } from "@/hooks/useWorkflows";
 import { isApiClientError } from "@edgecloud/api-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { CreateWorkflowModal } from "@/components/modals/CreateWorkflowModal";
 
 interface Workflow {
   id: string;
@@ -51,6 +52,7 @@ interface Workflow {
 
 export default function WorkflowsPage() {
   const router = useRouter();
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, isLoading: loading, error } = useWorkflows();
   const workflows = (data as any as Workflow[]) || [];
 
@@ -99,7 +101,7 @@ export default function WorkflowsPage() {
             <Info className="mr-2 h-4 w-4" />
             Documentation
           </Button>
-          <Button>
+          <Button onClick={() => setIsModalOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Workflow
           </Button>
@@ -136,7 +138,7 @@ export default function WorkflowsPage() {
                   Create your first DAG-based workflow to start orchestrating
                   tasks efficiently across your edge infrastructure.
                 </p>
-                <Button className="mt-6">
+                <Button className="mt-6" onClick={() => setIsModalOpen(true)}>
                   <Plus className="mr-2 h-4 w-4" />
                   Create Workflow
                 </Button>
@@ -230,6 +232,14 @@ export default function WorkflowsPage() {
           )}
         </TabsContent>
       </Tabs>
+      <CreateWorkflowModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSubmit={(data) => {
+          console.log('Created workflow', data);
+          toast.success("Workflow created successfully");
+        }}
+      />
     </div>
   );
 }

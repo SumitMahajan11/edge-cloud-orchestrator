@@ -501,6 +501,12 @@ export class TaskScheduler extends EventEmitter {
     // Set TTL on the queue key
     await this.redis.expire(this.queueKey, REDIS_KEY_TTL);
     this.logger.info({ taskId: task.id, priority }, 'Task enqueued');
+
+    if (this.leaderElection.isCurrentlyLeader()) {
+      setImmediate(() => {
+        void this.processQueue();
+      });
+    }
   }
 
   async dequeue(taskId: string): Promise<void> {
