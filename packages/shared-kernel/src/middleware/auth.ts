@@ -1,5 +1,6 @@
 import type { FastifyReply, FastifyRequest } from "fastify";
 import jwt from "jsonwebtoken";
+import { RolePermissions } from "../auth/permissions.js";
 
 export interface AuthUser {
   id: string;
@@ -120,9 +121,31 @@ export function requirePermission(permission: string) {
       });
     }
 
+    const permissions = request.user.permissions || [];
+    
+    // Normalize singular vs plural and legacy permission resource prefixes
+    const normalize = (p: string): string => {
+      const parts = p.split(':');
+      let res = parts[0] || '';
+      if (res === 'nodes') res = 'node';
+      if (res === 'tasks') res = 'task';
+      if (res === 'alerts') res = 'alert';
+      if (res === 'costs') res = 'cost';
+      if (res === 'webhooks') res = 'webhook';
+      if (res === 'schedule') res = 'scheduler';
+      if (res === 'metrics') res = 'system';
+      parts[0] = res;
+      return parts.join(':');
+    };
+
+    const normPermission = normalize(permission);
+    const [normResource] = normPermission.split(':');
+    const normUserPermissions = permissions.map(normalize);
+
     const hasPermission =
-      request.user.permissions.includes("*") ||
-      request.user.permissions.includes(permission);
+      normUserPermissions.includes(normPermission) ||
+      normUserPermissions.includes('*') ||
+      (normResource ? normUserPermissions.includes(`${normResource}:*`) : false);
 
     if (!hasPermission) {
       return reply.status(403).send({
@@ -178,11 +201,22 @@ export function generateToken(
 }
 
 function getPermissionsForRole(role: string): string[] {
-  const rolePermissions: Record<string, string[]> = {
-    ADMIN: ["*"],
-    OPERATOR: ["tasks:*", "nodes:*", "schedule:*", "metrics:read"],
-    VIEWER: ["tasks:read", "nodes:read", "metrics:read"],
-    SERVICE: ["tasks:execute", "nodes:heartbeat", "metrics:write"],
+  const upperRole = role.toUpperCase();
+  if (upperRole === "ADMIN") {
+    return ["*"];
+  }
+  if (RolePermissions[upperRole]) {
+    return RolePermissions[upperRole] as string[];
+  }
+  const legacyPermissions: Record<string, string[]> = {
+    SERVICE: [
+      "task:execute",
+      "tasks:execute",
+      "node:heartbeat",
+      "nodes:heartbeat",
+      "system:write",
+      "metrics:write",
+    ],
   };
-  return rolePermissions[role.toUpperCase()] || [];
+  return legacyPermissions[upperRole] || [];
 }

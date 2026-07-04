@@ -8,7 +8,7 @@ export default async function systemRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requirePermission(Permissions.SYSTEM_READ),
+        fastify.requirePermission(Permissions.NODE_READ),
       ],
       schema: {
         tags: ['system'],
@@ -32,7 +32,7 @@ export default async function systemRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requirePermission(Permissions.SYSTEM_READ),
+        fastify.requirePermission(Permissions.NODE_READ),
       ],
       schema: {
         tags: ['system'],

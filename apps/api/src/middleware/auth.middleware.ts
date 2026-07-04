@@ -1,4 +1,4 @@
-﻿import { FastifyReply, FastifyRequest } from 'fastify';
+import { FastifyReply, FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
 import {
   enterWithTenantContext,
@@ -126,11 +126,30 @@ export function requirePermission(permission: string) {
     }
 
     const permissions = request.user.permissions || [];
-    const [resource] = permission.split(':');
+    
+    // Normalize singular vs plural and legacy permission resource prefixes
+    const normalize = (p: string): string => {
+      const parts = p.split(':');
+      let res = parts[0] || '';
+      if (res === 'nodes') res = 'node';
+      if (res === 'tasks') res = 'task';
+      if (res === 'alerts') res = 'alert';
+      if (res === 'costs') res = 'cost';
+      if (res === 'webhooks') res = 'webhook';
+      if (res === 'schedule') res = 'scheduler';
+      if (res === 'metrics') res = 'system';
+      parts[0] = res;
+      return parts.join(':');
+    };
+
+    const normPermission = normalize(permission);
+    const [normResource] = normPermission.split(':');
+    const normUserPermissions = permissions.map(normalize);
+
     const hasPermission =
-      permissions.includes(permission) ||
-      permissions.includes('*') ||
-      (resource ? permissions.includes(`${resource}:*`) : false);
+      normUserPermissions.includes(normPermission) ||
+      normUserPermissions.includes('*') ||
+      (normResource ? normUserPermissions.includes(`${normResource}:*`) : false);
 
     if (!hasPermission) {
       return sendAuthError(reply, 403, 'FORBIDDEN', 'Insufficient permissions');

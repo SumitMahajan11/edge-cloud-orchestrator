@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import { v4 as uuidv4 } from 'uuid';
 import type { PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
+import { RolePermissions } from '@edgecloud/shared-kernel';
 import type { UserPayload } from '../types/fastify';
 import { env } from '../config/env';
 
@@ -316,12 +317,23 @@ export class AuthService {
    * Returns permissions for a given role.
    */
   private getPermissionsForRole(role: string): string[] {
-    const rolePermissions: Record<string, string[]> = {
-      ADMIN: ['*'],
-      OPERATOR: ['tasks:*', 'nodes:*', 'schedule:*', 'metrics:read'],
-      VIEWER: ['tasks:read', 'nodes:read', 'metrics:read'],
-      SERVICE: ['tasks:execute', 'nodes:heartbeat', 'metrics:write'],
+    const upperRole = role.toUpperCase();
+    if (upperRole === 'ADMIN') {
+      return ['*'];
+    }
+    if (RolePermissions[upperRole]) {
+      return RolePermissions[upperRole] as string[];
+    }
+    const legacyPermissions: Record<string, string[]> = {
+      SERVICE: [
+        'task:execute',
+        'tasks:execute',
+        'node:heartbeat',
+        'nodes:heartbeat',
+        'system:write',
+        'metrics:write',
+      ],
     };
-    return rolePermissions[role.toUpperCase()] || [];
+    return legacyPermissions[upperRole] || [];
   }
 }

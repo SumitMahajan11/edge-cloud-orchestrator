@@ -104,7 +104,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requirePermission(Permissions.SYSTEM_READ),
+        fastify.requirePermission(Permissions.NODE_READ),
       ],
       schema: {
         tags: ['metrics'],
@@ -125,7 +125,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requirePermission(Permissions.SYSTEM_READ),
+        fastify.requirePermission(Permissions.NODE_READ),
       ],
       schema: { tags: ['metrics'], summary: 'Get system metrics' },
     },
@@ -140,7 +140,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requirePermission(Permissions.SYSTEM_READ),
+        fastify.requirePermission(Permissions.NODE_READ),
       ],
       schema: { tags: ['metrics'], summary: 'Get request metrics' },
     },
@@ -222,7 +222,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     {
       preHandler: [
         fastify.authenticate,
-        fastify.requirePermission(Permissions.SYSTEM_READ),
+        fastify.requirePermission(Permissions.NODE_READ),
       ],
       schema: {
         tags: ['metrics'],

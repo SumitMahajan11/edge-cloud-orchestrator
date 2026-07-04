@@ -205,4 +205,37 @@ describe('Metrics Endpoints Integration', () => {
       }),
     );
   });
+
+  it('GET /api/v2/metrics/system succeeds with node:read permission', async () => {
+    const token = generateToken(['node:read']);
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v2/metrics/system',
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('GET /api/v2/metrics/system succeeds with legacy nodes:* permission due to normalization', async () => {
+    const token = generateToken(['nodes:*']);
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v2/metrics/system',
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(response.statusCode).toBe(200);
+  });
+
+  it('GET /api/v2/metrics/system fails with 403 if insufficient permissions', async () => {
+    const token = generateToken(['tasks:read']);
+    const response = await app.inject({
+      method: 'GET',
+      url: '/api/v2/metrics/system',
+      headers: { authorization: `Bearer ${token}` },
+    });
+
+    expect(response.statusCode).toBe(403);
+  });
 });
