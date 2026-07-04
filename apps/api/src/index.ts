@@ -83,6 +83,7 @@ import { TaskScheduler } from './services/task-scheduler';
 // Services
 import { WebSocketManager } from './services/websocket-manager';
 import { mockPrisma, initMockData } from './initializers/mock-prisma';
+import { SimulatedAgent } from './services/simulated-agent.js';
 import { WebhookRetryJob } from './jobs/webhook-retry';
 import { ConsistencyCheckerJob } from './jobs/consistency-checker';
 import { MetricCleanupJob } from './jobs/metric-cleanup';
@@ -100,6 +101,7 @@ export let priorityScheduler: PriorityScheduler;
 export let backpressureController: BackpressureController;
 export let gracefulDegradation: GracefulDegradationService;
 export let schedulerRateLimiter: SchedulerRateLimiter;
+export let simulatedAgent: SimulatedAgent;
 
 let lastRedisHealthy: number = Date.now();
 let webhookRetryJob: WebhookRetryJob;
@@ -1349,6 +1351,13 @@ export async function init(overrides: any = {}) {
           logger.error(e, 'Error closing wsManager');
         }
       }
+      if (simulatedAgent) {
+        try {
+          simulatedAgent.stop();
+        } catch (e) {
+          logger.error(e, 'Error stopping simulatedAgent');
+        }
+      }
 
       // Stop other advanced services
       try {
@@ -1413,6 +1422,13 @@ export async function start() {
     HealthCheck.setReady(true);
 
     logger.info(`🚀 API Gateway running on http://${host}:${port}`);
+
+    if (env.ENABLE_DEMO_AGENT) {
+      simulatedAgent = new SimulatedAgent();
+      simulatedAgent.start().catch((err) => {
+        logger.error(err, 'Failed to start simulated agent');
+      });
+    }
   } catch (err) {
     logger.error(err, 'Failed to start API Gateway');
     process.exit(1);

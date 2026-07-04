@@ -149,24 +149,50 @@ async function main() {
     },
   ];
 
-  for (const spec of taskSpecs) {
+  const dbNodes = await prisma.edgeNode.findMany({
+    where: { tenantId: createdTenants[0]!.id },
+  });
+
+  for (let i = 0; i < taskSpecs.length; i++) {
+    const spec = taskSpecs[i]!;
     const existing = await prisma.task.findFirst({
       where: { name: spec.name, tenantId: createdTenants[0]!.id },
     });
 
+    const assignedNode = ['RUNNING', 'COMPLETED', 'FAILED'].includes(spec.status)
+      ? dbNodes[i % dbNodes.length]
+      : null;
+
+    const taskData = {
+      name: spec.name,
+      status: spec.status,
+      type: spec.type,
+      priority: 'MEDIUM' as const,
+      target: ExecutionTarget.EDGE,
+      policy: 'latency-aware',
+      reason: 'Initial seed',
+      runtime: Runtime.DOCKER,
+      image: 'edgecloud/worker:latest',
+      tenantId: createdTenants[0]!.id,
+      nodeId: assignedNode ? assignedNode.id : null,
+      metadata: {
+        specs: {
+          cpuCores: (i % 3) + 1,
+          memoryGB: ((i % 3) + 1) * 2,
+        },
+      },
+    };
+
     if (!existing) {
       await prisma.task.create({
+        data: taskData,
+      });
+    } else {
+      await prisma.task.update({
+        where: { id: existing.id },
         data: {
-          name: spec.name,
-          status: spec.status,
-          type: spec.type,
-          priority: 'MEDIUM',
-          target: ExecutionTarget.EDGE,
-          policy: 'latency-aware',
-          reason: 'Initial seed',
-          runtime: Runtime.DOCKER,
-          image: 'edgecloud/worker:latest',
-          tenantId: createdTenants[0]!.id,
+          nodeId: taskData.nodeId,
+          metadata: taskData.metadata,
         },
       });
     }

@@ -62,7 +62,9 @@ export class MetricCleanupJob {
 
     try {
       // 1. Fetch custom retention policies
-      const policies = await this.prisma.metricRetentionPolicy.findMany();
+      const policies = this.prisma.metricRetentionPolicy
+        ? await this.prisma.metricRetentionPolicy.findMany()
+        : [];
       const policyMap = new Map<string, number>();
       for (const policy of policies) {
         policyMap.set(policy.tenantId, policy.retentionDays);

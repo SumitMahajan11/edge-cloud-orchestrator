@@ -149,4 +149,84 @@ export default async function schedulingRoutes(fastify: FastifyInstance) {
       };
     }
   );
+
+  // GET /v2/scheduling/policies
+  fastify.get(
+    '/policies',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_READ),
+      ],
+      schema: {
+        tags: ['scheduling'],
+        summary: 'Get all scheduling policies for the tenant',
+      },
+    },
+    async (request, reply) => {
+      const tenantId = request.user?.tenantId;
+      if (!tenantId) {
+        return reply.status(400).send({ error: 'Tenant context required' });
+      }
+
+      let policies = await request.tPrisma.schedulingPolicy.findMany();
+
+      if (policies.length === 0) {
+        const defaultTemplates = [
+          {
+            name: `Tunable Scheduling Policy - ${tenantId}`,
+            type: 'TUNABLE',
+            config: {
+              costWeight: 0.33,
+              latencyWeight: 0.33,
+              carbonWeight: 0.34,
+            },
+            isActive: true,
+          },
+          {
+            name: `Latency SLA Guard - ${tenantId}`,
+            type: 'LATENCY',
+            config: {
+              maxLatencyMs: 150,
+            },
+            isActive: false,
+          },
+          {
+            name: `Eco-First Optimization - ${tenantId}`,
+            type: 'CARBON',
+            config: {
+              minGreenPercent: 80,
+            },
+            isActive: false,
+          },
+          {
+            name: `Cost Guardrail - ${tenantId}`,
+            type: 'COST',
+            config: {
+              maxCostUSD: 0.05,
+            },
+            isActive: false,
+          },
+        ];
+
+        for (const template of defaultTemplates) {
+          const exists = await request.tPrisma.schedulingPolicy.findFirst({
+            where: { name: template.name }
+          });
+          if (!exists) {
+            await request.tPrisma.schedulingPolicy.create({
+              data: {
+                ...template,
+                tenantId,
+              },
+            });
+          }
+        }
+
+        policies = await request.tPrisma.schedulingPolicy.findMany();
+      }
+
+      return policies;
+    }
+  );
 }

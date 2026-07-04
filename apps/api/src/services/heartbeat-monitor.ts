@@ -96,6 +96,21 @@ export class HeartbeatMonitor {
               data: { status: NodeStatus.OFFLINE },
             });
 
+            // Emit system log: node went offline
+            await this.prisma.auditLog.create({
+              data: {
+                tenantId: node.tenantId,
+                action: 'node.offline',
+                entityType: 'node',
+                entityId: node.id,
+                details: {
+                  nodeName: node.name,
+                  reason: 'heartbeat_timeout',
+                  lastHeartbeat: node.lastHeartbeat?.toISOString(),
+                } as any,
+              },
+            }).catch((err) => this.logger.warn({ err }, 'Failed to write node.offline audit log'));
+
             // Handle running tasks on this node
             await this.handleNodeFailure(node.id);
 
@@ -107,17 +122,53 @@ export class HeartbeatMonitor {
               timestamp: now.toISOString(),
             });
 
-            // Create alert
-            await this.prisma.alert.create({
-              data: {
+            // Dedup: only create a new alert if no unacknowledged heartbeat-timeout
+            // alert already exists for this node (state-transition firing, not poll-interval firing).
+            const existingAlert = await this.prisma.alert.findFirst({
+              where: {
                 ruleId: 'heartbeat-timeout',
                 entityId: node.id,
-                entityType: 'node',
-                severity: 'high',
-                message: `Node ${node.name} went offline due to heartbeat timeout`,
-                tenantId: node.tenantId,
+                acknowledged: false,
               },
             });
+
+            if (!existingAlert) {
+              await this.prisma.alert.create({
+                data: {
+                  ruleId: 'heartbeat-timeout',
+                  entityId: node.id,
+                  entityType: 'node',
+                  severity: 'high',
+                  message: `Node ${node.name} went offline due to heartbeat timeout`,
+                  tenantId: node.tenantId,
+                },
+              });
+
+              // Emit system log: alert fired
+              await this.prisma.auditLog.create({
+                data: {
+                  tenantId: node.tenantId,
+                  action: 'warn.alert.fired',
+                  entityType: 'alert',
+                  entityId: node.id,
+                  details: {
+                    nodeName: node.name,
+                    alertType: 'heartbeat_timeout',
+                    severity: 'high',
+                  } as any,
+                },
+              }).catch((err) => this.logger.warn({ err }, 'Failed to write alert.fired audit log'));
+
+              this.logger.info(
+                { nodeId: node.id, nodeName: node.name },
+                'Created heartbeat-timeout alert for node transition ONLINE→OFFLINE',
+              );
+            } else {
+              this.logger.debug(
+                { nodeId: node.id, existingAlertId: existingAlert.id },
+                'Skipping duplicate heartbeat alert — node already has active alert',
+              );
+            }
           }
 
           // Check for degraded nodes

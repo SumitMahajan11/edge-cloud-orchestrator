@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+﻿import { FastifyReply, FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
 import {
   enterWithTenantContext,
@@ -126,7 +126,13 @@ export function requirePermission(permission: string) {
     }
 
     const permissions = request.user.permissions || [];
-    if (!permissions.includes(permission) && !permissions.includes('*')) {
+    const [resource] = permission.split(':');
+    const hasPermission =
+      permissions.includes(permission) ||
+      permissions.includes('*') ||
+      (resource ? permissions.includes(`${resource}:*`) : false);
+
+    if (!hasPermission) {
       return sendAuthError(reply, 403, 'FORBIDDEN', 'Insufficient permissions');
     }
   };

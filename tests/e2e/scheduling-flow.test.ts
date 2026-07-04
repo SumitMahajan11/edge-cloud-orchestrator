@@ -49,6 +49,7 @@ const mockDbState = {
   schedulingPolicies: new Map(),
   nodeHealthScores: new Map(),
   carbonRecords: new Map(),
+  metricRetentionPolicies: new Map(),
 };
 
 // Ports for tests
@@ -181,6 +182,7 @@ const resetDbState = () => {
   mockDbState.schedulingPolicies.clear();
   mockDbState.nodeHealthScores.clear();
   mockDbState.carbonRecords.clear();
+  mockDbState.metricRetentionPolicies.clear();
   mockDbState.users.set("admin", {
     id: "admin",
     role: "ADMIN",
@@ -312,6 +314,13 @@ const mockCreateMockModel = (stateKey: string) => ({
     (mockDbState as any)[stateKey].delete(where.id || where.taskId);
     return { id: where.id || where.taskId };
   },
+  updateMany: async (args: any) => {
+    const items = await mockCreateMockModel(stateKey).findMany(args);
+    for (const item of items) {
+      Object.assign(item, args.data || {});
+    }
+    return { count: items.length };
+  },
 });
 
 const mockPrismaInstance = {
@@ -347,6 +356,7 @@ const mockPrismaInstance = {
   schedulingPolicy: mockCreateMockModel("schedulingPolicies"),
   nodeHealthScore: mockCreateMockModel("nodeHealthScores"),
   carbonRecord: mockCreateMockModel("carbonRecords"),
+  metricRetentionPolicy: mockCreateMockModel("metricRetentionPolicies"),
 };
 
 // Mock dependencies at the top level

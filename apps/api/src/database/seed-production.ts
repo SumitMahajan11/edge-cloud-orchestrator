@@ -253,6 +253,7 @@ async function main() {
       startedAt: new Date(Date.now() - 3500000),
       completedAt: new Date(Date.now() - 3400000),
       duration: 100000,
+      metadata: { specs: { cpuCores: 2, memoryGB: 4 } },
     },
     {
       id: uuidv4(),
@@ -260,7 +261,8 @@ async function main() {
       type: TaskType.MODEL_INFERENCE,
       priority: Priority.CRITICAL,
       status: TaskStatus.RUNNING,
-      target: ExecutionTarget.CLOUD,
+      target: ExecutionTarget.EDGE,
+      nodeId: nodes[1]?.id || 'unknown',
       policy: 'cost-aware',
       reason: 'Training in progress',
       input: { dataset: 'production-v2', epochs: 100 },
@@ -268,6 +270,7 @@ async function main() {
       retryCount: 0,
       submittedAt: new Date(Date.now() - 7200000),
       startedAt: new Date(Date.now() - 7100000),
+      metadata: { specs: { cpuCores: 4, memoryGB: 8 } },
     },
     {
       id: uuidv4(),
@@ -281,6 +284,7 @@ async function main() {
       maxRetries: 3,
       retryCount: 0,
       submittedAt: new Date(Date.now() - 1800000),
+      metadata: { specs: { cpuCores: 1, memoryGB: 2 } },
     },
   ];
 

@@ -501,6 +501,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         });
       }
 
+      const previousStatus = node.status;
+
       await request.tPrisma.edgeNode.update({
         where: { id },
         data: {
@@ -513,6 +515,36 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           status: 'ONLINE',
         },
       });
+
+      // Auto-resolve open heartbeat-timeout alerts when node comes back online
+      if (previousStatus !== 'ONLINE' && request.tPrisma.alert) {
+        await request.tPrisma.alert.updateMany({
+          where: {
+            ruleId: 'heartbeat-timeout',
+            entityId: id,
+            acknowledged: false,
+          },
+          data: {
+            acknowledged: true,
+            acknowledgedAt: new Date(),
+          },
+        });
+
+        // Emit system log: node came back online
+        await request.tPrisma.auditLog.create({
+          data: {
+            tenantId: node.tenantId,
+            action: 'node.online',
+            entityType: 'node',
+            entityId: id,
+            details: {
+              nodeName: node.name,
+              previousStatus,
+              reason: 'heartbeat_received',
+            } as any,
+          },
+        }).catch(() => {}); // Non-critical — don't fail the heartbeat
+      }
 
       // Store metrics
       await request.tPrisma.nodeMetric.create({

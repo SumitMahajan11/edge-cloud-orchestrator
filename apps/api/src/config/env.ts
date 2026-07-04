@@ -154,6 +154,11 @@ const envSchema = baseEnvSchema.extend({
     .string()
     .transform((v) => v === 'true')
     .default('false'),
+  ENABLE_DEMO_AGENT: z
+    .string()
+    .transform((v) => v === 'true')
+    .default('false'),
+
 
   // --- Test ---
   VITEST: z.string().optional(),

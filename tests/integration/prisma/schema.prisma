@@ -34,6 +34,8 @@ model Tenant {
   tasks     Task[]
   nodes     EdgeNode[] @relation("TenantNodes")
   carbonRecords CarbonRecord[]
+  alertRules AlertRule[]
+  alerts Alert[]
 
   @@map("tenants")
 }
@@ -130,4 +132,45 @@ model CarbonRecord {
   @@index([tenantId, recordedAt])
   @@index([taskId])
   @@map("carbon_records")
+}
+
+model AlertRule {
+  id        String   @id @default(uuid())
+  name      String
+  metric    String
+  operator  String
+  threshold Float
+  duration  Int
+  enabled   Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  alerts Alert[]
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("alert_rules")
+}
+
+model Alert {
+  id             String    @id @default(uuid())
+  ruleId         String
+  entityId       String
+  entityType     String
+  severity       String
+  message        String
+  acknowledged   Boolean   @default(false)
+  createdAt      DateTime  @default(now())
+  acknowledgedAt DateTime?
+
+  rule AlertRule @relation(fields: [ruleId], references: [id])
+
+  tenantId String
+  tenant   Tenant @relation(fields: [tenantId], references: [id])
+
+  @@index([createdAt])
+  @@index([ruleId])
+  @@index([tenantId])
+  @@map("alerts")
 }
