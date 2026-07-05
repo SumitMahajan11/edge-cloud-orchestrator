@@ -164,15 +164,17 @@ app.addHook('preHandler', async (request, reply) => {
     return;
   }
 
-  // 3. Default Deny: Authenticate if not explicitly public
-  // This ensures that any newly added routes are secure by default.
   try {
     await (app as any).authenticate(request, reply);
   } catch (err: any) {
     request.log.error({ err, url }, 'Global authentication hook failed');
     return reply.status(401).send({
-      error: 'Authentication required',
-      message: 'This endpoint is protected by Default Deny policy.',
+      error: {
+        code: 'UNAUTHORIZED',
+        message: 'Authentication required. This endpoint is protected by Default Deny policy.',
+        requestId: (request.headers['x-request-id'] as string) || (request.id as string),
+        timestamp: new Date().toISOString(),
+      },
     });
   }
 });

@@ -216,8 +216,21 @@ export default function EdgeNodesPage() {
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
         onSubmit={async (data) => {
-          await registerMutation.mutateAsync(data);
-          setIsAddModalOpen(false);
+          try {
+            await registerMutation.mutateAsync(data);
+            setIsAddModalOpen(false);
+            toast.success(`Node ${data.name} registered successfully`);
+          } catch (error) {
+            if (isApiClientError(error)) {
+              if (error.isUnauthorized()) {
+                router.push("/login");
+                return;
+              }
+              toast.error(error.response.message);
+            } else {
+              toast.error("Failed to register node");
+            }
+          }
         }}
       />
     </div>

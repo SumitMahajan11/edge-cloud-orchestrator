@@ -110,4 +110,22 @@ describe('Security Configuration', () => {
       expect(response.headers['x-ratelimit-reset']).toBeDefined();
     });
   });
+
+  describe('Default Deny Auth Schema Integration', () => {
+    it('should return a structured 401 response conforming to ErrorSchema when authentication fails', async () => {
+      const response = await apiApp.inject({
+        method: 'GET',
+        url: '/v2/metrics/system',
+      });
+
+      expect(response.statusCode).toBe(401);
+      const body = JSON.parse(response.body);
+      expect(body).toHaveProperty('error');
+      expect(body.error).toHaveProperty('code', 'UNAUTHORIZED');
+      expect(body.error).toHaveProperty('message');
+      expect(body.error.message).toContain('Default Deny policy');
+      expect(body.error).toHaveProperty('requestId');
+      expect(body.error).toHaveProperty('timestamp');
+    });
+  });
 });
