@@ -41,7 +41,7 @@ export const globalErrorHandler = (
   }
 
   // 2. Prisma Database Errors
-  else if (error.name === 'PrismaClientKnownRequestError') {
+  else if (error.name?.startsWith('PrismaClient') || error.constructor?.name?.startsWith('PrismaClient')) {
     const prismaError = error as any;
     switch (prismaError.code) {
       case 'P2025': // Not found
@@ -63,14 +63,18 @@ export const globalErrorHandler = (
   }
 
   // 3. Authentication & Authorization Errors
-  else if (error.message?.includes('jwt') || error.message?.includes('token')) {
+  else if (
+    statusCode === 401 ||
+    error.message?.includes('jwt') ||
+    error.message?.includes('token')
+  ) {
     statusCode = 401;
-    if (error.message.includes('expired')) {
+    if (error.message?.includes('expired')) {
       code = 'TOKEN_EXPIRED';
       message = 'Your session has expired. Please log in again.';
     } else {
-      code = 'TOKEN_INVALID';
-      message = 'Invalid authentication token provided.';
+      code = (error.code && error.code !== 'INTERNAL_ERROR') ? error.code : 'TOKEN_INVALID';
+      message = error.message || 'Invalid authentication token provided.';
     }
   } else if (statusCode === 403 || error.message?.includes('permission')) {
     statusCode = 403;
@@ -91,7 +95,7 @@ export const globalErrorHandler = (
   }
 
   // Final sanitization for production
-  if (statusCode === 500 && env.NODE_ENV === 'production') {
+  if (statusCode === 500 && env.NODE_ENV === 'production' && code !== 'DATABASE_ERROR') {
     message = 'An internal server error occurred';
   }
 
