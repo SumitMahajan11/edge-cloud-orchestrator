@@ -2127,7 +2127,7 @@ export class TaskScheduler extends EventEmitter {
           latencyMs,
           carbonIntensity,
           costUsd,
-        });
+        }, task.tenantId);
         return;
       }
 
@@ -2159,7 +2159,7 @@ export class TaskScheduler extends EventEmitter {
         taskId: task.id,
         nodeId: node.id,
         timestamp: new Date().toISOString(),
-      });
+      }, task.tenantId);
 
       // Calculate scheduling latency
       const latencyMs = schedulingStartTime
@@ -2214,7 +2214,7 @@ export class TaskScheduler extends EventEmitter {
         latencyMs,
         carbonIntensity,
         costUsd,
-      });
+      }, task.tenantId);
 
       // We can't easily pass this back up without changing method signatures
       // So we'll just log it if it's slow
@@ -2377,7 +2377,7 @@ export class TaskScheduler extends EventEmitter {
       nodeId,
       duration: result.duration,
       timestamp: new Date().toISOString(),
-    });
+    }, task.tenantId);
 
     // ML Observability: Record outcome for drift detection
     try {

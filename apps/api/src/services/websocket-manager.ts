@@ -516,12 +516,20 @@ export class WebSocketManager {
   }
 
   /**
-   * Broadcast to local clients only
+   * Broadcast to local clients only.
+   *
+   * Tenant-scoping rules for wildcard '*' subscribers:
+   * - If `broadcastTenantId` is provided, a client subscribed to '*' only
+   *   receives the message if `client.tenantId` matches it, OR if the client
+   *   has no tenantId (SUPER_ADMIN — privileged cross-tenant view).
+   * - If `broadcastTenantId` is omitted, all '*' subscribers receive the event
+   *   (intentionally global events such as ml:retrain:status, policy:update).
    */
   broadcastLocally(
     channel: string,
     payload: unknown,
     excludeClientId?: string,
+    broadcastTenantId?: string,
   ): void {
     const message: Message = {
       type: channel,
@@ -537,7 +545,27 @@ export class WebSocketManager {
         continue;
       }
 
-      if (client.subscriptions.has(channel) || client.subscriptions.has('*')) {
+      const isExactSubscriber = client.subscriptions.has(channel);
+      const isWildcardSubscriber = client.subscriptions.has('*');
+
+      if (isExactSubscriber) {
+        // Exact channel match — always deliver
+        if (client.ws.readyState === WebSocket.OPEN) {
+          client.ws.send(messageStr);
+          sent++;
+        }
+      } else if (isWildcardSubscriber && broadcastTenantId) {
+        // Wildcard subscriber receiving a tenant-scoped event:
+        // deliver only if this client belongs to the same tenant,
+        // OR if the client has no tenantId (SUPER_ADMIN — cross-tenant access).
+        const clientCanReceive =
+          !client.tenantId || client.tenantId === broadcastTenantId;
+        if (clientCanReceive && client.ws.readyState === WebSocket.OPEN) {
+          client.ws.send(messageStr);
+          sent++;
+        }
+      } else if (isWildcardSubscriber && !broadcastTenantId) {
+        // Global (un-scoped) event — deliver to all wildcard subscribers
         if (client.ws.readyState === WebSocket.OPEN) {
           client.ws.send(messageStr);
           sent++;
@@ -549,38 +577,34 @@ export class WebSocketManager {
   }
 
   /**
-   * Broadcast to all instances via Redis Pub/Sub
+   * Broadcast a message to all connected clients, optionally scoped to a tenant.
+   *
+   * @param channel  - The event type / channel name (e.g. 'task:started').
+   * @param payload  - Arbitrary event payload.
+   * @param tenantId - When provided the message is published on a tenant-scoped
+   *                   Redis channel (`{channel}:{tenantId}`) and only delivered
+   *                   to clients that are subscribed to that scoped channel or
+   *                   to the global '*' wildcard AND belong to the same tenant
+   *                   (SUPER_ADMIN clients without a tenantId see all events).
+   *                   Omit for system-wide events that are intentionally
+   *                   cross-tenant (e.g. ml:retrain:status, policy:update).
+   * @param excludeClientId - Optional WebSocket client ID to skip during local delivery.
    */
   broadcast(
     channel: string,
     payload: unknown,
-    tenantIdOrExcludeClientId?: string,
+    tenantId?: string,
     excludeClientId?: string,
   ): void {
-    let tenantId: string | undefined;
-    let actualExcludeClientId = excludeClientId;
-
-    if (tenantIdOrExcludeClientId) {
-      const isUuid = (str: string) =>
-        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-          str,
-        );
-      if (isUuid(tenantIdOrExcludeClientId)) {
-        actualExcludeClientId = tenantIdOrExcludeClientId;
-      } else {
-        tenantId = tenantIdOrExcludeClientId;
-      }
-    }
-
     const redisChannel = tenantId
       ? `${channel}:${tenantId}`
       : REDIS_PUBSUB_CHANNEL;
     const targetChannel = tenantId ? `${channel}:${tenantId}` : channel;
 
-    // First, broadcast locally
-    this.broadcastLocally(targetChannel, payload, actualExcludeClientId);
+    // First, broadcast locally to connected clients on this instance
+    this.broadcastLocally(targetChannel, payload, excludeClientId, tenantId);
 
-    // Then, broadcast to other instances via Redis
+    // Then fan-out to other instances via Redis Pub/Sub
     if (this.redis) {
       let publishPayload: any = payload;
       if (tenantId && typeof payload === 'object' && payload !== null) {
@@ -591,7 +615,7 @@ export class WebSocketManager {
         instanceId: this.instanceId,
         channel: targetChannel,
         payload: publishPayload,
-        excludeSender: actualExcludeClientId,
+        excludeSender: excludeClientId,
       };
 
       this.redis
@@ -601,6 +625,7 @@ export class WebSocketManager {
         });
     }
   }
+
 
   broadcastToUser(userId: string, type: string, payload: unknown): void {
     for (const client of this.clients.values()) {

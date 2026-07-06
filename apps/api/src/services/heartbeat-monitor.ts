@@ -114,13 +114,13 @@ export class HeartbeatMonitor {
             // Handle running tasks on this node
             await this.handleNodeFailure(node.id);
 
-            // Broadcast status change
+            // Broadcast status change — scoped to this node's tenant
             this.wsManager.broadcast('node:status_changed', {
               nodeId: node.id,
               status: 'OFFLINE',
               reason: 'heartbeat_timeout',
               timestamp: now.toISOString(),
-            });
+            }, node.tenantId);
 
             // Dedup: only create a new alert if no unacknowledged heartbeat-timeout
             // alert already exists for this node (state-transition firing, not poll-interval firing).
@@ -197,7 +197,7 @@ export class HeartbeatMonitor {
               cpuUsage: node.cpuUsage,
               memoryUsage: node.memoryUsage,
               timestamp: now.toISOString(),
-            });
+            }, node.tenantId);
           }
 
           // Check for recovered nodes (degraded -> online)
@@ -226,7 +226,7 @@ export class HeartbeatMonitor {
               status: 'ONLINE',
               reason: 'recovered',
               timestamp: now.toISOString(),
-            });
+            }, node.tenantId);
           }
           span.setStatus({ code: SpanStatusCode.OK });
         } catch (error: unknown) {
@@ -315,7 +315,7 @@ export class HeartbeatMonitor {
         taskId: task.id,
         nodeId,
         reason: 'node_offline',
-      });
+      }, task.tenantId);
     }
   }
 }

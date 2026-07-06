@@ -301,6 +301,7 @@ describe('TaskScheduler Race Condition (RACE-01)', () => {
         carbonIntensity: 250,
         costUsd: 0.15,
       }),
+      't1', // tenantId now mandated by security fix
     );
   });
 });
