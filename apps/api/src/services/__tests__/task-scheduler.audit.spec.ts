@@ -37,6 +37,7 @@ describe('TaskScheduler Audit Model', () => {
         count: vi.fn(),
       },
       edgeNode: {
+        findUnique: vi.fn().mockResolvedValue({ id: 'node-1', status: 'ONLINE', tasksRunning: 0, maxTasks: 10 }),
         update: vi.fn(),
       },
       auditLog: {
@@ -45,7 +46,12 @@ describe('TaskScheduler Audit Model', () => {
       schedulingDecision: {
         upsert: vi.fn(),
       },
-      $transaction: vi.fn((ops) => Promise.all(ops)),
+      $transaction: vi.fn(async (arg) => {
+        if (typeof arg === 'function') {
+          return arg(mockPrisma);
+        }
+        return Promise.all(arg);
+      }),
     };
 
     mockRedis = {
