@@ -2287,30 +2287,35 @@ export class TaskScheduler extends EventEmitter {
       );
 
       // Mark as failed and potentially retry
-      await this.prisma.$transaction([
+      const ops: any[] = [
         this.prisma.task.update({
           where: { id: task.id },
           data: { status: 'FAILED' },
         }),
-        this.prisma.taskExecution.update({
-          where: { id: execution.id },
-          data: {
-            status: 'FAILED',
-            error: errorMessage,
-            completedAt: new Date(),
-          },
-        }),
-      ]);
+      ];
+      if (execution) {
+        ops.push(
+          this.prisma.taskExecution.update({
+            where: { id: execution.id },
+            data: {
+              status: 'FAILED',
+              error: errorMessage,
+              completedAt: new Date(),
+            },
+          })
+        );
+      }
+      await this.prisma.$transaction(ops);
 
       // Re-enqueue if retries available
-      if (execution.attemptNumber < task.maxRetries) {
+      if (execution && execution.attemptNumber < task.maxRetries) {
         // Create NEW execution record for the retry
         await this.prisma.taskExecution.create({
           data: {
             taskId: task.id,
             status: 'PENDING',
             attemptNumber: execution.attemptNumber + 1,
-            retryOf: execution?.id ?? null,
+            retryOf: execution.id,
             tenantId: task.tenantId,
           },
         });

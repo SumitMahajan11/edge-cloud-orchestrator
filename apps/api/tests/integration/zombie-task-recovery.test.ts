@@ -127,7 +127,7 @@ describe('Zombie Task Recovery Integration', () => {
       task: {
         findMany: vi.fn(),
         findFirst: vi.fn(),
-        findUnique: vi.fn(),
+        findUnique: vi.fn().mockResolvedValue({ id: 'node-1', status: 'ONLINE', tasksRunning: 0, maxTasks: 10 }),
         update: vi
           .fn()
           .mockImplementation(({ data }: any) =>
@@ -140,13 +140,13 @@ describe('Zombie Task Recovery Integration', () => {
       taskExecution: {
         findFirst: vi.fn(),
         create: vi.fn(),
-        update: vi.fn(),
+        update: vi.fn().mockImplementation((args) => Promise.resolve({ id: args.where.id, attemptNumber: 1 })),
         updateMany: vi.fn(),
       },
       edgeNode: {
         findMany: vi.fn(),
         findFirst: vi.fn(),
-        findUnique: vi.fn(),
+        findUnique: vi.fn().mockResolvedValue({ id: 'node-1', status: 'ONLINE', tasksRunning: 0, maxTasks: 10 }),
         update: vi.fn(),
         count: vi.fn(),
       },
@@ -156,7 +156,12 @@ describe('Zombie Task Recovery Integration', () => {
       auditLog: {
         create: vi.fn(),
       },
-      $transaction: vi.fn((ops) => Promise.all(ops)),
+      $transaction: vi.fn(async (arg) => {
+        if (typeof arg === 'function') {
+          return arg(mockPrisma);
+        }
+        return Promise.all(arg);
+      }),
     };
 
     mockRedis = new Redis();

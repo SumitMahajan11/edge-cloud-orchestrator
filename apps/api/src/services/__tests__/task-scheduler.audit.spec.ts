@@ -33,12 +33,12 @@ describe('TaskScheduler Audit Model', () => {
           .mockImplementation(({ data }) =>
             Promise.resolve({ id: `exec-${data.attemptNumber}`, ...data }),
           ),
-        update: vi.fn(),
+        update: vi.fn().mockImplementation((args) => Promise.resolve({ id: args.where.id, attemptNumber: args.where.id === 'exec-2' ? 2 : 1 })),
         count: vi.fn(),
       },
       edgeNode: {
         findUnique: vi.fn().mockResolvedValue({ id: 'node-1', status: 'ONLINE', tasksRunning: 0, maxTasks: 10 }),
-        update: vi.fn(),
+        update: vi.fn().mockImplementation((args) => Promise.resolve({ id: args.where.id, attemptNumber: args.data.attemptNumber || 1 })),
       },
       auditLog: {
         create: vi.fn(),
