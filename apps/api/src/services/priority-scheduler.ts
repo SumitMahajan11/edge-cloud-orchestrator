@@ -148,6 +148,20 @@ export class PriorityScheduler extends EventEmitter {
   }
 
   /**
+   * Remove tasks from the queue
+   */
+  async removeTasks(taskIds: string[]): Promise<void> {
+    for (const taskId of taskIds) {
+      const taskJson = await this.redis.get(REDIS_KEYS.task(taskId));
+      if (taskJson) {
+        const task: PriorityTask = JSON.parse(taskJson);
+        await this.redis.zrem(REDIS_KEYS.queue(task.priority), taskJson);
+        await this.redis.del(REDIS_KEYS.task(taskId));
+      }
+    }
+  }
+
+  /**
    * Submit a task to the priority queue
    */
   async submitTask(
@@ -221,7 +235,6 @@ export class PriorityScheduler extends EventEmitter {
     for (const taskJson of criticalTasks) {
       const task: PriorityTask = JSON.parse(taskJson);
       tasks.push(task);
-      await this.redis.zrem(REDIS_KEYS.queue('CRITICAL'), taskJson);
     }
 
     const remainingAfterCritical = batchSize - tasks.length;
@@ -251,7 +264,6 @@ export class PriorityScheduler extends EventEmitter {
     for (const taskJson of highTasks) {
       const task: PriorityTask = JSON.parse(taskJson);
       tasks.push(task);
-      await this.redis.zrem(REDIS_KEYS.queue('HIGH'), taskJson);
     }
 
     // 4. Process MEDIUM priority
@@ -264,7 +276,6 @@ export class PriorityScheduler extends EventEmitter {
     for (const taskJson of mediumTasks) {
       const task: PriorityTask = JSON.parse(taskJson);
       tasks.push(task);
-      await this.redis.zrem(REDIS_KEYS.queue('MEDIUM'), taskJson);
     }
 
     // 5. Process LOW priority (fill remaining slots)
@@ -279,7 +290,6 @@ export class PriorityScheduler extends EventEmitter {
       for (const taskJson of lowTasks) {
         const task: PriorityTask = JSON.parse(taskJson);
         tasks.push(task);
-        await this.redis.zrem(REDIS_KEYS.queue('LOW'), taskJson);
       }
     }
 

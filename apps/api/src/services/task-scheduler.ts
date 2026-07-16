@@ -1199,6 +1199,9 @@ export class TaskScheduler extends EventEmitter {
     // 10. Bulk remove processed/skipped/removed tasks from queue
     if (tasksToRem.length > 0) {
       await this.redis.zrem(this.queueKey, ...tasksToRem);
+      if (this.priorityScheduler) {
+        await this.priorityScheduler.removeTasks(tasksToRem);
+      }
     }
 
     if (processed > 0 || skipped > 0) {
@@ -1500,6 +1503,14 @@ export class TaskScheduler extends EventEmitter {
 
       if (!task) {
         return;
+      }
+
+      // Decrement tasksRunning in edgeNode for capacity leak remediation
+      if (task.nodeId) {
+        await this.prisma.edgeNode.update({
+          where: { id: task.nodeId },
+          data: { tasksRunning: { decrement: 1 } },
+        });
       }
 
       // Decrement pending task counters in the rate limiter
@@ -1892,112 +1903,123 @@ export class TaskScheduler extends EventEmitter {
       'Assigning task to node',
     );
 
-    // Find or create current execution record
-    let execution = await this.prisma.taskExecution.findFirst({
-      where: { taskId: task.id, status: { in: ['PENDING', 'SCHEDULED'] } },
-      orderBy: { attemptNumber: 'desc' },
-    });
+    let execution: any;
+    try {
+      execution = await this.prisma.$transaction(async (tx) => {
+        const currentNode = await tx.edgeNode.findUnique({
+          where: { id: node.id },
+          select: { tasksRunning: true, maxTasks: true, status: true },
+        });
 
-    if (!execution) {
-      try {
-        execution = await this.prisma.taskExecution.create({
-          data: {
+        if (!currentNode || currentNode.status !== 'ONLINE' || currentNode.tasksRunning >= (currentNode.maxTasks ?? 10)) {
+          throw new Error('Node capacity exceeded or offline during atomic assignment');
+        }
+
+        await tx.edgeNode.update({
+          where: { id: node.id },
+          data: { tasksRunning: { increment: 1 } },
+        });
+
+        let exec = await tx.taskExecution.findFirst({
+          where: { taskId: task.id, status: { in: ['PENDING', 'SCHEDULED'] } },
+          orderBy: { attemptNumber: 'desc' },
+        });
+
+        if (!exec) {
+          exec = await tx.taskExecution.create({
+            data: {
+              taskId: task.id,
+              status: 'PENDING',
+              attemptNumber: 1,
+              tenantId: task.tenantId,
+            },
+          });
+        }
+
+        await (tx as any).schedulingDecision.upsert({
+          where: { taskId: task.id },
+          update: {
+            selectedNodeId: node.id,
+            policy: task.policy,
+            score: mlResult?.decision.score || 1.0,
+            explanation: mlResult?.explanation || { top_features: [] },
+            candidateNodes: mlResult?.candidateNodes || [],
+            mlModelVersion: mlResult?.modelVersion || null,
+            fallbackUsed: mlResult?.fallbackUsed || false,
+          },
+          create: {
             taskId: task.id,
-            status: 'PENDING',
-            attemptNumber: 1,
+            selectedNodeId: node.id,
+            policy: task.policy,
+            score: mlResult?.decision.score || 1.0,
+            explanation: mlResult?.explanation || { top_features: [] },
+            candidateNodes: mlResult?.candidateNodes || [],
+            mlModelVersion: mlResult?.modelVersion || null,
+            fallbackUsed: mlResult?.fallbackUsed || false,
             tenantId: task.tenantId,
           },
         });
-      } catch (err: any) {
-        if (err.code === 'P2003') {
-          this.logger.warn({ taskId: task.id }, 'Task execution creation failed due to P2003 (Task likely deleted). Skipping assignment.');
-          return;
-        }
-        throw err;
-      }
-    }
 
-    // Persist scheduling decision
-    try {
-      await (this.prisma as any).schedulingDecision.upsert({
-        where: { taskId: task.id },
-        update: {
-          selectedNodeId: node.id,
-          policy: task.policy,
-          score: mlResult?.decision.score || 1.0,
-          explanation: mlResult?.explanation || { top_features: [] },
-          candidateNodes: mlResult?.candidateNodes || [],
-          mlModelVersion: mlResult?.modelVersion || null,
-          fallbackUsed: mlResult?.fallbackUsed || false,
-        },
-        create: {
-          taskId: task.id,
-          selectedNodeId: node.id,
-          policy: task.policy,
-          score: mlResult?.decision.score || 1.0,
-          explanation: mlResult?.explanation || { top_features: [] },
-          candidateNodes: mlResult?.candidateNodes || [],
-          mlModelVersion: mlResult?.modelVersion || null,
-          fallbackUsed: mlResult?.fallbackUsed || false,
-          tenantId: task.tenantId,
-        },
-      });
-
-      // Record in system audit log
-      await this.prisma.auditLog.create({
-        data: {
-          tenantId: task.tenantId,
-          action: 'SCHEDULE_TASK',
-          entityType: 'Task',
-          entityId: task.id,
-          details: {
-            nodeId: node.id,
-            policy: task.policy,
-            actor: 'system:ml-scheduler',
-            fallbackUsed: mlResult?.fallbackUsed || false,
+        await tx.auditLog.create({
+          data: {
+            tenantId: task.tenantId,
+            action: 'SCHEDULE_TASK',
+            entityType: 'Task',
+            entityId: task.id,
+            details: {
+              nodeId: node.id,
+              policy: task.policy,
+              actor: 'system:ml-scheduler',
+              fallbackUsed: mlResult?.fallbackUsed || false,
+            },
           },
-        },
+        });
+
+        const existingMetadata = (task.metadata as any) || {};
+        const updatedMetadata = mlResult
+          ? {
+              ...existingMetadata,
+              predictedScore: mlResult.decision?.score ?? 1.0,
+              modelVersion: mlResult.modelVersion ?? 'unknown',
+              shadowResult: mlResult.explanation?.shadowResult || null,
+            }
+          : existingMetadata;
+
+        await tx.task.update({
+          where: { id: task.id },
+          data: {
+            nodeId: node.id,
+            status: 'SCHEDULED',
+            reason: `Scheduled on node ${node.id}`,
+            metadata: updatedMetadata,
+          },
+        });
+
+        return await tx.taskExecution.update({
+          where: { id: exec.id },
+          data: {
+            node: { connect: { id: node.id } },
+            nodeUrl: node.url,
+            status: 'SCHEDULED',
+            scheduledAt: new Date(),
+            runtime: task.runtime,
+            affinity: task.affinity ?? null,
+            traceId: task.traceId ?? null,
+          },
+        });
       });
-    } catch (err) {
-      this.logger.error(
-        { taskId: task.id, err },
-        'Failed to persist scheduling decision or audit log',
-      );
+    } catch (err: any) {
+      if (err.code === 'P2003') {
+        this.logger.warn({ taskId: task.id }, 'Task execution creation failed due to P2003 (Task likely deleted). Skipping assignment.');
+        return;
+      }
+      if (err.message === 'Node capacity exceeded or offline during atomic assignment') {
+        this.logger.warn({ taskId: task.id, nodeId: node.id }, err.message);
+        return;
+      }
+      this.logger.error({ taskId: task.id, err }, 'Failed to persist scheduling decision or audit log');
+      throw err;
     }
-
-    // Update task status and execution record
-    const existingMetadata = (task.metadata as any) || {};
-    const updatedMetadata = mlResult
-      ? {
-          ...existingMetadata,
-          predictedScore: mlResult.decision?.score ?? 1.0,
-          modelVersion: mlResult.modelVersion ?? 'unknown',
-          shadowResult: mlResult.explanation?.shadowResult || null,
-        }
-      : existingMetadata;
-
-    await this.prisma.task.update({
-      where: { id: task.id },
-      data: {
-        nodeId: node.id,
-        status: 'SCHEDULED',
-        reason: `Scheduled on node ${node.id}`,
-        metadata: updatedMetadata,
-      },
-    });
-
-    await this.prisma.taskExecution.update({
-      where: { id: execution.id },
-      data: {
-        node: { connect: { id: node.id } },
-        nodeUrl: node.url,
-        status: 'SCHEDULED',
-        scheduledAt: new Date(),
-        runtime: task.runtime,
-        affinity: task.affinity ?? null,
-        traceId: task.traceId ?? null,
-      },
-    });
 
     let isPullAgent = false;
     // Send to edge agent with circuit breaker protection
@@ -2079,6 +2101,28 @@ export class TaskScheduler extends EventEmitter {
                 }
                 span.recordException(err);
                 span.setStatus({ code: SpanStatusCode.ERROR });
+                
+                await this.prisma.$transaction(async (tx) => {
+                  await tx.edgeNode.update({
+                    where: { id: node.id },
+                    data: { tasksRunning: { decrement: 1 } },
+                  });
+                  await tx.task.update({
+                    where: { id: task.id },
+                    data: { status: 'FAILED', reason: 'Node rejected or timed out during dispatch' },
+                  });
+                  if (execution) {
+                    await tx.taskExecution.update({
+                      where: { id: execution.id },
+                      data: { status: 'FAILED' },
+                    });
+                  }
+                });
+                
+                if (this.schedulerRateLimiter) {
+                  await this.schedulerRateLimiter.recordTaskCompleted(node.id);
+                }
+                
                 throw err;
               } finally {
                 span.end();
@@ -2148,11 +2192,7 @@ export class TaskScheduler extends EventEmitter {
         }),
       ]);
 
-      // Update node task count
-      await this.prisma.edgeNode.update({
-        where: { id: node.id },
-        data: { tasksRunning: { increment: 1 } },
-      });
+      // Node task count was already updated in the atomic assignment transaction
 
       const tWs = performance.now();
       this.wsManager.broadcast('task:started', {
