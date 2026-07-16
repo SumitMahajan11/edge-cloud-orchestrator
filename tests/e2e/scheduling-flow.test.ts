@@ -225,6 +225,7 @@ const mockCreateMockModel = (stateKey: string) => ({
         (stateKey === "edgeNodes" ? false : undefined),
       tasksRunning:
         data.tasksRunning ?? (stateKey === "edgeNodes" ? 0 : undefined),
+      maxTasks: data.maxTasks ?? (stateKey === "edgeNodes" ? 10 : undefined),
       policy:
         data.policy || (stateKey === "tasks" ? "load-balanced" : "manual"),
       runtime: data.runtime || (stateKey === "tasks" ? "DOCKER" : undefined),
@@ -239,7 +240,14 @@ const mockCreateMockModel = (stateKey: string) => ({
     const id = where.id || where.taskId;
     const item = (mockDbState as any)[stateKey].get(id);
     if (item) {
-      Object.assign(item, data);
+      if (data && data.tasksRunning && typeof data.tasksRunning === "object") {
+        if (data.tasksRunning.increment) item.tasksRunning = (item.tasksRunning || 0) + data.tasksRunning.increment;
+        if (data.tasksRunning.decrement) item.tasksRunning = Math.max(0, (item.tasksRunning || 0) - data.tasksRunning.decrement);
+        const { tasksRunning, ...restData } = data;
+        Object.assign(item, restData);
+      } else {
+        Object.assign(item, data);
+      }
     }
     return item;
   },
@@ -327,13 +335,16 @@ const mockPrismaInstance = {
   $connect: async () => {},
   $disconnect: async () => {},
   $extends: vi.fn().mockReturnThis(),
-  $transaction: async (calls: any[]) => {
+  $transaction: vi.fn(async (arg) => {
+    if (typeof arg === "function") {
+      return await arg(mockPrismaInstance);
+    }
     const res = [];
-    for (const c of calls) {
+    for (const c of arg) {
       res.push(await (typeof c === "function" ? c(mockPrismaInstance) : c));
     }
     return res;
-  },
+  }),
   $queryRaw: async () => [{ 1: 1 }],
   $executeRawUnsafe: async () => ({}),
   edgeNode: mockCreateMockModel("edgeNodes"),
