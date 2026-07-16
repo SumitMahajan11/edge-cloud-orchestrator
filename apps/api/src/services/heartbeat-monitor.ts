@@ -93,7 +93,7 @@ export class HeartbeatMonitor {
             // Update node status
             await this.prisma.edgeNode.update({
               where: { id: node.id },
-              data: { status: NodeStatus.OFFLINE },
+              data: { status: NodeStatus.OFFLINE, tasksRunning: 0 },
             });
 
             // Emit system log: node went offline
