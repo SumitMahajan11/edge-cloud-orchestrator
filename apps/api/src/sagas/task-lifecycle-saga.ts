@@ -217,22 +217,38 @@ export function createTaskLifecycleSaga(
         'Releasing resource reservation',
       );
 
-      // Check current count before decrement to avoid negative values
-      const node = await prisma.edgeNode.findUnique({
-        where: { id: context.nodeId },
-        select: { tasksRunning: true },
-      });
-
-      if (node && node.tasksRunning > 0) {
-        await prisma.edgeNode.update({
-          where: { id: context.nodeId },
-          data: { tasksRunning: { decrement: 1 } },
+      try {
+        // Atomic decrement using updateMany with gt: 0 check to ensure no negative values
+        await prisma.edgeNode.updateMany({
+          where: {
+            id: context.nodeId,
+            tasksRunning: { gt: 0 },
+          },
+          data: {
+            tasksRunning: { decrement: 1 },
+          },
         });
-      }
 
-      await idempotencyService.complete(idempotencyKey, {
-        status: 'completed',
-      });
+        await idempotencyService.complete(idempotencyKey, {
+          status: 'completed',
+        });
+      } catch (error) {
+        logger.error(
+          { taskId: context.taskId, nodeId: context.nodeId, error },
+          'Failed to release resource reservation in compensation',
+        );
+        try {
+          await prisma.idempotencyRecord.delete({
+            where: { idempotencyKey },
+          });
+        } catch (cleanupErr) {
+          logger.warn(
+            { idempotencyKey, cleanupErr },
+            'Failed to delete idempotency record on compensation failure',
+          );
+        }
+        throw error;
+      }
     },
   };
 
@@ -276,18 +292,36 @@ export function createTaskLifecycleSaga(
         'Cancelling TaskExecution record',
       );
 
-      // Mark TaskExecution as CANCELLED
-      await prisma.taskExecution.updateMany({
-        where: {
-          taskId: context.taskId,
-          status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] },
-        },
-        data: { status: 'CANCELLED' },
-      });
+      try {
+        // Mark TaskExecution as CANCELLED
+        await prisma.taskExecution.updateMany({
+          where: {
+            taskId: context.taskId,
+            status: { in: ['PENDING', 'SCHEDULED', 'RUNNING'] },
+          },
+          data: { status: 'CANCELLED' },
+        });
 
-      await idempotencyService.complete(idempotencyKey, {
-        status: 'completed',
-      });
+        await idempotencyService.complete(idempotencyKey, {
+          status: 'completed',
+        });
+      } catch (error) {
+        logger.error(
+          { taskId: context.taskId, error },
+          'Failed to cancel TaskExecution record in compensation',
+        );
+        try {
+          await prisma.idempotencyRecord.delete({
+            where: { idempotencyKey },
+          });
+        } catch (cleanupErr) {
+          logger.warn(
+            { idempotencyKey, cleanupErr },
+            'Failed to delete idempotency record on compensation failure',
+          );
+        }
+        throw error;
+      }
     },
   };
 
@@ -331,19 +365,37 @@ export function createTaskLifecycleSaga(
         'Reverting task status to PENDING',
       );
 
-      // Revert to previous status (PENDING)
-      await prisma.task.update({
-        where: { id: context.taskId },
-        data: {
-          nodeId: null,
-          status: 'PENDING',
-          reason: 'Task status reverted due to saga compensation',
-        },
-      });
+      try {
+        // Revert to previous status (PENDING)
+        await prisma.task.update({
+          where: { id: context.taskId },
+          data: {
+            nodeId: null,
+            status: 'PENDING',
+            reason: 'Task status reverted due to saga compensation',
+          },
+        });
 
-      await idempotencyService.complete(idempotencyKey, {
-        status: 'completed',
-      });
+        await idempotencyService.complete(idempotencyKey, {
+          status: 'completed',
+        });
+      } catch (error) {
+        logger.error(
+          { taskId: context.taskId, error },
+          'Failed to revert task status in compensation',
+        );
+        try {
+          await prisma.idempotencyRecord.delete({
+            where: { idempotencyKey },
+          });
+        } catch (cleanupErr) {
+          logger.warn(
+            { idempotencyKey, cleanupErr },
+            'Failed to delete idempotency record on compensation failure',
+          );
+        }
+        throw error;
+      }
     },
   };
 
@@ -443,37 +495,55 @@ export function createTaskLifecycleSaga(
 
       logger.info({ taskId: context.taskId }, 'Sending cancellation to agent');
 
-      if (context.nodeUrl) {
+      try {
+        if (context.nodeUrl) {
+          try {
+            await withCircuitBreaker(
+              {
+                ...circuitBreakerConfigs.nodeAgent,
+                name: `node-agent-${context.nodeId}`,
+              },
+              () =>
+                axios.post(
+                  `${context.nodeUrl}/cancel-task`,
+                  { taskId: context.taskId },
+                  { timeout: 5000 },
+                ),
+            );
+          } catch (error) {
+            logger.warn(
+              { taskId: context.taskId, error },
+              'Failed to cancel task on node agent during compensation',
+            );
+          }
+        }
+
+        // Ensure local status is moved away from RUNNING
+        await prisma.taskExecution.updateMany({
+          where: { taskId: context.taskId, status: 'RUNNING' },
+          data: { status: 'CANCELLED', completedAt: new Date() },
+        });
+
+        await idempotencyService.complete(idempotencyKey, {
+          status: 'completed',
+        });
+      } catch (error) {
+        logger.error(
+          { taskId: context.taskId, error },
+          'Failed in SendAssignmentToAgent compensation',
+        );
         try {
-          await withCircuitBreaker(
-            {
-              ...circuitBreakerConfigs.nodeAgent,
-              name: `node-agent-${context.nodeId}`,
-            },
-            () =>
-              axios.post(
-                `${context.nodeUrl}/cancel-task`,
-                { taskId: context.taskId },
-                { timeout: 5000 },
-              ),
-          );
-        } catch (error) {
+          await prisma.idempotencyRecord.delete({
+            where: { idempotencyKey },
+          });
+        } catch (cleanupErr) {
           logger.warn(
-            { taskId: context.taskId, error },
-            'Failed to cancel task on node agent during compensation',
+            { idempotencyKey, cleanupErr },
+            'Failed to delete idempotency record on compensation failure',
           );
         }
+        throw error;
       }
-
-      // Ensure local status is moved away from RUNNING
-      await prisma.taskExecution.updateMany({
-        where: { taskId: context.taskId, status: 'RUNNING' },
-        data: { status: 'CANCELLED', completedAt: new Date() },
-      });
-
-      await idempotencyService.complete(idempotencyKey, {
-        status: 'completed',
-      });
     },
   };
 
@@ -513,13 +583,31 @@ export function createTaskLifecycleSaga(
 
       logger.info({ taskId: context.taskId }, 'Cancelling heartbeat monitor');
 
-      if (redis) {
-        await redis.del(`task:heartbeat:${context.taskId}`);
-      }
+      try {
+        if (redis) {
+          await redis.del(`task:heartbeat:${context.taskId}`);
+        }
 
-      await idempotencyService.complete(idempotencyKey, {
-        status: 'completed',
-      });
+        await idempotencyService.complete(idempotencyKey, {
+          status: 'completed',
+        });
+      } catch (error) {
+        logger.error(
+          { taskId: context.taskId, error },
+          'Failed in StartHeartbeatMonitor compensation',
+        );
+        try {
+          await prisma.idempotencyRecord.delete({
+            where: { idempotencyKey },
+          });
+        } catch (cleanupErr) {
+          logger.warn(
+            { idempotencyKey, cleanupErr },
+            'Failed to delete idempotency record on compensation failure',
+          );
+        }
+        throw error;
+      }
     },
   };
 
