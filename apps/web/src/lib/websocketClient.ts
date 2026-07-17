@@ -68,25 +68,7 @@ class WebSocketClient {
           }
         }
 
-        // Add logging for client-side token claims
-        if (this.token) {
-          try {
-            const parts = this.token.split(".");
-            if (parts.length >= 2) {
-              const payload = JSON.parse(atob(parts[1]!.replace(/-/g, "+").replace(/_/g, "/")));
-              console.log("[WebSocket] Client token claims:", {
-                userId: payload.id,
-                role: payload.role,
-                tenantId: payload.tenantId,
-              });
-            }
-          } catch (e) {
-            console.error("[WebSocket] Failed to log token claims:", e);
-          }
-        }
-
         const wsUrl = this.token ? `${this.url}?token=${this.token}` : this.url;
-        console.log(`[WebSocket] Connecting to ${this.url} with token: ${this.token ? 'present' : 'missing'}`);
 
         this.ws = new WebSocket(wsUrl);
 

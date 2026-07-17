@@ -53,7 +53,6 @@ async function buildHeaders(init?: HeadersInit, hasBody?: boolean): Promise<Head
   if (hasBody && !h.has("Content-Type")) h.set("Content-Type", "application/json");
 
   const token = authStorage.getToken();
-  console.log("[api-client] buildHeaders token from storage:", token ? `exists (${token.substring(0, 10)}...)` : "null/undefined");
   if (token) h.set("Authorization", `Bearer ${token}`);
 
   const tenantId = getActiveTenantId();
@@ -109,7 +108,6 @@ async function customFetch(
   let refreshed = false;
 
   const url = input instanceof Request ? input.url : String(input);
-  console.log("[api-client] customFetch starting for:", url);
 
   while (true) {
     // When the @hey-api/openapi-ts client calls customFetch, it passes
@@ -130,8 +128,6 @@ async function customFetch(
     headers.forEach((value, key) => {
       headersObj[key] = value;
     });
-
-    console.log("[api-client] customFetch headers for", url, ":", JSON.stringify(headersObj));
 
     let req: Request;
     if (input instanceof Request) {
