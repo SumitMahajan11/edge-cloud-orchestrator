@@ -219,7 +219,7 @@ export function createTaskLifecycleSaga(
 
       try {
         // Atomic decrement using updateMany with gt: 0 check to ensure no negative values
-        await prisma.edgeNode.updateMany({
+        const result = await prisma.edgeNode.updateMany({
           where: {
             id: context.nodeId,
             tasksRunning: { gt: 0 },
@@ -228,6 +228,13 @@ export function createTaskLifecycleSaga(
             tasksRunning: { decrement: 1 },
           },
         });
+
+        if (result.count === 0) {
+          logger.warn(
+            { taskId: context.taskId, nodeId: context.nodeId },
+            'ReserveNodeResources compensation: updateMany affected 0 rows — node may not exist or tasksRunning was already 0',
+          );
+        }
 
         await idempotencyService.complete(idempotencyKey, {
           status: 'completed',
