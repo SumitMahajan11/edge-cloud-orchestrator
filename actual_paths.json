@@ -1,0 +1,5852 @@
+{
+  "/v2/admin/audit-logs": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "userId",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "action",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 100,
+            "type": "number"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get audit logs",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/cleanup": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "olderThanDays": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "types": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "olderThanDays",
+                "types"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Clean up old data",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/dlq/events": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "topic",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "status",
+          "required": false,
+          "schema": {
+            "enum": [
+              "PENDING",
+              "PERMANENTLY_FAILED",
+              "REPROCESSED",
+              "RETRYING"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "offset",
+          "required": false,
+          "schema": {
+            "minimum": 0,
+            "type": "integer"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List DLQ events with filtering",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/dlq/events/{id}/retry": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Retry a specific DLQ event",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/dlq/purge": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "olderThanDays": {
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Purge old DLQ events",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/dlq/stats": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get DLQ statistics across all streams",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/events/republish": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "entityId": {
+                  "type": "string"
+                },
+                "eventType": {
+                  "type": "string"
+                },
+                "targetTopic": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "entityId",
+                "eventType"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Republish an event to Kafka",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/events/republish-range": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "dryRun": {
+                  "type": "boolean"
+                },
+                "eventType": {
+                  "type": "string"
+                },
+                "fromTimestamp": {
+                  "type": "string"
+                },
+                "toTimestamp": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "eventType",
+                "fromTimestamp",
+                "toTimestamp"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Bulk republish events to Kafka",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/health": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system health",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/ml/retrain": {
+    "post": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Trigger ML model retraining",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/users": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List all users",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/users/{id}/deactivate": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Deactivate user",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/users/{id}/role": {
+    "patch": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "role": {
+                  "enum": [
+                    "ADMIN",
+                    "OPERATOR",
+                    "SUPER_ADMIN",
+                    "VIEWER"
+                  ],
+                  "type": "string"
+                }
+              },
+              "required": [
+                "role"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update user role",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/admin/ws-stats": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get WebSocket statistics",
+      "tags": [
+        "admin"
+      ]
+    }
+  },
+  "/v2/agents/ca": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "certificate": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get CA certificate",
+      "tags": [
+        "agents"
+      ]
+    }
+  },
+  "/v2/agents/certificates/sign": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "bootstrapToken": {
+                  "description": "One-time bootstrap token",
+                  "type": "string"
+                },
+                "cpuCores": {
+                  "type": "number"
+                },
+                "csr": {
+                  "description": "PEM encoded Certificate Signing Request",
+                  "type": "string"
+                },
+                "hardwareId": {
+                  "type": "string"
+                },
+                "ipAddress": {
+                  "type": "string"
+                },
+                "memoryGB": {
+                  "type": "number"
+                },
+                "nodeName": {
+                  "type": "string"
+                },
+                "port": {
+                  "type": "number"
+                },
+                "region": {
+                  "type": "string"
+                },
+                "storageGB": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "bootstrapToken",
+                "csr",
+                "nodeName",
+                "region"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "caCertificate": {
+                    "type": "string"
+                  },
+                  "certificate": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "nodeId": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "400": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "401": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "403": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Bootstrap agent certificate and register node",
+      "tags": [
+        "agents"
+      ]
+    }
+  },
+  "/v2/agents/heartbeat": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "metrics": {
+                  "properties": {
+                    "cpu_usage": {
+                      "type": "number"
+                    },
+                    "memory_usage": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "timestamp": {
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Agent heartbeat",
+      "tags": [
+        "agents"
+      ]
+    }
+  },
+  "/v2/agents/tasks/pending": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "cpu_fuel": {
+                    "nullable": true,
+                    "type": "number"
+                  },
+                  "image": {
+                    "type": "string"
+                  },
+                  "input": {
+                    "additionalProperties": true,
+                    "type": "object"
+                  },
+                  "memory_limit_mb": {
+                    "type": "number"
+                  },
+                  "runtime": {
+                    "type": "string"
+                  },
+                  "task_id": {
+                    "type": "string"
+                  },
+                  "timeout_seconds": {
+                    "type": "number"
+                  },
+                  "wasm_artifact_id": {
+                    "nullable": true,
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "404": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Poll for pending tasks",
+      "tags": [
+        "agents"
+      ]
+    }
+  },
+  "/v2/agents/tasks/{taskId}/result": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "taskId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "duration_ms": {
+                  "type": "number"
+                },
+                "error": {
+                  "nullable": true,
+                  "type": "string"
+                },
+                "exit_code": {
+                  "type": "number"
+                },
+                "metrics": {
+                  "properties": {
+                    "cpu_usage_avg": {
+                      "type": "number"
+                    },
+                    "memory_usage_max": {
+                      "type": "number"
+                    },
+                    "network_egress_bytes": {
+                      "type": "number"
+                    },
+                    "network_ingress_bytes": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "status": {
+                  "type": "string"
+                },
+                "stderr": {
+                  "type": "string"
+                },
+                "stdout": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "exit_code",
+                "status"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Report task result",
+      "tags": [
+        "agents"
+      ]
+    }
+  },
+  "/v2/agents/tasks/{taskId}/status": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "taskId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "status": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "status"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update task execution status",
+      "tags": [
+        "agents"
+      ]
+    }
+  },
+  "/v2/alerts/": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "alerts": {
+                    "items": {
+                      "properties": {
+                        "acknowledgedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "description": {
+                          "type": "string"
+                        },
+                        "firedAt": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "string"
+                        },
+                        "resolvedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "severity": {
+                          "enum": [
+                            "CRITICAL",
+                            "HIGH",
+                            "LOW",
+                            "MEDIUM"
+                          ],
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get active alerts for tenant",
+      "tags": [
+        "alerts"
+      ]
+    }
+  },
+  "/v2/alerts/test": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "description": {
+                  "type": "string"
+                },
+                "severity": {
+                  "enum": [
+                    "CRITICAL",
+                    "HIGH",
+                    "LOW",
+                    "MEDIUM"
+                  ],
+                  "type": "string"
+                },
+                "title": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "description",
+                "severity",
+                "title"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Send test alert",
+      "tags": [
+        "alerts"
+      ]
+    }
+  },
+  "/v2/alerts/{id}/acknowledge": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Acknowledge an alert",
+      "tags": [
+        "alerts"
+      ]
+    }
+  },
+  "/v2/analytics/cost": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "from",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "to",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "nodeId",
+          "required": false,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "costByNode": {
+                    "items": {
+                      "properties": {
+                        "cost": {
+                          "type": "number"
+                        },
+                        "nodeId": {
+                          "type": "string"
+                        },
+                        "nodeName": {
+                          "type": "string"
+                        },
+                        "taskCount": {
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "costOverTime": {
+                    "items": {
+                      "properties": {
+                        "cost": {
+                          "type": "number"
+                        },
+                        "date": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "totalActualCost": {
+                    "type": "number"
+                  },
+                  "totalSavings": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get cost analytics",
+      "tags": [
+        "analytics"
+      ]
+    }
+  },
+  "/v2/analytics/governance": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "activeConstraints": {
+                    "type": "number"
+                  },
+                  "complianceScore": {
+                    "type": "number"
+                  },
+                  "onlineNodes": {
+                    "type": "number"
+                  },
+                  "policyViolations": {
+                    "type": "number"
+                  },
+                  "totalNodes": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get governance metrics",
+      "tags": [
+        "analytics"
+      ]
+    }
+  },
+  "/v2/api-keys/": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List my API keys",
+      "tags": [
+        "api-keys"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "expiresAt": {
+                  "anyOf": [
+                    {
+                      "anyOf": [
+                        {
+                          "not": {}
+                        },
+                        {
+                          "format": "date-time",
+                          "type": "string"
+                        }
+                      ]
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "name": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "pattern": "^[a-zA-Z0-9\\s\\-_]+$",
+                  "type": "string"
+                },
+                "permissions": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "type": "array"
+                }
+              },
+              "required": [
+                "name"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Create a new API key",
+      "tags": [
+        "api-keys"
+      ]
+    }
+  },
+  "/v2/api-keys/{id}": {
+    "delete": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Revoke an API key",
+      "tags": [
+        "api-keys"
+      ]
+    }
+  },
+  "/v2/auth/login": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "email": {
+                  "format": "email",
+                  "type": "string"
+                },
+                "password": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "password"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "accessToken": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "refreshToken": {
+                    "type": "string"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "user": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "email": {
+                        "format": "email",
+                        "type": "string"
+                      },
+                      "id": {
+                        "format": "uuid",
+                        "type": "string"
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "anyOf": [
+                              {
+                                "not": {}
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "role": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "id",
+                      "role"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "accessToken",
+                  "expiresAt",
+                  "refreshToken",
+                  "token",
+                  "user"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "401": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "429": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Login and get tokens",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/auth/logout": {
+    "post": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Logout and invalidate session",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/auth/me": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get current user profile",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/auth/refresh": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "refreshToken": {
+                  "minLength": 1,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "refreshToken"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Refresh access token",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/auth/register": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "email": {
+                  "format": "email",
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 100,
+                  "minLength": 2,
+                  "pattern": "^[a-zA-Z\\s\\-\\.]+$",
+                  "type": "string"
+                },
+                "password": {
+                  "maxLength": 128,
+                  "minLength": 12,
+                  "type": "string"
+                }
+              },
+              "required": [
+                "email",
+                "name",
+                "password"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "accessToken": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "refreshToken": {
+                    "type": "string"
+                  },
+                  "token": {
+                    "type": "string"
+                  },
+                  "user": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "email": {
+                        "format": "email",
+                        "type": "string"
+                      },
+                      "id": {
+                        "format": "uuid",
+                        "type": "string"
+                      },
+                      "name": {
+                        "anyOf": [
+                          {
+                            "anyOf": [
+                              {
+                                "not": {}
+                              },
+                              {
+                                "type": "string"
+                              }
+                            ]
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "role": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "email",
+                      "id",
+                      "role"
+                    ],
+                    "type": "object"
+                  }
+                },
+                "required": [
+                  "accessToken",
+                  "expiresAt",
+                  "refreshToken",
+                  "token",
+                  "user"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "400": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "409": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Register a new user",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/auth/sessions": {
+    "delete": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Revoke all user sessions (logout everywhere)",
+      "tags": [
+        "auth"
+      ]
+    },
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List active user sessions",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/auth/sessions/{id}": {
+    "delete": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Revoke a specific session",
+      "tags": [
+        "auth"
+      ]
+    }
+  },
+  "/v2/carbon/by-region": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "properties": {
+                    "carbonIntensityGco2": {
+                      "type": "number"
+                    },
+                    "lastUpdatedAt": {
+                      "type": "string"
+                    },
+                    "source": {
+                      "type": "string"
+                    },
+                    "zone": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get carbon breakdown by region",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
+  "/v2/carbon/intensity": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "regions": {
+                    "items": {
+                      "properties": {
+                        "carbonIntensityGco2": {
+                          "type": "number"
+                        },
+                        "lastUpdatedAt": {
+                          "type": "string"
+                        },
+                        "source": {
+                          "type": "string"
+                        },
+                        "zone": {
+                          "type": "string"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get regional carbon intensity",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
+  "/v2/carbon/policy": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "activePolicy": {
+                    "type": "string"
+                  },
+                  "carbonWeight": {
+                    "type": "number"
+                  },
+                  "isActive": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get active carbon optimization policy",
+      "tags": [
+        "carbon"
+      ]
+    },
+    "patch": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "carbonWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "carbonWeight"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "carbonWeight": {
+                    "type": "number"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update carbon optimization weight",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
+  "/v2/carbon/report": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "from",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "to",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "tenantId",
+          "required": false,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "format",
+          "required": false,
+          "schema": {
+            "default": "json",
+            "enum": [
+              "csv",
+              "json"
+            ],
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get auditable tenant carbon report",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
+  "/v2/carbon/savings": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "days",
+          "required": false,
+          "schema": {
+            "default": 7,
+            "maximum": 365,
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "equivalentTreesPlanted": {
+                    "type": "number"
+                  },
+                  "savingsHistory": {
+                    "items": {
+                      "properties": {
+                        "date": {
+                          "type": "string"
+                        },
+                        "savedGco2": {
+                          "type": "number"
+                        }
+                      },
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "totalSavedGco2Today": {
+                    "type": "number"
+                  },
+                  "totalSavedGco2Week": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get carbon savings metrics",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
+  "/v2/carbon/summary": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "equivalentTreesPlanted": {
+                    "type": "number"
+                  },
+                  "totalSavedGco2Today": {
+                    "type": "number"
+                  },
+                  "totalSavedGco2Week": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get carbon footprint summary",
+      "tags": [
+        "carbon"
+      ]
+    }
+  },
+  "/v2/circuit-breakers/": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "properties": {
+                    "failureCount": {
+                      "type": "number"
+                    },
+                    "failureRate": {
+                      "type": "number"
+                    },
+                    "lastStateChange": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "nextRetryAt": {
+                      "type": "string"
+                    },
+                    "state": {
+                      "enum": [
+                        "CLOSED",
+                        "HALF_OPEN",
+                        "OPEN"
+                      ],
+                      "type": "string"
+                    },
+                    "successCount": {
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get all circuit breaker states",
+      "tags": [
+        "resilience"
+      ]
+    }
+  },
+  "/v2/circuit-breakers/{name}/reset": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "name",
+          "required": true,
+          "schema": {
+            "minLength": 1,
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "404": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Force reset a circuit breaker",
+      "tags": [
+        "resilience"
+      ]
+    }
+  },
+  "/v2/cost/by-node": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get cost breakdown by node",
+      "tags": [
+        "cost"
+      ]
+    }
+  },
+  "/v2/cost/projections": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get cost projections",
+      "tags": [
+        "cost"
+      ]
+    }
+  },
+  "/v2/cost/records": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "nodeId",
+          "required": false,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "resourceType",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "from",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "to",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "granularity",
+          "required": false,
+          "schema": {
+            "default": "day",
+            "enum": [
+              "day",
+              "hour",
+              "month",
+              "week"
+            ],
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get cost records",
+      "tags": [
+        "cost"
+      ]
+    }
+  },
+  "/v2/cost/summary": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get cost summary",
+      "tags": [
+        "cost"
+      ]
+    }
+  },
+  "/v2/fl/models": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List FL models",
+      "tags": [
+        "federated-learning"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "architecture": {
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "name": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "parameters": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "version": {
+                  "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                  "type": "string"
+                },
+                "weightsSize": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "weightsUrl": {
+                  "format": "uri",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "architecture",
+                "name",
+                "parameters",
+                "version"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Register a FL model",
+      "tags": [
+        "federated-learning"
+      ]
+    }
+  },
+  "/v2/fl/models/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get FL model",
+      "tags": [
+        "federated-learning"
+      ]
+    }
+  },
+  "/v2/fl/models/{id}/weights": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Download weights for a FL model",
+      "tags": [
+        "federated-learning"
+      ]
+    },
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Upload weights for a FL model",
+      "tags": [
+        "federated-learning"
+      ]
+    }
+  },
+  "/v2/fl/sessions": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "config": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "aggregationStrategy": {
+                      "default": "fedavg",
+                      "enum": [
+                        "fedadam",
+                        "fedavg",
+                        "fedprox"
+                      ],
+                      "type": "string"
+                    },
+                    "gradientClipNorm": {
+                      "maximum": 100,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "learningRate": {
+                      "default": 0.01,
+                      "maximum": 1,
+                      "minimum": 0.0001,
+                      "type": "number"
+                    },
+                    "localEpochs": {
+                      "default": 5,
+                      "maximum": 100,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "maxClients": {
+                      "default": 10,
+                      "maximum": 1000,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "minClients": {
+                      "default": 3,
+                      "maximum": 100,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "noiseMultiplier": {
+                      "maximum": 10,
+                      "minimum": 0,
+                      "type": "number"
+                    },
+                    "privacyBudget": {
+                      "maximum": 10,
+                      "minimum": 0,
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "modelId": {
+                  "format": "uuid",
+                  "type": "string"
+                },
+                "totalRounds": {
+                  "default": 10,
+                  "maximum": 100,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "modelId"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Start FL training session",
+      "tags": [
+        "federated-learning"
+      ]
+    }
+  },
+  "/v2/fl/sessions/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get FL session",
+      "tags": [
+        "federated-learning"
+      ]
+    }
+  },
+  "/v2/fl/sessions/{id}/stop": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Stop FL session",
+      "tags": [
+        "federated-learning"
+      ]
+    }
+  },
+  "/v2/logs/": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "taskId",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "nodeId",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "level",
+          "required": false,
+          "schema": {
+            "enum": [
+              "DEBUG",
+              "ERROR",
+              "INFO",
+              "WARN"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 100,
+            "type": "number"
+          }
+        },
+        {
+          "in": "query",
+          "name": "offset",
+          "required": false,
+          "schema": {
+            "default": 0,
+            "type": "number"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system-wide logs",
+      "tags": [
+        "logs"
+      ]
+    }
+  },
+  "/v2/logs/stats": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get log statistics",
+      "tags": [
+        "logs"
+      ]
+    }
+  },
+  "/v2/metrics/": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system metrics",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/metrics/ml": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "activeModels": {
+                    "type": "number"
+                  },
+                  "avgAccuracy": {
+                    "type": "number"
+                  },
+                  "totalPredictions": {
+                    "type": "number"
+                  },
+                  "trainingJobs": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get ML-specific metrics",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/metrics/network": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "avgLatency": {
+                    "type": "number"
+                  },
+                  "egressGbps": {
+                    "type": "number"
+                  },
+                  "ingressGbps": {
+                    "type": "number"
+                  },
+                  "packetLoss": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get network performance metrics",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/metrics/nodes": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get node metrics summary",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/metrics/prometheus": {
+    "get": {
+      "description": "Returns metrics in Prometheus exposition format",
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get Prometheus metrics",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/metrics/requests": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get request metrics",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/metrics/system": {
+    "get": {
+      "responses": {
+        "401": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system metrics",
+      "tags": [
+        "metrics"
+      ]
+    }
+  },
+  "/v2/ml/drift/current": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "driftScore": {
+                    "type": "number"
+                  },
+                  "featureDrift": {
+                    "additionalProperties": {
+                      "type": "number"
+                    },
+                    "type": "object"
+                  },
+                  "isDrifting": {
+                    "type": "boolean"
+                  },
+                  "lastCheckedAt": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get current ML drift status",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/drift/history": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "hours",
+          "required": false,
+          "schema": {
+            "default": 24,
+            "maximum": 720,
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "items": {
+                  "properties": {
+                    "score": {
+                      "type": "number"
+                    },
+                    "timestamp": {
+                      "type": "string"
+                    }
+                  },
+                  "type": "object"
+                },
+                "type": "array"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get ML drift history",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/model/{modelId}/weights": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "modelId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Download weights for a federated learning model",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/round": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "minParticipants": {
+                    "type": "number"
+                  },
+                  "modelId": {
+                    "type": "string"
+                  },
+                  "roundId": {
+                    "type": "string"
+                  },
+                  "roundNumber": {
+                    "type": "number"
+                  },
+                  "status": {
+                    "type": "string"
+                  },
+                  "submissionsCount": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get or initialize current active federated learning round",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/weights": {
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "avgReward": {
+                  "nullable": true,
+                  "type": "number"
+                },
+                "nodeId": {
+                  "type": "string"
+                },
+                "roundId": {
+                  "type": "string"
+                },
+                "sampleCount": {
+                  "type": "number"
+                },
+                "weightsUrl": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "nodeId",
+                "roundId",
+                "sampleCount",
+                "weightsUrl"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Submit local model weight deltas for federated aggregation",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/federated/weights/upload": {
+    "post": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      }
+    }
+  },
+  "/v2/ml/model/current": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "accuracy": {
+                    "type": "number"
+                  },
+                  "fallbackRate": {
+                    "type": "number"
+                  },
+                  "lastUpdatedAt": {
+                    "type": "string"
+                  },
+                  "modelType": {
+                    "type": "string"
+                  },
+                  "trainedAt": {
+                    "type": "string"
+                  },
+                  "version": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get current ML model status",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/outcomes/stats": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "banditExplorationRate": {
+                    "type": "number"
+                  },
+                  "nextUpdateAt": {
+                    "type": "number"
+                  },
+                  "outcomesBuffered": {
+                    "type": "number"
+                  },
+                  "predictionErrorP99Ms": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get ML outcome collection stats",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/retrain": {
+    "post": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Manually trigger model retraining",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/ml/retrain/status": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "error": {
+                    "nullable": true,
+                    "type": "string"
+                  },
+                  "lastStartedAt": {
+                    "type": "string"
+                  },
+                  "status": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get status of current retraining job",
+      "tags": [
+        "ml"
+      ]
+    }
+  },
+  "/v2/nodes/": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "region",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "status",
+          "required": false,
+          "schema": {
+            "enum": [
+              "DEGRADED",
+              "MAINTENANCE",
+              "OFFLINE",
+              "ONLINE"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "page",
+          "required": false,
+          "schema": {
+            "default": 1,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "sortBy",
+          "required": false,
+          "schema": {
+            "default": "createdAt",
+            "enum": [
+              "createdAt",
+              "name",
+              "region",
+              "status"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "sortOrder",
+          "required": false,
+          "schema": {
+            "default": "desc",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "data": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "id": {
+                          "type": "string"
+                        },
+                        "ipAddress": {
+                          "type": "string"
+                        },
+                        "lastHeartbeat": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "load": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "activeTasks": {
+                              "type": "number"
+                            },
+                            "cpuUsage": {
+                              "type": "number"
+                            },
+                            "memoryUsage": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "activeTasks"
+                          ],
+                          "type": "object"
+                        },
+                        "location": {
+                          "type": "string"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "port": {
+                          "type": "number"
+                        },
+                        "region": {
+                          "type": "string"
+                        },
+                        "specs": {
+                          "additionalProperties": false,
+                          "properties": {
+                            "cpuCores": {
+                              "type": "number"
+                            },
+                            "memoryGB": {
+                              "type": "number"
+                            },
+                            "storageGB": {
+                              "type": "number"
+                            }
+                          },
+                          "required": [
+                            "cpuCores",
+                            "memoryGB",
+                            "storageGB"
+                          ],
+                          "type": "object"
+                        },
+                        "status": {
+                          "enum": [
+                            "DEGRADED",
+                            "MAINTENANCE",
+                            "OFFLINE",
+                            "ONLINE"
+                          ],
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "ipAddress",
+                        "lastHeartbeat",
+                        "location",
+                        "name",
+                        "port",
+                        "region",
+                        "specs",
+                        "status"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "pagination": {
+                    "properties": {
+                      "limit": {
+                        "type": "number"
+                      },
+                      "page": {
+                        "type": "number"
+                      },
+                      "total": {
+                        "type": "number"
+                      },
+                      "totalPages": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "List edge nodes",
+      "tags": [
+        "nodes"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "bandwidthInMbps": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "bandwidthOutMbps": {
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "costPerHour": {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "cpuCores": {
+                  "maximum": 128,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "ipAddress": {
+                  "format": "ipv4",
+                  "type": "string"
+                },
+                "location": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxTasks": {
+                  "maximum": 1000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "memoryGB": {
+                  "maximum": 1024,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "name": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "port": {
+                  "maximum": 65535,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "region": {
+                  "maxLength": 50,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "storageGB": {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "required": [
+                "cpuCores",
+                "ipAddress",
+                "location",
+                "memoryGB",
+                "name",
+                "port",
+                "region",
+                "storageGB"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "ipAddress": {
+                    "type": "string"
+                  },
+                  "lastHeartbeat": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "load": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "activeTasks": {
+                        "type": "number"
+                      },
+                      "cpuUsage": {
+                        "type": "number"
+                      },
+                      "memoryUsage": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "activeTasks"
+                    ],
+                    "type": "object"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "number"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "specs": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "cpuCores": {
+                        "type": "number"
+                      },
+                      "memoryGB": {
+                        "type": "number"
+                      },
+                      "storageGB": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cpuCores",
+                      "memoryGB",
+                      "storageGB"
+                    ],
+                    "type": "object"
+                  },
+                  "status": {
+                    "enum": [
+                      "DEGRADED",
+                      "MAINTENANCE",
+                      "OFFLINE",
+                      "ONLINE"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "ipAddress",
+                  "lastHeartbeat",
+                  "location",
+                  "name",
+                  "port",
+                  "region",
+                  "specs",
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "409": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Register a new edge node",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}": {
+    "delete": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Deregister an edge node",
+      "tags": [
+        "nodes"
+      ]
+    },
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "ipAddress": {
+                    "type": "string"
+                  },
+                  "lastHeartbeat": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "load": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "activeTasks": {
+                        "type": "number"
+                      },
+                      "cpuUsage": {
+                        "type": "number"
+                      },
+                      "memoryUsage": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "activeTasks"
+                    ],
+                    "type": "object"
+                  },
+                  "location": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "port": {
+                    "type": "number"
+                  },
+                  "region": {
+                    "type": "string"
+                  },
+                  "specs": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "cpuCores": {
+                        "type": "number"
+                      },
+                      "memoryGB": {
+                        "type": "number"
+                      },
+                      "storageGB": {
+                        "type": "number"
+                      }
+                    },
+                    "required": [
+                      "cpuCores",
+                      "memoryGB",
+                      "storageGB"
+                    ],
+                    "type": "object"
+                  },
+                  "status": {
+                    "enum": [
+                      "DEGRADED",
+                      "MAINTENANCE",
+                      "OFFLINE",
+                      "ONLINE"
+                    ],
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "ipAddress",
+                  "lastHeartbeat",
+                  "location",
+                  "name",
+                  "port",
+                  "region",
+                  "specs",
+                  "status"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "404": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get node by ID",
+      "tags": [
+        "nodes"
+      ]
+    },
+    "patch": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "costPerHour": {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "cpuCores": {
+                  "maximum": 128,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "isMaintenanceMode": {
+                  "type": "boolean"
+                },
+                "location": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "maxTasks": {
+                  "maximum": 1000,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "memoryGB": {
+                  "maximum": 1024,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                "name": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "region": {
+                  "maxLength": 50,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "storageGB": {
+                  "maximum": 10000,
+                  "minimum": 1,
+                  "type": "integer"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update node configuration",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}/drain": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Start draining a node (stop accepting new tasks)",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}/heartbeat": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "cpuUsage": {
+                  "type": "number"
+                },
+                "latency": {
+                  "type": "number"
+                },
+                "memoryUsage": {
+                  "type": "number"
+                },
+                "networkIn": {
+                  "type": "number"
+                },
+                "networkOut": {
+                  "type": "number"
+                },
+                "storageUsage": {
+                  "type": "number"
+                },
+                "tasksRunning": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "cpuUsage",
+                "memoryUsage"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Receive heartbeat from edge agent",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}/maintenance": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                }
+              },
+              "required": [
+                "enabled"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Enable/disable maintenance mode",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}/metrics": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "from",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "to",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 100,
+            "type": "number"
+          }
+        },
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get node metrics history",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}/offline": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Force a node to OFFLINE status",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/nodes/{id}/scheduling-history": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "days",
+          "required": false,
+          "schema": {
+            "default": 7,
+            "type": "number"
+          }
+        },
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get scheduling history for a node",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
+  "/v2/policies/": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List available scheduling policies",
+      "tags": [
+        "policies"
+      ]
+    }
+  },
+  "/v2/policies/active": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get the currently active scheduling policy",
+      "tags": [
+        "policies"
+      ]
+    },
+    "patch": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "policy": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "policy"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update the active scheduling policy",
+      "tags": [
+        "policies"
+      ]
+    }
+  },
+  "/v2/policies/config": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get detailed configuration for all policies",
+      "tags": [
+        "policies"
+      ]
+    }
+  },
+  "/v2/policies/thresholds": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system health thresholds",
+      "tags": [
+        "policies"
+      ]
+    },
+    "patch": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "cpu": {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "latency": {
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "memory": {
+                  "maximum": 100,
+                  "minimum": 0,
+                  "type": "number"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update system health thresholds",
+      "tags": [
+        "policies"
+      ]
+    }
+  },
+  "/v2/scheduler/decisions": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "nodeId",
+          "required": false,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 50,
+            "maximum": 500,
+            "minimum": 1,
+            "type": "integer"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get recent scheduling decisions",
+      "tags": [
+        "scheduler"
+      ]
+    }
+  },
+  "/v2/scheduler/metrics": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "avgSchedulingTime": {
+                    "type": "number"
+                  },
+                  "efficiency": {
+                    "type": "number"
+                  },
+                  "queueLength": {
+                    "type": "number"
+                  },
+                  "throughput": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get scheduler-specific metrics",
+      "tags": [
+        "scheduler"
+      ]
+    }
+  },
+  "/v2/scheduling/policies": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get all scheduling policies for the tenant",
+      "tags": [
+        "scheduling"
+      ]
+    }
+  },
+  "/v2/scheduling/policy": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get per-tenant scheduling policy",
+      "tags": [
+        "scheduling"
+      ]
+    },
+    "put": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "carbonWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "costWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                },
+                "latencyWeight": {
+                  "maximum": 1,
+                  "minimum": 0,
+                  "type": "number"
+                }
+              },
+              "required": [
+                "carbonWeight",
+                "costWeight",
+                "latencyWeight"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update per-tenant scheduling policy weights",
+      "tags": [
+        "scheduling"
+      ]
+    }
+  },
+  "/v2/status": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      }
+    }
+  },
+  "/v2/system/circuit-breakers": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system circuit breaker status",
+      "tags": [
+        "system"
+      ]
+    }
+  },
+  "/v2/system/info": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get system information",
+      "tags": [
+        "system"
+      ]
+    }
+  },
+  "/v2/tasks/": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "status",
+          "required": false,
+          "schema": {
+            "enum": [
+              "CANCELLED",
+              "COMPLETED",
+              "FAILED",
+              "PENDING",
+              "RUNNING",
+              "SCHEDULED"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "type",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "nodeId",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "priority",
+          "required": false,
+          "schema": {
+            "enum": [
+              "CRITICAL",
+              "HIGH",
+              "LOW",
+              "MEDIUM"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "page",
+          "required": false,
+          "schema": {
+            "default": 1,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "default": 20,
+            "maximum": 10000,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "query",
+          "name": "sortBy",
+          "required": false,
+          "schema": {
+            "default": "submittedAt",
+            "enum": [
+              "createdAt",
+              "duration",
+              "name",
+              "priority",
+              "status",
+              "submittedAt",
+              "updatedAt"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "sortOrder",
+          "required": false,
+          "schema": {
+            "default": "desc",
+            "enum": [
+              "asc",
+              "desc"
+            ],
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "from",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "to",
+          "required": false,
+          "schema": {
+            "format": "date-time",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "data": {
+                    "items": {
+                      "additionalProperties": false,
+                      "properties": {
+                        "affinity": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "completedAt": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "format": "date-time",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "error": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "id": {
+                          "format": "uuid",
+                          "type": "string"
+                        },
+                        "image": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "metadata": {
+                          "additionalProperties": {},
+                          "type": "object"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "nodeId": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "priority": {
+                          "type": "string"
+                        },
+                        "runtime": {
+                          "enum": [
+                            "DOCKER",
+                            "NATIVE",
+                            "WASM"
+                          ],
+                          "type": "string"
+                        },
+                        "specs": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "additionalProperties": false,
+                                  "properties": {
+                                    "cpuCores": {
+                                      "type": "number"
+                                    },
+                                    "memoryGB": {
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "cpuCores",
+                                    "memoryGB"
+                                  ],
+                                  "type": "object"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "startedAt": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "format": "date-time",
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "status": {
+                          "enum": [
+                            "CANCELLED",
+                            "COMPLETED",
+                            "FAILED",
+                            "PENDING",
+                            "RUNNING",
+                            "SCHEDULED"
+                          ],
+                          "type": "string"
+                        },
+                        "submittedAt": {
+                          "format": "date-time",
+                          "type": "string"
+                        },
+                        "traceId": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        },
+                        "type": {
+                          "type": "string"
+                        },
+                        "wasmArtifactId": {
+                          "anyOf": [
+                            {
+                              "anyOf": [
+                                {
+                                  "not": {}
+                                },
+                                {
+                                  "type": "string"
+                                }
+                              ]
+                            },
+                            {
+                              "type": "null"
+                            }
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "priority",
+                        "runtime",
+                        "status",
+                        "submittedAt",
+                        "type"
+                      ],
+                      "type": "object"
+                    },
+                    "type": "array"
+                  },
+                  "pagination": {
+                    "properties": {
+                      "limit": {
+                        "type": "number"
+                      },
+                      "page": {
+                        "type": "number"
+                      },
+                      "total": {
+                        "type": "number"
+                      },
+                      "totalPages": {
+                        "type": "number"
+                      }
+                    },
+                    "type": "object"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "List tasks",
+      "tags": [
+        "tasks"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "affinity": {
+                  "type": "string"
+                },
+                "image": {
+                  "type": "string"
+                },
+                "input": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "isDeferrable": {
+                  "type": "boolean"
+                },
+                "maxDelayMinutes": {
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "maxRetries": {
+                  "default": 3,
+                  "maximum": 10,
+                  "minimum": 0,
+                  "type": "integer"
+                },
+                "metadata": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "name": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "nodeId": {
+                  "type": "string"
+                },
+                "policy": {
+                  "type": "string"
+                },
+                "priority": {
+                  "default": "MEDIUM",
+                  "enum": [
+                    "CRITICAL",
+                    "HIGH",
+                    "LOW",
+                    "MEDIUM"
+                  ],
+                  "type": "string"
+                },
+                "runtime": {
+                  "default": "DOCKER",
+                  "enum": [
+                    "DOCKER",
+                    "NATIVE",
+                    "WASM"
+                  ],
+                  "type": "string"
+                },
+                "specs": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "cpuCores": {
+                      "maximum": 128,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "memoryGB": {
+                      "maximum": 1024,
+                      "minimum": 1,
+                      "type": "integer"
+                    },
+                    "memoryMB": {
+                      "maximum": 262144,
+                      "minimum": 1,
+                      "type": "integer"
+                    }
+                  },
+                  "type": "object"
+                },
+                "target": {
+                  "default": "EDGE",
+                  "enum": [
+                    "CLOUD",
+                    "EDGE",
+                    "HYBRID"
+                  ],
+                  "type": "string"
+                },
+                "traceId": {
+                  "type": "string"
+                },
+                "type": {
+                  "enum": [
+                    "ANOMALY_DETECTION",
+                    "BATCH_PROCESSING",
+                    "CICD_PIPELINE",
+                    "COMPUTER_VISION",
+                    "CONTAINER_BUILD",
+                    "CUSTOM",
+                    "DATA_AGGREGATION",
+                    "DATA_PROCESSING",
+                    "ETL_PIPELINE",
+                    "FRAUD_DETECTION",
+                    "IMAGE_CLASSIFICATION",
+                    "IOT_DATA_INGESTION",
+                    "LOG_ANALYSIS",
+                    "ML_TRAINING",
+                    "MODEL_INFERENCE",
+                    "NLP",
+                    "REALTIME_ANALYTICS",
+                    "RECOMMENDATION_ENGINE",
+                    "SENSOR_FUSION",
+                    "SPEECH_RECOGNITION",
+                    "VIDEO_PROCESSING"
+                  ],
+                  "type": "string"
+                },
+                "wasmArtifactId": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "name",
+                "type"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "affinity": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "completedAt": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "id": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "image": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "metadata": {
+                    "additionalProperties": {},
+                    "type": "object"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "nodeId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "priority": {
+                    "type": "string"
+                  },
+                  "runtime": {
+                    "enum": [
+                      "DOCKER",
+                      "NATIVE",
+                      "WASM"
+                    ],
+                    "type": "string"
+                  },
+                  "specs": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "cpuCores": {
+                                "type": "number"
+                              },
+                              "memoryGB": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "cpuCores",
+                              "memoryGB"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "startedAt": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "CANCELLED",
+                      "COMPLETED",
+                      "FAILED",
+                      "PENDING",
+                      "RUNNING",
+                      "SCHEDULED"
+                    ],
+                    "type": "string"
+                  },
+                  "submittedAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "traceId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "wasmArtifactId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "priority",
+                  "runtime",
+                  "status",
+                  "submittedAt",
+                  "type"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "400": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "409": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Create and schedule a new task",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/artifacts": {
+    "post": {
+      "responses": {
+        "201": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "artifactId": {
+                    "type": "string"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "400": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Upload a WASM task artifact",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/artifacts/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "format": "binary",
+                "type": "string"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "404": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Download a WASM task artifact",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/stats": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get task statistics (Deprecated)",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": false,
+                "properties": {
+                  "affinity": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "completedAt": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "error": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "id": {
+                    "format": "uuid",
+                    "type": "string"
+                  },
+                  "image": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "metadata": {
+                    "additionalProperties": {},
+                    "type": "object"
+                  },
+                  "name": {
+                    "type": "string"
+                  },
+                  "nodeId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "priority": {
+                    "type": "string"
+                  },
+                  "runtime": {
+                    "enum": [
+                      "DOCKER",
+                      "NATIVE",
+                      "WASM"
+                    ],
+                    "type": "string"
+                  },
+                  "specs": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "additionalProperties": false,
+                            "properties": {
+                              "cpuCores": {
+                                "type": "number"
+                              },
+                              "memoryGB": {
+                                "type": "number"
+                              }
+                            },
+                            "required": [
+                              "cpuCores",
+                              "memoryGB"
+                            ],
+                            "type": "object"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "startedAt": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "format": "date-time",
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "status": {
+                    "enum": [
+                      "CANCELLED",
+                      "COMPLETED",
+                      "FAILED",
+                      "PENDING",
+                      "RUNNING",
+                      "SCHEDULED"
+                    ],
+                    "type": "string"
+                  },
+                  "submittedAt": {
+                    "format": "date-time",
+                    "type": "string"
+                  },
+                  "traceId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "type": {
+                    "type": "string"
+                  },
+                  "wasmArtifactId": {
+                    "anyOf": [
+                      {
+                        "anyOf": [
+                          {
+                            "not": {}
+                          },
+                          {
+                            "type": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "id",
+                  "name",
+                  "priority",
+                  "runtime",
+                  "status",
+                  "submittedAt",
+                  "type"
+                ],
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        },
+        "404": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/def-0"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get task by ID",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/{id}/cancel": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Cancel a task",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/{id}/logs": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "level",
+          "required": false,
+          "schema": {
+            "type": "string"
+          }
+        },
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "maximum": 1000,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get task logs",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/{id}/retry": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Retry a failed task",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/tasks/{id}/scheduling-decision": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get scheduling decision for a task",
+      "tags": [
+        "tasks"
+      ]
+    }
+  },
+  "/v2/webhooks/": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List webhooks",
+      "tags": [
+        "webhooks"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "default": true,
+                  "type": "boolean"
+                },
+                "events": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "name": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "pattern": "^[a-zA-Z0-9\\s\\-_]+$",
+                  "type": "string"
+                },
+                "secret": {
+                  "maxLength": 128,
+                  "minLength": 32,
+                  "type": "string"
+                },
+                "url": {
+                  "format": "uri",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "events",
+                "name",
+                "url"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Create a webhook",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/webhooks/deliveries/{id}/retry": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "message": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Retry a failed webhook delivery",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/webhooks/stats": {
+    "get": {
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "active": {
+                    "type": "number"
+                  },
+                  "avgLatency": {
+                    "type": "number"
+                  },
+                  "failedLast24h": {
+                    "type": "number"
+                  },
+                  "total": {
+                    "type": "number"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get webhook delivery statistics",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/webhooks/{id}": {
+    "delete": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Delete a webhook",
+      "tags": [
+        "webhooks"
+      ]
+    },
+    "patch": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "enabled": {
+                  "type": "boolean"
+                },
+                "events": {
+                  "items": {
+                    "type": "string"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "name": {
+                  "maxLength": 100,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "secret": {
+                  "maxLength": 100,
+                  "minLength": 16,
+                  "type": "string"
+                },
+                "url": {
+                  "format": "uri",
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update a webhook",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/webhooks/{id}/deliveries": {
+    "get": {
+      "parameters": [
+        {
+          "in": "query",
+          "name": "limit",
+          "required": false,
+          "schema": {
+            "maximum": 100,
+            "minimum": 1,
+            "type": "integer"
+          }
+        },
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get webhook delivery history",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/webhooks/{id}/redeliver/{deliveryId}": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        },
+        {
+          "in": "path",
+          "name": "deliveryId",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Redeliver a webhook",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/webhooks/{id}/test": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "deliveryId": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Send a test event to the webhook",
+      "tags": [
+        "webhooks"
+      ]
+    }
+  },
+  "/v2/workflows/": {
+    "get": {
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "List workflows",
+      "tags": [
+        "workflows"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "edges": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "condition": {
+                        "type": "string"
+                      },
+                      "from": {
+                        "type": "string"
+                      },
+                      "id": {
+                        "type": "string"
+                      },
+                      "to": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "from",
+                      "id",
+                      "to"
+                    ],
+                    "type": "object"
+                  },
+                  "type": "array"
+                },
+                "name": {
+                  "maxLength": 200,
+                  "minLength": 1,
+                  "type": "string"
+                },
+                "nodes": {
+                  "items": {
+                    "additionalProperties": false,
+                    "properties": {
+                      "config": {
+                        "additionalProperties": {},
+                        "propertyNames": {
+                          "maxLength": 100
+                        },
+                        "type": "object"
+                      },
+                      "id": {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "pattern": "^[a-zA-Z0-9\\-_]+$",
+                        "type": "string"
+                      },
+                      "inputs": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "name": {
+                        "maxLength": 100,
+                        "minLength": 1,
+                        "type": "string"
+                      },
+                      "outputs": {
+                        "items": {
+                          "type": "string"
+                        },
+                        "type": "array"
+                      },
+                      "type": {
+                        "enum": [
+                          "decision",
+                          "parallel",
+                          "subworkflow",
+                          "task",
+                          "wait"
+                        ],
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "config",
+                      "id",
+                      "inputs",
+                      "name",
+                      "outputs",
+                      "type"
+                    ],
+                    "type": "object"
+                  },
+                  "minItems": 1,
+                  "type": "array"
+                },
+                "retryPolicy": {
+                  "additionalProperties": false,
+                  "properties": {
+                    "initialDelay": {
+                      "default": 1000,
+                      "minimum": 100,
+                      "type": "integer"
+                    },
+                    "maxDelay": {
+                      "default": 60000,
+                      "minimum": 1000,
+                      "type": "integer"
+                    },
+                    "maxRetries": {
+                      "default": 3,
+                      "maximum": 10,
+                      "minimum": 0,
+                      "type": "integer"
+                    },
+                    "multiplier": {
+                      "default": 2,
+                      "minimum": 1,
+                      "type": "number"
+                    }
+                  },
+                  "type": "object"
+                },
+                "timeout": {
+                  "default": 60000,
+                  "maximum": 86400000,
+                  "minimum": 1000,
+                  "type": "integer"
+                },
+                "variables": {
+                  "additionalProperties": {},
+                  "type": "object"
+                },
+                "version": {
+                  "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                  "type": "string"
+                }
+              },
+              "required": [
+                "edges",
+                "name",
+                "nodes",
+                "version"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Create a new workflow",
+      "tags": [
+        "workflows"
+      ]
+    }
+  },
+  "/v2/workflows/executions/{executionId}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "executionId",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get workflow execution status",
+      "tags": [
+        "workflows"
+      ]
+    }
+  },
+  "/v2/workflows/{id}": {
+    "get": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Get workflow by ID",
+      "tags": [
+        "workflows"
+      ]
+    }
+  },
+  "/v2/workflows/{id}/execute": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "additionalProperties": false,
+              "properties": {
+                "input": {
+                  "additionalProperties": {},
+                  "type": "object"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Execute a workflow",
+      "tags": [
+        "workflows"
+      ]
+    }
+  }
+}
