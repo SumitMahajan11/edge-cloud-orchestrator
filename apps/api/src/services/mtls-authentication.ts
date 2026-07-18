@@ -278,7 +278,7 @@ export class CertificateAuthorityManager {
 
       const cert = await x509.X509CertificateGenerator.create({
         serialNumber,
-        subject: parsedCsr.subject,
+        subject: `CN=${nodeId}, O=EdgeCloud, OU=Edge Nodes`,
         issuer: `CN=EdgeCloud-CA, O=EdgeCloud`,
         notBefore: now,
         notAfter: expiresAt,

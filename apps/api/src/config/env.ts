@@ -91,6 +91,10 @@ const envSchema = baseEnvSchema.extend({
   MTLS_SERVER_CERT: z.string().optional().default('/etc/edgecloud/server.crt'),
   MTLS_SERVER_KEY: z.string().optional().default('/etc/edgecloud/server.key'),
   MTLS_CA_CERT: z.string().optional(),
+  TRUST_X_CLIENT_CERT: z
+    .string()
+    .transform((v) => v === 'true')
+    .default('false'),
 
   // --- External Integrations ---
   GITHUB_TOKEN: z.string().optional(),

@@ -1,5 +1,7 @@
 import { trace } from '@opentelemetry/api';
+import { X509Certificate } from 'crypto';
 import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import { env } from '../config/env.js';
 import type { TenantId } from '../types/fastify.js';
 
 const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
@@ -30,6 +32,74 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   // Initialize CA on startup
   await caManager.initialize();
+
+  const extractNodeId = (request: any): string | null => {
+    // 1. Try peer certificate from raw socket (direct connection/local dev)
+    const cert = (request.raw.socket as any).getPeerCertificate?.();
+    if (cert?.subject?.CN) {
+      return cert.subject.CN;
+    }
+
+    // 2. Try proxy header X-Client-Cert (production proxy termination)
+    const escapedCert = request.headers['x-client-cert'] as string;
+    if (escapedCert && env.TRUST_X_CLIENT_CERT) {
+      try {
+        const certPem = decodeURIComponent(escapedCert);
+        const x509Cert = new X509Certificate(certPem);
+
+        // A. Expiry checks (notBefore / notAfter)
+        const now = new Date();
+        const validFrom = new Date(x509Cert.validFrom);
+        const validTo = new Date(x509Cert.validTo);
+        if (now < validFrom || now > validTo) {
+          request.log.warn(
+            { validFrom: x509Cert.validFrom, validTo: x509Cert.validTo },
+            'Client certificate from X-Client-Cert is expired or not yet valid',
+          );
+          return null;
+        }
+
+        // B. Signature and chain verification against CA root
+        const caCertPem = caManager.getCACertificate();
+        if (!caCertPem) {
+          request.log.error('CA certificate not initialized');
+          return null;
+        }
+        const caCert = new X509Certificate(caCertPem);
+        if (!x509Cert.verify(caCert.publicKey)) {
+          request.log.warn('Client certificate from X-Client-Cert signature verification failed');
+          return null;
+        }
+
+        // C. Secondary IP-based restriction (TRUST_PROXY check)
+        if (env.TRUST_PROXY) {
+          const trustedProxies = env.TRUST_PROXY.split(',').map((ip) => ip.trim());
+          if (!trustedProxies.includes(request.ip)) {
+            request.log.warn(
+              { ip: request.ip, trustedProxies },
+              'X-Client-Cert rejected because request IP does not match TRUST_PROXY',
+            );
+            return null;
+          }
+        } else {
+          request.log.warn('X-Client-Cert rejected because TRUST_PROXY is not configured');
+          return null;
+        }
+
+        const CNMatch = x509Cert.subject.match(/CN=([^\n,;]+)/);
+        if (CNMatch && CNMatch[1]) {
+          return CNMatch[1].trim();
+        }
+      } catch (err) {
+        request.log.error({ err }, 'Failed to parse or verify X-Client-Cert header');
+      }
+    }
+
+    // 3. Fallback header for development/tests (disabled in production)
+    return process.env.NODE_ENV !== 'production'
+      ? (request.headers['x-node-id'] as string) || null
+      : null;
+  };
 
   /**
    * POST /v2/agents/certificates/sign
@@ -164,16 +234,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       },
     },
     async (request, reply) => {
-      // Extract nodeId from certificate
-      const cert = (request.raw.socket as any).getPeerCertificate?.();
-
-      // In production, we ONLY trust the certificate CN.
-      // In development/test, we allow a header fallback if no certificate is present.
-      const nodeId =
-        cert?.subject?.CN ||
-        (process.env.NODE_ENV !== 'production'
-          ? request.headers['x-node-id']
-          : null);
+      const nodeId = extractNodeId(request);
 
       if (!nodeId) {
         return reply.status(401).send({
@@ -317,12 +378,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       },
     },
     async (request, reply) => {
-      const cert = (request.raw.socket as any).getPeerCertificate?.();
-      const nodeId =
-        cert?.subject?.CN ||
-        (process.env.NODE_ENV !== 'production'
-          ? request.headers['x-node-id']
-          : null);
+      const nodeId = extractNodeId(request);
 
       if (!nodeId) {
         return reply.status(401).send({
@@ -399,12 +455,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     async (request, reply) => {
       const { taskId } = request.params as any;
       const { status } = request.body as any;
-      const cert = (request.raw.socket as any).getPeerCertificate?.();
-      const nodeId =
-        cert?.subject?.CN ||
-        (process.env.NODE_ENV !== 'production'
-          ? request.headers['x-node-id']
-          : null);
+      const nodeId = extractNodeId(request);
 
       if (!nodeId) {
         return reply.status(401).send({
@@ -526,12 +577,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     },
     async (request, reply) => {
       const { taskId } = request.params as any;
-      const cert = (request.raw.socket as any).getPeerCertificate?.();
-      const nodeId =
-        cert?.subject?.CN ||
-        (process.env.NODE_ENV !== 'production'
-          ? request.headers['x-node-id']
-          : null);
+      const nodeId = extractNodeId(request);
 
       if (!nodeId) {
         return reply.status(401).send({
