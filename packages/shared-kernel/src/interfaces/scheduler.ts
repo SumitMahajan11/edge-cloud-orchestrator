@@ -39,6 +39,7 @@ export interface IPriorityScheduler {
   getStats(): Promise<PriorityStats>;
   promoteTask(taskId: string, newPriority: TaskPriority): Promise<boolean>;
   cancelTask(taskId: string): Promise<boolean>;
+  removeTasks(taskIds: string[]): Promise<void>;
 }
 
 // --- BackpressureController ---
