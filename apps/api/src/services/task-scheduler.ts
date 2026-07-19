@@ -16,6 +16,7 @@
  *
  * Related docs: docs/decisions/ADR-002-redlock-distributed-locking.md, ADR-001-tensorflow-js-not-python.md
  */
+import path from 'path';
 import { env } from '../config/env';
 import {
   selectNode,
@@ -182,7 +183,12 @@ export class TaskScheduler extends EventEmitter {
 
     // Initialize ML scheduler components
     const predictor = new SchedulingPredictor();
-    this.modelRegistry = new ModelRegistry(this.redis);
+    this.modelRegistry = new ModelRegistry(
+      this.redis,
+      process.env.NODE_ENV === 'test'
+        ? path.join(process.cwd(), 'apps', 'api', 'models')
+        : undefined
+    );
     this.driftDetector = new DriftDetector(this.metrics, this.prisma);
 
     // Register drift alert listener to trigger automated retraining or rollback
@@ -1941,7 +1947,7 @@ export class TaskScheduler extends EventEmitter {
           update: {
             selectedNodeId: node.id,
             policy: task.policy,
-            score: mlResult?.decision.score || 1.0,
+            score: mlResult?.decision?.score || 1.0,
             explanation: mlResult?.explanation || { top_features: [] },
             candidateNodes: mlResult?.candidateNodes || [],
             mlModelVersion: mlResult?.modelVersion || null,
@@ -1951,7 +1957,7 @@ export class TaskScheduler extends EventEmitter {
             taskId: task.id,
             selectedNodeId: node.id,
             policy: task.policy,
-            score: mlResult?.decision.score || 1.0,
+            score: mlResult?.decision?.score || 1.0,
             explanation: mlResult?.explanation || { top_features: [] },
             candidateNodes: mlResult?.candidateNodes || [],
             mlModelVersion: mlResult?.modelVersion || null,

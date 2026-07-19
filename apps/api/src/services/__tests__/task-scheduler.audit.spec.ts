@@ -15,30 +15,47 @@ describe('TaskScheduler Audit Model', () => {
   beforeEach(() => {
     mockPrisma = {
       task: {
-        update: vi.fn().mockImplementation((args) =>
-          Promise.resolve({
-            id: args.where.id,
+        update: vi.fn().mockImplementation((args) => {
+          const id = args?.where?.id || 'task-unknown';
+          const status = args?.data?.status || 'PENDING';
+          return Promise.resolve({
+            id,
             maxRetries: 3,
-            status: args.data.status || 'PENDING',
+            status,
             submittedAt: new Date(),
-          }),
-        ),
+          });
+        }),
         findUnique: vi.fn(),
         create: vi.fn(),
       },
       taskExecution: {
         findFirst: vi.fn(),
-        create: vi
-          .fn()
-          .mockImplementation(({ data }) =>
-            Promise.resolve({ id: `exec-${data.attemptNumber}`, ...data }),
-          ),
-        update: vi.fn().mockImplementation((args) => Promise.resolve({ id: args.where.id, attemptNumber: args.where.id === 'exec-2' ? 2 : 1 })),
+        create: vi.fn().mockImplementation((args) => {
+          const data = args?.data || {};
+          return Promise.resolve({
+            id: `exec-${data.attemptNumber || 1}`,
+            ...data,
+          });
+        }),
+        update: vi.fn().mockImplementation((args) => {
+          const id = args?.where?.id || 'exec-unknown';
+          return Promise.resolve({
+            id,
+            attemptNumber: id === 'exec-2' ? 2 : 1,
+          });
+        }),
         count: vi.fn(),
       },
       edgeNode: {
         findUnique: vi.fn().mockResolvedValue({ id: 'node-1', status: 'ONLINE', tasksRunning: 0, maxTasks: 10 }),
-        update: vi.fn().mockImplementation((args) => Promise.resolve({ id: args.where.id, attemptNumber: args.data.attemptNumber || 1 })),
+        update: vi.fn().mockImplementation((args) => {
+          const id = args?.where?.id || 'node-unknown';
+          const attemptNumber = args?.data?.attemptNumber || 1;
+          return Promise.resolve({
+            id,
+            attemptNumber,
+          });
+        }),
       },
       auditLog: {
         create: vi.fn(),
