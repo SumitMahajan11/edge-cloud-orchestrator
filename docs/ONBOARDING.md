@@ -88,10 +88,6 @@ edge-cloud-orchestrator/
 │   ├── security/          # JWT, ABAC policy engine
 │   └── ...                # (see packages/ for full list)
 ├── infra/
-│   ├── k8s/               # Kubernetes manifests (Kustomize base + overlays)
-│   │   ├── base/          # Shared Deployments, Services, HPA, PDB
-│   │   ├── overlays/      # staging/ and production/ patches
-│   │   └── argocd/        # ArgoCD Application manifests
 │   └── experimental/      # Non-production configs (Chaos Mesh, multi-region)
 ├── docs/                  # Architecture, runbook, deployment, onboarding
 ├── tests/                 # Unit, integration, smoke, E2E, load tests
@@ -99,7 +95,7 @@ edge-cloud-orchestrator/
 └── monitoring/            # Prometheus + Grafana configs
 ```
 
-**Rule:** `infra/experimental/` is never synced by ArgoCD. Don't reference it in overlays.
+**Rule:** `infra/experimental/` contains non-production experiment configurations that are not part of the standard deployment.
 
 ---
 
@@ -155,7 +151,7 @@ edge-cloud-orchestrator/
 
 9. **Open a PR.** CI must pass all jobs before merge.
 
-10. **After merge:** CD pipeline auto-deploys to staging within 5 minutes.
+10. **After merge:** CD pipeline automatically triggers building the Docker images and deploying them to the Railway staging/production environment.
 
 ---
 

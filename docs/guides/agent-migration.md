@@ -19,9 +19,8 @@ During the migration, a gap analysis was performed to ensure 100% feature parity
 
 ## Deployment Changes
 
-1. **Docker Execution Context**: The agent now uses a robust multi-stage Dockerfile located at `apps/agent/Dockerfile`.
-2. **Kubernetes Integration**: Deployed as a `DaemonSet` (`infra/k8s/base/deployments/agent.yaml`) instead of a basic Pod, ensuring one agent runs natively on every edge node.
-3. **Environment Variables**:
+1. **Native Execution Context**: The agent runs as a native compiled Rust daemon or as a Node service on the edge host, establishing direct outbound mTLS connections to the central orchestrator gateway.
+2. **Environment Variables**:
    - Added `IMAGE_ALLOWLIST_REGEX` to prevent arbitrary image execution (e.g. `.*latest.*` is strictly forbidden).
    - Added `SANDBOX_ROOT_DIR` for configuring volume mounts safely.
    - Replaced `ENABLE_MTLS=false` with strict internal verification routines.
@@ -32,8 +31,8 @@ If you are running the legacy `server.js` agent:
 
 1. Shut down the legacy service (`pm2 stop edge-agent` or `docker stop edge-agent`).
 2. Delete the old directory: `rm -rf edge-agent/`.
-3. Deploy using the new Kustomize manifest: `kubectl apply -k infra/k8s/base/`.
-4. Ensure the host node has the Docker socket mounted (`/var/run/docker.sock`) properly mapped to the DaemonSet.
+3. Configure the new agent using the environment variables and run it directly as a systemd service or container on the edge node.
+4. Ensure the host node has the Docker socket mounted (`/var/run/docker.sock`) if running in a container.
 
 ## Testing
 

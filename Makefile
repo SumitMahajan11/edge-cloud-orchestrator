@@ -1,4 +1,4 @@
-.PHONY: dev test test-e2e build lint seed-ml deploy-staging migrate help
+.PHONY: dev test test-e2e build lint seed-ml migrate help
 
 dev:        ## Start local development environment
 	./scripts/dev.sh
@@ -19,9 +19,6 @@ lint:       ## Run linter
 
 seed-ml:    ## Seed initial ML model
 	pnpm --filter @edgecloud/api exec tsx src/database/seed-ml.ts
-
-deploy-staging: ## Deploy to staging
-	kubectl apply -k infra/k8s/overlays/staging/
 
 migrate:    ## Run database migrations
 	pnpm --filter @edgecloud/api exec prisma migrate deploy

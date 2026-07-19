@@ -5,10 +5,7 @@
 This directory contains exploratory and future-state infrastructure configurations
 that are **NOT** part of the current production deployment.
 
-These files are **NOT** applied by ArgoCD. Do not reference them from:
-
-- `infra/k8s/overlays/staging/kustomization.yaml`
-- `infra/k8s/overlays/production/kustomization.yaml`
+These files are **NOT** applied in the production environment. Do not reference them from production configurations.
 - `docker-compose.yml` or `docker-compose.dev.yml`
 
 ## Contents
@@ -34,11 +31,11 @@ reference only.
 
 | Component       | Technology           | Location                                      |
 | --------------- | -------------------- | --------------------------------------------- |
-| Database        | PostgreSQL 16        | `infra/k8s/base/deployments/`                 |
+| Database        | PostgreSQL 16        | Railway Managed Database                      |
 | Event Bus       | Redis Streams        | `packages/event-bus/`                         |
 | Leader Election | Redlock (Redis)      | `packages/shared-kernel/src/leader-election/` |
-| API Gateway     | Nginx + Lua          | `apps/api-gateway/`                           |
-| Deployment      | Kustomize + ArgoCD   | `infra/k8s/`                                  |
+| API Gateway     | OpenResty            | `apps/api-gateway/`                           |
+| Deployment      | Railway              | Managed via Railway dashboard                |
 | Monitoring      | Prometheus + Grafana | `monitoring/`                                 |
 
 ## When to Update This Directory
@@ -51,7 +48,7 @@ reference only.
 
 ❌ **DO NOT update when:**
 
-- Modifying production infrastructure (use `infra/k8s/`)
+- Modifying production infrastructure
 - Changing backup strategies (use `infra/backup/`)
 - Updating service configurations (use `apps/*/` or `packages/*/`)
 

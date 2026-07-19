@@ -1,5 +1,7 @@
 # ADR-003: Standardizing Deployment via Kustomize and ArgoCD
 
+> **Superseded:** This decision was later reversed; the project now deploys via Railway. Kept for historical record.
+
 **Status**: Accepted  
 **Date**: 2026-04-19  
 **Authors**: Engineering Team

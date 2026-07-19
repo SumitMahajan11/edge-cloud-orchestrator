@@ -61,7 +61,7 @@ graph LR
 | Redis             | 1 Primary + 2 Replicas | HA Sentinel with 3 sentinels; auto-failover         |
 
 > [!TIP]
-> For production environments, it is highly recommended to migrate to managed database services like **AWS RDS Multi-AZ**, **Azure Database for PostgreSQL**, or **Google CloudSQL**. These services provide automated failover, point-in-time recovery, and 99.99% availability SLAs that are difficult to match with self-managed Kubernetes deployments.
+> For production environments, it is highly recommended to migrate to managed database services like **AWS RDS Multi-AZ**, **Azure Database for PostgreSQL**, or **Google CloudSQL**. These services provide automated failover, point-in-time recovery, and 99.99% availability SLAs that are difficult to match with self-managed database deployments.
 
 ### Scaling Limits (Validated)
 
@@ -124,7 +124,7 @@ The system utilizes a Redis Sentinel architecture (1 Primary + 2 Replicas + 3 Se
 2. **Leader Election**: Sentinels vote to elect a new primary from the available replicas. This typically completes in <10 seconds once a quorum (2/3) is reached.
 3. **Client Redirection**: All services use `ioredis` with Sentinel support. Upon failover, clients receive a notification from the Sentinels and automatically reconnect to the new primary.
 4. **Service Resilience**:
-   - **Liveness Probing**: The API Gateway and core services include a 30s Redis liveness buffer. If Redis is unreachable for more than 30s, the pod enters an unhealthy state and is restarted by Kubernetes.
+    - **Liveness Probing**: The API Gateway and core services include a 30s Redis liveness buffer. If Redis is unreachable for more than 30s, the service enters an unhealthy state and is restarted by the platform coordinator.
    - **Readiness Probing**: Services will not accept traffic until a valid connection to either a Sentinel or a Redis Primary is established.
    - **Data Consistency**: AOF (Append Only File) is enabled on all nodes with `fsync everysec` to minimize data loss during failover.
 
@@ -133,7 +133,7 @@ The system utilizes a Redis Sentinel architecture (1 Primary + 2 Replicas + 3 Se
 - All inter-service communication is **mTLS** (mandatory in production; disabled in development with `MTLS_ENABLED=false`)
 - Edge agents communicate to cloud services via **mTLS + HMAC-signed task payloads**
 - No plaintext HTTP traffic is permitted between services in production
-- Certificates issued by Vault PKI engine; stored in Kubernetes Secrets (not Git)
+- Certificates issued by the API CA Manager; server certificates stored securely in Railway Shared Variables/Shared Secrets (not Git)
 
 ---
 
@@ -333,11 +333,11 @@ The following lifecycle rules are applied to the S3 bucket:
 
 ### Infrastructure
 
-- **API Gateway**: Nginx (reverse proxy, rate limiting, request validation)
-- **Deployment**: Kubernetes with Kustomize overlays + ArgoCD GitOps
+- **API Gateway**: OpenResty (reverse proxy, rate limiting, request validation, mTLS termination)
+- **Deployment**: Railway (Fastify API monolith + OpenResty mTLS Gateway)
 - **Monitoring**: Prometheus + Grafana
 - **Logging**: OpenTelemetry + Pino (structured JSON logs)
-- **Secrets Management**: HashiCorp Vault
+- **Secrets Management**: Railway Shared Variables / Secrets Engine
 
 ### Frontend
 

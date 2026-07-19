@@ -71,12 +71,7 @@ rmdir docs/adr 2>/dev/null && echo "  removed: docs/adr/" || true
 [ -f docs/METRICS_SPECIFICATION.md ]         && mv docs/METRICS_SPECIFICATION.md        docs/guides/metrics-specification.md
 
 # ── TASK 2: Fix apps/api ─────────────────────────────────────────────────────
-mkdir -p infra/k8s/api
-if [ -d apps/api/k8s ]; then
-  cp -rn apps/api/k8s/. infra/k8s/api/ 2>/dev/null || true
-  rm -rf apps/api/k8s
-  echo "  moved: apps/api/k8s/ → infra/k8s/api/"
-fi
+# (Previously migrated apps/api/k8s to infra/k8s; now obsolete and removed)
 if [ -f apps/api/docker-compose.yml ]; then
   mkdir -p infra/docker
   mv apps/api/docker-compose.yml infra/docker/api-docker-compose.yml
@@ -119,19 +114,7 @@ if [ -d config/backend ]; then
 fi
 
 # ── TASK 1: Consolidate infra/ ───────────────────────────────────────────────
-# Merge infra/kubernetes/ into infra/k8s/
-if [ -d infra/kubernetes ]; then
-  cp -rn infra/kubernetes/. infra/k8s/ 2>/dev/null || true
-  rm -rf infra/kubernetes
-  echo "  merged: infra/kubernetes/ → infra/k8s/"
-fi
-# Move infra/helm/ into infra/k8s/helm/
-if [ -d infra/helm ]; then
-  mkdir -p infra/k8s/helm
-  cp -rn infra/helm/. infra/k8s/helm/ 2>/dev/null || true
-  rm -rf infra/helm
-  echo "  merged: infra/helm/ → infra/k8s/helm/"
-fi
+# (Previously merged infra/kubernetes/ and infra/helm/ to infra/k8s/; now obsolete and removed)
 # Merge infra/scripts/ into scripts/
 if [ -d infra/scripts ]; then
   for f in infra/scripts/deploy.ps1 infra/scripts/generate-certs-local-dev.sh \

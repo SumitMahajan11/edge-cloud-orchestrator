@@ -9,8 +9,7 @@ scratch
 tmp
 tests/tmp
 
-# Ignored directories
-infra/k8s
+
 apps/web/.next
 
 # Ignored files

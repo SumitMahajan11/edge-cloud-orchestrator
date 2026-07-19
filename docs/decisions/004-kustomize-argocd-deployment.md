@@ -1,5 +1,7 @@
 # ADR 004 — Deploy via Kustomize Overlays with ArgoCD GitOps, not Helm
 
+> **Superseded:** This decision was later reversed; the project now deploys via Railway. Kept for historical record.
+
 **Date:** 2026-04-25  
 **Status:** Accepted  
 **Category:** Deployment
