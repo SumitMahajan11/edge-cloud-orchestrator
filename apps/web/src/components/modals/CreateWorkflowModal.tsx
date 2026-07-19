@@ -136,6 +136,11 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
                   </div>
                 </div>
 
+                <div className="text-xs text-amber-500/90 bg-amber-500/10 border border-amber-500/20 rounded-md p-3 flex items-start gap-2">
+                  <span className="font-semibold font-mono uppercase text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-500 mt-0.5">Preview</span>
+                  <span>Workflow creation is simulated. Workflows are not persisted or run on real nodes.</span>
+                </div>
+
                 <div className="flex justify-end gap-3 pt-4">
                   <Button
                     type="button"
@@ -148,7 +153,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
                     type="submit"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
-                    Create Workflow
+                    Create Workflow (Preview)
                   </Button>
                 </div>
               </form>

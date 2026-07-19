@@ -28,6 +28,7 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface Execution {
   id: string;
@@ -133,10 +134,18 @@ export default function WorkflowDetailPage() {
           </Button>
           <Button size="sm" onClick={handleExecute} disabled={executing}>
             <Play className="mr-2 h-4 w-4" />
-            {executing ? "Starting..." : "Run Workflow"}
+            {executing ? "Starting..." : "Run Workflow (Preview)"}
           </Button>
         </div>
       </div>
+
+      <Alert className="border-amber-500/20 bg-amber-500/10 text-amber-500 [&>svg]:text-amber-500">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle className="text-amber-500 font-semibold">Preview Feature</AlertTitle>
+        <AlertDescription className="text-amber-500/80">
+          Workflow creation and execution are not yet connected to the live orchestrator. Changes made here are not persisted or executed.
+        </AlertDescription>
+      </Alert>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 flex flex-col gap-6">

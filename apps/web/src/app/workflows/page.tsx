@@ -37,6 +37,7 @@ import { isApiClientError } from "@edgecloud/api-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CreateWorkflowModal } from "@/components/modals/CreateWorkflowModal";
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface Workflow {
   id: string;
@@ -107,6 +108,14 @@ export default function WorkflowsPage() {
           </Button>
         </div>
       </div>
+
+      <Alert className="border-amber-500/20 bg-amber-500/10 text-amber-500 [&>svg]:text-amber-500">
+        <AlertCircle className="h-4 w-4" />
+        <AlertTitle className="text-amber-500 font-semibold">Preview Feature</AlertTitle>
+        <AlertDescription className="text-amber-500/80">
+          Workflow creation and execution are not yet connected to the live orchestrator. Changes made here are not persisted or executed.
+        </AlertDescription>
+      </Alert>
 
       <Tabs defaultValue="all" className="w-full">
         <div className="flex items-center justify-between mb-6">
