@@ -70,26 +70,4 @@ jobs:
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
-  deploy-production:
-    name: Deploy to Production
-    needs: publish-npm
-    runs-on: ubuntu-latest
-    environment:
-      name: production
-      url: https://api.edgecloud.io
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
 
-      - name: Update production manifests
-        run: |
-          cd infra/k8s/overlays/production
-          kustomize edit set image api=ghcr.io/${{ github.repository }}/api:${{ github.ref_name }}
-          kustomize edit set image agent=ghcr.io/${{ github.repository }}/agent:${{ github.ref_name }}
-          kustomize edit set image web=ghcr.io/${{ github.repository }}/web:${{ github.ref_name }}
-
-      - name: Deploy to production via ArgoCD (Manual sync gate)
-        run: |
-          echo "Syncing production app via ArgoCD..."
-          curl -sSL -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/edgecloud-production/sync \
-            -H "Authorization: Bearer ${{ secrets.ARGOCD_AUTH_TOKEN }}"

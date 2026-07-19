@@ -86,43 +86,4 @@ jobs:
             echo "::error::Web image size (${SIZE_MB}MB) exceeds 150MB limit!" && exit 1
           fi
 
-  deploy-staging:
-    name: Deploy to Staging
-    needs: build-push
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
 
-      - name: Update Kubernetes manifests (Kustomize)
-        run: |
-          cd infra/k8s/overlays/staging
-          kustomize edit set image api=ghcr.io/${{ github.repository }}/api:${{ github.sha }}
-          kustomize edit set image agent=ghcr.io/${{ github.repository }}/agent:${{ github.sha }}
-          kustomize edit set image web=ghcr.io/${{ github.repository }}/web:${{ github.sha }}
-
-      - name: Deploy to staging via ArgoCD sync
-        run: |
-          echo "Syncing staging app via ArgoCD..."
-          # Mocking sync for now, in real scenario use argocd CLI
-          curl -sSL -X POST ${{ secrets.ARGOCD_SERVER }}/api/v1/applications/edgecloud-staging/sync \
-            -H "Authorization: Bearer ${{ secrets.ARGOCD_AUTH_TOKEN }}"
-
-      - name: Run smoke tests against staging
-        run: |
-          # Wait for rollout
-          sleep 60
-          pnpm run test:smoke
-        env:
-          SMOKE_BASE_URL: ${{ secrets.STAGING_API_URL }}
-          SMOKE_API_KEY: ${{ secrets.STAGING_API_KEY }}
-
-      - name: Tag deployment in Grafana
-        run: |
-          curl -X POST "${{ secrets.GRAFANA_URL }}/api/annotations" \
-            -H "Authorization: Bearer ${{ secrets.GRAFANA_TOKEN }}" \
-            -H "Content-Type: application/json" \
-            -d '{
-              "text": "Deployment to staging: ${{ github.sha }}",
-              "tags": ["deploy", "staging", "${{ github.repository }}"]
-            }'
