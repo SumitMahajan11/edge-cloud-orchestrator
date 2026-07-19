@@ -83,15 +83,15 @@ As detailed in [DEPLOYMENT_RECONCILIATION.md](file:///d:/Projects/Cloud1/edge-cl
 ## 5. Reconciling Test Counts
 
 ### Verified Baseline
-The Vitest test suite contains exactly **563 tests** across 80 test files:
-- **Passed Tests**: 524
+The Vitest test suite contains exactly **571 tests** across 81 test files:
+- **Passed Tests**: 532
 - **Skipped Tests**: 39
 - **Failed Tests**: 0 (passes 100% cleanly in clean environment runs; transient timeout failures under local port contention are resolved).
 
 ### Quarantine of the Fabricated "567" Claim
 The claim of "567 tests passed" documented in the original `FINAL-AUDIT-REPORT.md` was unverified and fabricated by a prior session. It did not correspond to any actual vitest run output. 
 
-To maintain strict project transparency, the original `FINAL-AUDIT-REPORT.md` has been recognized as unverified and quarantined (originally to `docs/_unverified/FINAL-AUDIT-REPORT-UNVERIFIED.md` and subsequently cleaned up to preserve workspace hygiene). The current 563-test count is the only verified baseline.
+To maintain strict project transparency, the original `FINAL-AUDIT-REPORT.md` has been recognized as unverified and quarantined (originally to `docs/_unverified/FINAL-AUDIT-REPORT-UNVERIFIED.md` and subsequently cleaned up to preserve workspace hygiene). The current 571-test count is the only verified baseline.
 
 ---
 

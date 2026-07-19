@@ -10,8 +10,8 @@ included without corresponding evidence.
 ## Test Suite — Actual Numbers
 Raw evidence: verify_full_test_output.txt
 Actual result: 
-- Test Files: 76 passed | 1 skipped (77 total)
-- Tests: 484 passed | 33 skipped (517 total)
+- Test Files: 79 passed | 2 skipped (81 total)
+- Tests: 532 passed | 39 skipped (571 total)
 
 The original claim of "111 Tests Passed, 2 Test Suites Failed" was wildly inaccurate. 
 Note: The test suite passes 100% cleanly under standalone execution. Any transient failures (such as `websocket-events.test.ts` timeouts) only occur under high resource/port contention.
