@@ -25,7 +25,7 @@ import agentRoutes from '../agents.js';
 // Mock SecretManagerFactory for test stability
 SecretManagerFactory.create = () =>
   ({
-    issueCertificate: (_role: string, commonName: string, _ttl?: string) =>
+    issueCertificate: (_role: string, commonName: string) =>
       Promise.resolve({
         certificate: `-----BEGIN CERTIFICATE-----\nFAKE_CERTIFICATE_FOR_${commonName}\n-----END CERTIFICATE-----`,
         serial_number: `${commonName}-serial`,
@@ -141,7 +141,9 @@ describe('Agent routes mTLS / X-Client-Cert validation', () => {
     await caManager.initialize();
 
     // 2. Setup fastify app
-    app = fastify();
+    app = fastify({
+      trustProxy: mockEnv.TRUST_PROXY,
+    });
     app.decorate('prisma', mockPrisma);
     app.decorate('authenticate', vi.fn());
     app.decorate(
@@ -261,4 +263,70 @@ describe('Agent routes mTLS / X-Client-Cert validation', () => {
     expect(response.statusCode).toBe(404);
     expect(JSON.parse(response.body).error.code).toBe('NOT_FOUND');
   });
+
+  it('successfully authenticates a legitimate request forwarded by a trusted proxy using the raw socket remote address', async () => {
+    mockEnv.TRUST_PROXY = '127.0.0.1';
+    const validCert = await generateCert('node-valid', '77889900', caManager);
+
+    mockPrisma.edgeNode.findUnique.mockResolvedValue({
+      id: 'node-valid',
+      tenantId: 'tenant-abc',
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/tasks/pending',
+      headers: {
+        'x-client-cert': encodeURIComponent(validCert),
+        'x-forwarded-for': '198.51.100.5', // Client IP forwarded by proxy
+      },
+    });
+
+    // With the fix, this succeeds and returns 404 (No tasks pending) because the raw connection
+    // IP (127.0.0.1) is checked against the TRUST_PROXY list, not the forwarded client IP
+    expect(response.statusCode).toBe(404);
+  });
+
+  it('rejects an untrusted client attempting to spoof X-Forwarded-For to bypass the IP check', async () => {
+    // Setup Fastify with trustProxy: true (common behind dynamic load balancers)
+    app = fastify({
+      trustProxy: true,
+    });
+    // Re-register everything for this sub-test
+    app.decorate('prisma', mockPrisma);
+    app.decorate('authenticate', vi.fn());
+    app.decorate(
+      'requireRole',
+      vi.fn(() => (_req: any, _res: any, done: any) => done()),
+    );
+    const { ErrorSchema } = await import('@edgecloud/shared-kernel');
+    const { zodToFastifySchema } = await import('../../utils/zod-schema.js');
+    app.addSchema({ $id: 'ErrorSchema', ...zodToFastifySchema(ErrorSchema) });
+    await app.register(agentRoutes);
+
+    mockEnv.TRUST_PROXY = '127.0.0.1'; // The trusted proxy we want to enforce
+    const validCert = await generateCert('node-valid', '88990011', caManager);
+
+    mockPrisma.edgeNode.findUnique.mockResolvedValue({
+      id: 'node-valid',
+      tenantId: 'tenant-abc',
+    });
+
+    const response = await app.inject({
+      method: 'GET',
+      url: '/tasks/pending',
+      remoteAddress: '198.51.100.5', // Untrusted client connecting directly
+      headers: {
+        'x-client-cert': encodeURIComponent(validCert),
+        'x-forwarded-for': '127.0.0.1', // Spoofed trusted proxy IP
+      },
+    });
+
+    // With the fix, this is correctly rejected with 401 because the raw socket remote address
+    // (198.51.100.5) is checked and doesn't match the TRUST_PROXY list
+    expect(response.statusCode).toBe(401);
+  });
 });
+
+
+

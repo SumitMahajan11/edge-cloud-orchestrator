@@ -71,12 +71,14 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           return null;
         }
 
-        // C. Secondary IP-based restriction (TRUST_PROXY check)
+         // C. Secondary IP-based restriction (TRUST_PROXY check)
         if (env.TRUST_PROXY) {
           const trustedProxies = env.TRUST_PROXY.split(',').map((ip) => ip.trim());
-          if (!trustedProxies.includes(request.ip)) {
+          const remoteIp = request.raw.socket.remoteAddress;
+          const normalizedRemoteIp = remoteIp?.startsWith('::ffff:') ? remoteIp.substring(7) : remoteIp;
+          if (!normalizedRemoteIp || !trustedProxies.includes(normalizedRemoteIp)) {
             request.log.warn(
-              { ip: request.ip, trustedProxies },
+              { ip: normalizedRemoteIp, trustedProxies },
               'X-Client-Cert rejected because request IP does not match TRUST_PROXY',
             );
             return null;
