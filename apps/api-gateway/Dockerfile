@@ -1,15 +1,29 @@
-FROM nginx:alpine
+FROM openresty/openresty:alpine
 
-# Copy custom configuration
-COPY apps/api-gateway/nginx.conf /etc/nginx/nginx.conf
+# Install dependencies (curl, jq, openssl, libcap)
+RUN apk add --no-cache curl jq openssl libcap
 
-# Use a non-root user for security (nginx user in alpine)
-RUN touch /var/run/nginx.pid && \
-    chown -R nginx:nginx /var/run/nginx.pid /var/cache/nginx /var/log/nginx /etc/nginx/conf.d
+# Create symlink for nginx binary to ensure path compatibility
+RUN ln -sf /usr/local/openresty/nginx/sbin/nginx /usr/local/bin/nginx
 
-USER nginx
+# Copy custom configuration and Lua scripts
+COPY apps/api-gateway/nginx.conf /usr/local/openresty/nginx/conf/nginx.conf
+COPY apps/api-gateway/lua /etc/nginx/lua
 
-EXPOSE 80
+# Create SSL and log directories, set up permissions for non-root user (nobody)
+RUN mkdir -p /etc/nginx/ssl /usr/local/openresty/nginx/logs && \
+    touch /var/run/nginx.pid && \
+    chown -R nobody:nobody /var/run/nginx.pid /etc/nginx/ssl /usr/local/openresty/nginx
 
-HEALTHCHECK --interval=10s --timeout=3s --start-period=5s --retries=3 \
-  CMD wget -qO- http://localhost/health || exit 1
+# Grant Nginx capability to bind to privileged ports (80/443) as non-root
+RUN setcap 'cap_net_bind_service=+ep' /usr/local/openresty/nginx/sbin/nginx
+
+# Copy entrypoint script
+COPY apps/api-gateway/entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+USER nobody
+
+EXPOSE 80 443
+
+ENTRYPOINT ["/entrypoint.sh"]
