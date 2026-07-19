@@ -1,0 +1,55 @@
+# Edge-Cloud Orchestrator: UI Interactive Control & Stub Audit Table
+
+This table catalogs all user-facing interactive elements across the dashboard, providing code trace paths, expected backend behaviors, step-by-step verification recipes, and integration status.
+
+---
+
+## 1. UI Control Integration Matrix
+
+| # | Page / Route | UI Control / Action | Expected Backend Effect | Verification Query Before | UI Action Description | Verification Query After | Pass Criteria | Audit Status |
+|---|---|---|---|---|---|---|---|---|
+| **1** | **Node Management** (`/nodes`) | **Register Node** Button (launches `AddNodeModal.tsx`) | Creates new `EdgeNode` record in PostgreSQL database. | `SELECT COUNT(*) FROM "EdgeNode";` | Click "Register Node", fill out form, click "Register". | `SELECT COUNT(*) FROM "EdgeNode";` | Row count increases by 1. | **PENDING USER VERIFICATION** |
+| **2** | **Node Management** (`/nodes`) | **Drain Node** Button (in tables/grids/drawer) | Toggles maintenance state for the selected node. | `SELECT id, "isMaintenanceMode" FROM "EdgeNode" WHERE id = '<node-id>';` | Click "Drain" button next to `<node-id>`. | `SELECT id, "isMaintenanceMode" FROM "EdgeNode" WHERE id = '<node-id>';` | `isMaintenanceMode` changes from `false` to `true`. | **PENDING USER VERIFICATION** |
+| **3** | **Node Management** (`/nodes`) | **Force Offline** Button (in tables/grids/drawer) | Updates node status to `OFFLINE` and triggers failover. | `SELECT id, status FROM "EdgeNode" WHERE id = '<node-id>';` | Click "Force Offline" button next to `<node-id>`. | `SELECT id, status FROM "EdgeNode" WHERE id = '<node-id>';` | `status` changes to `OFFLINE`. | **PENDING USER VERIFICATION** |
+| **4** | **Node Management** (`/nodes`) | **Rotate Certificate** Button (Node detail -> Cert tab) | Triggers cryptographic cert rotation. | `SELECT id, "certificatePem" FROM "EdgeNode" WHERE id = '<node-id>';` | Click node row, select "Certificate" tab, click "Rotate Certificate". | `SELECT id, "certificatePem" FROM "EdgeNode" WHERE id = '<node-id>';` | No change in PEM data. | **STUB** (Parent component lacks prop callback mapping) |
+| **5** | **Governance & Policies** (`/policies`) | **Create Policy** Button | Opens policy creation wizard/modal. | N/A | Click "Create Policy" button. | N/A | No action or modal is triggered. | **STUB** (Markup lacks click handler or modal binding) |
+| **6** | **Governance & Policies** (`/policies`) | **Apply Scheduling Weights** Button | Updates active scheduler weights, flushes cache, and broadcasts. | `SELECT weights FROM "SchedulingPolicy" WHERE active = true;` | Drag sliders (Latency, Cost, Carbon), click "Apply Scheduling Weights". | `SELECT weights FROM "SchedulingPolicy" WHERE active = true;` | Saved floats reflect new weight settings. | **PENDING USER VERIFICATION** |
+| **7** | **Governance & Policies** (`/policies`) | **Edit Policy** Icon Button | Launches policy editing inline overlay/modal. | N/A | Hover over policy inventory row, click `Edit` icon. | N/A | No action is triggered. | **STUB** (Icon button lacks click handler) |
+| **8** | **Governance & Policies** (`/policies`) | **Delete Policy** Icon Button | Removes scheduling policy from PostgreSQL. | N/A | Hover over policy inventory row, click `Delete` icon. | N/A | No action is triggered. | **STUB** (Icon button lacks click handler) |
+| **9** | **Outbound Webhooks** (`/webhooks`) | **Register Webhook** Button (launches `RegisterWebhookModal`) | Creates `Webhook` subscription in PostgreSQL database. | `SELECT COUNT(*) FROM "Webhook";` | Click "Register Webhook", fill name/URL, click register. | `SELECT COUNT(*) FROM "Webhook";` | Row count does not change (toast is client-only). | **STUB** (Modal `onSubmit` does not invoke mutation hook) |
+| **10** | **Outbound Webhooks** (`/webhooks`) | **Test Webhook** Icon Button (Play icon in row) | Triggers diagnostic test event dispatch. | N/A | Hover over webhook row, click `Play` icon. | N/A | No action is triggered. | **STUB** (Button lacks click handler) |
+| **11** | **Outbound Webhooks** (`/webhooks`) | **Edit Webhook** Icon Button (Edit2 icon in row) | Launches webhook configuration drawer. | N/A | Hover over webhook row, click `Edit` icon. | N/A | No action is triggered. | **STUB** (Button lacks click handler) |
+| **12** | **Outbound Webhooks** (`/webhooks`) | **Delete Webhook** Icon Button (Trash2 icon in row) | Removes webhook subscription from PostgreSQL. | N/A | Hover over webhook row, click `Trash` icon. | N/A | No action is triggered. | **STUB** (Button lacks click handler) |
+| **13** | **System Alerts** (`/alerts`) | **Acknowledge** Check Button | Sets `acknowledgedAt` timestamp on the active alert. | `SELECT id, "acknowledgedAt" FROM "Alert" WHERE id = '<alert-id>';` | Click checkmark button next to `<alert-id>`. | `SELECT id, "acknowledgedAt" FROM "Alert" WHERE id = '<alert-id>';` | `acknowledgedAt` reflects current timestamp. | **PENDING USER VERIFICATION** |
+| **14** | **ML Intelligence** (`/ml-intelligence`) | **Trigger Retrain** / **Global Retrain** Button | Dispatches retraining request to backend ML workers. | `SELECT status FROM "MLJob" ORDER BY "createdAt" DESC LIMIT 1;` | Click "Trigger Retrain" or "Global Retrain" button. | `SELECT status FROM "MLJob" ORDER BY "createdAt" DESC LIMIT 1;` | Stored job status changes to `RUNNING` or `QUEUED`. | **PENDING USER VERIFICATION** |
+| **15** | **ML Intelligence** (`/ml-intelligence`) | **Start Session** Button (Federated Learning) | Creates a new active FL training epoch session. | `SELECT COUNT(*) FROM "FLSession";` | Click "Start Session" button under Federated Learning card. | `SELECT COUNT(*) FROM "FLSession";` | Session count increases by 1. | **PENDING USER VERIFICATION** |
+| **16** | **ML Intelligence** (`/ml-intelligence`) | **Stop Session** Button (Federated Learning) | Aborts or completes the selected FL session. | `SELECT status FROM "FLSession" WHERE id = '<session-id>';` | Click "Stop Session" button next to `<session-id>`. | `SELECT status FROM "FLSession" WHERE id = '<session-id>';` | Session status transitions to `COMPLETED` or `CANCELLED`. | **PENDING USER VERIFICATION** |
+| **17** | **Workflows** (`/workflows`) | **Create Workflow** Button (launches editor modal) | Persists new DAG definition to database. | N/A | Click "Create Workflow", input name/tasks, click submit. | N/A | No database record created (dummy toast only). | **STUB** (UI editor is not connected to API routes) |
+| **18** | **Workflows** (`/workflows`) | **Run Workflow (Preview)** Button (on Detail route) | Executes workflow execution sequence via Fastify engine. | `SELECT COUNT(*) FROM "WorkflowExecution";` | Navigate to workflow detail, click "Run Workflow (Preview)". | `SELECT COUNT(*) FROM "WorkflowExecution";` | Record count increases by 1. | **PENDING USER VERIFICATION** |
+| **19** | **Workflows** (`/workflows`) | **Edit** Button (on Detail route) | Enables inline workflow renaming / structure editing. | N/A | Click "Edit" button. | N/A | No action is triggered. | **STUB** (Button lacks click handler) |
+| **20** | **Task Scheduler** (`/scheduler` & `/tasks`) | **Create Task** Form Submit | Registers task and schedules execution queue entry. | `SELECT COUNT(*) FROM "Task";` | Fill task configuration form and click "Create Task". | `SELECT COUNT(*) FROM "Task";` | Stored task count increases by 1. | **PENDING USER VERIFICATION** |
+| **21** | **Task Scheduler** (`/scheduler` & `/tasks`) | **Cancel / Terminate Task** Button | Marks task status as `CANCELLED` and signals executing agent. | `SELECT status FROM "Task" WHERE id = '<task-id>';` | Click "Cancel" button on a running task row. | `SELECT status FROM "Task" WHERE id = '<task-id>';` | Status transitions to `CANCELLED`. | **PENDING USER VERIFICATION** |
+| **22** | **Task Scheduler** (`/scheduler` & `/tasks`) | **Retry Failed Task** Button | Creates a new attempt execution for the task. | `SELECT COUNT(*) FROM "TaskExecution" WHERE "taskId" = '<task-id>';` | Click "Retry" button on a failed task row. | `SELECT COUNT(*) FROM "TaskExecution" WHERE "taskId" = '<task-id>';` | Task execution count increases by 1. | **PENDING USER VERIFICATION** |
+
+---
+
+## 2. Code Trace details
+
+### A. Node Management
+- **AddNodeModal Submit**: wired in `nodes/page.tsx` (lines 215-235). Triggers `registerMutation.mutateAsync(data)`.
+- **Drain & Force Offline**: mapped in `nodes/page.tsx` (lines 111-143) to `drainMutation` and `offlineMutation`.
+- **Certificate Rotation**: Mapped to `onRotateCertificate` in `NodeDetailSheet.tsx` (line 110), but the caller `<NodeDetailSheet>` in `nodes/page.tsx` (line 204) omits the prop, making it a functional stub.
+
+### B. Governance & Policies
+- **Tunable Scheduler**: Slider adjustments are governed by `handleWeightChange` (lines 89-126) in `policies/page.tsx`. Pressing "Apply Scheduling Weights" triggers `handleSavePolicy` which maps to `updatePolicyMutation` (`PUT /v2/scheduling/policy`).
+- **Policy Inventory CRUD**: The table row renders `Edit2` and `Trash2` buttons. These elements are visual-only, lacking any `onClick` logic or backing mutations.
+
+### C. Outbound Webhooks
+- **Registration & Controls**: `RegisterWebhookModal` does not call `useCreateWebhook` (the `onSubmit` handler in `webhooks/page.tsx` logs to console and displays a client-only success toast). Row action buttons (`Play`, `Edit2`, `Trash2`) lack `onClick` triggers, meaning they fail to call `useTestWebhook`, `useUpdateWebhook`, or `useDeleteWebhook`.
+
+### D. System Alerts
+- **Acknowledge Alert**: Handled by `handleAcknowledge` in `alerts/page.tsx` (line 47), which triggers `acknowledgeMutation.mutateAsync(id)` mapping to `postV2AlertsByIdAcknowledge`.
+
+### E. Workflows
+- **Workflow Creation**: `CreateWorkflowModal` accepts DAG inputs but calls a stubbed submit function that only triggers client-side toast feedback.
+- **Workflow Run**: Mapped in `workflows/[id]/page.tsx` (line 78) to `handleExecute`, executing a real POST request to `/api/v2/workflows/${id}/execute` to trigger the backend workflow engine.
