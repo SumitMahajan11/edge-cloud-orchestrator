@@ -16,8 +16,14 @@ describe('TaskScheduler Audit Model', () => {
     mockPrisma = {
       task: {
         update: vi.fn().mockImplementation((args) => {
-          const id = args?.where?.id || 'task-unknown';
-          const status = args?.data?.status || 'PENDING';
+          if (!args?.where?.id) {
+            throw new Error('Prisma.task.update: missing where.id');
+          }
+          if (!args?.data) {
+            throw new Error('Prisma.task.update: missing data');
+          }
+          const id = args.where.id;
+          const status = args.data.status || 'PENDING';
           return Promise.resolve({
             id,
             maxRetries: 3,
@@ -31,14 +37,23 @@ describe('TaskScheduler Audit Model', () => {
       taskExecution: {
         findFirst: vi.fn(),
         create: vi.fn().mockImplementation((args) => {
-          const data = args?.data || {};
+          if (!args?.data?.taskId) {
+            throw new Error('Prisma.taskExecution.create: missing data.taskId');
+          }
+          const data = args.data;
           return Promise.resolve({
             id: `exec-${data.attemptNumber || 1}`,
             ...data,
           });
         }),
         update: vi.fn().mockImplementation((args) => {
-          const id = args?.where?.id || 'exec-unknown';
+          if (!args?.where?.id) {
+            throw new Error('Prisma.taskExecution.update: missing where.id');
+          }
+          if (!args?.data) {
+            throw new Error('Prisma.taskExecution.update: missing data');
+          }
+          const id = args.where.id;
           return Promise.resolve({
             id,
             attemptNumber: id === 'exec-2' ? 2 : 1,
@@ -49,8 +64,14 @@ describe('TaskScheduler Audit Model', () => {
       edgeNode: {
         findUnique: vi.fn().mockResolvedValue({ id: 'node-1', status: 'ONLINE', tasksRunning: 0, maxTasks: 10 }),
         update: vi.fn().mockImplementation((args) => {
-          const id = args?.where?.id || 'node-unknown';
-          const attemptNumber = args?.data?.attemptNumber || 1;
+          if (!args?.where?.id) {
+            throw new Error('Prisma.edgeNode.update: missing where.id');
+          }
+          if (!args?.data) {
+            throw new Error('Prisma.edgeNode.update: missing data');
+          }
+          const id = args.where.id;
+          const attemptNumber = args.data.attemptNumber || 1;
           return Promise.resolve({
             id,
             attemptNumber,
