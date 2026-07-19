@@ -1,3 +1,6 @@
+> [!WARNING]
+> **SUPERSEDED** — This report has been superseded by the comprehensive **[PROJECT_REALITY_AUDIT.md](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/PROJECT_REALITY_AUDIT.md)**. Please refer to that audit for the active, validated state of the orchestrator platform.
+
 # Verified Audit Report — Evidence-Backed
 Date: 2026-06-20
 Supersedes: FINAL-AUDIT-REPORT.md (which contained unverified/unevidenced claims)
