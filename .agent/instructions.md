@@ -17,6 +17,11 @@ This file contains mandatory instructions for any AI assistant or agent working 
 
 - **Rule**: Prefer Redis Pub/Sub for low-latency real-time updates (e.g., heartbeats) and Kafka for reliable, persistent event sourcing (e.g., task status history).
 
+## 4. Verification & Commit Protocol
+
+- **Rule**: Always ask and obtain explicit user approval before executing `git commit`. Do not assume approval.
+- **Rule**: Always paste the literal, raw terminal output of commands (such as `git status`, test runners, or builds) in full as empirical evidence instead of asserting success or status in prose.
+
 ---
 
-_Authorized by USER on April 14, 2026_
+_Authorized by USER on July 19, 2026_
