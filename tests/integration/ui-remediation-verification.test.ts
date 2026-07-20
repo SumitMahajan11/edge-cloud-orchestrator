@@ -22,6 +22,9 @@ describe("UI Remediation E2E Verification", () => {
       await prisma.webhook.deleteMany({ where: { tenantId } });
     } catch {}
     try {
+      await (prisma as any).workflow?.deleteMany({ where: { tenantId } });
+    } catch {}
+    try {
       await (prisma as any).nodeCertificate?.deleteMany({});
     } catch {}
     try {
@@ -275,5 +278,211 @@ describe("UI Remediation E2E Verification", () => {
       console.log(`[VERIFIED ACTIVE BLOCK] DELETE on active policy returned HTTP 400: "${activeDeleteBody.error}"`);
     }
   });
+
+  it("should verify Test Webhook (Row 10)", async () => {
+    console.log(`\n=== ROW 10: TEST WEBHOOK ===`);
+    const hook = await prisma.webhook.create({
+      data: {
+        name: "Test Target Endpoint",
+        url: "https://api.example.com/test",
+        events: JSON.stringify(["node.offline"]) as any,
+        secret: "super-secret-key-1234-at-least-32-characters",
+        tenantId,
+      },
+    });
+
+    const beforeDeliveries = await prisma.webhookDelivery.count({
+      where: { webhookId: hook.id },
+    });
+    console.log(`[BEFORE DB QUERY] SELECT COUNT(*) FROM "webhook_deliveries" WHERE "webhookId" = '${hook.id}'; -> Result: ${beforeDeliveries}`);
+
+    const response = await context.app.inject({
+      method: "POST",
+      url: `/v2/webhooks/${hook.id}/test`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.payload);
+    expect(body.success).toBe(true);
+
+    const afterDeliveries = await prisma.webhookDelivery.count({
+      where: { webhookId: hook.id },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT COUNT(*) FROM "webhook_deliveries" WHERE "webhookId" = '${hook.id}'; -> Result: ${afterDeliveries}`);
+    expect(afterDeliveries).toBe(beforeDeliveries + 1);
+
+    const delivery = await prisma.webhookDelivery.findFirst({
+      where: { webhookId: hook.id },
+      orderBy: { createdAt: "desc" },
+    });
+    console.log(`[VERIFIED RECORD] Created Webhook Delivery ID: ${delivery.id}, Event: "${delivery.event}", Status: "${delivery.status}"`);
+  });
+
+  it("should verify Edit Webhook (Row 11)", async () => {
+    console.log(`\n=== ROW 11: EDIT WEBHOOK ===`);
+    const hook = await prisma.webhook.create({
+      data: {
+        name: "Original Slack Hook",
+        url: "https://hooks.slack.com/services/original",
+        events: JSON.stringify(["node.offline"]) as any,
+        tenantId,
+      },
+    });
+
+    console.log(`[BEFORE DB QUERY] SELECT * FROM "webhooks" WHERE id = '${hook.id}'; -> Name: "${hook.name}", URL: "${hook.url}"`);
+
+    const response = await context.app.inject({
+      method: "PATCH",
+      url: `/v2/webhooks/${hook.id}`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+      payload: {
+        name: "Updated Slack Hook (Production)",
+        url: "https://hooks.slack.com/services/updated",
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const updatedHook = await prisma.webhook.findUnique({
+      where: { id: hook.id },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT * FROM "webhooks" WHERE id = '${hook.id}'; -> Name: "${updatedHook.name}", URL: "${updatedHook.url}"`);
+
+    expect(updatedHook.name).toBe("Updated Slack Hook (Production)");
+    expect(updatedHook.url).toBe("https://hooks.slack.com/services/updated");
+  });
+
+  it("should verify Delete Webhook (Row 12)", async () => {
+    console.log(`\n=== ROW 12: DELETE WEBHOOK ===`);
+    const hookToDelete = await prisma.webhook.create({
+      data: {
+        name: "Temporary Webhook To Delete",
+        url: "https://api.example.com/delete-me",
+        events: JSON.stringify(["task.failed"]) as any,
+        tenantId,
+      },
+    });
+
+    const beforeCount = await prisma.webhook.count({
+      where: { id: hookToDelete.id },
+    });
+    console.log(`[BEFORE DB QUERY] SELECT COUNT(*) FROM "webhooks" WHERE id = '${hookToDelete.id}'; -> Result: ${beforeCount}`);
+
+    const response = await context.app.inject({
+      method: "DELETE",
+      url: `/v2/webhooks/${hookToDelete.id}`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const afterCount = await prisma.webhook.count({
+      where: { id: hookToDelete.id },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT COUNT(*) FROM "webhooks" WHERE id = '${hookToDelete.id}'; -> Result: ${afterCount}`);
+
+    expect(afterCount).toBe(0);
+  });
+
+  it("should verify Create Workflow (Row 17)", async () => {
+    console.log(`\n=== ROW 17: CREATE WORKFLOW ===`);
+    const beforeCount = await prisma.workflow.count({
+      where: { tenantId },
+    });
+    console.log(`[BEFORE DB QUERY] SELECT COUNT(*) FROM "workflows" WHERE "tenantId" = '${tenantId}'; -> Result: ${beforeCount}`);
+
+    const response = await context.app.inject({
+      method: "POST",
+      url: "/v2/workflows",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+      payload: {
+        name: "Data Ingestion DAG",
+        version: "1.0.0",
+        nodes: [
+          {
+            id: "node-1",
+            name: "Ingest Sensor Data",
+            type: "task",
+            config: {},
+            inputs: [],
+            outputs: ["out-1"],
+          },
+        ],
+        edges: [],
+      },
+    });
+
+    expect([200, 201]).toContain(response.statusCode);
+    const body = JSON.parse(response.payload);
+    expect(body.id).toBeDefined();
+
+    const afterCount = await prisma.workflow.count({
+      where: { tenantId },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT COUNT(*) FROM "workflows" WHERE "tenantId" = '${tenantId}'; -> Result: ${afterCount}`);
+
+    expect(afterCount).toBe(beforeCount + 1);
+
+    const createdWorkflow = await prisma.workflow.findUnique({
+      where: { id: body.id },
+    });
+    console.log(`[VERIFIED RECORD] Created Workflow ID: ${createdWorkflow.id}, Name: "${createdWorkflow.name}", Version: "${createdWorkflow.version}"`);
+  });
+
+  it("should verify Edit Workflow (Row 19)", async () => {
+    console.log(`\n=== ROW 19: EDIT WORKFLOW ===`);
+    const testWfId = "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d";
+    const wf = await prisma.workflow.create({
+      data: {
+        id: testWfId,
+        name: "Initial Processing Pipeline",
+        version: "1.0.0",
+        definition: JSON.stringify({
+          nodes: [
+            { id: "step-1", name: "Initial Step", type: "task", config: {}, inputs: [], outputs: [] },
+          ],
+          edges: [],
+        }) as any,
+        tenantId,
+      },
+    });
+
+    console.log(`[BEFORE DB QUERY] SELECT * FROM "workflows" WHERE id = '${wf.id}'; -> Name: "${wf.name}", Version: "${wf.version}"`);
+
+    const response = await context.app.inject({
+      method: "PUT",
+      url: `/v2/workflows/${wf.id}`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+      payload: {
+        name: "Updated High-Throughput Pipeline",
+        version: "1.1.0",
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const updatedWorkflow = await prisma.workflow.findUnique({
+      where: { id: wf.id },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT * FROM "workflows" WHERE id = '${wf.id}'; -> Name: "${updatedWorkflow.name}", Version: "${updatedWorkflow.version}"`);
+
+    expect(updatedWorkflow.name).toBe("Updated High-Throughput Pipeline");
+    expect(updatedWorkflow.version).toBe("1.1.0");
+  });
 });
+
+
 

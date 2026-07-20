@@ -3693,6 +3693,57 @@
       ]
     }
   },
+  "/v2/nodes/{id}/rotate-certificate": {
+    "post": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "properties": {
+                  "certificatePem": {
+                    "type": "string"
+                  },
+                  "expiresAt": {
+                    "type": "string"
+                  },
+                  "message": {
+                    "type": "string"
+                  },
+                  "privateKey": {
+                    "type": "string"
+                  },
+                  "serialNumber": {
+                    "type": "string"
+                  },
+                  "success": {
+                    "type": "boolean"
+                  }
+                },
+                "type": "object"
+              }
+            }
+          },
+          "description": "Default Response"
+        }
+      },
+      "summary": "Rotate mTLS certificate for a node (Administrative)",
+      "tags": [
+        "nodes"
+      ]
+    }
+  },
   "/v2/nodes/{id}/scheduling-history": {
     "get": {
       "parameters": [
@@ -3922,6 +3973,114 @@
         }
       },
       "summary": "Get all scheduling policies for the tenant",
+      "tags": [
+        "scheduling"
+      ]
+    },
+    "post": {
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "config": {
+                  "type": "object"
+                },
+                "isActive": {
+                  "default": false,
+                  "type": "boolean"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "config",
+                "name",
+                "type"
+              ],
+              "type": "object"
+            }
+          }
+        },
+        "required": true
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Create a new scheduling policy template",
+      "tags": [
+        "scheduling"
+      ]
+    }
+  },
+  "/v2/scheduling/policies/{id}": {
+    "delete": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Delete a scheduling policy",
+      "tags": [
+        "scheduling"
+      ]
+    },
+    "put": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "type": "string"
+          }
+        }
+      ],
+      "requestBody": {
+        "content": {
+          "application/json": {
+            "schema": {
+              "properties": {
+                "config": {
+                  "type": "object"
+                },
+                "isActive": {
+                  "type": "boolean"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                }
+              },
+              "type": "object"
+            }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update an existing scheduling policy",
       "tags": [
         "scheduling"
       ]
@@ -5804,6 +5963,28 @@
         }
       },
       "summary": "Get workflow by ID",
+      "tags": [
+        "workflows"
+      ]
+    },
+    "put": {
+      "parameters": [
+        {
+          "in": "path",
+          "name": "id",
+          "required": true,
+          "schema": {
+            "format": "uuid",
+            "type": "string"
+          }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Default Response"
+        }
+      },
+      "summary": "Update a workflow",
       "tags": [
         "workflows"
       ]

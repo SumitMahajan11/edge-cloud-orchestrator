@@ -522,6 +522,37 @@ exports.Prisma.AlertScalarFieldEnum = {
   tenantId: 'tenantId'
 };
 
+exports.Prisma.WorkflowScalarFieldEnum = {
+  id: 'id',
+  tenantId: 'tenantId',
+  name: 'name',
+  version: 'version',
+  description: 'description',
+  status: 'status',
+  definition: 'definition',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
+exports.Prisma.WorkflowExecutionScalarFieldEnum = {
+  id: 'id',
+  workflowId: 'workflowId',
+  tenantId: 'tenantId',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+};
+
+exports.Prisma.WorkflowTaskRunScalarFieldEnum = {
+  id: 'id',
+  executionId: 'executionId',
+  taskId: 'taskId',
+  stepName: 'stepName',
+  status: 'status',
+  startedAt: 'startedAt',
+  completedAt: 'completedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -562,7 +593,10 @@ exports.Prisma.ModelName = {
   NodeHealthScore: 'NodeHealthScore',
   SchedulingOutcome: 'SchedulingOutcome',
   AlertRule: 'AlertRule',
-  Alert: 'Alert'
+  Alert: 'Alert',
+  Workflow: 'Workflow',
+  WorkflowExecution: 'WorkflowExecution',
+  WorkflowTaskRun: 'WorkflowTaskRun'
 };
 
 /**

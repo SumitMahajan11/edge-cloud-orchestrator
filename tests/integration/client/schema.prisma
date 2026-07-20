@@ -56,6 +56,8 @@ model Tenant {
   SchedulingOutcome     SchedulingOutcome[]
   alertRules            AlertRule[]
   alerts                Alert[]
+  workflows             Workflow[]
+  workflowExecutions    WorkflowExecution[]
 
   @@map("tenants")
 }
@@ -267,8 +269,9 @@ model Task {
 
   node EdgeNode? @relation(fields: [nodeId], references: [id])
 
-  logs       TaskLog[]
-  executions TaskExecution[]
+  logs             TaskLog[]
+  executions       TaskExecution[]
+  workflowTaskRuns WorkflowTaskRun[]
 
   tenantId String
   tenant   Tenant @relation(fields: [tenantId], references: [id])
@@ -600,4 +603,54 @@ model Alert {
   @@index([ruleId])
   @@index([tenantId])
   @@map("alerts")
+}
+
+model Workflow {
+  id          String              @id @default(cuid())
+  tenantId    String
+  name        String
+  version     String              @default("1.0.0")
+  description String?
+  status      String              @default("PENDING")
+  definition  String // SQLite stores JSON as string
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  executions  WorkflowExecution[]
+  tenant      Tenant              @relation(fields: [tenantId], references: [id])
+
+  @@index([tenantId])
+  @@map("workflows")
+}
+
+model WorkflowExecution {
+  id          String            @id @default(cuid())
+  workflowId  String
+  tenantId    String
+  status      String            @default("RUNNING")
+  startedAt   DateTime          @default(now())
+  completedAt DateTime?
+  taskRuns    WorkflowTaskRun[]
+  workflow    Workflow          @relation(fields: [workflowId], references: [id])
+  tenant      Tenant            @relation(fields: [tenantId], references: [id])
+
+  @@index([workflowId])
+  @@index([tenantId])
+  @@map("workflow_executions")
+}
+
+model WorkflowTaskRun {
+  id          String    @id @default(cuid())
+  executionId String
+  taskId      String
+  stepName    String
+  status      String
+  startedAt   DateTime?
+  completedAt DateTime?
+
+  execution WorkflowExecution @relation(fields: [executionId], references: [id], onDelete: Cascade)
+  task      Task              @relation(fields: [taskId], references: [id])
+
+  @@index([executionId])
+  @@index([taskId])
+  @@map("workflow_task_runs")
 }

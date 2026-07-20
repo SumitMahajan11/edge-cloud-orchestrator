@@ -45,6 +45,7 @@ const jsonFields = new Set([
   "candidateNodes",
   "schedulingDecision",
   "result",
+  "definition",
 ]);
 
 function serializeJsonFields(obj: any): any {

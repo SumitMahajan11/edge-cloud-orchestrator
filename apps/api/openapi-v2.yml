@@ -3841,6 +3841,20 @@ paths:
       responses:
         "200":
           description: Default Response
+    put:
+      summary: Update a workflow
+      tags:
+        - workflows
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
   /v2/workflows/{id}/execute:
     post:
       summary: Execute a workflow

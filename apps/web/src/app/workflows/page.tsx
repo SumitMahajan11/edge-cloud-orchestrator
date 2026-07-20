@@ -32,12 +32,11 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { useWorkflows } from "@/hooks/useWorkflows";
+import { useWorkflows, useCreateWorkflow } from "@/hooks/useWorkflows";
 import { isApiClientError } from "@edgecloud/api-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CreateWorkflowModal } from "@/components/modals/CreateWorkflowModal";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface Workflow {
   id: string;
@@ -55,7 +54,9 @@ export default function WorkflowsPage() {
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, isLoading: loading, error } = useWorkflows();
+  const createWorkflowMutation = useCreateWorkflow();
   const workflows = (data as any as Workflow[]) || [];
+
 
   useEffect(() => {
     if (error) {
@@ -108,14 +109,6 @@ export default function WorkflowsPage() {
           </Button>
         </div>
       </div>
-
-      <Alert className="border-amber-500/20 bg-amber-500/10 text-amber-500 [&>svg]:text-amber-500">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-amber-500 font-semibold">Preview Feature</AlertTitle>
-        <AlertDescription className="text-amber-500/80">
-          Workflow creation and execution are not yet connected to the live orchestrator. Changes made here are not persisted or executed.
-        </AlertDescription>
-      </Alert>
 
       <Tabs defaultValue="all" className="w-full">
         <div className="flex items-center justify-between mb-6">
@@ -244,11 +237,17 @@ export default function WorkflowsPage() {
       <CreateWorkflowModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={(data) => {
-          console.log('Created workflow', data);
-          toast.success("Workflow created successfully");
+        onSubmit={async (data) => {
+          try {
+            await createWorkflowMutation.mutateAsync(data);
+            toast.success("Workflow created successfully");
+            setIsModalOpen(false);
+          } catch (err: any) {
+            toast.error(err.message || "Failed to create workflow");
+          }
         }}
       />
+
     </div>
   );
 }

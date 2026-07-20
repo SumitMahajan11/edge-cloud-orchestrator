@@ -30,6 +30,8 @@ import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
+import { toast } from "sonner";
+
 interface Execution {
   id: string;
   status: string;
@@ -41,6 +43,7 @@ interface Execution {
 interface Workflow {
   id: string;
   name: string;
+  version?: string;
   description: string | null;
   definition: {
     nodes: any[];
@@ -58,6 +61,8 @@ export default function WorkflowDetailPage() {
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
   const [loading, setLoading] = useState(true);
   const [executing, setExecuting] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editName, setEditName] = useState("");
 
   useEffect(() => {
     void fetchWorkflow();
@@ -68,10 +73,32 @@ export default function WorkflowDetailPage() {
       const response = await fetch(`/api/v2/workflows/${id}`);
       const data = await response.json();
       setWorkflow(data);
+      if (data?.name) {
+        setEditName(data.name);
+      }
     } catch (error) {
       console.error("Failed to fetch workflow", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editName.trim()) return;
+    try {
+      const response = await fetch(`/api/v2/workflows/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: editName.trim() }),
+      });
+      if (!response.ok) {
+        throw new Error("Failed to update workflow");
+      }
+      toast.success("Workflow updated successfully");
+      setIsEditing(false);
+      void fetchWorkflow();
+    } catch (error: any) {
+      toast.error(error.message || "Failed to update workflow");
     }
   };
 
@@ -84,10 +111,11 @@ export default function WorkflowDetailPage() {
         body: JSON.stringify({ input: {} }),
       });
       const data = await response.json();
-      // router.push(`/workflows/${id}/executions/${data.executionId}`)
-      void fetchWorkflow(); // Refresh to show new execution
+      toast.success("Workflow execution triggered");
+      void fetchWorkflow();
     } catch (error) {
       console.error("Failed to execute workflow", error);
+      toast.error("Failed to execute workflow");
     } finally {
       setExecuting(false);
     }
@@ -120,7 +148,7 @@ export default function WorkflowDetailPage() {
               variant="outline"
               className="text-[10px] uppercase tracking-wider"
             >
-              v1.0.0
+              {workflow.version || "v1.0.0"}
             </Badge>
           </div>
           <p className="text-muted-foreground text-sm">
@@ -128,24 +156,40 @@ export default function WorkflowDetailPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
             <Settings className="mr-2 h-4 w-4" />
             Edit
           </Button>
           <Button size="sm" onClick={handleExecute} disabled={executing}>
             <Play className="mr-2 h-4 w-4" />
-            {executing ? "Starting..." : "Run Workflow (Preview)"}
+            {executing ? "Starting..." : "Run Workflow"}
           </Button>
         </div>
       </div>
 
-      <Alert className="border-amber-500/20 bg-amber-500/10 text-amber-500 [&>svg]:text-amber-500">
-        <AlertCircle className="h-4 w-4" />
-        <AlertTitle className="text-amber-500 font-semibold">Preview Feature</AlertTitle>
-        <AlertDescription className="text-amber-500/80">
-          Workflow creation and execution are not yet connected to the live orchestrator. Changes made here are not persisted or executed.
-        </AlertDescription>
-      </Alert>
+      {isEditing && (
+        <Card className="border border-primary/30 p-4 bg-card shadow-lg">
+          <div className="flex flex-col gap-3">
+            <h3 className="font-semibold text-sm">Edit Workflow Details</h3>
+            <div className="flex items-center gap-3">
+              <input
+                type="text"
+                className="flex-1 px-3 py-1.5 rounded-md border border-border bg-background text-sm"
+                value={editName}
+                onChange={(e) => setEditName(e.target.value)}
+                placeholder="Workflow name"
+              />
+              <Button size="sm" onClick={handleSaveEdit}>
+                Save
+              </Button>
+              <Button size="sm" variant="ghost" onClick={() => setIsEditing(false)}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </Card>
+      )}
+
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 flex flex-col gap-6">

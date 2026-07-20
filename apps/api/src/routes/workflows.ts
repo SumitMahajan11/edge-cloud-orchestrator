@@ -251,4 +251,67 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       return execution;
     },
   );
+
+  // Update workflow
+  fastify.put<{
+    Params: { id: string };
+    Body: {
+      name?: string;
+      version?: string;
+      nodes?: any[];
+      edges?: any[];
+    };
+  }>(
+    '/:id',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.TASK_CREATE),
+      ],
+      schema: {
+        params: zodToFastifySchema(idParamSchema),
+        tags: ['workflows'],
+        summary: 'Update a workflow',
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+      const { name, version, nodes, edges } = request.body;
+
+      const existing = await request.tPrisma.workflow.findFirst({
+        where: { id, tenantId: request.user!.tenantId! },
+      });
+
+      if (!existing) {
+        return reply.status(404).send({
+          error: {
+            code: 'NOT_FOUND',
+            message: 'Workflow not found',
+            requestId: request.id,
+          },
+        });
+      }
+
+      let newDefinition = existing.definition as any;
+      if (nodes || edges) {
+        newDefinition = {
+          ...newDefinition,
+          ...(nodes && { nodes }),
+          ...(edges && { edges }),
+        };
+      }
+
+      const updated = await request.tPrisma.workflow.update({
+        where: { id },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(version !== undefined && { version }),
+          ...(newDefinition && { definition: newDefinition }),
+        },
+      });
+
+      return updated;
+    },
+  );
 }
+

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Webhook, Link as LinkIcon, Settings } from "lucide-react";
 import { Button } from "../ui/button";
@@ -16,25 +16,49 @@ interface RegisterWebhookModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  initialData?: any;
 }
 
-export function RegisterWebhookModal({ isOpen, onClose, onSubmit }: RegisterWebhookModalProps) {
+export function RegisterWebhookModal({
+  isOpen,
+  onClose,
+  onSubmit,
+  initialData,
+}: RegisterWebhookModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     url: "",
     event: "node.status.changed",
   });
 
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || "",
+        url: initialData.url || "",
+        event: Array.isArray(initialData.events) && initialData.events[0]
+          ? initialData.events[0]
+          : "node.status.changed",
+      });
+    } else {
+      setFormData({
+        name: "",
+        url: "",
+        event: "node.status.changed",
+      });
+    }
+  }, [initialData, isOpen]);
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.url.trim()) return;
-    
+
     onSubmit({
       ...formData,
       status: "active",
       createdAt: new Date().toISOString(),
     });
-    
+
     handleClose();
   };
 
@@ -72,7 +96,9 @@ export function RegisterWebhookModal({ isOpen, onClose, onSubmit }: RegisterWebh
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                       <Webhook className="h-4 w-4 text-primary" />
                     </div>
-                    <h2 className="text-lg font-semibold">Register Webhook</h2>
+                    <h2 className="text-lg font-semibold">
+                      {initialData ? "Edit Webhook" : "Register Webhook"}
+                    </h2>
                   </div>
                   <button
                     onClick={handleClose}
@@ -98,7 +124,7 @@ export function RegisterWebhookModal({ isOpen, onClose, onSubmit }: RegisterWebh
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-mono uppercase text-muted-foreground">
                       Endpoint URL
@@ -150,7 +176,7 @@ export function RegisterWebhookModal({ isOpen, onClose, onSubmit }: RegisterWebh
                     type="submit"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
-                    Register Webhook
+                    {initialData ? "Save Changes" : "Register Webhook"}
                   </Button>
                 </div>
               </form>
@@ -161,3 +187,4 @@ export function RegisterWebhookModal({ isOpen, onClose, onSubmit }: RegisterWebh
     </AnimatePresence>
   );
 }
+

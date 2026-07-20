@@ -158,6 +158,21 @@ export type AlertRule = $Result.DefaultSelection<Prisma.$AlertRulePayload>
  * 
  */
 export type Alert = $Result.DefaultSelection<Prisma.$AlertPayload>
+/**
+ * Model Workflow
+ * 
+ */
+export type Workflow = $Result.DefaultSelection<Prisma.$WorkflowPayload>
+/**
+ * Model WorkflowExecution
+ * 
+ */
+export type WorkflowExecution = $Result.DefaultSelection<Prisma.$WorkflowExecutionPayload>
+/**
+ * Model WorkflowTaskRun
+ * 
+ */
+export type WorkflowTaskRun = $Result.DefaultSelection<Prisma.$WorkflowTaskRunPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -571,6 +586,36 @@ export class PrismaClient<
     * ```
     */
   get alert(): Prisma.AlertDelegate<ExtArgs>;
+
+  /**
+   * `prisma.workflow`: Exposes CRUD operations for the **Workflow** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more Workflows
+    * const workflows = await prisma.workflow.findMany()
+    * ```
+    */
+  get workflow(): Prisma.WorkflowDelegate<ExtArgs>;
+
+  /**
+   * `prisma.workflowExecution`: Exposes CRUD operations for the **WorkflowExecution** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WorkflowExecutions
+    * const workflowExecutions = await prisma.workflowExecution.findMany()
+    * ```
+    */
+  get workflowExecution(): Prisma.WorkflowExecutionDelegate<ExtArgs>;
+
+  /**
+   * `prisma.workflowTaskRun`: Exposes CRUD operations for the **WorkflowTaskRun** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more WorkflowTaskRuns
+    * const workflowTaskRuns = await prisma.workflowTaskRun.findMany()
+    * ```
+    */
+  get workflowTaskRun(): Prisma.WorkflowTaskRunDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -1040,7 +1085,10 @@ export namespace Prisma {
     NodeHealthScore: 'NodeHealthScore',
     SchedulingOutcome: 'SchedulingOutcome',
     AlertRule: 'AlertRule',
-    Alert: 'Alert'
+    Alert: 'Alert',
+    Workflow: 'Workflow',
+    WorkflowExecution: 'WorkflowExecution',
+    WorkflowTaskRun: 'WorkflowTaskRun'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -1056,7 +1104,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "tenant" | "schedulingPolicy" | "tenantUser" | "metricRetentionPolicy" | "userSession" | "apiKey" | "webhook" | "webhookDelivery" | "auditLog" | "edgeNode" | "task" | "taskExecution" | "taskLog" | "certificateAuthority" | "nodeCertificate" | "nodeMetric" | "sagaInstance" | "sagaStep" | "schedulingDecision" | "outcomeLog" | "idempotencyRecord" | "costRecord" | "carbonMetric" | "carbonRecord" | "nodeHealthScore" | "schedulingOutcome" | "alertRule" | "alert"
+      modelProps: "user" | "tenant" | "schedulingPolicy" | "tenantUser" | "metricRetentionPolicy" | "userSession" | "apiKey" | "webhook" | "webhookDelivery" | "auditLog" | "edgeNode" | "task" | "taskExecution" | "taskLog" | "certificateAuthority" | "nodeCertificate" | "nodeMetric" | "sagaInstance" | "sagaStep" | "schedulingDecision" | "outcomeLog" | "idempotencyRecord" | "costRecord" | "carbonMetric" | "carbonRecord" | "nodeHealthScore" | "schedulingOutcome" | "alertRule" | "alert" | "workflow" | "workflowExecution" | "workflowTaskRun"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -3090,6 +3138,216 @@ export namespace Prisma {
           }
         }
       }
+      Workflow: {
+        payload: Prisma.$WorkflowPayload<ExtArgs>
+        fields: Prisma.WorkflowFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WorkflowFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WorkflowFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>
+          }
+          findFirst: {
+            args: Prisma.WorkflowFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WorkflowFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>
+          }
+          findMany: {
+            args: Prisma.WorkflowFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
+          }
+          create: {
+            args: Prisma.WorkflowCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>
+          }
+          createMany: {
+            args: Prisma.WorkflowCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WorkflowCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>[]
+          }
+          delete: {
+            args: Prisma.WorkflowDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>
+          }
+          update: {
+            args: Prisma.WorkflowUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>
+          }
+          deleteMany: {
+            args: Prisma.WorkflowDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WorkflowUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.WorkflowUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowPayload>
+          }
+          aggregate: {
+            args: Prisma.WorkflowAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWorkflow>
+          }
+          groupBy: {
+            args: Prisma.WorkflowGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WorkflowCountArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowCountAggregateOutputType> | number
+          }
+        }
+      }
+      WorkflowExecution: {
+        payload: Prisma.$WorkflowExecutionPayload<ExtArgs>
+        fields: Prisma.WorkflowExecutionFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WorkflowExecutionFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WorkflowExecutionFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>
+          }
+          findFirst: {
+            args: Prisma.WorkflowExecutionFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WorkflowExecutionFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>
+          }
+          findMany: {
+            args: Prisma.WorkflowExecutionFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>[]
+          }
+          create: {
+            args: Prisma.WorkflowExecutionCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>
+          }
+          createMany: {
+            args: Prisma.WorkflowExecutionCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WorkflowExecutionCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>[]
+          }
+          delete: {
+            args: Prisma.WorkflowExecutionDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>
+          }
+          update: {
+            args: Prisma.WorkflowExecutionUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>
+          }
+          deleteMany: {
+            args: Prisma.WorkflowExecutionDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WorkflowExecutionUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.WorkflowExecutionUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowExecutionPayload>
+          }
+          aggregate: {
+            args: Prisma.WorkflowExecutionAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWorkflowExecution>
+          }
+          groupBy: {
+            args: Prisma.WorkflowExecutionGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowExecutionGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WorkflowExecutionCountArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowExecutionCountAggregateOutputType> | number
+          }
+        }
+      }
+      WorkflowTaskRun: {
+        payload: Prisma.$WorkflowTaskRunPayload<ExtArgs>
+        fields: Prisma.WorkflowTaskRunFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.WorkflowTaskRunFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.WorkflowTaskRunFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>
+          }
+          findFirst: {
+            args: Prisma.WorkflowTaskRunFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.WorkflowTaskRunFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>
+          }
+          findMany: {
+            args: Prisma.WorkflowTaskRunFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>[]
+          }
+          create: {
+            args: Prisma.WorkflowTaskRunCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>
+          }
+          createMany: {
+            args: Prisma.WorkflowTaskRunCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.WorkflowTaskRunCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>[]
+          }
+          delete: {
+            args: Prisma.WorkflowTaskRunDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>
+          }
+          update: {
+            args: Prisma.WorkflowTaskRunUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>
+          }
+          deleteMany: {
+            args: Prisma.WorkflowTaskRunDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.WorkflowTaskRunUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.WorkflowTaskRunUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$WorkflowTaskRunPayload>
+          }
+          aggregate: {
+            args: Prisma.WorkflowTaskRunAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateWorkflowTaskRun>
+          }
+          groupBy: {
+            args: Prisma.WorkflowTaskRunGroupByArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowTaskRunGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.WorkflowTaskRunCountArgs<ExtArgs>
+            result: $Utils.Optional<WorkflowTaskRunCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -3328,6 +3586,8 @@ export namespace Prisma {
     SchedulingOutcome: number
     alertRules: number
     alerts: number
+    workflows: number
+    workflowExecutions: number
   }
 
   export type TenantCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -3350,6 +3610,8 @@ export namespace Prisma {
     SchedulingOutcome?: boolean | TenantCountOutputTypeCountSchedulingOutcomeArgs
     alertRules?: boolean | TenantCountOutputTypeCountAlertRulesArgs
     alerts?: boolean | TenantCountOutputTypeCountAlertsArgs
+    workflows?: boolean | TenantCountOutputTypeCountWorkflowsArgs
+    workflowExecutions?: boolean | TenantCountOutputTypeCountWorkflowExecutionsArgs
   }
 
   // Custom InputTypes
@@ -3496,6 +3758,20 @@ export namespace Prisma {
     where?: AlertWhereInput
   }
 
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountWorkflowsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowWhereInput
+  }
+
+  /**
+   * TenantCountOutputType without action
+   */
+  export type TenantCountOutputTypeCountWorkflowExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowExecutionWhereInput
+  }
+
 
   /**
    * Count Type WebhookCountOutputType
@@ -3584,11 +3860,13 @@ export namespace Prisma {
   export type TaskCountOutputType = {
     logs: number
     executions: number
+    workflowTaskRuns: number
   }
 
   export type TaskCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     logs?: boolean | TaskCountOutputTypeCountLogsArgs
     executions?: boolean | TaskCountOutputTypeCountExecutionsArgs
+    workflowTaskRuns?: boolean | TaskCountOutputTypeCountWorkflowTaskRunsArgs
   }
 
   // Custom InputTypes
@@ -3614,6 +3892,13 @@ export namespace Prisma {
    */
   export type TaskCountOutputTypeCountExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: TaskExecutionWhereInput
+  }
+
+  /**
+   * TaskCountOutputType without action
+   */
+  export type TaskCountOutputTypeCountWorkflowTaskRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowTaskRunWhereInput
   }
 
 
@@ -3676,6 +3961,68 @@ export namespace Prisma {
    */
   export type AlertRuleCountOutputTypeCountAlertsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: AlertWhereInput
+  }
+
+
+  /**
+   * Count Type WorkflowCountOutputType
+   */
+
+  export type WorkflowCountOutputType = {
+    executions: number
+  }
+
+  export type WorkflowCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    executions?: boolean | WorkflowCountOutputTypeCountExecutionsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WorkflowCountOutputType without action
+   */
+  export type WorkflowCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowCountOutputType
+     */
+    select?: WorkflowCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowCountOutputType without action
+   */
+  export type WorkflowCountOutputTypeCountExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowExecutionWhereInput
+  }
+
+
+  /**
+   * Count Type WorkflowExecutionCountOutputType
+   */
+
+  export type WorkflowExecutionCountOutputType = {
+    taskRuns: number
+  }
+
+  export type WorkflowExecutionCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    taskRuns?: boolean | WorkflowExecutionCountOutputTypeCountTaskRunsArgs
+  }
+
+  // Custom InputTypes
+  /**
+   * WorkflowExecutionCountOutputType without action
+   */
+  export type WorkflowExecutionCountOutputTypeDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecutionCountOutputType
+     */
+    select?: WorkflowExecutionCountOutputTypeSelect<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowExecutionCountOutputType without action
+   */
+  export type WorkflowExecutionCountOutputTypeCountTaskRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowTaskRunWhereInput
   }
 
 
@@ -4961,6 +5308,8 @@ export namespace Prisma {
     SchedulingOutcome?: boolean | Tenant$SchedulingOutcomeArgs<ExtArgs>
     alertRules?: boolean | Tenant$alertRulesArgs<ExtArgs>
     alerts?: boolean | Tenant$alertsArgs<ExtArgs>
+    workflows?: boolean | Tenant$workflowsArgs<ExtArgs>
+    workflowExecutions?: boolean | Tenant$workflowExecutionsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["tenant"]>
 
@@ -5005,6 +5354,8 @@ export namespace Prisma {
     SchedulingOutcome?: boolean | Tenant$SchedulingOutcomeArgs<ExtArgs>
     alertRules?: boolean | Tenant$alertRulesArgs<ExtArgs>
     alerts?: boolean | Tenant$alertsArgs<ExtArgs>
+    workflows?: boolean | Tenant$workflowsArgs<ExtArgs>
+    workflowExecutions?: boolean | Tenant$workflowExecutionsArgs<ExtArgs>
     _count?: boolean | TenantCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type TenantIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -5032,6 +5383,8 @@ export namespace Prisma {
       SchedulingOutcome: Prisma.$SchedulingOutcomePayload<ExtArgs>[]
       alertRules: Prisma.$AlertRulePayload<ExtArgs>[]
       alerts: Prisma.$AlertPayload<ExtArgs>[]
+      workflows: Prisma.$WorkflowPayload<ExtArgs>[]
+      workflowExecutions: Prisma.$WorkflowExecutionPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -5425,6 +5778,8 @@ export namespace Prisma {
     SchedulingOutcome<T extends Tenant$SchedulingOutcomeArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$SchedulingOutcomeArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$SchedulingOutcomePayload<ExtArgs>, T, "findMany"> | Null>
     alertRules<T extends Tenant$alertRulesArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$alertRulesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertRulePayload<ExtArgs>, T, "findMany"> | Null>
     alerts<T extends Tenant$alertsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$alertsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$AlertPayload<ExtArgs>, T, "findMany"> | Null>
+    workflows<T extends Tenant$workflowsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$workflowsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany"> | Null>
+    workflowExecutions<T extends Tenant$workflowExecutionsArgs<ExtArgs> = {}>(args?: Subset<T, Tenant$workflowExecutionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -6165,6 +6520,46 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: AlertScalarFieldEnum | AlertScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.workflows
+   */
+  export type Tenant$workflowsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    where?: WorkflowWhereInput
+    orderBy?: WorkflowOrderByWithRelationInput | WorkflowOrderByWithRelationInput[]
+    cursor?: WorkflowWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WorkflowScalarFieldEnum | WorkflowScalarFieldEnum[]
+  }
+
+  /**
+   * Tenant.workflowExecutions
+   */
+  export type Tenant$workflowExecutionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    where?: WorkflowExecutionWhereInput
+    orderBy?: WorkflowExecutionOrderByWithRelationInput | WorkflowExecutionOrderByWithRelationInput[]
+    cursor?: WorkflowExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WorkflowExecutionScalarFieldEnum | WorkflowExecutionScalarFieldEnum[]
   }
 
   /**
@@ -15821,6 +16216,7 @@ export namespace Prisma {
     node?: boolean | Task$nodeArgs<ExtArgs>
     logs?: boolean | Task$logsArgs<ExtArgs>
     executions?: boolean | Task$executionsArgs<ExtArgs>
+    workflowTaskRuns?: boolean | Task$workflowTaskRunsArgs<ExtArgs>
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     _count?: boolean | TaskCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["task"]>
@@ -15881,6 +16277,7 @@ export namespace Prisma {
     node?: boolean | Task$nodeArgs<ExtArgs>
     logs?: boolean | Task$logsArgs<ExtArgs>
     executions?: boolean | Task$executionsArgs<ExtArgs>
+    workflowTaskRuns?: boolean | Task$workflowTaskRunsArgs<ExtArgs>
     tenant?: boolean | TenantDefaultArgs<ExtArgs>
     _count?: boolean | TaskCountOutputTypeDefaultArgs<ExtArgs>
   }
@@ -15895,6 +16292,7 @@ export namespace Prisma {
       node: Prisma.$EdgeNodePayload<ExtArgs> | null
       logs: Prisma.$TaskLogPayload<ExtArgs>[]
       executions: Prisma.$TaskExecutionPayload<ExtArgs>[]
+      workflowTaskRuns: Prisma.$WorkflowTaskRunPayload<ExtArgs>[]
       tenant: Prisma.$TenantPayload<ExtArgs>
     }
     scalars: $Extensions.GetPayloadResult<{
@@ -16287,6 +16685,7 @@ export namespace Prisma {
     node<T extends Task$nodeArgs<ExtArgs> = {}>(args?: Subset<T, Task$nodeArgs<ExtArgs>>): Prisma__EdgeNodeClient<$Result.GetResult<Prisma.$EdgeNodePayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     logs<T extends Task$logsArgs<ExtArgs> = {}>(args?: Subset<T, Task$logsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskLogPayload<ExtArgs>, T, "findMany"> | Null>
     executions<T extends Task$executionsArgs<ExtArgs> = {}>(args?: Subset<T, Task$executionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$TaskExecutionPayload<ExtArgs>, T, "findMany"> | Null>
+    workflowTaskRuns<T extends Task$workflowTaskRunsArgs<ExtArgs> = {}>(args?: Subset<T, Task$workflowTaskRunsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findMany"> | Null>
     tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
@@ -16707,6 +17106,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: TaskExecutionScalarFieldEnum | TaskExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * Task.workflowTaskRuns
+   */
+  export type Task$workflowTaskRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    where?: WorkflowTaskRunWhereInput
+    orderBy?: WorkflowTaskRunOrderByWithRelationInput | WorkflowTaskRunOrderByWithRelationInput[]
+    cursor?: WorkflowTaskRunWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WorkflowTaskRunScalarFieldEnum | WorkflowTaskRunScalarFieldEnum[]
   }
 
   /**
@@ -34064,6 +34483,2947 @@ export namespace Prisma {
 
 
   /**
+   * Model Workflow
+   */
+
+  export type AggregateWorkflow = {
+    _count: WorkflowCountAggregateOutputType | null
+    _min: WorkflowMinAggregateOutputType | null
+    _max: WorkflowMaxAggregateOutputType | null
+  }
+
+  export type WorkflowMinAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    version: string | null
+    description: string | null
+    status: string | null
+    definition: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WorkflowMaxAggregateOutputType = {
+    id: string | null
+    tenantId: string | null
+    name: string | null
+    version: string | null
+    description: string | null
+    status: string | null
+    definition: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type WorkflowCountAggregateOutputType = {
+    id: number
+    tenantId: number
+    name: number
+    version: number
+    description: number
+    status: number
+    definition: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type WorkflowMinAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    version?: true
+    description?: true
+    status?: true
+    definition?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WorkflowMaxAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    version?: true
+    description?: true
+    status?: true
+    definition?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type WorkflowCountAggregateInputType = {
+    id?: true
+    tenantId?: true
+    name?: true
+    version?: true
+    description?: true
+    status?: true
+    definition?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type WorkflowAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Workflow to aggregate.
+     */
+    where?: WorkflowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Workflows to fetch.
+     */
+    orderBy?: WorkflowOrderByWithRelationInput | WorkflowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WorkflowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Workflows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Workflows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned Workflows
+    **/
+    _count?: true | WorkflowCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WorkflowMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WorkflowMaxAggregateInputType
+  }
+
+  export type GetWorkflowAggregateType<T extends WorkflowAggregateArgs> = {
+        [P in keyof T & keyof AggregateWorkflow]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWorkflow[P]>
+      : GetScalarType<T[P], AggregateWorkflow[P]>
+  }
+
+
+
+
+  export type WorkflowGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowWhereInput
+    orderBy?: WorkflowOrderByWithAggregationInput | WorkflowOrderByWithAggregationInput[]
+    by: WorkflowScalarFieldEnum[] | WorkflowScalarFieldEnum
+    having?: WorkflowScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WorkflowCountAggregateInputType | true
+    _min?: WorkflowMinAggregateInputType
+    _max?: WorkflowMaxAggregateInputType
+  }
+
+  export type WorkflowGroupByOutputType = {
+    id: string
+    tenantId: string
+    name: string
+    version: string
+    description: string | null
+    status: string
+    definition: string
+    createdAt: Date
+    updatedAt: Date
+    _count: WorkflowCountAggregateOutputType | null
+    _min: WorkflowMinAggregateOutputType | null
+    _max: WorkflowMaxAggregateOutputType | null
+  }
+
+  type GetWorkflowGroupByPayload<T extends WorkflowGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WorkflowGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WorkflowGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WorkflowGroupByOutputType[P]>
+            : GetScalarType<T[P], WorkflowGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WorkflowSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    version?: boolean
+    description?: boolean
+    status?: boolean
+    definition?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    executions?: boolean | Workflow$executionsArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    _count?: boolean | WorkflowCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflow"]>
+
+  export type WorkflowSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    version?: boolean
+    description?: boolean
+    status?: boolean
+    definition?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflow"]>
+
+  export type WorkflowSelectScalar = {
+    id?: boolean
+    tenantId?: boolean
+    name?: boolean
+    version?: boolean
+    description?: boolean
+    status?: boolean
+    definition?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type WorkflowInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    executions?: boolean | Workflow$executionsArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    _count?: boolean | WorkflowCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WorkflowIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $WorkflowPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "Workflow"
+    objects: {
+      executions: Prisma.$WorkflowExecutionPayload<ExtArgs>[]
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      tenantId: string
+      name: string
+      version: string
+      description: string | null
+      status: string
+      definition: string
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["workflow"]>
+    composites: {}
+  }
+
+  type WorkflowGetPayload<S extends boolean | null | undefined | WorkflowDefaultArgs> = $Result.GetResult<Prisma.$WorkflowPayload, S>
+
+  type WorkflowCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<WorkflowFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: WorkflowCountAggregateInputType | true
+    }
+
+  export interface WorkflowDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['Workflow'], meta: { name: 'Workflow' } }
+    /**
+     * Find zero or one Workflow that matches the filter.
+     * @param {WorkflowFindUniqueArgs} args - Arguments to find a Workflow
+     * @example
+     * // Get one Workflow
+     * const workflow = await prisma.workflow.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WorkflowFindUniqueArgs>(args: SelectSubset<T, WorkflowFindUniqueArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one Workflow that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {WorkflowFindUniqueOrThrowArgs} args - Arguments to find a Workflow
+     * @example
+     * // Get one Workflow
+     * const workflow = await prisma.workflow.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WorkflowFindUniqueOrThrowArgs>(args: SelectSubset<T, WorkflowFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first Workflow that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowFindFirstArgs} args - Arguments to find a Workflow
+     * @example
+     * // Get one Workflow
+     * const workflow = await prisma.workflow.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WorkflowFindFirstArgs>(args?: SelectSubset<T, WorkflowFindFirstArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first Workflow that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowFindFirstOrThrowArgs} args - Arguments to find a Workflow
+     * @example
+     * // Get one Workflow
+     * const workflow = await prisma.workflow.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WorkflowFindFirstOrThrowArgs>(args?: SelectSubset<T, WorkflowFindFirstOrThrowArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more Workflows that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all Workflows
+     * const workflows = await prisma.workflow.findMany()
+     * 
+     * // Get first 10 Workflows
+     * const workflows = await prisma.workflow.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const workflowWithIdOnly = await prisma.workflow.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WorkflowFindManyArgs>(args?: SelectSubset<T, WorkflowFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a Workflow.
+     * @param {WorkflowCreateArgs} args - Arguments to create a Workflow.
+     * @example
+     * // Create one Workflow
+     * const Workflow = await prisma.workflow.create({
+     *   data: {
+     *     // ... data to create a Workflow
+     *   }
+     * })
+     * 
+     */
+    create<T extends WorkflowCreateArgs>(args: SelectSubset<T, WorkflowCreateArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many Workflows.
+     * @param {WorkflowCreateManyArgs} args - Arguments to create many Workflows.
+     * @example
+     * // Create many Workflows
+     * const workflow = await prisma.workflow.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WorkflowCreateManyArgs>(args?: SelectSubset<T, WorkflowCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many Workflows and returns the data saved in the database.
+     * @param {WorkflowCreateManyAndReturnArgs} args - Arguments to create many Workflows.
+     * @example
+     * // Create many Workflows
+     * const workflow = await prisma.workflow.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many Workflows and only return the `id`
+     * const workflowWithIdOnly = await prisma.workflow.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WorkflowCreateManyAndReturnArgs>(args?: SelectSubset<T, WorkflowCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a Workflow.
+     * @param {WorkflowDeleteArgs} args - Arguments to delete one Workflow.
+     * @example
+     * // Delete one Workflow
+     * const Workflow = await prisma.workflow.delete({
+     *   where: {
+     *     // ... filter to delete one Workflow
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WorkflowDeleteArgs>(args: SelectSubset<T, WorkflowDeleteArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one Workflow.
+     * @param {WorkflowUpdateArgs} args - Arguments to update one Workflow.
+     * @example
+     * // Update one Workflow
+     * const workflow = await prisma.workflow.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WorkflowUpdateArgs>(args: SelectSubset<T, WorkflowUpdateArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more Workflows.
+     * @param {WorkflowDeleteManyArgs} args - Arguments to filter Workflows to delete.
+     * @example
+     * // Delete a few Workflows
+     * const { count } = await prisma.workflow.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WorkflowDeleteManyArgs>(args?: SelectSubset<T, WorkflowDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more Workflows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many Workflows
+     * const workflow = await prisma.workflow.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WorkflowUpdateManyArgs>(args: SelectSubset<T, WorkflowUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one Workflow.
+     * @param {WorkflowUpsertArgs} args - Arguments to update or create a Workflow.
+     * @example
+     * // Update or create a Workflow
+     * const workflow = await prisma.workflow.upsert({
+     *   create: {
+     *     // ... data to create a Workflow
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the Workflow we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WorkflowUpsertArgs>(args: SelectSubset<T, WorkflowUpsertArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of Workflows.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowCountArgs} args - Arguments to filter Workflows to count.
+     * @example
+     * // Count the number of Workflows
+     * const count = await prisma.workflow.count({
+     *   where: {
+     *     // ... the filter for the Workflows we want to count
+     *   }
+     * })
+    **/
+    count<T extends WorkflowCountArgs>(
+      args?: Subset<T, WorkflowCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WorkflowCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a Workflow.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WorkflowAggregateArgs>(args: Subset<T, WorkflowAggregateArgs>): Prisma.PrismaPromise<GetWorkflowAggregateType<T>>
+
+    /**
+     * Group by Workflow.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WorkflowGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WorkflowGroupByArgs['orderBy'] }
+        : { orderBy?: WorkflowGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WorkflowGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWorkflowGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the Workflow model
+   */
+  readonly fields: WorkflowFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for Workflow.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WorkflowClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    executions<T extends Workflow$executionsArgs<ExtArgs> = {}>(args?: Subset<T, Workflow$executionsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findMany"> | Null>
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the Workflow model
+   */ 
+  interface WorkflowFieldRefs {
+    readonly id: FieldRef<"Workflow", 'String'>
+    readonly tenantId: FieldRef<"Workflow", 'String'>
+    readonly name: FieldRef<"Workflow", 'String'>
+    readonly version: FieldRef<"Workflow", 'String'>
+    readonly description: FieldRef<"Workflow", 'String'>
+    readonly status: FieldRef<"Workflow", 'String'>
+    readonly definition: FieldRef<"Workflow", 'String'>
+    readonly createdAt: FieldRef<"Workflow", 'DateTime'>
+    readonly updatedAt: FieldRef<"Workflow", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * Workflow findUnique
+   */
+  export type WorkflowFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * Filter, which Workflow to fetch.
+     */
+    where: WorkflowWhereUniqueInput
+  }
+
+  /**
+   * Workflow findUniqueOrThrow
+   */
+  export type WorkflowFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * Filter, which Workflow to fetch.
+     */
+    where: WorkflowWhereUniqueInput
+  }
+
+  /**
+   * Workflow findFirst
+   */
+  export type WorkflowFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * Filter, which Workflow to fetch.
+     */
+    where?: WorkflowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Workflows to fetch.
+     */
+    orderBy?: WorkflowOrderByWithRelationInput | WorkflowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Workflows.
+     */
+    cursor?: WorkflowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Workflows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Workflows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Workflows.
+     */
+    distinct?: WorkflowScalarFieldEnum | WorkflowScalarFieldEnum[]
+  }
+
+  /**
+   * Workflow findFirstOrThrow
+   */
+  export type WorkflowFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * Filter, which Workflow to fetch.
+     */
+    where?: WorkflowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Workflows to fetch.
+     */
+    orderBy?: WorkflowOrderByWithRelationInput | WorkflowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for Workflows.
+     */
+    cursor?: WorkflowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Workflows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Workflows.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of Workflows.
+     */
+    distinct?: WorkflowScalarFieldEnum | WorkflowScalarFieldEnum[]
+  }
+
+  /**
+   * Workflow findMany
+   */
+  export type WorkflowFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * Filter, which Workflows to fetch.
+     */
+    where?: WorkflowWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of Workflows to fetch.
+     */
+    orderBy?: WorkflowOrderByWithRelationInput | WorkflowOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing Workflows.
+     */
+    cursor?: WorkflowWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` Workflows from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` Workflows.
+     */
+    skip?: number
+    distinct?: WorkflowScalarFieldEnum | WorkflowScalarFieldEnum[]
+  }
+
+  /**
+   * Workflow create
+   */
+  export type WorkflowCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * The data needed to create a Workflow.
+     */
+    data: XOR<WorkflowCreateInput, WorkflowUncheckedCreateInput>
+  }
+
+  /**
+   * Workflow createMany
+   */
+  export type WorkflowCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many Workflows.
+     */
+    data: WorkflowCreateManyInput | WorkflowCreateManyInput[]
+  }
+
+  /**
+   * Workflow createManyAndReturn
+   */
+  export type WorkflowCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many Workflows.
+     */
+    data: WorkflowCreateManyInput | WorkflowCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * Workflow update
+   */
+  export type WorkflowUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * The data needed to update a Workflow.
+     */
+    data: XOR<WorkflowUpdateInput, WorkflowUncheckedUpdateInput>
+    /**
+     * Choose, which Workflow to update.
+     */
+    where: WorkflowWhereUniqueInput
+  }
+
+  /**
+   * Workflow updateMany
+   */
+  export type WorkflowUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update Workflows.
+     */
+    data: XOR<WorkflowUpdateManyMutationInput, WorkflowUncheckedUpdateManyInput>
+    /**
+     * Filter which Workflows to update
+     */
+    where?: WorkflowWhereInput
+  }
+
+  /**
+   * Workflow upsert
+   */
+  export type WorkflowUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * The filter to search for the Workflow to update in case it exists.
+     */
+    where: WorkflowWhereUniqueInput
+    /**
+     * In case the Workflow found by the `where` argument doesn't exist, create a new Workflow with this data.
+     */
+    create: XOR<WorkflowCreateInput, WorkflowUncheckedCreateInput>
+    /**
+     * In case the Workflow was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WorkflowUpdateInput, WorkflowUncheckedUpdateInput>
+  }
+
+  /**
+   * Workflow delete
+   */
+  export type WorkflowDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+    /**
+     * Filter which Workflow to delete.
+     */
+    where: WorkflowWhereUniqueInput
+  }
+
+  /**
+   * Workflow deleteMany
+   */
+  export type WorkflowDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which Workflows to delete
+     */
+    where?: WorkflowWhereInput
+  }
+
+  /**
+   * Workflow.executions
+   */
+  export type Workflow$executionsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    where?: WorkflowExecutionWhereInput
+    orderBy?: WorkflowExecutionOrderByWithRelationInput | WorkflowExecutionOrderByWithRelationInput[]
+    cursor?: WorkflowExecutionWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WorkflowExecutionScalarFieldEnum | WorkflowExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * Workflow without action
+   */
+  export type WorkflowDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the Workflow
+     */
+    select?: WorkflowSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WorkflowExecution
+   */
+
+  export type AggregateWorkflowExecution = {
+    _count: WorkflowExecutionCountAggregateOutputType | null
+    _min: WorkflowExecutionMinAggregateOutputType | null
+    _max: WorkflowExecutionMaxAggregateOutputType | null
+  }
+
+  export type WorkflowExecutionMinAggregateOutputType = {
+    id: string | null
+    workflowId: string | null
+    tenantId: string | null
+    status: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type WorkflowExecutionMaxAggregateOutputType = {
+    id: string | null
+    workflowId: string | null
+    tenantId: string | null
+    status: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type WorkflowExecutionCountAggregateOutputType = {
+    id: number
+    workflowId: number
+    tenantId: number
+    status: number
+    startedAt: number
+    completedAt: number
+    _all: number
+  }
+
+
+  export type WorkflowExecutionMinAggregateInputType = {
+    id?: true
+    workflowId?: true
+    tenantId?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+  }
+
+  export type WorkflowExecutionMaxAggregateInputType = {
+    id?: true
+    workflowId?: true
+    tenantId?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+  }
+
+  export type WorkflowExecutionCountAggregateInputType = {
+    id?: true
+    workflowId?: true
+    tenantId?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+    _all?: true
+  }
+
+  export type WorkflowExecutionAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WorkflowExecution to aggregate.
+     */
+    where?: WorkflowExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowExecutions to fetch.
+     */
+    orderBy?: WorkflowExecutionOrderByWithRelationInput | WorkflowExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WorkflowExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WorkflowExecutions
+    **/
+    _count?: true | WorkflowExecutionCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WorkflowExecutionMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WorkflowExecutionMaxAggregateInputType
+  }
+
+  export type GetWorkflowExecutionAggregateType<T extends WorkflowExecutionAggregateArgs> = {
+        [P in keyof T & keyof AggregateWorkflowExecution]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWorkflowExecution[P]>
+      : GetScalarType<T[P], AggregateWorkflowExecution[P]>
+  }
+
+
+
+
+  export type WorkflowExecutionGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowExecutionWhereInput
+    orderBy?: WorkflowExecutionOrderByWithAggregationInput | WorkflowExecutionOrderByWithAggregationInput[]
+    by: WorkflowExecutionScalarFieldEnum[] | WorkflowExecutionScalarFieldEnum
+    having?: WorkflowExecutionScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WorkflowExecutionCountAggregateInputType | true
+    _min?: WorkflowExecutionMinAggregateInputType
+    _max?: WorkflowExecutionMaxAggregateInputType
+  }
+
+  export type WorkflowExecutionGroupByOutputType = {
+    id: string
+    workflowId: string
+    tenantId: string
+    status: string
+    startedAt: Date
+    completedAt: Date | null
+    _count: WorkflowExecutionCountAggregateOutputType | null
+    _min: WorkflowExecutionMinAggregateOutputType | null
+    _max: WorkflowExecutionMaxAggregateOutputType | null
+  }
+
+  type GetWorkflowExecutionGroupByPayload<T extends WorkflowExecutionGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WorkflowExecutionGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WorkflowExecutionGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WorkflowExecutionGroupByOutputType[P]>
+            : GetScalarType<T[P], WorkflowExecutionGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WorkflowExecutionSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    workflowId?: boolean
+    tenantId?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    taskRuns?: boolean | WorkflowExecution$taskRunsArgs<ExtArgs>
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    _count?: boolean | WorkflowExecutionCountOutputTypeDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowExecution"]>
+
+  export type WorkflowExecutionSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    workflowId?: boolean
+    tenantId?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowExecution"]>
+
+  export type WorkflowExecutionSelectScalar = {
+    id?: boolean
+    workflowId?: boolean
+    tenantId?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+  }
+
+  export type WorkflowExecutionInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    taskRuns?: boolean | WorkflowExecution$taskRunsArgs<ExtArgs>
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+    _count?: boolean | WorkflowExecutionCountOutputTypeDefaultArgs<ExtArgs>
+  }
+  export type WorkflowExecutionIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    workflow?: boolean | WorkflowDefaultArgs<ExtArgs>
+    tenant?: boolean | TenantDefaultArgs<ExtArgs>
+  }
+
+  export type $WorkflowExecutionPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WorkflowExecution"
+    objects: {
+      taskRuns: Prisma.$WorkflowTaskRunPayload<ExtArgs>[]
+      workflow: Prisma.$WorkflowPayload<ExtArgs>
+      tenant: Prisma.$TenantPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      workflowId: string
+      tenantId: string
+      status: string
+      startedAt: Date
+      completedAt: Date | null
+    }, ExtArgs["result"]["workflowExecution"]>
+    composites: {}
+  }
+
+  type WorkflowExecutionGetPayload<S extends boolean | null | undefined | WorkflowExecutionDefaultArgs> = $Result.GetResult<Prisma.$WorkflowExecutionPayload, S>
+
+  type WorkflowExecutionCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<WorkflowExecutionFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: WorkflowExecutionCountAggregateInputType | true
+    }
+
+  export interface WorkflowExecutionDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WorkflowExecution'], meta: { name: 'WorkflowExecution' } }
+    /**
+     * Find zero or one WorkflowExecution that matches the filter.
+     * @param {WorkflowExecutionFindUniqueArgs} args - Arguments to find a WorkflowExecution
+     * @example
+     * // Get one WorkflowExecution
+     * const workflowExecution = await prisma.workflowExecution.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WorkflowExecutionFindUniqueArgs>(args: SelectSubset<T, WorkflowExecutionFindUniqueArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one WorkflowExecution that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {WorkflowExecutionFindUniqueOrThrowArgs} args - Arguments to find a WorkflowExecution
+     * @example
+     * // Get one WorkflowExecution
+     * const workflowExecution = await prisma.workflowExecution.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WorkflowExecutionFindUniqueOrThrowArgs>(args: SelectSubset<T, WorkflowExecutionFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first WorkflowExecution that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionFindFirstArgs} args - Arguments to find a WorkflowExecution
+     * @example
+     * // Get one WorkflowExecution
+     * const workflowExecution = await prisma.workflowExecution.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WorkflowExecutionFindFirstArgs>(args?: SelectSubset<T, WorkflowExecutionFindFirstArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first WorkflowExecution that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionFindFirstOrThrowArgs} args - Arguments to find a WorkflowExecution
+     * @example
+     * // Get one WorkflowExecution
+     * const workflowExecution = await prisma.workflowExecution.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WorkflowExecutionFindFirstOrThrowArgs>(args?: SelectSubset<T, WorkflowExecutionFindFirstOrThrowArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more WorkflowExecutions that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WorkflowExecutions
+     * const workflowExecutions = await prisma.workflowExecution.findMany()
+     * 
+     * // Get first 10 WorkflowExecutions
+     * const workflowExecutions = await prisma.workflowExecution.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const workflowExecutionWithIdOnly = await prisma.workflowExecution.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WorkflowExecutionFindManyArgs>(args?: SelectSubset<T, WorkflowExecutionFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a WorkflowExecution.
+     * @param {WorkflowExecutionCreateArgs} args - Arguments to create a WorkflowExecution.
+     * @example
+     * // Create one WorkflowExecution
+     * const WorkflowExecution = await prisma.workflowExecution.create({
+     *   data: {
+     *     // ... data to create a WorkflowExecution
+     *   }
+     * })
+     * 
+     */
+    create<T extends WorkflowExecutionCreateArgs>(args: SelectSubset<T, WorkflowExecutionCreateArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many WorkflowExecutions.
+     * @param {WorkflowExecutionCreateManyArgs} args - Arguments to create many WorkflowExecutions.
+     * @example
+     * // Create many WorkflowExecutions
+     * const workflowExecution = await prisma.workflowExecution.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WorkflowExecutionCreateManyArgs>(args?: SelectSubset<T, WorkflowExecutionCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WorkflowExecutions and returns the data saved in the database.
+     * @param {WorkflowExecutionCreateManyAndReturnArgs} args - Arguments to create many WorkflowExecutions.
+     * @example
+     * // Create many WorkflowExecutions
+     * const workflowExecution = await prisma.workflowExecution.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WorkflowExecutions and only return the `id`
+     * const workflowExecutionWithIdOnly = await prisma.workflowExecution.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WorkflowExecutionCreateManyAndReturnArgs>(args?: SelectSubset<T, WorkflowExecutionCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a WorkflowExecution.
+     * @param {WorkflowExecutionDeleteArgs} args - Arguments to delete one WorkflowExecution.
+     * @example
+     * // Delete one WorkflowExecution
+     * const WorkflowExecution = await prisma.workflowExecution.delete({
+     *   where: {
+     *     // ... filter to delete one WorkflowExecution
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WorkflowExecutionDeleteArgs>(args: SelectSubset<T, WorkflowExecutionDeleteArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one WorkflowExecution.
+     * @param {WorkflowExecutionUpdateArgs} args - Arguments to update one WorkflowExecution.
+     * @example
+     * // Update one WorkflowExecution
+     * const workflowExecution = await prisma.workflowExecution.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WorkflowExecutionUpdateArgs>(args: SelectSubset<T, WorkflowExecutionUpdateArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more WorkflowExecutions.
+     * @param {WorkflowExecutionDeleteManyArgs} args - Arguments to filter WorkflowExecutions to delete.
+     * @example
+     * // Delete a few WorkflowExecutions
+     * const { count } = await prisma.workflowExecution.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WorkflowExecutionDeleteManyArgs>(args?: SelectSubset<T, WorkflowExecutionDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WorkflowExecutions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WorkflowExecutions
+     * const workflowExecution = await prisma.workflowExecution.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WorkflowExecutionUpdateManyArgs>(args: SelectSubset<T, WorkflowExecutionUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one WorkflowExecution.
+     * @param {WorkflowExecutionUpsertArgs} args - Arguments to update or create a WorkflowExecution.
+     * @example
+     * // Update or create a WorkflowExecution
+     * const workflowExecution = await prisma.workflowExecution.upsert({
+     *   create: {
+     *     // ... data to create a WorkflowExecution
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WorkflowExecution we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WorkflowExecutionUpsertArgs>(args: SelectSubset<T, WorkflowExecutionUpsertArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of WorkflowExecutions.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionCountArgs} args - Arguments to filter WorkflowExecutions to count.
+     * @example
+     * // Count the number of WorkflowExecutions
+     * const count = await prisma.workflowExecution.count({
+     *   where: {
+     *     // ... the filter for the WorkflowExecutions we want to count
+     *   }
+     * })
+    **/
+    count<T extends WorkflowExecutionCountArgs>(
+      args?: Subset<T, WorkflowExecutionCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WorkflowExecutionCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WorkflowExecution.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WorkflowExecutionAggregateArgs>(args: Subset<T, WorkflowExecutionAggregateArgs>): Prisma.PrismaPromise<GetWorkflowExecutionAggregateType<T>>
+
+    /**
+     * Group by WorkflowExecution.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowExecutionGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WorkflowExecutionGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WorkflowExecutionGroupByArgs['orderBy'] }
+        : { orderBy?: WorkflowExecutionGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WorkflowExecutionGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWorkflowExecutionGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WorkflowExecution model
+   */
+  readonly fields: WorkflowExecutionFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WorkflowExecution.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WorkflowExecutionClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    taskRuns<T extends WorkflowExecution$taskRunsArgs<ExtArgs> = {}>(args?: Subset<T, WorkflowExecution$taskRunsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findMany"> | Null>
+    workflow<T extends WorkflowDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WorkflowDefaultArgs<ExtArgs>>): Prisma__WorkflowClient<$Result.GetResult<Prisma.$WorkflowPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    tenant<T extends TenantDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TenantDefaultArgs<ExtArgs>>): Prisma__TenantClient<$Result.GetResult<Prisma.$TenantPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WorkflowExecution model
+   */ 
+  interface WorkflowExecutionFieldRefs {
+    readonly id: FieldRef<"WorkflowExecution", 'String'>
+    readonly workflowId: FieldRef<"WorkflowExecution", 'String'>
+    readonly tenantId: FieldRef<"WorkflowExecution", 'String'>
+    readonly status: FieldRef<"WorkflowExecution", 'String'>
+    readonly startedAt: FieldRef<"WorkflowExecution", 'DateTime'>
+    readonly completedAt: FieldRef<"WorkflowExecution", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WorkflowExecution findUnique
+   */
+  export type WorkflowExecutionFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowExecution to fetch.
+     */
+    where: WorkflowExecutionWhereUniqueInput
+  }
+
+  /**
+   * WorkflowExecution findUniqueOrThrow
+   */
+  export type WorkflowExecutionFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowExecution to fetch.
+     */
+    where: WorkflowExecutionWhereUniqueInput
+  }
+
+  /**
+   * WorkflowExecution findFirst
+   */
+  export type WorkflowExecutionFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowExecution to fetch.
+     */
+    where?: WorkflowExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowExecutions to fetch.
+     */
+    orderBy?: WorkflowExecutionOrderByWithRelationInput | WorkflowExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WorkflowExecutions.
+     */
+    cursor?: WorkflowExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WorkflowExecutions.
+     */
+    distinct?: WorkflowExecutionScalarFieldEnum | WorkflowExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowExecution findFirstOrThrow
+   */
+  export type WorkflowExecutionFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowExecution to fetch.
+     */
+    where?: WorkflowExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowExecutions to fetch.
+     */
+    orderBy?: WorkflowExecutionOrderByWithRelationInput | WorkflowExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WorkflowExecutions.
+     */
+    cursor?: WorkflowExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowExecutions.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WorkflowExecutions.
+     */
+    distinct?: WorkflowExecutionScalarFieldEnum | WorkflowExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowExecution findMany
+   */
+  export type WorkflowExecutionFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowExecutions to fetch.
+     */
+    where?: WorkflowExecutionWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowExecutions to fetch.
+     */
+    orderBy?: WorkflowExecutionOrderByWithRelationInput | WorkflowExecutionOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WorkflowExecutions.
+     */
+    cursor?: WorkflowExecutionWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowExecutions from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowExecutions.
+     */
+    skip?: number
+    distinct?: WorkflowExecutionScalarFieldEnum | WorkflowExecutionScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowExecution create
+   */
+  export type WorkflowExecutionCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WorkflowExecution.
+     */
+    data: XOR<WorkflowExecutionCreateInput, WorkflowExecutionUncheckedCreateInput>
+  }
+
+  /**
+   * WorkflowExecution createMany
+   */
+  export type WorkflowExecutionCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WorkflowExecutions.
+     */
+    data: WorkflowExecutionCreateManyInput | WorkflowExecutionCreateManyInput[]
+  }
+
+  /**
+   * WorkflowExecution createManyAndReturn
+   */
+  export type WorkflowExecutionCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many WorkflowExecutions.
+     */
+    data: WorkflowExecutionCreateManyInput | WorkflowExecutionCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowExecution update
+   */
+  export type WorkflowExecutionUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WorkflowExecution.
+     */
+    data: XOR<WorkflowExecutionUpdateInput, WorkflowExecutionUncheckedUpdateInput>
+    /**
+     * Choose, which WorkflowExecution to update.
+     */
+    where: WorkflowExecutionWhereUniqueInput
+  }
+
+  /**
+   * WorkflowExecution updateMany
+   */
+  export type WorkflowExecutionUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WorkflowExecutions.
+     */
+    data: XOR<WorkflowExecutionUpdateManyMutationInput, WorkflowExecutionUncheckedUpdateManyInput>
+    /**
+     * Filter which WorkflowExecutions to update
+     */
+    where?: WorkflowExecutionWhereInput
+  }
+
+  /**
+   * WorkflowExecution upsert
+   */
+  export type WorkflowExecutionUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WorkflowExecution to update in case it exists.
+     */
+    where: WorkflowExecutionWhereUniqueInput
+    /**
+     * In case the WorkflowExecution found by the `where` argument doesn't exist, create a new WorkflowExecution with this data.
+     */
+    create: XOR<WorkflowExecutionCreateInput, WorkflowExecutionUncheckedCreateInput>
+    /**
+     * In case the WorkflowExecution was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WorkflowExecutionUpdateInput, WorkflowExecutionUncheckedUpdateInput>
+  }
+
+  /**
+   * WorkflowExecution delete
+   */
+  export type WorkflowExecutionDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+    /**
+     * Filter which WorkflowExecution to delete.
+     */
+    where: WorkflowExecutionWhereUniqueInput
+  }
+
+  /**
+   * WorkflowExecution deleteMany
+   */
+  export type WorkflowExecutionDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WorkflowExecutions to delete
+     */
+    where?: WorkflowExecutionWhereInput
+  }
+
+  /**
+   * WorkflowExecution.taskRuns
+   */
+  export type WorkflowExecution$taskRunsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    where?: WorkflowTaskRunWhereInput
+    orderBy?: WorkflowTaskRunOrderByWithRelationInput | WorkflowTaskRunOrderByWithRelationInput[]
+    cursor?: WorkflowTaskRunWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: WorkflowTaskRunScalarFieldEnum | WorkflowTaskRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowExecution without action
+   */
+  export type WorkflowExecutionDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowExecution
+     */
+    select?: WorkflowExecutionSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowExecutionInclude<ExtArgs> | null
+  }
+
+
+  /**
+   * Model WorkflowTaskRun
+   */
+
+  export type AggregateWorkflowTaskRun = {
+    _count: WorkflowTaskRunCountAggregateOutputType | null
+    _min: WorkflowTaskRunMinAggregateOutputType | null
+    _max: WorkflowTaskRunMaxAggregateOutputType | null
+  }
+
+  export type WorkflowTaskRunMinAggregateOutputType = {
+    id: string | null
+    executionId: string | null
+    taskId: string | null
+    stepName: string | null
+    status: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type WorkflowTaskRunMaxAggregateOutputType = {
+    id: string | null
+    executionId: string | null
+    taskId: string | null
+    stepName: string | null
+    status: string | null
+    startedAt: Date | null
+    completedAt: Date | null
+  }
+
+  export type WorkflowTaskRunCountAggregateOutputType = {
+    id: number
+    executionId: number
+    taskId: number
+    stepName: number
+    status: number
+    startedAt: number
+    completedAt: number
+    _all: number
+  }
+
+
+  export type WorkflowTaskRunMinAggregateInputType = {
+    id?: true
+    executionId?: true
+    taskId?: true
+    stepName?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+  }
+
+  export type WorkflowTaskRunMaxAggregateInputType = {
+    id?: true
+    executionId?: true
+    taskId?: true
+    stepName?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+  }
+
+  export type WorkflowTaskRunCountAggregateInputType = {
+    id?: true
+    executionId?: true
+    taskId?: true
+    stepName?: true
+    status?: true
+    startedAt?: true
+    completedAt?: true
+    _all?: true
+  }
+
+  export type WorkflowTaskRunAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WorkflowTaskRun to aggregate.
+     */
+    where?: WorkflowTaskRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowTaskRuns to fetch.
+     */
+    orderBy?: WorkflowTaskRunOrderByWithRelationInput | WorkflowTaskRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: WorkflowTaskRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowTaskRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowTaskRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned WorkflowTaskRuns
+    **/
+    _count?: true | WorkflowTaskRunCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: WorkflowTaskRunMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: WorkflowTaskRunMaxAggregateInputType
+  }
+
+  export type GetWorkflowTaskRunAggregateType<T extends WorkflowTaskRunAggregateArgs> = {
+        [P in keyof T & keyof AggregateWorkflowTaskRun]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateWorkflowTaskRun[P]>
+      : GetScalarType<T[P], AggregateWorkflowTaskRun[P]>
+  }
+
+
+
+
+  export type WorkflowTaskRunGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: WorkflowTaskRunWhereInput
+    orderBy?: WorkflowTaskRunOrderByWithAggregationInput | WorkflowTaskRunOrderByWithAggregationInput[]
+    by: WorkflowTaskRunScalarFieldEnum[] | WorkflowTaskRunScalarFieldEnum
+    having?: WorkflowTaskRunScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: WorkflowTaskRunCountAggregateInputType | true
+    _min?: WorkflowTaskRunMinAggregateInputType
+    _max?: WorkflowTaskRunMaxAggregateInputType
+  }
+
+  export type WorkflowTaskRunGroupByOutputType = {
+    id: string
+    executionId: string
+    taskId: string
+    stepName: string
+    status: string
+    startedAt: Date | null
+    completedAt: Date | null
+    _count: WorkflowTaskRunCountAggregateOutputType | null
+    _min: WorkflowTaskRunMinAggregateOutputType | null
+    _max: WorkflowTaskRunMaxAggregateOutputType | null
+  }
+
+  type GetWorkflowTaskRunGroupByPayload<T extends WorkflowTaskRunGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<WorkflowTaskRunGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof WorkflowTaskRunGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], WorkflowTaskRunGroupByOutputType[P]>
+            : GetScalarType<T[P], WorkflowTaskRunGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type WorkflowTaskRunSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    executionId?: boolean
+    taskId?: boolean
+    stepName?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    execution?: boolean | WorkflowExecutionDefaultArgs<ExtArgs>
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowTaskRun"]>
+
+  export type WorkflowTaskRunSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    executionId?: boolean
+    taskId?: boolean
+    stepName?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+    execution?: boolean | WorkflowExecutionDefaultArgs<ExtArgs>
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["workflowTaskRun"]>
+
+  export type WorkflowTaskRunSelectScalar = {
+    id?: boolean
+    executionId?: boolean
+    taskId?: boolean
+    stepName?: boolean
+    status?: boolean
+    startedAt?: boolean
+    completedAt?: boolean
+  }
+
+  export type WorkflowTaskRunInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    execution?: boolean | WorkflowExecutionDefaultArgs<ExtArgs>
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+  }
+  export type WorkflowTaskRunIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    execution?: boolean | WorkflowExecutionDefaultArgs<ExtArgs>
+    task?: boolean | TaskDefaultArgs<ExtArgs>
+  }
+
+  export type $WorkflowTaskRunPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "WorkflowTaskRun"
+    objects: {
+      execution: Prisma.$WorkflowExecutionPayload<ExtArgs>
+      task: Prisma.$TaskPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      executionId: string
+      taskId: string
+      stepName: string
+      status: string
+      startedAt: Date | null
+      completedAt: Date | null
+    }, ExtArgs["result"]["workflowTaskRun"]>
+    composites: {}
+  }
+
+  type WorkflowTaskRunGetPayload<S extends boolean | null | undefined | WorkflowTaskRunDefaultArgs> = $Result.GetResult<Prisma.$WorkflowTaskRunPayload, S>
+
+  type WorkflowTaskRunCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<WorkflowTaskRunFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: WorkflowTaskRunCountAggregateInputType | true
+    }
+
+  export interface WorkflowTaskRunDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['WorkflowTaskRun'], meta: { name: 'WorkflowTaskRun' } }
+    /**
+     * Find zero or one WorkflowTaskRun that matches the filter.
+     * @param {WorkflowTaskRunFindUniqueArgs} args - Arguments to find a WorkflowTaskRun
+     * @example
+     * // Get one WorkflowTaskRun
+     * const workflowTaskRun = await prisma.workflowTaskRun.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends WorkflowTaskRunFindUniqueArgs>(args: SelectSubset<T, WorkflowTaskRunFindUniqueArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one WorkflowTaskRun that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {WorkflowTaskRunFindUniqueOrThrowArgs} args - Arguments to find a WorkflowTaskRun
+     * @example
+     * // Get one WorkflowTaskRun
+     * const workflowTaskRun = await prisma.workflowTaskRun.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends WorkflowTaskRunFindUniqueOrThrowArgs>(args: SelectSubset<T, WorkflowTaskRunFindUniqueOrThrowArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first WorkflowTaskRun that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunFindFirstArgs} args - Arguments to find a WorkflowTaskRun
+     * @example
+     * // Get one WorkflowTaskRun
+     * const workflowTaskRun = await prisma.workflowTaskRun.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends WorkflowTaskRunFindFirstArgs>(args?: SelectSubset<T, WorkflowTaskRunFindFirstArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first WorkflowTaskRun that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunFindFirstOrThrowArgs} args - Arguments to find a WorkflowTaskRun
+     * @example
+     * // Get one WorkflowTaskRun
+     * const workflowTaskRun = await prisma.workflowTaskRun.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends WorkflowTaskRunFindFirstOrThrowArgs>(args?: SelectSubset<T, WorkflowTaskRunFindFirstOrThrowArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more WorkflowTaskRuns that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all WorkflowTaskRuns
+     * const workflowTaskRuns = await prisma.workflowTaskRun.findMany()
+     * 
+     * // Get first 10 WorkflowTaskRuns
+     * const workflowTaskRuns = await prisma.workflowTaskRun.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const workflowTaskRunWithIdOnly = await prisma.workflowTaskRun.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends WorkflowTaskRunFindManyArgs>(args?: SelectSubset<T, WorkflowTaskRunFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a WorkflowTaskRun.
+     * @param {WorkflowTaskRunCreateArgs} args - Arguments to create a WorkflowTaskRun.
+     * @example
+     * // Create one WorkflowTaskRun
+     * const WorkflowTaskRun = await prisma.workflowTaskRun.create({
+     *   data: {
+     *     // ... data to create a WorkflowTaskRun
+     *   }
+     * })
+     * 
+     */
+    create<T extends WorkflowTaskRunCreateArgs>(args: SelectSubset<T, WorkflowTaskRunCreateArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many WorkflowTaskRuns.
+     * @param {WorkflowTaskRunCreateManyArgs} args - Arguments to create many WorkflowTaskRuns.
+     * @example
+     * // Create many WorkflowTaskRuns
+     * const workflowTaskRun = await prisma.workflowTaskRun.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends WorkflowTaskRunCreateManyArgs>(args?: SelectSubset<T, WorkflowTaskRunCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many WorkflowTaskRuns and returns the data saved in the database.
+     * @param {WorkflowTaskRunCreateManyAndReturnArgs} args - Arguments to create many WorkflowTaskRuns.
+     * @example
+     * // Create many WorkflowTaskRuns
+     * const workflowTaskRun = await prisma.workflowTaskRun.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many WorkflowTaskRuns and only return the `id`
+     * const workflowTaskRunWithIdOnly = await prisma.workflowTaskRun.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends WorkflowTaskRunCreateManyAndReturnArgs>(args?: SelectSubset<T, WorkflowTaskRunCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a WorkflowTaskRun.
+     * @param {WorkflowTaskRunDeleteArgs} args - Arguments to delete one WorkflowTaskRun.
+     * @example
+     * // Delete one WorkflowTaskRun
+     * const WorkflowTaskRun = await prisma.workflowTaskRun.delete({
+     *   where: {
+     *     // ... filter to delete one WorkflowTaskRun
+     *   }
+     * })
+     * 
+     */
+    delete<T extends WorkflowTaskRunDeleteArgs>(args: SelectSubset<T, WorkflowTaskRunDeleteArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one WorkflowTaskRun.
+     * @param {WorkflowTaskRunUpdateArgs} args - Arguments to update one WorkflowTaskRun.
+     * @example
+     * // Update one WorkflowTaskRun
+     * const workflowTaskRun = await prisma.workflowTaskRun.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends WorkflowTaskRunUpdateArgs>(args: SelectSubset<T, WorkflowTaskRunUpdateArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more WorkflowTaskRuns.
+     * @param {WorkflowTaskRunDeleteManyArgs} args - Arguments to filter WorkflowTaskRuns to delete.
+     * @example
+     * // Delete a few WorkflowTaskRuns
+     * const { count } = await prisma.workflowTaskRun.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends WorkflowTaskRunDeleteManyArgs>(args?: SelectSubset<T, WorkflowTaskRunDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more WorkflowTaskRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many WorkflowTaskRuns
+     * const workflowTaskRun = await prisma.workflowTaskRun.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends WorkflowTaskRunUpdateManyArgs>(args: SelectSubset<T, WorkflowTaskRunUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one WorkflowTaskRun.
+     * @param {WorkflowTaskRunUpsertArgs} args - Arguments to update or create a WorkflowTaskRun.
+     * @example
+     * // Update or create a WorkflowTaskRun
+     * const workflowTaskRun = await prisma.workflowTaskRun.upsert({
+     *   create: {
+     *     // ... data to create a WorkflowTaskRun
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the WorkflowTaskRun we want to update
+     *   }
+     * })
+     */
+    upsert<T extends WorkflowTaskRunUpsertArgs>(args: SelectSubset<T, WorkflowTaskRunUpsertArgs<ExtArgs>>): Prisma__WorkflowTaskRunClient<$Result.GetResult<Prisma.$WorkflowTaskRunPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of WorkflowTaskRuns.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunCountArgs} args - Arguments to filter WorkflowTaskRuns to count.
+     * @example
+     * // Count the number of WorkflowTaskRuns
+     * const count = await prisma.workflowTaskRun.count({
+     *   where: {
+     *     // ... the filter for the WorkflowTaskRuns we want to count
+     *   }
+     * })
+    **/
+    count<T extends WorkflowTaskRunCountArgs>(
+      args?: Subset<T, WorkflowTaskRunCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], WorkflowTaskRunCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a WorkflowTaskRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends WorkflowTaskRunAggregateArgs>(args: Subset<T, WorkflowTaskRunAggregateArgs>): Prisma.PrismaPromise<GetWorkflowTaskRunAggregateType<T>>
+
+    /**
+     * Group by WorkflowTaskRun.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {WorkflowTaskRunGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends WorkflowTaskRunGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: WorkflowTaskRunGroupByArgs['orderBy'] }
+        : { orderBy?: WorkflowTaskRunGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, WorkflowTaskRunGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetWorkflowTaskRunGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the WorkflowTaskRun model
+   */
+  readonly fields: WorkflowTaskRunFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for WorkflowTaskRun.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__WorkflowTaskRunClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    execution<T extends WorkflowExecutionDefaultArgs<ExtArgs> = {}>(args?: Subset<T, WorkflowExecutionDefaultArgs<ExtArgs>>): Prisma__WorkflowExecutionClient<$Result.GetResult<Prisma.$WorkflowExecutionPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    task<T extends TaskDefaultArgs<ExtArgs> = {}>(args?: Subset<T, TaskDefaultArgs<ExtArgs>>): Prisma__TaskClient<$Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the WorkflowTaskRun model
+   */ 
+  interface WorkflowTaskRunFieldRefs {
+    readonly id: FieldRef<"WorkflowTaskRun", 'String'>
+    readonly executionId: FieldRef<"WorkflowTaskRun", 'String'>
+    readonly taskId: FieldRef<"WorkflowTaskRun", 'String'>
+    readonly stepName: FieldRef<"WorkflowTaskRun", 'String'>
+    readonly status: FieldRef<"WorkflowTaskRun", 'String'>
+    readonly startedAt: FieldRef<"WorkflowTaskRun", 'DateTime'>
+    readonly completedAt: FieldRef<"WorkflowTaskRun", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * WorkflowTaskRun findUnique
+   */
+  export type WorkflowTaskRunFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowTaskRun to fetch.
+     */
+    where: WorkflowTaskRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowTaskRun findUniqueOrThrow
+   */
+  export type WorkflowTaskRunFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowTaskRun to fetch.
+     */
+    where: WorkflowTaskRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowTaskRun findFirst
+   */
+  export type WorkflowTaskRunFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowTaskRun to fetch.
+     */
+    where?: WorkflowTaskRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowTaskRuns to fetch.
+     */
+    orderBy?: WorkflowTaskRunOrderByWithRelationInput | WorkflowTaskRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WorkflowTaskRuns.
+     */
+    cursor?: WorkflowTaskRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowTaskRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowTaskRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WorkflowTaskRuns.
+     */
+    distinct?: WorkflowTaskRunScalarFieldEnum | WorkflowTaskRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowTaskRun findFirstOrThrow
+   */
+  export type WorkflowTaskRunFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowTaskRun to fetch.
+     */
+    where?: WorkflowTaskRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowTaskRuns to fetch.
+     */
+    orderBy?: WorkflowTaskRunOrderByWithRelationInput | WorkflowTaskRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for WorkflowTaskRuns.
+     */
+    cursor?: WorkflowTaskRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowTaskRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowTaskRuns.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of WorkflowTaskRuns.
+     */
+    distinct?: WorkflowTaskRunScalarFieldEnum | WorkflowTaskRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowTaskRun findMany
+   */
+  export type WorkflowTaskRunFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * Filter, which WorkflowTaskRuns to fetch.
+     */
+    where?: WorkflowTaskRunWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of WorkflowTaskRuns to fetch.
+     */
+    orderBy?: WorkflowTaskRunOrderByWithRelationInput | WorkflowTaskRunOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing WorkflowTaskRuns.
+     */
+    cursor?: WorkflowTaskRunWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` WorkflowTaskRuns from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` WorkflowTaskRuns.
+     */
+    skip?: number
+    distinct?: WorkflowTaskRunScalarFieldEnum | WorkflowTaskRunScalarFieldEnum[]
+  }
+
+  /**
+   * WorkflowTaskRun create
+   */
+  export type WorkflowTaskRunCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * The data needed to create a WorkflowTaskRun.
+     */
+    data: XOR<WorkflowTaskRunCreateInput, WorkflowTaskRunUncheckedCreateInput>
+  }
+
+  /**
+   * WorkflowTaskRun createMany
+   */
+  export type WorkflowTaskRunCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many WorkflowTaskRuns.
+     */
+    data: WorkflowTaskRunCreateManyInput | WorkflowTaskRunCreateManyInput[]
+  }
+
+  /**
+   * WorkflowTaskRun createManyAndReturn
+   */
+  export type WorkflowTaskRunCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many WorkflowTaskRuns.
+     */
+    data: WorkflowTaskRunCreateManyInput | WorkflowTaskRunCreateManyInput[]
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * WorkflowTaskRun update
+   */
+  export type WorkflowTaskRunUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * The data needed to update a WorkflowTaskRun.
+     */
+    data: XOR<WorkflowTaskRunUpdateInput, WorkflowTaskRunUncheckedUpdateInput>
+    /**
+     * Choose, which WorkflowTaskRun to update.
+     */
+    where: WorkflowTaskRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowTaskRun updateMany
+   */
+  export type WorkflowTaskRunUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update WorkflowTaskRuns.
+     */
+    data: XOR<WorkflowTaskRunUpdateManyMutationInput, WorkflowTaskRunUncheckedUpdateManyInput>
+    /**
+     * Filter which WorkflowTaskRuns to update
+     */
+    where?: WorkflowTaskRunWhereInput
+  }
+
+  /**
+   * WorkflowTaskRun upsert
+   */
+  export type WorkflowTaskRunUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * The filter to search for the WorkflowTaskRun to update in case it exists.
+     */
+    where: WorkflowTaskRunWhereUniqueInput
+    /**
+     * In case the WorkflowTaskRun found by the `where` argument doesn't exist, create a new WorkflowTaskRun with this data.
+     */
+    create: XOR<WorkflowTaskRunCreateInput, WorkflowTaskRunUncheckedCreateInput>
+    /**
+     * In case the WorkflowTaskRun was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<WorkflowTaskRunUpdateInput, WorkflowTaskRunUncheckedUpdateInput>
+  }
+
+  /**
+   * WorkflowTaskRun delete
+   */
+  export type WorkflowTaskRunDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+    /**
+     * Filter which WorkflowTaskRun to delete.
+     */
+    where: WorkflowTaskRunWhereUniqueInput
+  }
+
+  /**
+   * WorkflowTaskRun deleteMany
+   */
+  export type WorkflowTaskRunDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which WorkflowTaskRuns to delete
+     */
+    where?: WorkflowTaskRunWhereInput
+  }
+
+  /**
+   * WorkflowTaskRun without action
+   */
+  export type WorkflowTaskRunDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the WorkflowTaskRun
+     */
+    select?: WorkflowTaskRunSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: WorkflowTaskRunInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -34564,6 +37924,46 @@ export namespace Prisma {
   export type AlertScalarFieldEnum = (typeof AlertScalarFieldEnum)[keyof typeof AlertScalarFieldEnum]
 
 
+  export const WorkflowScalarFieldEnum: {
+    id: 'id',
+    tenantId: 'tenantId',
+    name: 'name',
+    version: 'version',
+    description: 'description',
+    status: 'status',
+    definition: 'definition',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type WorkflowScalarFieldEnum = (typeof WorkflowScalarFieldEnum)[keyof typeof WorkflowScalarFieldEnum]
+
+
+  export const WorkflowExecutionScalarFieldEnum: {
+    id: 'id',
+    workflowId: 'workflowId',
+    tenantId: 'tenantId',
+    status: 'status',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt'
+  };
+
+  export type WorkflowExecutionScalarFieldEnum = (typeof WorkflowExecutionScalarFieldEnum)[keyof typeof WorkflowExecutionScalarFieldEnum]
+
+
+  export const WorkflowTaskRunScalarFieldEnum: {
+    id: 'id',
+    executionId: 'executionId',
+    taskId: 'taskId',
+    stepName: 'stepName',
+    status: 'status',
+    startedAt: 'startedAt',
+    completedAt: 'completedAt'
+  };
+
+  export type WorkflowTaskRunScalarFieldEnum = (typeof WorkflowTaskRunScalarFieldEnum)[keyof typeof WorkflowTaskRunScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -34743,6 +38143,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeListRelationFilter
     alertRules?: AlertRuleListRelationFilter
     alerts?: AlertListRelationFilter
+    workflows?: WorkflowListRelationFilter
+    workflowExecutions?: WorkflowExecutionListRelationFilter
   }
 
   export type TenantOrderByWithRelationInput = {
@@ -34773,6 +38175,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeOrderByRelationAggregateInput
     alertRules?: AlertRuleOrderByRelationAggregateInput
     alerts?: AlertOrderByRelationAggregateInput
+    workflows?: WorkflowOrderByRelationAggregateInput
+    workflowExecutions?: WorkflowExecutionOrderByRelationAggregateInput
   }
 
   export type TenantWhereUniqueInput = Prisma.AtLeast<{
@@ -34806,6 +38210,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeListRelationFilter
     alertRules?: AlertRuleListRelationFilter
     alerts?: AlertListRelationFilter
+    workflows?: WorkflowListRelationFilter
+    workflowExecutions?: WorkflowExecutionListRelationFilter
   }, "id" | "name" | "slug">
 
   export type TenantOrderByWithAggregationInput = {
@@ -35642,6 +39048,7 @@ export namespace Prisma {
     node?: XOR<EdgeNodeNullableRelationFilter, EdgeNodeWhereInput> | null
     logs?: TaskLogListRelationFilter
     executions?: TaskExecutionListRelationFilter
+    workflowTaskRuns?: WorkflowTaskRunListRelationFilter
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
   }
 
@@ -35671,6 +39078,7 @@ export namespace Prisma {
     node?: EdgeNodeOrderByWithRelationInput
     logs?: TaskLogOrderByRelationAggregateInput
     executions?: TaskExecutionOrderByRelationAggregateInput
+    workflowTaskRuns?: WorkflowTaskRunOrderByRelationAggregateInput
     tenant?: TenantOrderByWithRelationInput
   }
 
@@ -35703,6 +39111,7 @@ export namespace Prisma {
     node?: XOR<EdgeNodeNullableRelationFilter, EdgeNodeWhereInput> | null
     logs?: TaskLogListRelationFilter
     executions?: TaskExecutionListRelationFilter
+    workflowTaskRuns?: WorkflowTaskRunListRelationFilter
     tenant?: XOR<TenantRelationFilter, TenantWhereInput>
   }, "id">
 
@@ -37212,6 +40621,218 @@ export namespace Prisma {
     tenantId?: StringWithAggregatesFilter<"Alert"> | string
   }
 
+  export type WorkflowWhereInput = {
+    AND?: WorkflowWhereInput | WorkflowWhereInput[]
+    OR?: WorkflowWhereInput[]
+    NOT?: WorkflowWhereInput | WorkflowWhereInput[]
+    id?: StringFilter<"Workflow"> | string
+    tenantId?: StringFilter<"Workflow"> | string
+    name?: StringFilter<"Workflow"> | string
+    version?: StringFilter<"Workflow"> | string
+    description?: StringNullableFilter<"Workflow"> | string | null
+    status?: StringFilter<"Workflow"> | string
+    definition?: StringFilter<"Workflow"> | string
+    createdAt?: DateTimeFilter<"Workflow"> | Date | string
+    updatedAt?: DateTimeFilter<"Workflow"> | Date | string
+    executions?: WorkflowExecutionListRelationFilter
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }
+
+  export type WorkflowOrderByWithRelationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    version?: SortOrder
+    description?: SortOrderInput | SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    executions?: WorkflowExecutionOrderByRelationAggregateInput
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type WorkflowWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WorkflowWhereInput | WorkflowWhereInput[]
+    OR?: WorkflowWhereInput[]
+    NOT?: WorkflowWhereInput | WorkflowWhereInput[]
+    tenantId?: StringFilter<"Workflow"> | string
+    name?: StringFilter<"Workflow"> | string
+    version?: StringFilter<"Workflow"> | string
+    description?: StringNullableFilter<"Workflow"> | string | null
+    status?: StringFilter<"Workflow"> | string
+    definition?: StringFilter<"Workflow"> | string
+    createdAt?: DateTimeFilter<"Workflow"> | Date | string
+    updatedAt?: DateTimeFilter<"Workflow"> | Date | string
+    executions?: WorkflowExecutionListRelationFilter
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }, "id">
+
+  export type WorkflowOrderByWithAggregationInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    version?: SortOrder
+    description?: SortOrderInput | SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: WorkflowCountOrderByAggregateInput
+    _max?: WorkflowMaxOrderByAggregateInput
+    _min?: WorkflowMinOrderByAggregateInput
+  }
+
+  export type WorkflowScalarWhereWithAggregatesInput = {
+    AND?: WorkflowScalarWhereWithAggregatesInput | WorkflowScalarWhereWithAggregatesInput[]
+    OR?: WorkflowScalarWhereWithAggregatesInput[]
+    NOT?: WorkflowScalarWhereWithAggregatesInput | WorkflowScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"Workflow"> | string
+    tenantId?: StringWithAggregatesFilter<"Workflow"> | string
+    name?: StringWithAggregatesFilter<"Workflow"> | string
+    version?: StringWithAggregatesFilter<"Workflow"> | string
+    description?: StringNullableWithAggregatesFilter<"Workflow"> | string | null
+    status?: StringWithAggregatesFilter<"Workflow"> | string
+    definition?: StringWithAggregatesFilter<"Workflow"> | string
+    createdAt?: DateTimeWithAggregatesFilter<"Workflow"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"Workflow"> | Date | string
+  }
+
+  export type WorkflowExecutionWhereInput = {
+    AND?: WorkflowExecutionWhereInput | WorkflowExecutionWhereInput[]
+    OR?: WorkflowExecutionWhereInput[]
+    NOT?: WorkflowExecutionWhereInput | WorkflowExecutionWhereInput[]
+    id?: StringFilter<"WorkflowExecution"> | string
+    workflowId?: StringFilter<"WorkflowExecution"> | string
+    tenantId?: StringFilter<"WorkflowExecution"> | string
+    status?: StringFilter<"WorkflowExecution"> | string
+    startedAt?: DateTimeFilter<"WorkflowExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"WorkflowExecution"> | Date | string | null
+    taskRuns?: WorkflowTaskRunListRelationFilter
+    workflow?: XOR<WorkflowRelationFilter, WorkflowWhereInput>
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }
+
+  export type WorkflowExecutionOrderByWithRelationInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    tenantId?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    taskRuns?: WorkflowTaskRunOrderByRelationAggregateInput
+    workflow?: WorkflowOrderByWithRelationInput
+    tenant?: TenantOrderByWithRelationInput
+  }
+
+  export type WorkflowExecutionWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WorkflowExecutionWhereInput | WorkflowExecutionWhereInput[]
+    OR?: WorkflowExecutionWhereInput[]
+    NOT?: WorkflowExecutionWhereInput | WorkflowExecutionWhereInput[]
+    workflowId?: StringFilter<"WorkflowExecution"> | string
+    tenantId?: StringFilter<"WorkflowExecution"> | string
+    status?: StringFilter<"WorkflowExecution"> | string
+    startedAt?: DateTimeFilter<"WorkflowExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"WorkflowExecution"> | Date | string | null
+    taskRuns?: WorkflowTaskRunListRelationFilter
+    workflow?: XOR<WorkflowRelationFilter, WorkflowWhereInput>
+    tenant?: XOR<TenantRelationFilter, TenantWhereInput>
+  }, "id">
+
+  export type WorkflowExecutionOrderByWithAggregationInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    tenantId?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    _count?: WorkflowExecutionCountOrderByAggregateInput
+    _max?: WorkflowExecutionMaxOrderByAggregateInput
+    _min?: WorkflowExecutionMinOrderByAggregateInput
+  }
+
+  export type WorkflowExecutionScalarWhereWithAggregatesInput = {
+    AND?: WorkflowExecutionScalarWhereWithAggregatesInput | WorkflowExecutionScalarWhereWithAggregatesInput[]
+    OR?: WorkflowExecutionScalarWhereWithAggregatesInput[]
+    NOT?: WorkflowExecutionScalarWhereWithAggregatesInput | WorkflowExecutionScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WorkflowExecution"> | string
+    workflowId?: StringWithAggregatesFilter<"WorkflowExecution"> | string
+    tenantId?: StringWithAggregatesFilter<"WorkflowExecution"> | string
+    status?: StringWithAggregatesFilter<"WorkflowExecution"> | string
+    startedAt?: DateTimeWithAggregatesFilter<"WorkflowExecution"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"WorkflowExecution"> | Date | string | null
+  }
+
+  export type WorkflowTaskRunWhereInput = {
+    AND?: WorkflowTaskRunWhereInput | WorkflowTaskRunWhereInput[]
+    OR?: WorkflowTaskRunWhereInput[]
+    NOT?: WorkflowTaskRunWhereInput | WorkflowTaskRunWhereInput[]
+    id?: StringFilter<"WorkflowTaskRun"> | string
+    executionId?: StringFilter<"WorkflowTaskRun"> | string
+    taskId?: StringFilter<"WorkflowTaskRun"> | string
+    stepName?: StringFilter<"WorkflowTaskRun"> | string
+    status?: StringFilter<"WorkflowTaskRun"> | string
+    startedAt?: DateTimeNullableFilter<"WorkflowTaskRun"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"WorkflowTaskRun"> | Date | string | null
+    execution?: XOR<WorkflowExecutionRelationFilter, WorkflowExecutionWhereInput>
+    task?: XOR<TaskRelationFilter, TaskWhereInput>
+  }
+
+  export type WorkflowTaskRunOrderByWithRelationInput = {
+    id?: SortOrder
+    executionId?: SortOrder
+    taskId?: SortOrder
+    stepName?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    execution?: WorkflowExecutionOrderByWithRelationInput
+    task?: TaskOrderByWithRelationInput
+  }
+
+  export type WorkflowTaskRunWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    AND?: WorkflowTaskRunWhereInput | WorkflowTaskRunWhereInput[]
+    OR?: WorkflowTaskRunWhereInput[]
+    NOT?: WorkflowTaskRunWhereInput | WorkflowTaskRunWhereInput[]
+    executionId?: StringFilter<"WorkflowTaskRun"> | string
+    taskId?: StringFilter<"WorkflowTaskRun"> | string
+    stepName?: StringFilter<"WorkflowTaskRun"> | string
+    status?: StringFilter<"WorkflowTaskRun"> | string
+    startedAt?: DateTimeNullableFilter<"WorkflowTaskRun"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"WorkflowTaskRun"> | Date | string | null
+    execution?: XOR<WorkflowExecutionRelationFilter, WorkflowExecutionWhereInput>
+    task?: XOR<TaskRelationFilter, TaskWhereInput>
+  }, "id">
+
+  export type WorkflowTaskRunOrderByWithAggregationInput = {
+    id?: SortOrder
+    executionId?: SortOrder
+    taskId?: SortOrder
+    stepName?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrderInput | SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    _count?: WorkflowTaskRunCountOrderByAggregateInput
+    _max?: WorkflowTaskRunMaxOrderByAggregateInput
+    _min?: WorkflowTaskRunMinOrderByAggregateInput
+  }
+
+  export type WorkflowTaskRunScalarWhereWithAggregatesInput = {
+    AND?: WorkflowTaskRunScalarWhereWithAggregatesInput | WorkflowTaskRunScalarWhereWithAggregatesInput[]
+    OR?: WorkflowTaskRunScalarWhereWithAggregatesInput[]
+    NOT?: WorkflowTaskRunScalarWhereWithAggregatesInput | WorkflowTaskRunScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"WorkflowTaskRun"> | string
+    executionId?: StringWithAggregatesFilter<"WorkflowTaskRun"> | string
+    taskId?: StringWithAggregatesFilter<"WorkflowTaskRun"> | string
+    stepName?: StringWithAggregatesFilter<"WorkflowTaskRun"> | string
+    status?: StringWithAggregatesFilter<"WorkflowTaskRun"> | string
+    startedAt?: DateTimeNullableWithAggregatesFilter<"WorkflowTaskRun"> | Date | string | null
+    completedAt?: DateTimeNullableWithAggregatesFilter<"WorkflowTaskRun"> | Date | string | null
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -37347,6 +40968,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateInput = {
@@ -37377,6 +41000,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUpdateInput = {
@@ -37407,6 +41032,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateInput = {
@@ -37437,6 +41064,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateManyInput = {
@@ -38358,6 +41987,7 @@ export namespace Prisma {
     node?: EdgeNodeCreateNestedOneWithoutTasksInput
     logs?: TaskLogCreateNestedManyWithoutTaskInput
     executions?: TaskExecutionCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunCreateNestedManyWithoutTaskInput
     tenant: TenantCreateNestedOneWithoutTasksInput
   }
 
@@ -38386,6 +42016,7 @@ export namespace Prisma {
     tenantId: string
     logs?: TaskLogUncheckedCreateNestedManyWithoutTaskInput
     executions?: TaskExecutionUncheckedCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUpdateInput = {
@@ -38412,6 +42043,7 @@ export namespace Prisma {
     node?: EdgeNodeUpdateOneWithoutTasksNestedInput
     logs?: TaskLogUpdateManyWithoutTaskNestedInput
     executions?: TaskExecutionUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUpdateManyWithoutTaskNestedInput
     tenant?: TenantUpdateOneRequiredWithoutTasksNestedInput
   }
 
@@ -38440,6 +42072,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     logs?: TaskLogUncheckedUpdateManyWithoutTaskNestedInput
     executions?: TaskExecutionUncheckedUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskCreateManyInput = {
@@ -40129,6 +43762,226 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type WorkflowCreateInput = {
+    id?: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    executions?: WorkflowExecutionCreateNestedManyWithoutWorkflowInput
+    tenant: TenantCreateNestedOneWithoutWorkflowsInput
+  }
+
+  export type WorkflowUncheckedCreateInput = {
+    id?: string
+    tenantId: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    executions?: WorkflowExecutionUncheckedCreateNestedManyWithoutWorkflowInput
+  }
+
+  export type WorkflowUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    executions?: WorkflowExecutionUpdateManyWithoutWorkflowNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutWorkflowsNestedInput
+  }
+
+  export type WorkflowUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    executions?: WorkflowExecutionUncheckedUpdateManyWithoutWorkflowNestedInput
+  }
+
+  export type WorkflowCreateManyInput = {
+    id?: string
+    tenantId: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WorkflowUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WorkflowUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WorkflowExecutionCreateInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    taskRuns?: WorkflowTaskRunCreateNestedManyWithoutExecutionInput
+    workflow: WorkflowCreateNestedOneWithoutExecutionsInput
+    tenant: TenantCreateNestedOneWithoutWorkflowExecutionsInput
+  }
+
+  export type WorkflowExecutionUncheckedCreateInput = {
+    id?: string
+    workflowId: string
+    tenantId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    taskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutExecutionInput
+  }
+
+  export type WorkflowExecutionUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    taskRuns?: WorkflowTaskRunUpdateManyWithoutExecutionNestedInput
+    workflow?: WorkflowUpdateOneRequiredWithoutExecutionsNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutWorkflowExecutionsNestedInput
+  }
+
+  export type WorkflowExecutionUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    taskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutExecutionNestedInput
+  }
+
+  export type WorkflowExecutionCreateManyInput = {
+    id?: string
+    workflowId: string
+    tenantId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowExecutionUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowExecutionUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowTaskRunCreateInput = {
+    id?: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    execution: WorkflowExecutionCreateNestedOneWithoutTaskRunsInput
+    task: TaskCreateNestedOneWithoutWorkflowTaskRunsInput
+  }
+
+  export type WorkflowTaskRunUncheckedCreateInput = {
+    id?: string
+    executionId: string
+    taskId: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowTaskRunUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    execution?: WorkflowExecutionUpdateOneRequiredWithoutTaskRunsNestedInput
+    task?: TaskUpdateOneRequiredWithoutWorkflowTaskRunsNestedInput
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionId?: StringFieldUpdateOperationsInput | string
+    taskId?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowTaskRunCreateManyInput = {
+    id?: string
+    executionId: string
+    taskId: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowTaskRunUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionId?: StringFieldUpdateOperationsInput | string
+    taskId?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[]
@@ -40414,6 +44267,18 @@ export namespace Prisma {
     none?: AlertWhereInput
   }
 
+  export type WorkflowListRelationFilter = {
+    every?: WorkflowWhereInput
+    some?: WorkflowWhereInput
+    none?: WorkflowWhereInput
+  }
+
+  export type WorkflowExecutionListRelationFilter = {
+    every?: WorkflowExecutionWhereInput
+    some?: WorkflowExecutionWhereInput
+    none?: WorkflowExecutionWhereInput
+  }
+
   export type TaskOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -40479,6 +44344,14 @@ export namespace Prisma {
   }
 
   export type AlertOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WorkflowOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
+  export type WorkflowExecutionOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
 
@@ -41111,6 +44984,16 @@ export namespace Prisma {
   export type EdgeNodeNullableRelationFilter = {
     is?: EdgeNodeWhereInput | null
     isNot?: EdgeNodeWhereInput | null
+  }
+
+  export type WorkflowTaskRunListRelationFilter = {
+    every?: WorkflowTaskRunWhereInput
+    some?: WorkflowTaskRunWhereInput
+    none?: WorkflowTaskRunWhereInput
+  }
+
+  export type WorkflowTaskRunOrderByRelationAggregateInput = {
+    _count?: SortOrder
   }
 
   export type TaskCountOrderByAggregateInput = {
@@ -42074,6 +45957,109 @@ export namespace Prisma {
     tenantId?: SortOrder
   }
 
+  export type WorkflowCountOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    version?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WorkflowMaxOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    version?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WorkflowMinOrderByAggregateInput = {
+    id?: SortOrder
+    tenantId?: SortOrder
+    name?: SortOrder
+    version?: SortOrder
+    description?: SortOrder
+    status?: SortOrder
+    definition?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type WorkflowRelationFilter = {
+    is?: WorkflowWhereInput
+    isNot?: WorkflowWhereInput
+  }
+
+  export type WorkflowExecutionCountOrderByAggregateInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    tenantId?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type WorkflowExecutionMaxOrderByAggregateInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    tenantId?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type WorkflowExecutionMinOrderByAggregateInput = {
+    id?: SortOrder
+    workflowId?: SortOrder
+    tenantId?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type WorkflowExecutionRelationFilter = {
+    is?: WorkflowExecutionWhereInput
+    isNot?: WorkflowExecutionWhereInput
+  }
+
+  export type WorkflowTaskRunCountOrderByAggregateInput = {
+    id?: SortOrder
+    executionId?: SortOrder
+    taskId?: SortOrder
+    stepName?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type WorkflowTaskRunMaxOrderByAggregateInput = {
+    id?: SortOrder
+    executionId?: SortOrder
+    taskId?: SortOrder
+    stepName?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
+  export type WorkflowTaskRunMinOrderByAggregateInput = {
+    id?: SortOrder
+    executionId?: SortOrder
+    taskId?: SortOrder
+    stepName?: SortOrder
+    status?: SortOrder
+    startedAt?: SortOrder
+    completedAt?: SortOrder
+  }
+
   export type TenantUserCreateNestedManyWithoutUserInput = {
     create?: XOR<TenantUserCreateWithoutUserInput, TenantUserUncheckedCreateWithoutUserInput> | TenantUserCreateWithoutUserInput[] | TenantUserUncheckedCreateWithoutUserInput[]
     connectOrCreate?: TenantUserCreateOrConnectWithoutUserInput | TenantUserCreateOrConnectWithoutUserInput[]
@@ -42397,6 +46383,20 @@ export namespace Prisma {
     connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
   }
 
+  export type WorkflowCreateNestedManyWithoutTenantInput = {
+    create?: XOR<WorkflowCreateWithoutTenantInput, WorkflowUncheckedCreateWithoutTenantInput> | WorkflowCreateWithoutTenantInput[] | WorkflowUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowCreateOrConnectWithoutTenantInput | WorkflowCreateOrConnectWithoutTenantInput[]
+    createMany?: WorkflowCreateManyTenantInputEnvelope
+    connect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+  }
+
+  export type WorkflowExecutionCreateNestedManyWithoutTenantInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutTenantInput, WorkflowExecutionUncheckedCreateWithoutTenantInput> | WorkflowExecutionCreateWithoutTenantInput[] | WorkflowExecutionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutTenantInput | WorkflowExecutionCreateOrConnectWithoutTenantInput[]
+    createMany?: WorkflowExecutionCreateManyTenantInputEnvelope
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+  }
+
   export type TaskUncheckedCreateNestedManyWithoutTenantInput = {
     create?: XOR<TaskCreateWithoutTenantInput, TaskUncheckedCreateWithoutTenantInput> | TaskCreateWithoutTenantInput[] | TaskUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutTenantInput | TaskCreateOrConnectWithoutTenantInput[]
@@ -42534,6 +46534,20 @@ export namespace Prisma {
     connectOrCreate?: AlertCreateOrConnectWithoutTenantInput | AlertCreateOrConnectWithoutTenantInput[]
     createMany?: AlertCreateManyTenantInputEnvelope
     connect?: AlertWhereUniqueInput | AlertWhereUniqueInput[]
+  }
+
+  export type WorkflowUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<WorkflowCreateWithoutTenantInput, WorkflowUncheckedCreateWithoutTenantInput> | WorkflowCreateWithoutTenantInput[] | WorkflowUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowCreateOrConnectWithoutTenantInput | WorkflowCreateOrConnectWithoutTenantInput[]
+    createMany?: WorkflowCreateManyTenantInputEnvelope
+    connect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+  }
+
+  export type WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutTenantInput, WorkflowExecutionUncheckedCreateWithoutTenantInput> | WorkflowExecutionCreateWithoutTenantInput[] | WorkflowExecutionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutTenantInput | WorkflowExecutionCreateOrConnectWithoutTenantInput[]
+    createMany?: WorkflowExecutionCreateManyTenantInputEnvelope
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
   }
 
   export type TaskUpdateManyWithoutTenantNestedInput = {
@@ -42812,6 +46826,34 @@ export namespace Prisma {
     deleteMany?: AlertScalarWhereInput | AlertScalarWhereInput[]
   }
 
+  export type WorkflowUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<WorkflowCreateWithoutTenantInput, WorkflowUncheckedCreateWithoutTenantInput> | WorkflowCreateWithoutTenantInput[] | WorkflowUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowCreateOrConnectWithoutTenantInput | WorkflowCreateOrConnectWithoutTenantInput[]
+    upsert?: WorkflowUpsertWithWhereUniqueWithoutTenantInput | WorkflowUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: WorkflowCreateManyTenantInputEnvelope
+    set?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    disconnect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    delete?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    connect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    update?: WorkflowUpdateWithWhereUniqueWithoutTenantInput | WorkflowUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: WorkflowUpdateManyWithWhereWithoutTenantInput | WorkflowUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[]
+  }
+
+  export type WorkflowExecutionUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutTenantInput, WorkflowExecutionUncheckedCreateWithoutTenantInput> | WorkflowExecutionCreateWithoutTenantInput[] | WorkflowExecutionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutTenantInput | WorkflowExecutionCreateOrConnectWithoutTenantInput[]
+    upsert?: WorkflowExecutionUpsertWithWhereUniqueWithoutTenantInput | WorkflowExecutionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: WorkflowExecutionCreateManyTenantInputEnvelope
+    set?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    disconnect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    delete?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    update?: WorkflowExecutionUpdateWithWhereUniqueWithoutTenantInput | WorkflowExecutionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: WorkflowExecutionUpdateManyWithWhereWithoutTenantInput | WorkflowExecutionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: WorkflowExecutionScalarWhereInput | WorkflowExecutionScalarWhereInput[]
+  }
+
   export type TaskUncheckedUpdateManyWithoutTenantNestedInput = {
     create?: XOR<TaskCreateWithoutTenantInput, TaskUncheckedCreateWithoutTenantInput> | TaskCreateWithoutTenantInput[] | TaskUncheckedCreateWithoutTenantInput[]
     connectOrCreate?: TaskCreateOrConnectWithoutTenantInput | TaskCreateOrConnectWithoutTenantInput[]
@@ -43086,6 +47128,34 @@ export namespace Prisma {
     update?: AlertUpdateWithWhereUniqueWithoutTenantInput | AlertUpdateWithWhereUniqueWithoutTenantInput[]
     updateMany?: AlertUpdateManyWithWhereWithoutTenantInput | AlertUpdateManyWithWhereWithoutTenantInput[]
     deleteMany?: AlertScalarWhereInput | AlertScalarWhereInput[]
+  }
+
+  export type WorkflowUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<WorkflowCreateWithoutTenantInput, WorkflowUncheckedCreateWithoutTenantInput> | WorkflowCreateWithoutTenantInput[] | WorkflowUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowCreateOrConnectWithoutTenantInput | WorkflowCreateOrConnectWithoutTenantInput[]
+    upsert?: WorkflowUpsertWithWhereUniqueWithoutTenantInput | WorkflowUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: WorkflowCreateManyTenantInputEnvelope
+    set?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    disconnect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    delete?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    connect?: WorkflowWhereUniqueInput | WorkflowWhereUniqueInput[]
+    update?: WorkflowUpdateWithWhereUniqueWithoutTenantInput | WorkflowUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: WorkflowUpdateManyWithWhereWithoutTenantInput | WorkflowUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[]
+  }
+
+  export type WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutTenantInput, WorkflowExecutionUncheckedCreateWithoutTenantInput> | WorkflowExecutionCreateWithoutTenantInput[] | WorkflowExecutionUncheckedCreateWithoutTenantInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutTenantInput | WorkflowExecutionCreateOrConnectWithoutTenantInput[]
+    upsert?: WorkflowExecutionUpsertWithWhereUniqueWithoutTenantInput | WorkflowExecutionUpsertWithWhereUniqueWithoutTenantInput[]
+    createMany?: WorkflowExecutionCreateManyTenantInputEnvelope
+    set?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    disconnect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    delete?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    update?: WorkflowExecutionUpdateWithWhereUniqueWithoutTenantInput | WorkflowExecutionUpdateWithWhereUniqueWithoutTenantInput[]
+    updateMany?: WorkflowExecutionUpdateManyWithWhereWithoutTenantInput | WorkflowExecutionUpdateManyWithWhereWithoutTenantInput[]
+    deleteMany?: WorkflowExecutionScalarWhereInput | WorkflowExecutionScalarWhereInput[]
   }
 
   export type TenantCreateNestedOneWithoutSchedulingPolicyInput = {
@@ -43482,6 +47552,13 @@ export namespace Prisma {
     connect?: TaskExecutionWhereUniqueInput | TaskExecutionWhereUniqueInput[]
   }
 
+  export type WorkflowTaskRunCreateNestedManyWithoutTaskInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutTaskInput, WorkflowTaskRunUncheckedCreateWithoutTaskInput> | WorkflowTaskRunCreateWithoutTaskInput[] | WorkflowTaskRunUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutTaskInput | WorkflowTaskRunCreateOrConnectWithoutTaskInput[]
+    createMany?: WorkflowTaskRunCreateManyTaskInputEnvelope
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+  }
+
   export type TenantCreateNestedOneWithoutTasksInput = {
     create?: XOR<TenantCreateWithoutTasksInput, TenantUncheckedCreateWithoutTasksInput>
     connectOrCreate?: TenantCreateOrConnectWithoutTasksInput
@@ -43500,6 +47577,13 @@ export namespace Prisma {
     connectOrCreate?: TaskExecutionCreateOrConnectWithoutTaskInput | TaskExecutionCreateOrConnectWithoutTaskInput[]
     createMany?: TaskExecutionCreateManyTaskInputEnvelope
     connect?: TaskExecutionWhereUniqueInput | TaskExecutionWhereUniqueInput[]
+  }
+
+  export type WorkflowTaskRunUncheckedCreateNestedManyWithoutTaskInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutTaskInput, WorkflowTaskRunUncheckedCreateWithoutTaskInput> | WorkflowTaskRunCreateWithoutTaskInput[] | WorkflowTaskRunUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutTaskInput | WorkflowTaskRunCreateOrConnectWithoutTaskInput[]
+    createMany?: WorkflowTaskRunCreateManyTaskInputEnvelope
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
   }
 
   export type EdgeNodeUpdateOneWithoutTasksNestedInput = {
@@ -43540,6 +47624,20 @@ export namespace Prisma {
     deleteMany?: TaskExecutionScalarWhereInput | TaskExecutionScalarWhereInput[]
   }
 
+  export type WorkflowTaskRunUpdateManyWithoutTaskNestedInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutTaskInput, WorkflowTaskRunUncheckedCreateWithoutTaskInput> | WorkflowTaskRunCreateWithoutTaskInput[] | WorkflowTaskRunUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutTaskInput | WorkflowTaskRunCreateOrConnectWithoutTaskInput[]
+    upsert?: WorkflowTaskRunUpsertWithWhereUniqueWithoutTaskInput | WorkflowTaskRunUpsertWithWhereUniqueWithoutTaskInput[]
+    createMany?: WorkflowTaskRunCreateManyTaskInputEnvelope
+    set?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    disconnect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    delete?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    update?: WorkflowTaskRunUpdateWithWhereUniqueWithoutTaskInput | WorkflowTaskRunUpdateWithWhereUniqueWithoutTaskInput[]
+    updateMany?: WorkflowTaskRunUpdateManyWithWhereWithoutTaskInput | WorkflowTaskRunUpdateManyWithWhereWithoutTaskInput[]
+    deleteMany?: WorkflowTaskRunScalarWhereInput | WorkflowTaskRunScalarWhereInput[]
+  }
+
   export type TenantUpdateOneRequiredWithoutTasksNestedInput = {
     create?: XOR<TenantCreateWithoutTasksInput, TenantUncheckedCreateWithoutTasksInput>
     connectOrCreate?: TenantCreateOrConnectWithoutTasksInput
@@ -43574,6 +47672,20 @@ export namespace Prisma {
     update?: TaskExecutionUpdateWithWhereUniqueWithoutTaskInput | TaskExecutionUpdateWithWhereUniqueWithoutTaskInput[]
     updateMany?: TaskExecutionUpdateManyWithWhereWithoutTaskInput | TaskExecutionUpdateManyWithWhereWithoutTaskInput[]
     deleteMany?: TaskExecutionScalarWhereInput | TaskExecutionScalarWhereInput[]
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateManyWithoutTaskNestedInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutTaskInput, WorkflowTaskRunUncheckedCreateWithoutTaskInput> | WorkflowTaskRunCreateWithoutTaskInput[] | WorkflowTaskRunUncheckedCreateWithoutTaskInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutTaskInput | WorkflowTaskRunCreateOrConnectWithoutTaskInput[]
+    upsert?: WorkflowTaskRunUpsertWithWhereUniqueWithoutTaskInput | WorkflowTaskRunUpsertWithWhereUniqueWithoutTaskInput[]
+    createMany?: WorkflowTaskRunCreateManyTaskInputEnvelope
+    set?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    disconnect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    delete?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    update?: WorkflowTaskRunUpdateWithWhereUniqueWithoutTaskInput | WorkflowTaskRunUpdateWithWhereUniqueWithoutTaskInput[]
+    updateMany?: WorkflowTaskRunUpdateManyWithWhereWithoutTaskInput | WorkflowTaskRunUpdateManyWithWhereWithoutTaskInput[]
+    deleteMany?: WorkflowTaskRunScalarWhereInput | WorkflowTaskRunScalarWhereInput[]
   }
 
   export type EdgeNodeCreateNestedOneWithoutTaskExecutionsInput = {
@@ -43912,6 +48024,160 @@ export namespace Prisma {
     upsert?: TenantUpsertWithoutAlertsInput
     connect?: TenantWhereUniqueInput
     update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutAlertsInput, TenantUpdateWithoutAlertsInput>, TenantUncheckedUpdateWithoutAlertsInput>
+  }
+
+  export type WorkflowExecutionCreateNestedManyWithoutWorkflowInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutWorkflowInput, WorkflowExecutionUncheckedCreateWithoutWorkflowInput> | WorkflowExecutionCreateWithoutWorkflowInput[] | WorkflowExecutionUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutWorkflowInput | WorkflowExecutionCreateOrConnectWithoutWorkflowInput[]
+    createMany?: WorkflowExecutionCreateManyWorkflowInputEnvelope
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+  }
+
+  export type TenantCreateNestedOneWithoutWorkflowsInput = {
+    create?: XOR<TenantCreateWithoutWorkflowsInput, TenantUncheckedCreateWithoutWorkflowsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWorkflowsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type WorkflowExecutionUncheckedCreateNestedManyWithoutWorkflowInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutWorkflowInput, WorkflowExecutionUncheckedCreateWithoutWorkflowInput> | WorkflowExecutionCreateWithoutWorkflowInput[] | WorkflowExecutionUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutWorkflowInput | WorkflowExecutionCreateOrConnectWithoutWorkflowInput[]
+    createMany?: WorkflowExecutionCreateManyWorkflowInputEnvelope
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+  }
+
+  export type WorkflowExecutionUpdateManyWithoutWorkflowNestedInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutWorkflowInput, WorkflowExecutionUncheckedCreateWithoutWorkflowInput> | WorkflowExecutionCreateWithoutWorkflowInput[] | WorkflowExecutionUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutWorkflowInput | WorkflowExecutionCreateOrConnectWithoutWorkflowInput[]
+    upsert?: WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput | WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput[]
+    createMany?: WorkflowExecutionCreateManyWorkflowInputEnvelope
+    set?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    disconnect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    delete?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    update?: WorkflowExecutionUpdateWithWhereUniqueWithoutWorkflowInput | WorkflowExecutionUpdateWithWhereUniqueWithoutWorkflowInput[]
+    updateMany?: WorkflowExecutionUpdateManyWithWhereWithoutWorkflowInput | WorkflowExecutionUpdateManyWithWhereWithoutWorkflowInput[]
+    deleteMany?: WorkflowExecutionScalarWhereInput | WorkflowExecutionScalarWhereInput[]
+  }
+
+  export type TenantUpdateOneRequiredWithoutWorkflowsNestedInput = {
+    create?: XOR<TenantCreateWithoutWorkflowsInput, TenantUncheckedCreateWithoutWorkflowsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWorkflowsInput
+    upsert?: TenantUpsertWithoutWorkflowsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutWorkflowsInput, TenantUpdateWithoutWorkflowsInput>, TenantUncheckedUpdateWithoutWorkflowsInput>
+  }
+
+  export type WorkflowExecutionUncheckedUpdateManyWithoutWorkflowNestedInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutWorkflowInput, WorkflowExecutionUncheckedCreateWithoutWorkflowInput> | WorkflowExecutionCreateWithoutWorkflowInput[] | WorkflowExecutionUncheckedCreateWithoutWorkflowInput[]
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutWorkflowInput | WorkflowExecutionCreateOrConnectWithoutWorkflowInput[]
+    upsert?: WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput | WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput[]
+    createMany?: WorkflowExecutionCreateManyWorkflowInputEnvelope
+    set?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    disconnect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    delete?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    connect?: WorkflowExecutionWhereUniqueInput | WorkflowExecutionWhereUniqueInput[]
+    update?: WorkflowExecutionUpdateWithWhereUniqueWithoutWorkflowInput | WorkflowExecutionUpdateWithWhereUniqueWithoutWorkflowInput[]
+    updateMany?: WorkflowExecutionUpdateManyWithWhereWithoutWorkflowInput | WorkflowExecutionUpdateManyWithWhereWithoutWorkflowInput[]
+    deleteMany?: WorkflowExecutionScalarWhereInput | WorkflowExecutionScalarWhereInput[]
+  }
+
+  export type WorkflowTaskRunCreateNestedManyWithoutExecutionInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutExecutionInput, WorkflowTaskRunUncheckedCreateWithoutExecutionInput> | WorkflowTaskRunCreateWithoutExecutionInput[] | WorkflowTaskRunUncheckedCreateWithoutExecutionInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutExecutionInput | WorkflowTaskRunCreateOrConnectWithoutExecutionInput[]
+    createMany?: WorkflowTaskRunCreateManyExecutionInputEnvelope
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+  }
+
+  export type WorkflowCreateNestedOneWithoutExecutionsInput = {
+    create?: XOR<WorkflowCreateWithoutExecutionsInput, WorkflowUncheckedCreateWithoutExecutionsInput>
+    connectOrCreate?: WorkflowCreateOrConnectWithoutExecutionsInput
+    connect?: WorkflowWhereUniqueInput
+  }
+
+  export type TenantCreateNestedOneWithoutWorkflowExecutionsInput = {
+    create?: XOR<TenantCreateWithoutWorkflowExecutionsInput, TenantUncheckedCreateWithoutWorkflowExecutionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWorkflowExecutionsInput
+    connect?: TenantWhereUniqueInput
+  }
+
+  export type WorkflowTaskRunUncheckedCreateNestedManyWithoutExecutionInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutExecutionInput, WorkflowTaskRunUncheckedCreateWithoutExecutionInput> | WorkflowTaskRunCreateWithoutExecutionInput[] | WorkflowTaskRunUncheckedCreateWithoutExecutionInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutExecutionInput | WorkflowTaskRunCreateOrConnectWithoutExecutionInput[]
+    createMany?: WorkflowTaskRunCreateManyExecutionInputEnvelope
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+  }
+
+  export type WorkflowTaskRunUpdateManyWithoutExecutionNestedInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutExecutionInput, WorkflowTaskRunUncheckedCreateWithoutExecutionInput> | WorkflowTaskRunCreateWithoutExecutionInput[] | WorkflowTaskRunUncheckedCreateWithoutExecutionInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutExecutionInput | WorkflowTaskRunCreateOrConnectWithoutExecutionInput[]
+    upsert?: WorkflowTaskRunUpsertWithWhereUniqueWithoutExecutionInput | WorkflowTaskRunUpsertWithWhereUniqueWithoutExecutionInput[]
+    createMany?: WorkflowTaskRunCreateManyExecutionInputEnvelope
+    set?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    disconnect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    delete?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    update?: WorkflowTaskRunUpdateWithWhereUniqueWithoutExecutionInput | WorkflowTaskRunUpdateWithWhereUniqueWithoutExecutionInput[]
+    updateMany?: WorkflowTaskRunUpdateManyWithWhereWithoutExecutionInput | WorkflowTaskRunUpdateManyWithWhereWithoutExecutionInput[]
+    deleteMany?: WorkflowTaskRunScalarWhereInput | WorkflowTaskRunScalarWhereInput[]
+  }
+
+  export type WorkflowUpdateOneRequiredWithoutExecutionsNestedInput = {
+    create?: XOR<WorkflowCreateWithoutExecutionsInput, WorkflowUncheckedCreateWithoutExecutionsInput>
+    connectOrCreate?: WorkflowCreateOrConnectWithoutExecutionsInput
+    upsert?: WorkflowUpsertWithoutExecutionsInput
+    connect?: WorkflowWhereUniqueInput
+    update?: XOR<XOR<WorkflowUpdateToOneWithWhereWithoutExecutionsInput, WorkflowUpdateWithoutExecutionsInput>, WorkflowUncheckedUpdateWithoutExecutionsInput>
+  }
+
+  export type TenantUpdateOneRequiredWithoutWorkflowExecutionsNestedInput = {
+    create?: XOR<TenantCreateWithoutWorkflowExecutionsInput, TenantUncheckedCreateWithoutWorkflowExecutionsInput>
+    connectOrCreate?: TenantCreateOrConnectWithoutWorkflowExecutionsInput
+    upsert?: TenantUpsertWithoutWorkflowExecutionsInput
+    connect?: TenantWhereUniqueInput
+    update?: XOR<XOR<TenantUpdateToOneWithWhereWithoutWorkflowExecutionsInput, TenantUpdateWithoutWorkflowExecutionsInput>, TenantUncheckedUpdateWithoutWorkflowExecutionsInput>
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateManyWithoutExecutionNestedInput = {
+    create?: XOR<WorkflowTaskRunCreateWithoutExecutionInput, WorkflowTaskRunUncheckedCreateWithoutExecutionInput> | WorkflowTaskRunCreateWithoutExecutionInput[] | WorkflowTaskRunUncheckedCreateWithoutExecutionInput[]
+    connectOrCreate?: WorkflowTaskRunCreateOrConnectWithoutExecutionInput | WorkflowTaskRunCreateOrConnectWithoutExecutionInput[]
+    upsert?: WorkflowTaskRunUpsertWithWhereUniqueWithoutExecutionInput | WorkflowTaskRunUpsertWithWhereUniqueWithoutExecutionInput[]
+    createMany?: WorkflowTaskRunCreateManyExecutionInputEnvelope
+    set?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    disconnect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    delete?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    connect?: WorkflowTaskRunWhereUniqueInput | WorkflowTaskRunWhereUniqueInput[]
+    update?: WorkflowTaskRunUpdateWithWhereUniqueWithoutExecutionInput | WorkflowTaskRunUpdateWithWhereUniqueWithoutExecutionInput[]
+    updateMany?: WorkflowTaskRunUpdateManyWithWhereWithoutExecutionInput | WorkflowTaskRunUpdateManyWithWhereWithoutExecutionInput[]
+    deleteMany?: WorkflowTaskRunScalarWhereInput | WorkflowTaskRunScalarWhereInput[]
+  }
+
+  export type WorkflowExecutionCreateNestedOneWithoutTaskRunsInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutTaskRunsInput, WorkflowExecutionUncheckedCreateWithoutTaskRunsInput>
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutTaskRunsInput
+    connect?: WorkflowExecutionWhereUniqueInput
+  }
+
+  export type TaskCreateNestedOneWithoutWorkflowTaskRunsInput = {
+    create?: XOR<TaskCreateWithoutWorkflowTaskRunsInput, TaskUncheckedCreateWithoutWorkflowTaskRunsInput>
+    connectOrCreate?: TaskCreateOrConnectWithoutWorkflowTaskRunsInput
+    connect?: TaskWhereUniqueInput
+  }
+
+  export type WorkflowExecutionUpdateOneRequiredWithoutTaskRunsNestedInput = {
+    create?: XOR<WorkflowExecutionCreateWithoutTaskRunsInput, WorkflowExecutionUncheckedCreateWithoutTaskRunsInput>
+    connectOrCreate?: WorkflowExecutionCreateOrConnectWithoutTaskRunsInput
+    upsert?: WorkflowExecutionUpsertWithoutTaskRunsInput
+    connect?: WorkflowExecutionWhereUniqueInput
+    update?: XOR<XOR<WorkflowExecutionUpdateToOneWithWhereWithoutTaskRunsInput, WorkflowExecutionUpdateWithoutTaskRunsInput>, WorkflowExecutionUncheckedUpdateWithoutTaskRunsInput>
+  }
+
+  export type TaskUpdateOneRequiredWithoutWorkflowTaskRunsNestedInput = {
+    create?: XOR<TaskCreateWithoutWorkflowTaskRunsInput, TaskUncheckedCreateWithoutWorkflowTaskRunsInput>
+    connectOrCreate?: TaskCreateOrConnectWithoutWorkflowTaskRunsInput
+    upsert?: TaskUpsertWithoutWorkflowTaskRunsInput
+    connect?: TaskWhereUniqueInput
+    update?: XOR<XOR<TaskUpdateToOneWithWhereWithoutWorkflowTaskRunsInput, TaskUpdateWithoutWorkflowTaskRunsInput>, TaskUncheckedUpdateWithoutWorkflowTaskRunsInput>
   }
 
   export type NestedStringFilter<$PrismaModel = never> = {
@@ -44413,6 +48679,7 @@ export namespace Prisma {
     node?: EdgeNodeCreateNestedOneWithoutTasksInput
     logs?: TaskLogCreateNestedManyWithoutTaskInput
     executions?: TaskExecutionCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunCreateNestedManyWithoutTaskInput
   }
 
   export type TaskUncheckedCreateWithoutTenantInput = {
@@ -44439,6 +48706,7 @@ export namespace Prisma {
     submittedAt?: Date | string
     logs?: TaskLogUncheckedCreateNestedManyWithoutTaskInput
     executions?: TaskExecutionUncheckedCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutTenantInput = {
@@ -45131,6 +49399,66 @@ export namespace Prisma {
     data: AlertCreateManyTenantInput | AlertCreateManyTenantInput[]
   }
 
+  export type WorkflowCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    executions?: WorkflowExecutionCreateNestedManyWithoutWorkflowInput
+  }
+
+  export type WorkflowUncheckedCreateWithoutTenantInput = {
+    id?: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    executions?: WorkflowExecutionUncheckedCreateNestedManyWithoutWorkflowInput
+  }
+
+  export type WorkflowCreateOrConnectWithoutTenantInput = {
+    where: WorkflowWhereUniqueInput
+    create: XOR<WorkflowCreateWithoutTenantInput, WorkflowUncheckedCreateWithoutTenantInput>
+  }
+
+  export type WorkflowCreateManyTenantInputEnvelope = {
+    data: WorkflowCreateManyTenantInput | WorkflowCreateManyTenantInput[]
+  }
+
+  export type WorkflowExecutionCreateWithoutTenantInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    taskRuns?: WorkflowTaskRunCreateNestedManyWithoutExecutionInput
+    workflow: WorkflowCreateNestedOneWithoutExecutionsInput
+  }
+
+  export type WorkflowExecutionUncheckedCreateWithoutTenantInput = {
+    id?: string
+    workflowId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    taskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutExecutionInput
+  }
+
+  export type WorkflowExecutionCreateOrConnectWithoutTenantInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    create: XOR<WorkflowExecutionCreateWithoutTenantInput, WorkflowExecutionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type WorkflowExecutionCreateManyTenantInputEnvelope = {
+    data: WorkflowExecutionCreateManyTenantInput | WorkflowExecutionCreateManyTenantInput[]
+  }
+
   export type TaskUpsertWithWhereUniqueWithoutTenantInput = {
     where: TaskWhereUniqueInput
     update: XOR<TaskUpdateWithoutTenantInput, TaskUncheckedUpdateWithoutTenantInput>
@@ -45777,6 +50105,65 @@ export namespace Prisma {
     tenantId?: StringFilter<"Alert"> | string
   }
 
+  export type WorkflowUpsertWithWhereUniqueWithoutTenantInput = {
+    where: WorkflowWhereUniqueInput
+    update: XOR<WorkflowUpdateWithoutTenantInput, WorkflowUncheckedUpdateWithoutTenantInput>
+    create: XOR<WorkflowCreateWithoutTenantInput, WorkflowUncheckedCreateWithoutTenantInput>
+  }
+
+  export type WorkflowUpdateWithWhereUniqueWithoutTenantInput = {
+    where: WorkflowWhereUniqueInput
+    data: XOR<WorkflowUpdateWithoutTenantInput, WorkflowUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type WorkflowUpdateManyWithWhereWithoutTenantInput = {
+    where: WorkflowScalarWhereInput
+    data: XOR<WorkflowUpdateManyMutationInput, WorkflowUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type WorkflowScalarWhereInput = {
+    AND?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[]
+    OR?: WorkflowScalarWhereInput[]
+    NOT?: WorkflowScalarWhereInput | WorkflowScalarWhereInput[]
+    id?: StringFilter<"Workflow"> | string
+    tenantId?: StringFilter<"Workflow"> | string
+    name?: StringFilter<"Workflow"> | string
+    version?: StringFilter<"Workflow"> | string
+    description?: StringNullableFilter<"Workflow"> | string | null
+    status?: StringFilter<"Workflow"> | string
+    definition?: StringFilter<"Workflow"> | string
+    createdAt?: DateTimeFilter<"Workflow"> | Date | string
+    updatedAt?: DateTimeFilter<"Workflow"> | Date | string
+  }
+
+  export type WorkflowExecutionUpsertWithWhereUniqueWithoutTenantInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    update: XOR<WorkflowExecutionUpdateWithoutTenantInput, WorkflowExecutionUncheckedUpdateWithoutTenantInput>
+    create: XOR<WorkflowExecutionCreateWithoutTenantInput, WorkflowExecutionUncheckedCreateWithoutTenantInput>
+  }
+
+  export type WorkflowExecutionUpdateWithWhereUniqueWithoutTenantInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    data: XOR<WorkflowExecutionUpdateWithoutTenantInput, WorkflowExecutionUncheckedUpdateWithoutTenantInput>
+  }
+
+  export type WorkflowExecutionUpdateManyWithWhereWithoutTenantInput = {
+    where: WorkflowExecutionScalarWhereInput
+    data: XOR<WorkflowExecutionUpdateManyMutationInput, WorkflowExecutionUncheckedUpdateManyWithoutTenantInput>
+  }
+
+  export type WorkflowExecutionScalarWhereInput = {
+    AND?: WorkflowExecutionScalarWhereInput | WorkflowExecutionScalarWhereInput[]
+    OR?: WorkflowExecutionScalarWhereInput[]
+    NOT?: WorkflowExecutionScalarWhereInput | WorkflowExecutionScalarWhereInput[]
+    id?: StringFilter<"WorkflowExecution"> | string
+    workflowId?: StringFilter<"WorkflowExecution"> | string
+    tenantId?: StringFilter<"WorkflowExecution"> | string
+    status?: StringFilter<"WorkflowExecution"> | string
+    startedAt?: DateTimeFilter<"WorkflowExecution"> | Date | string
+    completedAt?: DateTimeNullableFilter<"WorkflowExecution"> | Date | string | null
+  }
+
   export type TenantCreateWithoutSchedulingPolicyInput = {
     id?: string
     name: string
@@ -45804,6 +50191,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSchedulingPolicyInput = {
@@ -45833,6 +50222,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSchedulingPolicyInput = {
@@ -45878,6 +50269,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSchedulingPolicyInput = {
@@ -45907,6 +50300,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutTenantUsersInput = {
@@ -45936,6 +50331,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTenantUsersInput = {
@@ -45965,6 +50362,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTenantUsersInput = {
@@ -46047,6 +50446,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTenantUsersInput = {
@@ -46076,6 +50477,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutTenantUsersInput = {
@@ -46148,6 +50551,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutMetricRetentionPolicyInput = {
@@ -46177,6 +50582,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutMetricRetentionPolicyInput = {
@@ -46222,6 +50629,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutMetricRetentionPolicyInput = {
@@ -46251,6 +50660,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserCreateWithoutUserSessionsInput = {
@@ -46477,6 +50888,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutWebhooksInput = {
@@ -46506,6 +50919,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutWebhooksInput = {
@@ -46567,6 +50982,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutWebhooksInput = {
@@ -46596,6 +51013,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type WebhookCreateWithoutDeliveriesInput = {
@@ -46652,6 +51071,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutWebhookDeliveriesInput = {
@@ -46681,6 +51102,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutWebhookDeliveriesInput = {
@@ -46759,6 +51182,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutWebhookDeliveriesInput = {
@@ -46788,6 +51213,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutAuditLogsInput = {
@@ -46817,6 +51244,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAuditLogsInput = {
@@ -46846,6 +51275,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAuditLogsInput = {
@@ -46928,6 +51359,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAuditLogsInput = {
@@ -46957,6 +51390,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type UserUpsertWithoutAuditLogsInput = {
@@ -47025,6 +51460,7 @@ export namespace Prisma {
     submittedAt?: Date | string
     logs?: TaskLogCreateNestedManyWithoutTaskInput
     executions?: TaskExecutionCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunCreateNestedManyWithoutTaskInput
     tenant: TenantCreateNestedOneWithoutTasksInput
   }
 
@@ -47052,6 +51488,7 @@ export namespace Prisma {
     tenantId: string
     logs?: TaskLogUncheckedCreateNestedManyWithoutTaskInput
     executions?: TaskExecutionUncheckedCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutNodeInput = {
@@ -47182,6 +51619,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutNodesInput = {
@@ -47211,6 +51650,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutNodesInput = {
@@ -47304,6 +51745,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutNodesInput = {
@@ -47333,6 +51776,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type EdgeNodeCreateWithoutTasksInput = {
@@ -47488,6 +51933,33 @@ export namespace Prisma {
     data: TaskExecutionCreateManyTaskInput | TaskExecutionCreateManyTaskInput[]
   }
 
+  export type WorkflowTaskRunCreateWithoutTaskInput = {
+    id?: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    execution: WorkflowExecutionCreateNestedOneWithoutTaskRunsInput
+  }
+
+  export type WorkflowTaskRunUncheckedCreateWithoutTaskInput = {
+    id?: string
+    executionId: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowTaskRunCreateOrConnectWithoutTaskInput = {
+    where: WorkflowTaskRunWhereUniqueInput
+    create: XOR<WorkflowTaskRunCreateWithoutTaskInput, WorkflowTaskRunUncheckedCreateWithoutTaskInput>
+  }
+
+  export type WorkflowTaskRunCreateManyTaskInputEnvelope = {
+    data: WorkflowTaskRunCreateManyTaskInput | WorkflowTaskRunCreateManyTaskInput[]
+  }
+
   export type TenantCreateWithoutTasksInput = {
     id?: string
     name: string
@@ -47515,6 +51987,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTasksInput = {
@@ -47544,6 +52018,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTasksInput = {
@@ -47662,6 +52138,35 @@ export namespace Prisma {
     data: XOR<TaskExecutionUpdateManyMutationInput, TaskExecutionUncheckedUpdateManyWithoutTaskInput>
   }
 
+  export type WorkflowTaskRunUpsertWithWhereUniqueWithoutTaskInput = {
+    where: WorkflowTaskRunWhereUniqueInput
+    update: XOR<WorkflowTaskRunUpdateWithoutTaskInput, WorkflowTaskRunUncheckedUpdateWithoutTaskInput>
+    create: XOR<WorkflowTaskRunCreateWithoutTaskInput, WorkflowTaskRunUncheckedCreateWithoutTaskInput>
+  }
+
+  export type WorkflowTaskRunUpdateWithWhereUniqueWithoutTaskInput = {
+    where: WorkflowTaskRunWhereUniqueInput
+    data: XOR<WorkflowTaskRunUpdateWithoutTaskInput, WorkflowTaskRunUncheckedUpdateWithoutTaskInput>
+  }
+
+  export type WorkflowTaskRunUpdateManyWithWhereWithoutTaskInput = {
+    where: WorkflowTaskRunScalarWhereInput
+    data: XOR<WorkflowTaskRunUpdateManyMutationInput, WorkflowTaskRunUncheckedUpdateManyWithoutTaskInput>
+  }
+
+  export type WorkflowTaskRunScalarWhereInput = {
+    AND?: WorkflowTaskRunScalarWhereInput | WorkflowTaskRunScalarWhereInput[]
+    OR?: WorkflowTaskRunScalarWhereInput[]
+    NOT?: WorkflowTaskRunScalarWhereInput | WorkflowTaskRunScalarWhereInput[]
+    id?: StringFilter<"WorkflowTaskRun"> | string
+    executionId?: StringFilter<"WorkflowTaskRun"> | string
+    taskId?: StringFilter<"WorkflowTaskRun"> | string
+    stepName?: StringFilter<"WorkflowTaskRun"> | string
+    status?: StringFilter<"WorkflowTaskRun"> | string
+    startedAt?: DateTimeNullableFilter<"WorkflowTaskRun"> | Date | string | null
+    completedAt?: DateTimeNullableFilter<"WorkflowTaskRun"> | Date | string | null
+  }
+
   export type TenantUpsertWithoutTasksInput = {
     update: XOR<TenantUpdateWithoutTasksInput, TenantUncheckedUpdateWithoutTasksInput>
     create: XOR<TenantCreateWithoutTasksInput, TenantUncheckedCreateWithoutTasksInput>
@@ -47700,6 +52205,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTasksInput = {
@@ -47729,6 +52236,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type EdgeNodeCreateWithoutTaskExecutionsInput = {
@@ -47827,6 +52336,7 @@ export namespace Prisma {
     submittedAt?: Date | string
     node?: EdgeNodeCreateNestedOneWithoutTasksInput
     logs?: TaskLogCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunCreateNestedManyWithoutTaskInput
     tenant: TenantCreateNestedOneWithoutTasksInput
   }
 
@@ -47854,6 +52364,7 @@ export namespace Prisma {
     submittedAt?: Date | string
     tenantId: string
     logs?: TaskLogUncheckedCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutExecutionsInput = {
@@ -47888,6 +52399,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTaskExecutionsInput = {
@@ -47917,6 +52430,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTaskExecutionsInput = {
@@ -48037,6 +52552,7 @@ export namespace Prisma {
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     node?: EdgeNodeUpdateOneWithoutTasksNestedInput
     logs?: TaskLogUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUpdateManyWithoutTaskNestedInput
     tenant?: TenantUpdateOneRequiredWithoutTasksNestedInput
   }
 
@@ -48064,6 +52580,7 @@ export namespace Prisma {
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenantId?: StringFieldUpdateOperationsInput | string
     logs?: TaskLogUncheckedUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TenantUpsertWithoutTaskExecutionsInput = {
@@ -48104,6 +52621,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTaskExecutionsInput = {
@@ -48133,6 +52652,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TaskCreateWithoutLogsInput = {
@@ -48158,6 +52679,7 @@ export namespace Prisma {
     submittedAt?: Date | string
     node?: EdgeNodeCreateNestedOneWithoutTasksInput
     executions?: TaskExecutionCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunCreateNestedManyWithoutTaskInput
     tenant: TenantCreateNestedOneWithoutTasksInput
   }
 
@@ -48185,6 +52707,7 @@ export namespace Prisma {
     submittedAt?: Date | string
     tenantId: string
     executions?: TaskExecutionUncheckedCreateNestedManyWithoutTaskInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutTaskInput
   }
 
   export type TaskCreateOrConnectWithoutLogsInput = {
@@ -48219,6 +52742,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutTaskLogsInput = {
@@ -48248,6 +52773,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutTaskLogsInput = {
@@ -48289,6 +52816,7 @@ export namespace Prisma {
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     node?: EdgeNodeUpdateOneWithoutTasksNestedInput
     executions?: TaskExecutionUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUpdateManyWithoutTaskNestedInput
     tenant?: TenantUpdateOneRequiredWithoutTasksNestedInput
   }
 
@@ -48316,6 +52844,7 @@ export namespace Prisma {
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     tenantId?: StringFieldUpdateOperationsInput | string
     executions?: TaskExecutionUncheckedUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TenantUpsertWithoutTaskLogsInput = {
@@ -48356,6 +52885,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutTaskLogsInput = {
@@ -48385,6 +52916,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type EdgeNodeCreateWithoutMetricsInput = {
@@ -48487,6 +53020,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutNodeMetricInput = {
@@ -48516,6 +53051,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutNodeMetricInput = {
@@ -48640,6 +53177,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutNodeMetricInput = {
@@ -48669,6 +53208,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SagaStepCreateWithoutSagaInput = {
@@ -48735,6 +53276,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSagaInstancesInput = {
@@ -48764,6 +53307,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSagaInstancesInput = {
@@ -48825,6 +53370,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSagaInstancesInput = {
@@ -48854,6 +53401,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type SagaInstanceCreateWithoutStepsInput = {
@@ -48918,6 +53467,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSagaStepsInput = {
@@ -48947,6 +53498,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSagaStepsInput = {
@@ -49033,6 +53586,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSagaStepsInput = {
@@ -49062,6 +53617,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutSchedulingDecisionsInput = {
@@ -49091,6 +53648,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSchedulingDecisionsInput = {
@@ -49120,6 +53679,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSchedulingDecisionsInput = {
@@ -49165,6 +53726,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSchedulingDecisionsInput = {
@@ -49194,6 +53757,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutCostRecordsInput = {
@@ -49223,6 +53788,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCostRecordsInput = {
@@ -49252,6 +53819,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCostRecordsInput = {
@@ -49297,6 +53866,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCostRecordsInput = {
@@ -49326,6 +53897,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutCarbonMetricsInput = {
@@ -49355,6 +53928,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCarbonMetricsInput = {
@@ -49384,6 +53959,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCarbonMetricsInput = {
@@ -49429,6 +54006,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCarbonMetricsInput = {
@@ -49458,6 +54037,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutCarbonRecordsInput = {
@@ -49487,6 +54068,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutCarbonRecordsInput = {
@@ -49516,6 +54099,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutCarbonRecordsInput = {
@@ -49561,6 +54146,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutCarbonRecordsInput = {
@@ -49590,6 +54177,8 @@ export namespace Prisma {
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantCreateWithoutSchedulingOutcomeInput = {
@@ -49619,6 +54208,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutSchedulingOutcomeInput = {
@@ -49648,6 +54239,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutSchedulingOutcomeInput = {
@@ -49693,6 +54286,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutSchedulingOutcomeInput = {
@@ -49722,6 +54317,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type AlertCreateWithoutRuleInput = {
@@ -49784,6 +54381,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAlertRulesInput = {
@@ -49813,6 +54412,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAlertRulesInput = {
@@ -49874,6 +54475,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAlertRulesInput = {
@@ -49903,6 +54506,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
   }
 
   export type AlertRuleCreateWithoutAlertsInput = {
@@ -49961,6 +54566,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
   }
 
   export type TenantUncheckedCreateWithoutAlertsInput = {
@@ -49990,6 +54597,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
     alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
   }
 
   export type TenantCreateOrConnectWithoutAlertsInput = {
@@ -50070,6 +54679,8 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
   }
 
   export type TenantUncheckedUpdateWithoutAlertsInput = {
@@ -50099,6 +54710,614 @@ export namespace Prisma {
     SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
     SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
     alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type WorkflowExecutionCreateWithoutWorkflowInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    taskRuns?: WorkflowTaskRunCreateNestedManyWithoutExecutionInput
+    tenant: TenantCreateNestedOneWithoutWorkflowExecutionsInput
+  }
+
+  export type WorkflowExecutionUncheckedCreateWithoutWorkflowInput = {
+    id?: string
+    tenantId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    taskRuns?: WorkflowTaskRunUncheckedCreateNestedManyWithoutExecutionInput
+  }
+
+  export type WorkflowExecutionCreateOrConnectWithoutWorkflowInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    create: XOR<WorkflowExecutionCreateWithoutWorkflowInput, WorkflowExecutionUncheckedCreateWithoutWorkflowInput>
+  }
+
+  export type WorkflowExecutionCreateManyWorkflowInputEnvelope = {
+    data: WorkflowExecutionCreateManyWorkflowInput | WorkflowExecutionCreateManyWorkflowInput[]
+  }
+
+  export type TenantCreateWithoutWorkflowsInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutWorkflowsInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskUncheckedCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeUncheckedCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionUncheckedCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserUncheckedCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceUncheckedCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepUncheckedCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionUncheckedCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordUncheckedCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricUncheckedCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordUncheckedCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogUncheckedCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflowExecutions?: WorkflowExecutionUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutWorkflowsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutWorkflowsInput, TenantUncheckedCreateWithoutWorkflowsInput>
+  }
+
+  export type WorkflowExecutionUpsertWithWhereUniqueWithoutWorkflowInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    update: XOR<WorkflowExecutionUpdateWithoutWorkflowInput, WorkflowExecutionUncheckedUpdateWithoutWorkflowInput>
+    create: XOR<WorkflowExecutionCreateWithoutWorkflowInput, WorkflowExecutionUncheckedCreateWithoutWorkflowInput>
+  }
+
+  export type WorkflowExecutionUpdateWithWhereUniqueWithoutWorkflowInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    data: XOR<WorkflowExecutionUpdateWithoutWorkflowInput, WorkflowExecutionUncheckedUpdateWithoutWorkflowInput>
+  }
+
+  export type WorkflowExecutionUpdateManyWithWhereWithoutWorkflowInput = {
+    where: WorkflowExecutionScalarWhereInput
+    data: XOR<WorkflowExecutionUpdateManyMutationInput, WorkflowExecutionUncheckedUpdateManyWithoutWorkflowInput>
+  }
+
+  export type TenantUpsertWithoutWorkflowsInput = {
+    update: XOR<TenantUpdateWithoutWorkflowsInput, TenantUncheckedUpdateWithoutWorkflowsInput>
+    create: XOR<TenantCreateWithoutWorkflowsInput, TenantUncheckedCreateWithoutWorkflowsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutWorkflowsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutWorkflowsInput, TenantUncheckedUpdateWithoutWorkflowsInput>
+  }
+
+  export type TenantUpdateWithoutWorkflowsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutWorkflowsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUncheckedUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUncheckedUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUncheckedUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUncheckedUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUncheckedUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUncheckedUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUncheckedUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUncheckedUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUncheckedUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUncheckedUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUncheckedUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflowExecutions?: WorkflowExecutionUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type WorkflowTaskRunCreateWithoutExecutionInput = {
+    id?: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+    task: TaskCreateNestedOneWithoutWorkflowTaskRunsInput
+  }
+
+  export type WorkflowTaskRunUncheckedCreateWithoutExecutionInput = {
+    id?: string
+    taskId: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowTaskRunCreateOrConnectWithoutExecutionInput = {
+    where: WorkflowTaskRunWhereUniqueInput
+    create: XOR<WorkflowTaskRunCreateWithoutExecutionInput, WorkflowTaskRunUncheckedCreateWithoutExecutionInput>
+  }
+
+  export type WorkflowTaskRunCreateManyExecutionInputEnvelope = {
+    data: WorkflowTaskRunCreateManyExecutionInput | WorkflowTaskRunCreateManyExecutionInput[]
+  }
+
+  export type WorkflowCreateWithoutExecutionsInput = {
+    id?: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tenant: TenantCreateNestedOneWithoutWorkflowsInput
+  }
+
+  export type WorkflowUncheckedCreateWithoutExecutionsInput = {
+    id?: string
+    tenantId: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WorkflowCreateOrConnectWithoutExecutionsInput = {
+    where: WorkflowWhereUniqueInput
+    create: XOR<WorkflowCreateWithoutExecutionsInput, WorkflowUncheckedCreateWithoutExecutionsInput>
+  }
+
+  export type TenantCreateWithoutWorkflowExecutionsInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleCreateNestedManyWithoutTenantInput
+    alerts?: AlertCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantUncheckedCreateWithoutWorkflowExecutionsInput = {
+    id?: string
+    name: string
+    slug: string
+    config: string
+    isActive?: boolean
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    tasks?: TaskUncheckedCreateNestedManyWithoutTenantInput
+    nodes?: EdgeNodeUncheckedCreateNestedManyWithoutTenantInput
+    taskExecutions?: TaskExecutionUncheckedCreateNestedManyWithoutTenantInput
+    tenantUsers?: TenantUserUncheckedCreateNestedManyWithoutTenantInput
+    webhooks?: WebhookUncheckedCreateNestedManyWithoutTenantInput
+    webhookDeliveries?: WebhookDeliveryUncheckedCreateNestedManyWithoutTenantInput
+    auditLogs?: AuditLogUncheckedCreateNestedManyWithoutTenantInput
+    sagaInstances?: SagaInstanceUncheckedCreateNestedManyWithoutTenantInput
+    sagaSteps?: SagaStepUncheckedCreateNestedManyWithoutTenantInput
+    schedulingDecisions?: SchedulingDecisionUncheckedCreateNestedManyWithoutTenantInput
+    costRecords?: CostRecordUncheckedCreateNestedManyWithoutTenantInput
+    carbonMetrics?: CarbonMetricUncheckedCreateNestedManyWithoutTenantInput
+    carbonRecords?: CarbonRecordUncheckedCreateNestedManyWithoutTenantInput
+    taskLogs?: TaskLogUncheckedCreateNestedManyWithoutTenantInput
+    NodeMetric?: NodeMetricUncheckedCreateNestedManyWithoutTenantInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedCreateNestedOneWithoutTenantInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedCreateNestedManyWithoutTenantInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedCreateNestedManyWithoutTenantInput
+    alertRules?: AlertRuleUncheckedCreateNestedManyWithoutTenantInput
+    alerts?: AlertUncheckedCreateNestedManyWithoutTenantInput
+    workflows?: WorkflowUncheckedCreateNestedManyWithoutTenantInput
+  }
+
+  export type TenantCreateOrConnectWithoutWorkflowExecutionsInput = {
+    where: TenantWhereUniqueInput
+    create: XOR<TenantCreateWithoutWorkflowExecutionsInput, TenantUncheckedCreateWithoutWorkflowExecutionsInput>
+  }
+
+  export type WorkflowTaskRunUpsertWithWhereUniqueWithoutExecutionInput = {
+    where: WorkflowTaskRunWhereUniqueInput
+    update: XOR<WorkflowTaskRunUpdateWithoutExecutionInput, WorkflowTaskRunUncheckedUpdateWithoutExecutionInput>
+    create: XOR<WorkflowTaskRunCreateWithoutExecutionInput, WorkflowTaskRunUncheckedCreateWithoutExecutionInput>
+  }
+
+  export type WorkflowTaskRunUpdateWithWhereUniqueWithoutExecutionInput = {
+    where: WorkflowTaskRunWhereUniqueInput
+    data: XOR<WorkflowTaskRunUpdateWithoutExecutionInput, WorkflowTaskRunUncheckedUpdateWithoutExecutionInput>
+  }
+
+  export type WorkflowTaskRunUpdateManyWithWhereWithoutExecutionInput = {
+    where: WorkflowTaskRunScalarWhereInput
+    data: XOR<WorkflowTaskRunUpdateManyMutationInput, WorkflowTaskRunUncheckedUpdateManyWithoutExecutionInput>
+  }
+
+  export type WorkflowUpsertWithoutExecutionsInput = {
+    update: XOR<WorkflowUpdateWithoutExecutionsInput, WorkflowUncheckedUpdateWithoutExecutionsInput>
+    create: XOR<WorkflowCreateWithoutExecutionsInput, WorkflowUncheckedCreateWithoutExecutionsInput>
+    where?: WorkflowWhereInput
+  }
+
+  export type WorkflowUpdateToOneWithWhereWithoutExecutionsInput = {
+    where?: WorkflowWhereInput
+    data: XOR<WorkflowUpdateWithoutExecutionsInput, WorkflowUncheckedUpdateWithoutExecutionsInput>
+  }
+
+  export type WorkflowUpdateWithoutExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenant?: TenantUpdateOneRequiredWithoutWorkflowsNestedInput
+  }
+
+  export type WorkflowUncheckedUpdateWithoutExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type TenantUpsertWithoutWorkflowExecutionsInput = {
+    update: XOR<TenantUpdateWithoutWorkflowExecutionsInput, TenantUncheckedUpdateWithoutWorkflowExecutionsInput>
+    create: XOR<TenantCreateWithoutWorkflowExecutionsInput, TenantUncheckedCreateWithoutWorkflowExecutionsInput>
+    where?: TenantWhereInput
+  }
+
+  export type TenantUpdateToOneWithWhereWithoutWorkflowExecutionsInput = {
+    where?: TenantWhereInput
+    data: XOR<TenantUpdateWithoutWorkflowExecutionsInput, TenantUncheckedUpdateWithoutWorkflowExecutionsInput>
+  }
+
+  export type TenantUpdateWithoutWorkflowExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUpdateManyWithoutTenantNestedInput
+  }
+
+  export type TenantUncheckedUpdateWithoutWorkflowExecutionsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    slug?: StringFieldUpdateOperationsInput | string
+    config?: StringFieldUpdateOperationsInput | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tasks?: TaskUncheckedUpdateManyWithoutTenantNestedInput
+    nodes?: EdgeNodeUncheckedUpdateManyWithoutTenantNestedInput
+    taskExecutions?: TaskExecutionUncheckedUpdateManyWithoutTenantNestedInput
+    tenantUsers?: TenantUserUncheckedUpdateManyWithoutTenantNestedInput
+    webhooks?: WebhookUncheckedUpdateManyWithoutTenantNestedInput
+    webhookDeliveries?: WebhookDeliveryUncheckedUpdateManyWithoutTenantNestedInput
+    auditLogs?: AuditLogUncheckedUpdateManyWithoutTenantNestedInput
+    sagaInstances?: SagaInstanceUncheckedUpdateManyWithoutTenantNestedInput
+    sagaSteps?: SagaStepUncheckedUpdateManyWithoutTenantNestedInput
+    schedulingDecisions?: SchedulingDecisionUncheckedUpdateManyWithoutTenantNestedInput
+    costRecords?: CostRecordUncheckedUpdateManyWithoutTenantNestedInput
+    carbonMetrics?: CarbonMetricUncheckedUpdateManyWithoutTenantNestedInput
+    carbonRecords?: CarbonRecordUncheckedUpdateManyWithoutTenantNestedInput
+    taskLogs?: TaskLogUncheckedUpdateManyWithoutTenantNestedInput
+    NodeMetric?: NodeMetricUncheckedUpdateManyWithoutTenantNestedInput
+    MetricRetentionPolicy?: MetricRetentionPolicyUncheckedUpdateOneWithoutTenantNestedInput
+    SchedulingPolicy?: SchedulingPolicyUncheckedUpdateManyWithoutTenantNestedInput
+    SchedulingOutcome?: SchedulingOutcomeUncheckedUpdateManyWithoutTenantNestedInput
+    alertRules?: AlertRuleUncheckedUpdateManyWithoutTenantNestedInput
+    alerts?: AlertUncheckedUpdateManyWithoutTenantNestedInput
+    workflows?: WorkflowUncheckedUpdateManyWithoutTenantNestedInput
+  }
+
+  export type WorkflowExecutionCreateWithoutTaskRunsInput = {
+    id?: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+    workflow: WorkflowCreateNestedOneWithoutExecutionsInput
+    tenant: TenantCreateNestedOneWithoutWorkflowExecutionsInput
+  }
+
+  export type WorkflowExecutionUncheckedCreateWithoutTaskRunsInput = {
+    id?: string
+    workflowId: string
+    tenantId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowExecutionCreateOrConnectWithoutTaskRunsInput = {
+    where: WorkflowExecutionWhereUniqueInput
+    create: XOR<WorkflowExecutionCreateWithoutTaskRunsInput, WorkflowExecutionUncheckedCreateWithoutTaskRunsInput>
+  }
+
+  export type TaskCreateWithoutWorkflowTaskRunsInput = {
+    id?: string
+    name: string
+    type: string
+    status?: string
+    priority?: string
+    target: string
+    policy: string
+    reason: string
+    runtime?: string
+    image?: string | null
+    wasmArtifactId?: string | null
+    affinity?: string | null
+    traceId?: string | null
+    isDeferrable?: boolean
+    maxDelayMinutes?: number
+    maxDurationSeconds?: number
+    maxRetries?: number
+    input?: string | null
+    metadata?: string | null
+    submittedAt?: Date | string
+    node?: EdgeNodeCreateNestedOneWithoutTasksInput
+    logs?: TaskLogCreateNestedManyWithoutTaskInput
+    executions?: TaskExecutionCreateNestedManyWithoutTaskInput
+    tenant: TenantCreateNestedOneWithoutTasksInput
+  }
+
+  export type TaskUncheckedCreateWithoutWorkflowTaskRunsInput = {
+    id?: string
+    name: string
+    type: string
+    status?: string
+    priority?: string
+    target: string
+    nodeId?: string | null
+    policy: string
+    reason: string
+    runtime?: string
+    image?: string | null
+    wasmArtifactId?: string | null
+    affinity?: string | null
+    traceId?: string | null
+    isDeferrable?: boolean
+    maxDelayMinutes?: number
+    maxDurationSeconds?: number
+    maxRetries?: number
+    input?: string | null
+    metadata?: string | null
+    submittedAt?: Date | string
+    tenantId: string
+    logs?: TaskLogUncheckedCreateNestedManyWithoutTaskInput
+    executions?: TaskExecutionUncheckedCreateNestedManyWithoutTaskInput
+  }
+
+  export type TaskCreateOrConnectWithoutWorkflowTaskRunsInput = {
+    where: TaskWhereUniqueInput
+    create: XOR<TaskCreateWithoutWorkflowTaskRunsInput, TaskUncheckedCreateWithoutWorkflowTaskRunsInput>
+  }
+
+  export type WorkflowExecutionUpsertWithoutTaskRunsInput = {
+    update: XOR<WorkflowExecutionUpdateWithoutTaskRunsInput, WorkflowExecutionUncheckedUpdateWithoutTaskRunsInput>
+    create: XOR<WorkflowExecutionCreateWithoutTaskRunsInput, WorkflowExecutionUncheckedCreateWithoutTaskRunsInput>
+    where?: WorkflowExecutionWhereInput
+  }
+
+  export type WorkflowExecutionUpdateToOneWithWhereWithoutTaskRunsInput = {
+    where?: WorkflowExecutionWhereInput
+    data: XOR<WorkflowExecutionUpdateWithoutTaskRunsInput, WorkflowExecutionUncheckedUpdateWithoutTaskRunsInput>
+  }
+
+  export type WorkflowExecutionUpdateWithoutTaskRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    workflow?: WorkflowUpdateOneRequiredWithoutExecutionsNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutWorkflowExecutionsNestedInput
+  }
+
+  export type WorkflowExecutionUncheckedUpdateWithoutTaskRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type TaskUpsertWithoutWorkflowTaskRunsInput = {
+    update: XOR<TaskUpdateWithoutWorkflowTaskRunsInput, TaskUncheckedUpdateWithoutWorkflowTaskRunsInput>
+    create: XOR<TaskCreateWithoutWorkflowTaskRunsInput, TaskUncheckedCreateWithoutWorkflowTaskRunsInput>
+    where?: TaskWhereInput
+  }
+
+  export type TaskUpdateToOneWithWhereWithoutWorkflowTaskRunsInput = {
+    where?: TaskWhereInput
+    data: XOR<TaskUpdateWithoutWorkflowTaskRunsInput, TaskUncheckedUpdateWithoutWorkflowTaskRunsInput>
+  }
+
+  export type TaskUpdateWithoutWorkflowTaskRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    priority?: StringFieldUpdateOperationsInput | string
+    target?: StringFieldUpdateOperationsInput | string
+    policy?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    runtime?: StringFieldUpdateOperationsInput | string
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    wasmArtifactId?: NullableStringFieldUpdateOperationsInput | string | null
+    affinity?: NullableStringFieldUpdateOperationsInput | string | null
+    traceId?: NullableStringFieldUpdateOperationsInput | string | null
+    isDeferrable?: BoolFieldUpdateOperationsInput | boolean
+    maxDelayMinutes?: IntFieldUpdateOperationsInput | number
+    maxDurationSeconds?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    input?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    node?: EdgeNodeUpdateOneWithoutTasksNestedInput
+    logs?: TaskLogUpdateManyWithoutTaskNestedInput
+    executions?: TaskExecutionUpdateManyWithoutTaskNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutTasksNestedInput
+  }
+
+  export type TaskUncheckedUpdateWithoutWorkflowTaskRunsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    type?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    priority?: StringFieldUpdateOperationsInput | string
+    target?: StringFieldUpdateOperationsInput | string
+    nodeId?: NullableStringFieldUpdateOperationsInput | string | null
+    policy?: StringFieldUpdateOperationsInput | string
+    reason?: StringFieldUpdateOperationsInput | string
+    runtime?: StringFieldUpdateOperationsInput | string
+    image?: NullableStringFieldUpdateOperationsInput | string | null
+    wasmArtifactId?: NullableStringFieldUpdateOperationsInput | string | null
+    affinity?: NullableStringFieldUpdateOperationsInput | string | null
+    traceId?: NullableStringFieldUpdateOperationsInput | string | null
+    isDeferrable?: BoolFieldUpdateOperationsInput | boolean
+    maxDelayMinutes?: IntFieldUpdateOperationsInput | number
+    maxDurationSeconds?: IntFieldUpdateOperationsInput | number
+    maxRetries?: IntFieldUpdateOperationsInput | number
+    input?: NullableStringFieldUpdateOperationsInput | string | null
+    metadata?: NullableStringFieldUpdateOperationsInput | string | null
+    submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    logs?: TaskLogUncheckedUpdateManyWithoutTaskNestedInput
+    executions?: TaskExecutionUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TenantUserCreateManyUserInput = {
@@ -50537,6 +55756,25 @@ export namespace Prisma {
     acknowledgedAt?: Date | string | null
   }
 
+  export type WorkflowCreateManyTenantInput = {
+    id?: string
+    name: string
+    version?: string
+    description?: string | null
+    status?: string
+    definition: string
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type WorkflowExecutionCreateManyTenantInput = {
+    id?: string
+    workflowId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
   export type TaskUpdateWithoutTenantInput = {
     id?: StringFieldUpdateOperationsInput | string
     name?: StringFieldUpdateOperationsInput | string
@@ -50561,6 +55799,7 @@ export namespace Prisma {
     node?: EdgeNodeUpdateOneWithoutTasksNestedInput
     logs?: TaskLogUpdateManyWithoutTaskNestedInput
     executions?: TaskExecutionUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateWithoutTenantInput = {
@@ -50587,6 +55826,7 @@ export namespace Prisma {
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     logs?: TaskLogUncheckedUpdateManyWithoutTaskNestedInput
     executions?: TaskExecutionUncheckedUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateManyWithoutTenantInput = {
@@ -51357,6 +56597,67 @@ export namespace Prisma {
     acknowledgedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
+  export type WorkflowUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    executions?: WorkflowExecutionUpdateManyWithoutWorkflowNestedInput
+  }
+
+  export type WorkflowUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    executions?: WorkflowExecutionUncheckedUpdateManyWithoutWorkflowNestedInput
+  }
+
+  export type WorkflowUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    version?: StringFieldUpdateOperationsInput | string
+    description?: NullableStringFieldUpdateOperationsInput | string | null
+    status?: StringFieldUpdateOperationsInput | string
+    definition?: StringFieldUpdateOperationsInput | string
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WorkflowExecutionUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    taskRuns?: WorkflowTaskRunUpdateManyWithoutExecutionNestedInput
+    workflow?: WorkflowUpdateOneRequiredWithoutExecutionsNestedInput
+  }
+
+  export type WorkflowExecutionUncheckedUpdateWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    taskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutExecutionNestedInput
+  }
+
+  export type WorkflowExecutionUncheckedUpdateManyWithoutTenantInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    workflowId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
   export type WebhookDeliveryCreateManyWebhookInput = {
     id?: string
     event: string
@@ -51497,6 +56798,7 @@ export namespace Prisma {
     submittedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     logs?: TaskLogUpdateManyWithoutTaskNestedInput
     executions?: TaskExecutionUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUpdateManyWithoutTaskNestedInput
     tenant?: TenantUpdateOneRequiredWithoutTasksNestedInput
   }
 
@@ -51524,6 +56826,7 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
     logs?: TaskLogUncheckedUpdateManyWithoutTaskNestedInput
     executions?: TaskExecutionUncheckedUpdateManyWithoutTaskNestedInput
+    workflowTaskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutTaskNestedInput
   }
 
   export type TaskUncheckedUpdateManyWithoutNodeInput = {
@@ -51692,6 +56995,15 @@ export namespace Prisma {
     createdAt?: Date | string
   }
 
+  export type WorkflowTaskRunCreateManyTaskInput = {
+    id?: string
+    executionId: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+  }
+
   export type TaskLogUpdateWithoutTaskInput = {
     id?: StringFieldUpdateOperationsInput | string
     level?: StringFieldUpdateOperationsInput | string
@@ -51783,6 +57095,33 @@ export namespace Prisma {
     retryReason?: NullableStringFieldUpdateOperationsInput | string | null
     tenantId?: StringFieldUpdateOperationsInput | string
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type WorkflowTaskRunUpdateWithoutTaskInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    execution?: WorkflowExecutionUpdateOneRequiredWithoutTaskRunsNestedInput
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateWithoutTaskInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionId?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateManyWithoutTaskInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    executionId?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   }
 
   export type SagaStepCreateManySagaInput = {
@@ -51889,6 +57228,76 @@ export namespace Prisma {
     tenantId?: StringFieldUpdateOperationsInput | string
   }
 
+  export type WorkflowExecutionCreateManyWorkflowInput = {
+    id?: string
+    tenantId: string
+    status?: string
+    startedAt?: Date | string
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowExecutionUpdateWithoutWorkflowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    taskRuns?: WorkflowTaskRunUpdateManyWithoutExecutionNestedInput
+    tenant?: TenantUpdateOneRequiredWithoutWorkflowExecutionsNestedInput
+  }
+
+  export type WorkflowExecutionUncheckedUpdateWithoutWorkflowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    taskRuns?: WorkflowTaskRunUncheckedUpdateManyWithoutExecutionNestedInput
+  }
+
+  export type WorkflowExecutionUncheckedUpdateManyWithoutWorkflowInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    tenantId?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowTaskRunCreateManyExecutionInput = {
+    id?: string
+    taskId: string
+    stepName: string
+    status: string
+    startedAt?: Date | string | null
+    completedAt?: Date | string | null
+  }
+
+  export type WorkflowTaskRunUpdateWithoutExecutionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    task?: TaskUpdateOneRequiredWithoutWorkflowTaskRunsNestedInput
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateWithoutExecutionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskId?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
+  export type WorkflowTaskRunUncheckedUpdateManyWithoutExecutionInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    taskId?: StringFieldUpdateOperationsInput | string
+    stepName?: StringFieldUpdateOperationsInput | string
+    status?: StringFieldUpdateOperationsInput | string
+    startedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  }
+
 
 
   /**
@@ -51922,6 +57331,14 @@ export namespace Prisma {
      * @deprecated Use AlertRuleCountOutputTypeDefaultArgs instead
      */
     export type AlertRuleCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertRuleCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WorkflowCountOutputTypeDefaultArgs instead
+     */
+    export type WorkflowCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WorkflowCountOutputTypeDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WorkflowExecutionCountOutputTypeDefaultArgs instead
+     */
+    export type WorkflowExecutionCountOutputTypeArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WorkflowExecutionCountOutputTypeDefaultArgs<ExtArgs>
     /**
      * @deprecated Use UserDefaultArgs instead
      */
@@ -52038,6 +57455,18 @@ export namespace Prisma {
      * @deprecated Use AlertDefaultArgs instead
      */
     export type AlertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = AlertDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WorkflowDefaultArgs instead
+     */
+    export type WorkflowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WorkflowDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WorkflowExecutionDefaultArgs instead
+     */
+    export type WorkflowExecutionArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WorkflowExecutionDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use WorkflowTaskRunDefaultArgs instead
+     */
+    export type WorkflowTaskRunArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = WorkflowTaskRunDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

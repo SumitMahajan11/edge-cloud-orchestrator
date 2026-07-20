@@ -48,3 +48,42 @@ export function useExecuteWorkflow() {
     },
   });
 }
+
+export function useCreateWorkflow() {
+  return useMutation({
+    mutationFn: async (workflowData: any) => {
+      const { data, error } = await postV2Workflows({
+        body: workflowData as any,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workflows.all });
+    },
+  });
+}
+
+export function useUpdateWorkflow() {
+  return useMutation({
+    mutationFn: async ({ id, data: updateBody }: { id: string; data: any }) => {
+      const response = await fetch(`/api/v2/workflows/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(updateBody),
+      });
+      if (!response.ok) {
+        const err = await response.json();
+        throw new Error(err.error?.message || err.message || "Failed to update workflow");
+      }
+      return await response.json();
+    },
+    onSuccess: (_, { id }) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.workflows.all });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.workflows.detail(id),
+      });
+    },
+  });
+}
+

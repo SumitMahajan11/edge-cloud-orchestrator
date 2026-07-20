@@ -31,17 +31,21 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useWebhooks, useWebhookStats, useCreateWebhook } from "@/hooks/useWebhooks";
+import { useWebhooks, useWebhookStats, useCreateWebhook, useUpdateWebhook, useDeleteWebhook, useTestWebhook } from "@/hooks/useWebhooks";
 import { RegisterWebhookModal } from "@/components/modals/RegisterWebhookModal";
 import { toast } from "sonner";
 
 export default function WebhooksPage() {
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingWebhook, setEditingWebhook] = useState<any | null>(null);
 
   const { data: webhooksRaw, isLoading: webhooksLoading } = useWebhooks();
   const { data: stats, isLoading: statsLoading } = useWebhookStats();
   const createWebhookMutation = useCreateWebhook();
+  const updateWebhookMutation = useUpdateWebhook();
+  const deleteWebhookMutation = useDeleteWebhook();
+  const testWebhookMutation = useTestWebhook();
 
   // Normalise: the API returns { data: [], pagination: {} }
   const webhooks: any[] = Array.isArray(webhooksRaw)
@@ -53,6 +57,54 @@ export default function WebhooksPage() {
     h.name?.toLowerCase().includes(search.toLowerCase()) ||
     h.url?.toLowerCase().includes(search.toLowerCase())
   );
+
+  const handleTestWebhook = async (id: string, name: string) => {
+    try {
+      await testWebhookMutation.mutateAsync(id);
+      toast.success(`Test payload queued for webhook "${name}"`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to trigger test payload");
+    }
+  };
+
+  const handleDeleteWebhook = async (hook: any) => {
+    if (window.confirm(`Are you sure you want to delete webhook "${hook.name}"?`)) {
+      try {
+        await deleteWebhookMutation.mutateAsync(hook.id);
+        toast.success(`Webhook "${hook.name}" deleted successfully`);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to delete webhook");
+      }
+    }
+  };
+
+  const handleModalSubmit = async (data: any) => {
+    try {
+      if (editingWebhook) {
+        await updateWebhookMutation.mutateAsync({
+          id: editingWebhook.id,
+          config: {
+            name: data.name,
+            url: data.url,
+            events: [data.event],
+          },
+        });
+        toast.success(`Webhook "${data.name}" updated successfully`);
+        setEditingWebhook(null);
+      } else {
+        await createWebhookMutation.mutateAsync({
+          name: data.name,
+          url: data.url,
+          events: [data.event],
+          enabled: true,
+        });
+        toast.success("Webhook registered successfully");
+      }
+      setIsModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to save webhook");
+    }
+  };
 
   // Derive total deliveries from per-webhook _count if available
   const totalDeliveries = webhooks.reduce(
@@ -71,7 +123,13 @@ export default function WebhooksPage() {
             Subscribe to real-time system events
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setIsModalOpen(true)}>
+        <Button
+          className="gap-2"
+          onClick={() => {
+            setEditingWebhook(null);
+            setIsModalOpen(true);
+          }}
+        >
           <Plus className="h-4 w-4" /> Register Webhook
         </Button>
       </div>
@@ -249,16 +307,30 @@ export default function WebhooksPage() {
                       </TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => handleTestWebhook(hook.id, hook.name)}
+                          >
                             <Play className="h-4 w-4 text-teal-400" />
                           </Button>
-                          <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => {
+                              setEditingWebhook(hook);
+                              setIsModalOpen(true);
+                            }}
+                          >
                             <Edit2 className="h-4 w-4" />
                           </Button>
                           <Button
                             variant="ghost"
                             size="icon"
                             className="h-8 w-8 text-rose-400"
+                            onClick={() => handleDeleteWebhook(hook)}
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
@@ -274,21 +346,14 @@ export default function WebhooksPage() {
       </Card>
       <RegisterWebhookModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSubmit={async (data) => {
-          try {
-            await createWebhookMutation.mutateAsync({
-              name: data.name,
-              url: data.url,
-              events: [data.event],
-              enabled: true,
-            });
-            toast.success("Webhook registered successfully");
-          } catch (err: any) {
-            toast.error(err.message || "Failed to register webhook");
-          }
+        onClose={() => {
+          setIsModalOpen(false);
+          setEditingWebhook(null);
         }}
+        onSubmit={handleModalSubmit}
+        initialData={editingWebhook}
       />
     </div>
   );
 }
+

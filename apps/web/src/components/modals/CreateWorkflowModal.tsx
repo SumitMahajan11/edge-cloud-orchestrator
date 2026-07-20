@@ -28,14 +28,24 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim()) return;
-    
+
     onSubmit({
-      ...formData,
-      status: "active",
-      createdAt: new Date().toISOString(),
-      tasks: [],
+      name: formData.name.trim(),
+      version: "1.0.0",
+      nodes: [
+        {
+          id: "step-1",
+          name: formData.name.trim() + " Initial Step",
+          type: "task",
+          config: { trigger: formData.trigger, description: formData.description },
+          inputs: [],
+          outputs: ["out-1"],
+        },
+      ],
+      edges: [],
+      variables: {},
     });
-    
+
     handleClose();
   };
 
@@ -99,7 +109,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
                       required
                     />
                   </div>
-                  
+
                   <div className="space-y-2">
                     <label className="text-xs font-mono uppercase text-muted-foreground">
                       Description (Optional)
@@ -136,11 +146,6 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
                   </div>
                 </div>
 
-                <div className="text-xs text-amber-500/90 bg-amber-500/10 border border-amber-500/20 rounded-md p-3 flex items-start gap-2">
-                  <span className="font-semibold font-mono uppercase text-[10px] bg-amber-500/20 px-1.5 py-0.5 rounded text-amber-500 mt-0.5">Preview</span>
-                  <span>Workflow creation is simulated. Workflows are not persisted or run on real nodes.</span>
-                </div>
-
                 <div className="flex justify-end gap-3 pt-4">
                   <Button
                     type="button"
@@ -153,7 +158,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
                     type="submit"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
-                    Create Workflow (Preview)
+                    Create Workflow
                   </Button>
                 </div>
               </form>
@@ -163,4 +168,5 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
       )}
     </AnimatePresence>
   );
+
 }
