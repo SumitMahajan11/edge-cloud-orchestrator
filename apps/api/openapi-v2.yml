@@ -2459,6 +2459,38 @@ paths:
                     type: boolean
                   message:
                     type: string
+  /v2/nodes/{id}/rotate-certificate:
+    post:
+      summary: Rotate mTLS certificate for a node (Administrative)
+      tags:
+        - nodes
+      parameters:
+        - schema:
+            type: string
+            format: uuid
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  certificatePem:
+                    type: string
+                  serialNumber:
+                    type: string
+                  expiresAt:
+                    type: string
+                  privateKey:
+                    type: string
   /v2/nodes/{id}/scheduling-history:
     get:
       summary: Get scheduling history for a node
@@ -2605,6 +2637,33 @@ paths:
       summary: Get all scheduling policies for the tenant
       tags:
         - scheduling
+      responses:
+        "200":
+          description: Default Response
+    post:
+      summary: Create a new scheduling policy template
+      tags:
+        - scheduling
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                config:
+                  type: object
+                isActive:
+                  type: boolean
+                  default: false
+              required:
+                - name
+                - type
+                - config
+        required: true
       responses:
         "200":
           description: Default Response

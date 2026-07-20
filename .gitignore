@@ -1,4 +1,4 @@
-﻿# Logs
+# Logs
 logs
 *.log
 npm-debug.log*
@@ -128,3 +128,5 @@ bandit_query.sql
 fl-simulator-results.json
 run_bandit_benchmark.ps1
 tests/tmp/
+actual_paths.json
+expected_paths.json

@@ -19,6 +19,7 @@ import {
   useDrainNode,
   useForceOfflineNode,
   useRegisterNode,
+  useRotateCertificate,
 } from "@/hooks/useNodes";
 import { useTasks } from "@/hooks/useTasks";
 import { useLogs } from "@/hooks/useLogs";
@@ -37,11 +38,13 @@ export default function EdgeNodesPage() {
   const drainMutation = useDrainNode();
   const offlineMutation = useForceOfflineNode();
   const registerMutation = useRegisterNode();
+  const rotateCertMutation = useRotateCertificate();
 
   const { hasPermission } = useAuth();
   const canRegister = hasPermission("nodes:create");
   const canDrain = hasPermission("nodes:update");
   const canForce = hasPermission("nodes:delete");
+  const canRotate = hasPermission("nodes:update");
 
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isSheetOpen, setIsSheetOpen] = useState(false);
@@ -142,6 +145,23 @@ export default function EdgeNodesPage() {
     }
   };
 
+  const handleRotateCertificate = async (node: EdgeNode) => {
+    try {
+      await rotateCertMutation.mutateAsync(node.id);
+      toast.success(`Certificate for ${node.name} rotated successfully`);
+    } catch (error) {
+      if (isApiClientError(error)) {
+        if (error.isUnauthorized()) {
+          router.push("/login");
+          return;
+        }
+        toast.error(error.response.message);
+      } else {
+        toast.error("Failed to rotate node certificate");
+      }
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -209,6 +229,7 @@ export default function EdgeNodesPage() {
           onOpenChange={setIsSheetOpen}
           onDrain={canDrain ? handleDrain : undefined}
           onForceOffline={canForce ? handleForceOffline : undefined}
+          onRotateCertificate={canRotate ? handleRotateCertificate : undefined}
         />
       )}
 

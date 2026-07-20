@@ -31,7 +31,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useWebhooks, useWebhookStats } from "@/hooks/useWebhooks";
+import { useWebhooks, useWebhookStats, useCreateWebhook } from "@/hooks/useWebhooks";
 import { RegisterWebhookModal } from "@/components/modals/RegisterWebhookModal";
 import { toast } from "sonner";
 
@@ -41,6 +41,7 @@ export default function WebhooksPage() {
 
   const { data: webhooksRaw, isLoading: webhooksLoading } = useWebhooks();
   const { data: stats, isLoading: statsLoading } = useWebhookStats();
+  const createWebhookMutation = useCreateWebhook();
 
   // Normalise: the API returns { data: [], pagination: {} }
   const webhooks: any[] = Array.isArray(webhooksRaw)
@@ -274,9 +275,18 @@ export default function WebhooksPage() {
       <RegisterWebhookModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        onSubmit={(data) => {
-          console.log('Registered webhook', data);
-          toast.success("Webhook registered successfully");
+        onSubmit={async (data) => {
+          try {
+            await createWebhookMutation.mutateAsync({
+              name: data.name,
+              url: data.url,
+              events: [data.event],
+              enabled: true,
+            });
+            toast.success("Webhook registered successfully");
+          } catch (err: any) {
+            toast.error(err.message || "Failed to register webhook");
+          }
         }}
       />
     </div>

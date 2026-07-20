@@ -69,6 +69,8 @@ export function useForceOfflineNode() {
   });
 }
 
+import { api } from "../lib/api-client";
+
 export function useRegisterNode() {
   return useMutation({
     mutationFn: async (nodeData: any) => {
@@ -82,3 +84,25 @@ export function useRegisterNode() {
     },
   });
 }
+
+export function useRotateCertificate() {
+  return useMutation({
+    mutationFn: async (id: string) => {
+      return api.post<{
+        success: boolean;
+        message: string;
+        certificatePem: string;
+        serialNumber: string;
+        expiresAt: string;
+        privateKey: string;
+      }>(`/v2/nodes/${id}/rotate-certificate`, {});
+    },
+    onSuccess: (_, id) => {
+      void queryClient.invalidateQueries({ queryKey: queryKeys.nodes.all });
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.nodes.detail(id),
+      });
+    },
+  });
+}
+

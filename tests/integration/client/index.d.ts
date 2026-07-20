@@ -89,6 +89,11 @@ export type TaskLog = $Result.DefaultSelection<Prisma.$TaskLogPayload>
  */
 export type CertificateAuthority = $Result.DefaultSelection<Prisma.$CertificateAuthorityPayload>
 /**
+ * Model NodeCertificate
+ * 
+ */
+export type NodeCertificate = $Result.DefaultSelection<Prisma.$NodeCertificatePayload>
+/**
  * Model NodeMetric
  * 
  */
@@ -426,6 +431,16 @@ export class PrismaClient<
     * ```
     */
   get certificateAuthority(): Prisma.CertificateAuthorityDelegate<ExtArgs>;
+
+  /**
+   * `prisma.nodeCertificate`: Exposes CRUD operations for the **NodeCertificate** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more NodeCertificates
+    * const nodeCertificates = await prisma.nodeCertificate.findMany()
+    * ```
+    */
+  get nodeCertificate(): Prisma.NodeCertificateDelegate<ExtArgs>;
 
   /**
    * `prisma.nodeMetric`: Exposes CRUD operations for the **NodeMetric** model.
@@ -1012,6 +1027,7 @@ export namespace Prisma {
     TaskExecution: 'TaskExecution',
     TaskLog: 'TaskLog',
     CertificateAuthority: 'CertificateAuthority',
+    NodeCertificate: 'NodeCertificate',
     NodeMetric: 'NodeMetric',
     SagaInstance: 'SagaInstance',
     SagaStep: 'SagaStep',
@@ -1040,7 +1056,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "tenant" | "schedulingPolicy" | "tenantUser" | "metricRetentionPolicy" | "userSession" | "apiKey" | "webhook" | "webhookDelivery" | "auditLog" | "edgeNode" | "task" | "taskExecution" | "taskLog" | "certificateAuthority" | "nodeMetric" | "sagaInstance" | "sagaStep" | "schedulingDecision" | "outcomeLog" | "idempotencyRecord" | "costRecord" | "carbonMetric" | "carbonRecord" | "nodeHealthScore" | "schedulingOutcome" | "alertRule" | "alert"
+      modelProps: "user" | "tenant" | "schedulingPolicy" | "tenantUser" | "metricRetentionPolicy" | "userSession" | "apiKey" | "webhook" | "webhookDelivery" | "auditLog" | "edgeNode" | "task" | "taskExecution" | "taskLog" | "certificateAuthority" | "nodeCertificate" | "nodeMetric" | "sagaInstance" | "sagaStep" | "schedulingDecision" | "outcomeLog" | "idempotencyRecord" | "costRecord" | "carbonMetric" | "carbonRecord" | "nodeHealthScore" | "schedulingOutcome" | "alertRule" | "alert"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -2091,6 +2107,76 @@ export namespace Prisma {
           count: {
             args: Prisma.CertificateAuthorityCountArgs<ExtArgs>
             result: $Utils.Optional<CertificateAuthorityCountAggregateOutputType> | number
+          }
+        }
+      }
+      NodeCertificate: {
+        payload: Prisma.$NodeCertificatePayload<ExtArgs>
+        fields: Prisma.NodeCertificateFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.NodeCertificateFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.NodeCertificateFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>
+          }
+          findFirst: {
+            args: Prisma.NodeCertificateFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.NodeCertificateFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>
+          }
+          findMany: {
+            args: Prisma.NodeCertificateFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>[]
+          }
+          create: {
+            args: Prisma.NodeCertificateCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>
+          }
+          createMany: {
+            args: Prisma.NodeCertificateCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.NodeCertificateCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>[]
+          }
+          delete: {
+            args: Prisma.NodeCertificateDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>
+          }
+          update: {
+            args: Prisma.NodeCertificateUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>
+          }
+          deleteMany: {
+            args: Prisma.NodeCertificateDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.NodeCertificateUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.NodeCertificateUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$NodeCertificatePayload>
+          }
+          aggregate: {
+            args: Prisma.NodeCertificateAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateNodeCertificate>
+          }
+          groupBy: {
+            args: Prisma.NodeCertificateGroupByArgs<ExtArgs>
+            result: $Utils.Optional<NodeCertificateGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.NodeCertificateCountArgs<ExtArgs>
+            result: $Utils.Optional<NodeCertificateCountAggregateOutputType> | number
           }
         }
       }
@@ -19696,6 +19782,918 @@ export namespace Prisma {
 
 
   /**
+   * Model NodeCertificate
+   */
+
+  export type AggregateNodeCertificate = {
+    _count: NodeCertificateCountAggregateOutputType | null
+    _min: NodeCertificateMinAggregateOutputType | null
+    _max: NodeCertificateMaxAggregateOutputType | null
+  }
+
+  export type NodeCertificateMinAggregateOutputType = {
+    id: string | null
+    nodeId: string | null
+    serialNumber: string | null
+    certificatePem: string | null
+    publicKeyPem: string | null
+    issuedAt: Date | null
+    expiresAt: Date | null
+    isActive: boolean | null
+  }
+
+  export type NodeCertificateMaxAggregateOutputType = {
+    id: string | null
+    nodeId: string | null
+    serialNumber: string | null
+    certificatePem: string | null
+    publicKeyPem: string | null
+    issuedAt: Date | null
+    expiresAt: Date | null
+    isActive: boolean | null
+  }
+
+  export type NodeCertificateCountAggregateOutputType = {
+    id: number
+    nodeId: number
+    serialNumber: number
+    certificatePem: number
+    publicKeyPem: number
+    issuedAt: number
+    expiresAt: number
+    isActive: number
+    _all: number
+  }
+
+
+  export type NodeCertificateMinAggregateInputType = {
+    id?: true
+    nodeId?: true
+    serialNumber?: true
+    certificatePem?: true
+    publicKeyPem?: true
+    issuedAt?: true
+    expiresAt?: true
+    isActive?: true
+  }
+
+  export type NodeCertificateMaxAggregateInputType = {
+    id?: true
+    nodeId?: true
+    serialNumber?: true
+    certificatePem?: true
+    publicKeyPem?: true
+    issuedAt?: true
+    expiresAt?: true
+    isActive?: true
+  }
+
+  export type NodeCertificateCountAggregateInputType = {
+    id?: true
+    nodeId?: true
+    serialNumber?: true
+    certificatePem?: true
+    publicKeyPem?: true
+    issuedAt?: true
+    expiresAt?: true
+    isActive?: true
+    _all?: true
+  }
+
+  export type NodeCertificateAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NodeCertificate to aggregate.
+     */
+    where?: NodeCertificateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NodeCertificates to fetch.
+     */
+    orderBy?: NodeCertificateOrderByWithRelationInput | NodeCertificateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: NodeCertificateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NodeCertificates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NodeCertificates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned NodeCertificates
+    **/
+    _count?: true | NodeCertificateCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: NodeCertificateMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: NodeCertificateMaxAggregateInputType
+  }
+
+  export type GetNodeCertificateAggregateType<T extends NodeCertificateAggregateArgs> = {
+        [P in keyof T & keyof AggregateNodeCertificate]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateNodeCertificate[P]>
+      : GetScalarType<T[P], AggregateNodeCertificate[P]>
+  }
+
+
+
+
+  export type NodeCertificateGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: NodeCertificateWhereInput
+    orderBy?: NodeCertificateOrderByWithAggregationInput | NodeCertificateOrderByWithAggregationInput[]
+    by: NodeCertificateScalarFieldEnum[] | NodeCertificateScalarFieldEnum
+    having?: NodeCertificateScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: NodeCertificateCountAggregateInputType | true
+    _min?: NodeCertificateMinAggregateInputType
+    _max?: NodeCertificateMaxAggregateInputType
+  }
+
+  export type NodeCertificateGroupByOutputType = {
+    id: string
+    nodeId: string
+    serialNumber: string
+    certificatePem: string
+    publicKeyPem: string
+    issuedAt: Date
+    expiresAt: Date
+    isActive: boolean
+    _count: NodeCertificateCountAggregateOutputType | null
+    _min: NodeCertificateMinAggregateOutputType | null
+    _max: NodeCertificateMaxAggregateOutputType | null
+  }
+
+  type GetNodeCertificateGroupByPayload<T extends NodeCertificateGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<NodeCertificateGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof NodeCertificateGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], NodeCertificateGroupByOutputType[P]>
+            : GetScalarType<T[P], NodeCertificateGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type NodeCertificateSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    nodeId?: boolean
+    serialNumber?: boolean
+    certificatePem?: boolean
+    publicKeyPem?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+  }, ExtArgs["result"]["nodeCertificate"]>
+
+  export type NodeCertificateSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    nodeId?: boolean
+    serialNumber?: boolean
+    certificatePem?: boolean
+    publicKeyPem?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+  }, ExtArgs["result"]["nodeCertificate"]>
+
+  export type NodeCertificateSelectScalar = {
+    id?: boolean
+    nodeId?: boolean
+    serialNumber?: boolean
+    certificatePem?: boolean
+    publicKeyPem?: boolean
+    issuedAt?: boolean
+    expiresAt?: boolean
+    isActive?: boolean
+  }
+
+
+  export type $NodeCertificatePayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "NodeCertificate"
+    objects: {}
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      nodeId: string
+      serialNumber: string
+      certificatePem: string
+      publicKeyPem: string
+      issuedAt: Date
+      expiresAt: Date
+      isActive: boolean
+    }, ExtArgs["result"]["nodeCertificate"]>
+    composites: {}
+  }
+
+  type NodeCertificateGetPayload<S extends boolean | null | undefined | NodeCertificateDefaultArgs> = $Result.GetResult<Prisma.$NodeCertificatePayload, S>
+
+  type NodeCertificateCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<NodeCertificateFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: NodeCertificateCountAggregateInputType | true
+    }
+
+  export interface NodeCertificateDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['NodeCertificate'], meta: { name: 'NodeCertificate' } }
+    /**
+     * Find zero or one NodeCertificate that matches the filter.
+     * @param {NodeCertificateFindUniqueArgs} args - Arguments to find a NodeCertificate
+     * @example
+     * // Get one NodeCertificate
+     * const nodeCertificate = await prisma.nodeCertificate.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends NodeCertificateFindUniqueArgs>(args: SelectSubset<T, NodeCertificateFindUniqueArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one NodeCertificate that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {NodeCertificateFindUniqueOrThrowArgs} args - Arguments to find a NodeCertificate
+     * @example
+     * // Get one NodeCertificate
+     * const nodeCertificate = await prisma.nodeCertificate.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends NodeCertificateFindUniqueOrThrowArgs>(args: SelectSubset<T, NodeCertificateFindUniqueOrThrowArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first NodeCertificate that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateFindFirstArgs} args - Arguments to find a NodeCertificate
+     * @example
+     * // Get one NodeCertificate
+     * const nodeCertificate = await prisma.nodeCertificate.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends NodeCertificateFindFirstArgs>(args?: SelectSubset<T, NodeCertificateFindFirstArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first NodeCertificate that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateFindFirstOrThrowArgs} args - Arguments to find a NodeCertificate
+     * @example
+     * // Get one NodeCertificate
+     * const nodeCertificate = await prisma.nodeCertificate.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends NodeCertificateFindFirstOrThrowArgs>(args?: SelectSubset<T, NodeCertificateFindFirstOrThrowArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more NodeCertificates that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all NodeCertificates
+     * const nodeCertificates = await prisma.nodeCertificate.findMany()
+     * 
+     * // Get first 10 NodeCertificates
+     * const nodeCertificates = await prisma.nodeCertificate.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const nodeCertificateWithIdOnly = await prisma.nodeCertificate.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends NodeCertificateFindManyArgs>(args?: SelectSubset<T, NodeCertificateFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a NodeCertificate.
+     * @param {NodeCertificateCreateArgs} args - Arguments to create a NodeCertificate.
+     * @example
+     * // Create one NodeCertificate
+     * const NodeCertificate = await prisma.nodeCertificate.create({
+     *   data: {
+     *     // ... data to create a NodeCertificate
+     *   }
+     * })
+     * 
+     */
+    create<T extends NodeCertificateCreateArgs>(args: SelectSubset<T, NodeCertificateCreateArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many NodeCertificates.
+     * @param {NodeCertificateCreateManyArgs} args - Arguments to create many NodeCertificates.
+     * @example
+     * // Create many NodeCertificates
+     * const nodeCertificate = await prisma.nodeCertificate.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends NodeCertificateCreateManyArgs>(args?: SelectSubset<T, NodeCertificateCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many NodeCertificates and returns the data saved in the database.
+     * @param {NodeCertificateCreateManyAndReturnArgs} args - Arguments to create many NodeCertificates.
+     * @example
+     * // Create many NodeCertificates
+     * const nodeCertificate = await prisma.nodeCertificate.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many NodeCertificates and only return the `id`
+     * const nodeCertificateWithIdOnly = await prisma.nodeCertificate.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends NodeCertificateCreateManyAndReturnArgs>(args?: SelectSubset<T, NodeCertificateCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a NodeCertificate.
+     * @param {NodeCertificateDeleteArgs} args - Arguments to delete one NodeCertificate.
+     * @example
+     * // Delete one NodeCertificate
+     * const NodeCertificate = await prisma.nodeCertificate.delete({
+     *   where: {
+     *     // ... filter to delete one NodeCertificate
+     *   }
+     * })
+     * 
+     */
+    delete<T extends NodeCertificateDeleteArgs>(args: SelectSubset<T, NodeCertificateDeleteArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one NodeCertificate.
+     * @param {NodeCertificateUpdateArgs} args - Arguments to update one NodeCertificate.
+     * @example
+     * // Update one NodeCertificate
+     * const nodeCertificate = await prisma.nodeCertificate.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends NodeCertificateUpdateArgs>(args: SelectSubset<T, NodeCertificateUpdateArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more NodeCertificates.
+     * @param {NodeCertificateDeleteManyArgs} args - Arguments to filter NodeCertificates to delete.
+     * @example
+     * // Delete a few NodeCertificates
+     * const { count } = await prisma.nodeCertificate.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends NodeCertificateDeleteManyArgs>(args?: SelectSubset<T, NodeCertificateDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more NodeCertificates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many NodeCertificates
+     * const nodeCertificate = await prisma.nodeCertificate.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends NodeCertificateUpdateManyArgs>(args: SelectSubset<T, NodeCertificateUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one NodeCertificate.
+     * @param {NodeCertificateUpsertArgs} args - Arguments to update or create a NodeCertificate.
+     * @example
+     * // Update or create a NodeCertificate
+     * const nodeCertificate = await prisma.nodeCertificate.upsert({
+     *   create: {
+     *     // ... data to create a NodeCertificate
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the NodeCertificate we want to update
+     *   }
+     * })
+     */
+    upsert<T extends NodeCertificateUpsertArgs>(args: SelectSubset<T, NodeCertificateUpsertArgs<ExtArgs>>): Prisma__NodeCertificateClient<$Result.GetResult<Prisma.$NodeCertificatePayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of NodeCertificates.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateCountArgs} args - Arguments to filter NodeCertificates to count.
+     * @example
+     * // Count the number of NodeCertificates
+     * const count = await prisma.nodeCertificate.count({
+     *   where: {
+     *     // ... the filter for the NodeCertificates we want to count
+     *   }
+     * })
+    **/
+    count<T extends NodeCertificateCountArgs>(
+      args?: Subset<T, NodeCertificateCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], NodeCertificateCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a NodeCertificate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends NodeCertificateAggregateArgs>(args: Subset<T, NodeCertificateAggregateArgs>): Prisma.PrismaPromise<GetNodeCertificateAggregateType<T>>
+
+    /**
+     * Group by NodeCertificate.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {NodeCertificateGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends NodeCertificateGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: NodeCertificateGroupByArgs['orderBy'] }
+        : { orderBy?: NodeCertificateGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, NodeCertificateGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetNodeCertificateGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the NodeCertificate model
+   */
+  readonly fields: NodeCertificateFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for NodeCertificate.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__NodeCertificateClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the NodeCertificate model
+   */ 
+  interface NodeCertificateFieldRefs {
+    readonly id: FieldRef<"NodeCertificate", 'String'>
+    readonly nodeId: FieldRef<"NodeCertificate", 'String'>
+    readonly serialNumber: FieldRef<"NodeCertificate", 'String'>
+    readonly certificatePem: FieldRef<"NodeCertificate", 'String'>
+    readonly publicKeyPem: FieldRef<"NodeCertificate", 'String'>
+    readonly issuedAt: FieldRef<"NodeCertificate", 'DateTime'>
+    readonly expiresAt: FieldRef<"NodeCertificate", 'DateTime'>
+    readonly isActive: FieldRef<"NodeCertificate", 'Boolean'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * NodeCertificate findUnique
+   */
+  export type NodeCertificateFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * Filter, which NodeCertificate to fetch.
+     */
+    where: NodeCertificateWhereUniqueInput
+  }
+
+  /**
+   * NodeCertificate findUniqueOrThrow
+   */
+  export type NodeCertificateFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * Filter, which NodeCertificate to fetch.
+     */
+    where: NodeCertificateWhereUniqueInput
+  }
+
+  /**
+   * NodeCertificate findFirst
+   */
+  export type NodeCertificateFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * Filter, which NodeCertificate to fetch.
+     */
+    where?: NodeCertificateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NodeCertificates to fetch.
+     */
+    orderBy?: NodeCertificateOrderByWithRelationInput | NodeCertificateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NodeCertificates.
+     */
+    cursor?: NodeCertificateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NodeCertificates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NodeCertificates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NodeCertificates.
+     */
+    distinct?: NodeCertificateScalarFieldEnum | NodeCertificateScalarFieldEnum[]
+  }
+
+  /**
+   * NodeCertificate findFirstOrThrow
+   */
+  export type NodeCertificateFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * Filter, which NodeCertificate to fetch.
+     */
+    where?: NodeCertificateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NodeCertificates to fetch.
+     */
+    orderBy?: NodeCertificateOrderByWithRelationInput | NodeCertificateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for NodeCertificates.
+     */
+    cursor?: NodeCertificateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NodeCertificates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NodeCertificates.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of NodeCertificates.
+     */
+    distinct?: NodeCertificateScalarFieldEnum | NodeCertificateScalarFieldEnum[]
+  }
+
+  /**
+   * NodeCertificate findMany
+   */
+  export type NodeCertificateFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * Filter, which NodeCertificates to fetch.
+     */
+    where?: NodeCertificateWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of NodeCertificates to fetch.
+     */
+    orderBy?: NodeCertificateOrderByWithRelationInput | NodeCertificateOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing NodeCertificates.
+     */
+    cursor?: NodeCertificateWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` NodeCertificates from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` NodeCertificates.
+     */
+    skip?: number
+    distinct?: NodeCertificateScalarFieldEnum | NodeCertificateScalarFieldEnum[]
+  }
+
+  /**
+   * NodeCertificate create
+   */
+  export type NodeCertificateCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * The data needed to create a NodeCertificate.
+     */
+    data: XOR<NodeCertificateCreateInput, NodeCertificateUncheckedCreateInput>
+  }
+
+  /**
+   * NodeCertificate createMany
+   */
+  export type NodeCertificateCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many NodeCertificates.
+     */
+    data: NodeCertificateCreateManyInput | NodeCertificateCreateManyInput[]
+  }
+
+  /**
+   * NodeCertificate createManyAndReturn
+   */
+  export type NodeCertificateCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many NodeCertificates.
+     */
+    data: NodeCertificateCreateManyInput | NodeCertificateCreateManyInput[]
+  }
+
+  /**
+   * NodeCertificate update
+   */
+  export type NodeCertificateUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * The data needed to update a NodeCertificate.
+     */
+    data: XOR<NodeCertificateUpdateInput, NodeCertificateUncheckedUpdateInput>
+    /**
+     * Choose, which NodeCertificate to update.
+     */
+    where: NodeCertificateWhereUniqueInput
+  }
+
+  /**
+   * NodeCertificate updateMany
+   */
+  export type NodeCertificateUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update NodeCertificates.
+     */
+    data: XOR<NodeCertificateUpdateManyMutationInput, NodeCertificateUncheckedUpdateManyInput>
+    /**
+     * Filter which NodeCertificates to update
+     */
+    where?: NodeCertificateWhereInput
+  }
+
+  /**
+   * NodeCertificate upsert
+   */
+  export type NodeCertificateUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * The filter to search for the NodeCertificate to update in case it exists.
+     */
+    where: NodeCertificateWhereUniqueInput
+    /**
+     * In case the NodeCertificate found by the `where` argument doesn't exist, create a new NodeCertificate with this data.
+     */
+    create: XOR<NodeCertificateCreateInput, NodeCertificateUncheckedCreateInput>
+    /**
+     * In case the NodeCertificate was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<NodeCertificateUpdateInput, NodeCertificateUncheckedUpdateInput>
+  }
+
+  /**
+   * NodeCertificate delete
+   */
+  export type NodeCertificateDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+    /**
+     * Filter which NodeCertificate to delete.
+     */
+    where: NodeCertificateWhereUniqueInput
+  }
+
+  /**
+   * NodeCertificate deleteMany
+   */
+  export type NodeCertificateDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which NodeCertificates to delete
+     */
+    where?: NodeCertificateWhereInput
+  }
+
+  /**
+   * NodeCertificate without action
+   */
+  export type NodeCertificateDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the NodeCertificate
+     */
+    select?: NodeCertificateSelect<ExtArgs> | null
+  }
+
+
+  /**
    * Model NodeMetric
    */
 
@@ -33336,6 +34334,20 @@ export namespace Prisma {
   export type CertificateAuthorityScalarFieldEnum = (typeof CertificateAuthorityScalarFieldEnum)[keyof typeof CertificateAuthorityScalarFieldEnum]
 
 
+  export const NodeCertificateScalarFieldEnum: {
+    id: 'id',
+    nodeId: 'nodeId',
+    serialNumber: 'serialNumber',
+    certificatePem: 'certificatePem',
+    publicKeyPem: 'publicKeyPem',
+    issuedAt: 'issuedAt',
+    expiresAt: 'expiresAt',
+    isActive: 'isActive'
+  };
+
+  export type NodeCertificateScalarFieldEnum = (typeof NodeCertificateScalarFieldEnum)[keyof typeof NodeCertificateScalarFieldEnum]
+
+
   export const NodeMetricScalarFieldEnum: {
     id: 'id',
     nodeId: 'nodeId',
@@ -35023,6 +36035,73 @@ export namespace Prisma {
     issuedAt?: DateTimeWithAggregatesFilter<"CertificateAuthority"> | Date | string
     expiresAt?: DateTimeWithAggregatesFilter<"CertificateAuthority"> | Date | string
     isActive?: BoolWithAggregatesFilter<"CertificateAuthority"> | boolean
+  }
+
+  export type NodeCertificateWhereInput = {
+    AND?: NodeCertificateWhereInput | NodeCertificateWhereInput[]
+    OR?: NodeCertificateWhereInput[]
+    NOT?: NodeCertificateWhereInput | NodeCertificateWhereInput[]
+    id?: StringFilter<"NodeCertificate"> | string
+    nodeId?: StringFilter<"NodeCertificate"> | string
+    serialNumber?: StringFilter<"NodeCertificate"> | string
+    certificatePem?: StringFilter<"NodeCertificate"> | string
+    publicKeyPem?: StringFilter<"NodeCertificate"> | string
+    issuedAt?: DateTimeFilter<"NodeCertificate"> | Date | string
+    expiresAt?: DateTimeFilter<"NodeCertificate"> | Date | string
+    isActive?: BoolFilter<"NodeCertificate"> | boolean
+  }
+
+  export type NodeCertificateOrderByWithRelationInput = {
+    id?: SortOrder
+    nodeId?: SortOrder
+    serialNumber?: SortOrder
+    certificatePem?: SortOrder
+    publicKeyPem?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+  }
+
+  export type NodeCertificateWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    serialNumber?: string
+    AND?: NodeCertificateWhereInput | NodeCertificateWhereInput[]
+    OR?: NodeCertificateWhereInput[]
+    NOT?: NodeCertificateWhereInput | NodeCertificateWhereInput[]
+    nodeId?: StringFilter<"NodeCertificate"> | string
+    certificatePem?: StringFilter<"NodeCertificate"> | string
+    publicKeyPem?: StringFilter<"NodeCertificate"> | string
+    issuedAt?: DateTimeFilter<"NodeCertificate"> | Date | string
+    expiresAt?: DateTimeFilter<"NodeCertificate"> | Date | string
+    isActive?: BoolFilter<"NodeCertificate"> | boolean
+  }, "id" | "serialNumber">
+
+  export type NodeCertificateOrderByWithAggregationInput = {
+    id?: SortOrder
+    nodeId?: SortOrder
+    serialNumber?: SortOrder
+    certificatePem?: SortOrder
+    publicKeyPem?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+    _count?: NodeCertificateCountOrderByAggregateInput
+    _max?: NodeCertificateMaxOrderByAggregateInput
+    _min?: NodeCertificateMinOrderByAggregateInput
+  }
+
+  export type NodeCertificateScalarWhereWithAggregatesInput = {
+    AND?: NodeCertificateScalarWhereWithAggregatesInput | NodeCertificateScalarWhereWithAggregatesInput[]
+    OR?: NodeCertificateScalarWhereWithAggregatesInput[]
+    NOT?: NodeCertificateScalarWhereWithAggregatesInput | NodeCertificateScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"NodeCertificate"> | string
+    nodeId?: StringWithAggregatesFilter<"NodeCertificate"> | string
+    serialNumber?: StringWithAggregatesFilter<"NodeCertificate"> | string
+    certificatePem?: StringWithAggregatesFilter<"NodeCertificate"> | string
+    publicKeyPem?: StringWithAggregatesFilter<"NodeCertificate"> | string
+    issuedAt?: DateTimeWithAggregatesFilter<"NodeCertificate"> | Date | string
+    expiresAt?: DateTimeWithAggregatesFilter<"NodeCertificate"> | Date | string
+    isActive?: BoolWithAggregatesFilter<"NodeCertificate"> | boolean
   }
 
   export type NodeMetricWhereInput = {
@@ -37739,6 +38818,83 @@ export namespace Prisma {
     isActive?: BoolFieldUpdateOperationsInput | boolean
   }
 
+  export type NodeCertificateCreateInput = {
+    id?: string
+    nodeId: string
+    serialNumber: string
+    certificatePem: string
+    publicKeyPem: string
+    issuedAt?: Date | string
+    expiresAt: Date | string
+    isActive?: boolean
+  }
+
+  export type NodeCertificateUncheckedCreateInput = {
+    id?: string
+    nodeId: string
+    serialNumber: string
+    certificatePem: string
+    publicKeyPem: string
+    issuedAt?: Date | string
+    expiresAt: Date | string
+    isActive?: boolean
+  }
+
+  export type NodeCertificateUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nodeId?: StringFieldUpdateOperationsInput | string
+    serialNumber?: StringFieldUpdateOperationsInput | string
+    certificatePem?: StringFieldUpdateOperationsInput | string
+    publicKeyPem?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type NodeCertificateUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nodeId?: StringFieldUpdateOperationsInput | string
+    serialNumber?: StringFieldUpdateOperationsInput | string
+    certificatePem?: StringFieldUpdateOperationsInput | string
+    publicKeyPem?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type NodeCertificateCreateManyInput = {
+    id?: string
+    nodeId: string
+    serialNumber: string
+    certificatePem: string
+    publicKeyPem: string
+    issuedAt?: Date | string
+    expiresAt: Date | string
+    isActive?: boolean
+  }
+
+  export type NodeCertificateUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nodeId?: StringFieldUpdateOperationsInput | string
+    serialNumber?: StringFieldUpdateOperationsInput | string
+    certificatePem?: StringFieldUpdateOperationsInput | string
+    publicKeyPem?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+  }
+
+  export type NodeCertificateUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    nodeId?: StringFieldUpdateOperationsInput | string
+    serialNumber?: StringFieldUpdateOperationsInput | string
+    certificatePem?: StringFieldUpdateOperationsInput | string
+    publicKeyPem?: StringFieldUpdateOperationsInput | string
+    issuedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    expiresAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    isActive?: BoolFieldUpdateOperationsInput | boolean
+  }
+
   export type NodeMetricCreateInput = {
     id?: string
     createdAt?: Date | string
@@ -40189,6 +41345,39 @@ export namespace Prisma {
     serialNumber?: SortOrder
     certificatePem?: SortOrder
     privateKeyPem?: SortOrder
+    publicKeyPem?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+  }
+
+  export type NodeCertificateCountOrderByAggregateInput = {
+    id?: SortOrder
+    nodeId?: SortOrder
+    serialNumber?: SortOrder
+    certificatePem?: SortOrder
+    publicKeyPem?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+  }
+
+  export type NodeCertificateMaxOrderByAggregateInput = {
+    id?: SortOrder
+    nodeId?: SortOrder
+    serialNumber?: SortOrder
+    certificatePem?: SortOrder
+    publicKeyPem?: SortOrder
+    issuedAt?: SortOrder
+    expiresAt?: SortOrder
+    isActive?: SortOrder
+  }
+
+  export type NodeCertificateMinOrderByAggregateInput = {
+    id?: SortOrder
+    nodeId?: SortOrder
+    serialNumber?: SortOrder
+    certificatePem?: SortOrder
     publicKeyPem?: SortOrder
     issuedAt?: SortOrder
     expiresAt?: SortOrder
@@ -50793,6 +51982,10 @@ export namespace Prisma {
      * @deprecated Use CertificateAuthorityDefaultArgs instead
      */
     export type CertificateAuthorityArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = CertificateAuthorityDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use NodeCertificateDefaultArgs instead
+     */
+    export type NodeCertificateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = NodeCertificateDefaultArgs<ExtArgs>
     /**
      * @deprecated Use NodeMetricDefaultArgs instead
      */

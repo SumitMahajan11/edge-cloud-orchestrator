@@ -334,6 +334,17 @@ exports.Prisma.CertificateAuthorityScalarFieldEnum = {
   isActive: 'isActive'
 };
 
+exports.Prisma.NodeCertificateScalarFieldEnum = {
+  id: 'id',
+  nodeId: 'nodeId',
+  serialNumber: 'serialNumber',
+  certificatePem: 'certificatePem',
+  publicKeyPem: 'publicKeyPem',
+  issuedAt: 'issuedAt',
+  expiresAt: 'expiresAt',
+  isActive: 'isActive'
+};
+
 exports.Prisma.NodeMetricScalarFieldEnum = {
   id: 'id',
   nodeId: 'nodeId',
@@ -538,6 +549,7 @@ exports.Prisma.ModelName = {
   TaskExecution: 'TaskExecution',
   TaskLog: 'TaskLog',
   CertificateAuthority: 'CertificateAuthority',
+  NodeCertificate: 'NodeCertificate',
   NodeMetric: 'NodeMetric',
   SagaInstance: 'SagaInstance',
   SagaStep: 'SagaStep',

@@ -164,3 +164,25 @@ export function useUpdateSchedulingPolicy() {
   });
 }
 
+export function useCreateSchedulingPolicy() {
+  return useMutation({
+    mutationFn: async (policyData: {
+      name: string;
+      type: string;
+      config: Record<string, any>;
+      isActive?: boolean;
+    }) => {
+      return api.post<{ success: boolean; policy: SchedulingPolicy }>(
+        "/v2/scheduling/policies",
+        policyData
+      );
+    },
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ["scheduling-policies"] });
+      void queryClient.invalidateQueries({ queryKey: ["scheduling-policy"] });
+      void queryClient.invalidateQueries({ queryKey: ["governance-metrics"] });
+    },
+  });
+}
+
+

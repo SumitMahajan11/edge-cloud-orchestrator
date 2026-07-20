@@ -33,21 +33,37 @@ import {
   useUpdateSchedulingPolicy,
   useGovernanceMetrics,
   useSchedulingPolicies,
+  useCreateSchedulingPolicy,
 } from "@/hooks/usePolicies";
 import { useWebSocketChannel } from "@/lib/websocketClient";
 import { useQueryClient } from "@tanstack/react-query";
+import { CreatePolicyModal } from "@/components/modals/CreatePolicyModal";
+import { toast } from "sonner";
+
 
 export default function PoliciesPage() {
   const [search, setSearch] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
   // Fetch tenant-specific policy
   const { data: policy, isLoading, isError } = useSchedulingPolicy();
   const updatePolicyMutation = useUpdateSchedulingPolicy();
+  const createPolicyMutation = useCreateSchedulingPolicy();
 
   // Fetch governance metrics and policies
   const { data: governanceMetrics } = useGovernanceMetrics();
   const { data: schedulingPolicies } = useSchedulingPolicies();
+
+  const handleCreatePolicy = async (data: any) => {
+    try {
+      await createPolicyMutation.mutateAsync(data);
+      toast.success(`Policy "${data.name}" created successfully`);
+    } catch (err: any) {
+      toast.error(err.message || "Failed to create policy");
+    }
+  };
+
 
   const metrics = governanceMetrics || {
     activeConstraints: 12,
@@ -156,7 +172,7 @@ export default function PoliciesPage() {
             Tune scheduler objectives and manage fleet-wide workload placement constraints.
           </p>
         </div>
-        <Button className="gap-2">
+        <Button className="gap-2" onClick={() => setIsCreateModalOpen(true)}>
           <Plus className="h-4 w-4" /> Create Policy
         </Button>
       </div>
@@ -461,6 +477,12 @@ export default function PoliciesPage() {
           </Table>
         </CardContent>
       </Card>
+
+      <CreatePolicyModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
+        onSubmit={handleCreatePolicy}
+      />
     </div>
   );
 }

@@ -229,4 +229,104 @@ export default async function schedulingRoutes(fastify: FastifyInstance) {
       return policies;
     }
   );
+
+  // POST /v2/scheduling/policies
+  fastify.post<{
+    Body: {
+      name: string;
+      type: string;
+      config: Record<string, any>;
+      isActive?: boolean;
+    };
+  }>(
+    '/policies',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_MANAGE),
+      ],
+      schema: {
+        body: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            type: { type: 'string' },
+            config: { type: 'object' },
+            isActive: { type: 'boolean', default: false },
+          },
+          required: ['name', 'type', 'config'],
+        },
+        tags: ['scheduling'],
+        summary: 'Create a new scheduling policy template',
+      },
+    },
+    async (request, reply) => {
+      const tenantId = request.user?.tenantId;
+      if (!tenantId) {
+        return reply.status(400).send({ error: 'Tenant context required' });
+      }
+
+      const { name, type, config, isActive = false } = request.body;
+
+      // If isActive is true, set all other policies to inactive
+      if (isActive) {
+        await request.tPrisma.schedulingPolicy.updateMany({
+          where: { tenantId },
+          data: { isActive: false },
+        });
+      }
+
+      const policy = await request.tPrisma.schedulingPolicy.create({
+        data: {
+          name,
+          type,
+          config,
+          isActive,
+          tenantId,
+        },
+      });
+
+      if (isActive) {
+        // Invalidate the Redis cache
+        const cacheKey = `tenant:policy:${tenantId}`;
+        try {
+          await fastify.redis.del(cacheKey);
+        } catch (err) {
+          fastify.log.error({ err, tenantId }, 'Failed to delete cached policy weights from Redis');
+        }
+
+        // Notify clients via WebSocket
+        if (fastify.wsManager) {
+          fastify.wsManager.broadcastToTenant(
+            tenantId as TenantId,
+            'scheduling-policy-changed',
+            {
+              tenantId,
+              config,
+            }
+          );
+        }
+      }
+
+      // Audit log
+      await request.tPrisma.auditLog.create({
+        data: {
+          userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
+          action: 'scheduling.policy_created',
+          entityType: 'policy',
+          entityId: policy.id,
+          details: { name: policy.name, type: policy.type } as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return {
+        success: true,
+        policy,
+      };
+    }
+  );
 }
+

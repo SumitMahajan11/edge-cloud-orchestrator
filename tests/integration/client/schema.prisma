@@ -337,6 +337,19 @@ model CertificateAuthority {
   @@map("certificate_authorities")
 }
 
+model NodeCertificate {
+  id             String   @id @default(uuid())
+  nodeId         String
+  serialNumber   String   @unique
+  certificatePem String
+  publicKeyPem   String
+  issuedAt       DateTime @default(now())
+  expiresAt      DateTime
+  isActive       Boolean  @default(true)
+
+  @@map("node_certificates")
+}
+
 model NodeMetric {
   id        String   @id @default(uuid())
   nodeId    String

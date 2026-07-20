@@ -26,6 +26,12 @@ import type { TenantId } from '../types/fastify.js';
 
 import { idParamSchema } from '../schemas';
 import { zodToFastifySchema } from '../utils/zod-schema';
+import {
+  CertificateAuthorityManager,
+  CertificateRotationService,
+  AgentCertificateGenerator,
+} from '../services/mtls-authentication.js';
+
 
 const NodeStatus = {
   ONLINE: 'ONLINE',
@@ -834,4 +840,112 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       };
     },
   );
+
+  // POST /v2/nodes/:id/rotate-certificate
+  fastify.post<{ Params: { id: string } }>(
+    '/:id/rotate-certificate',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.NODE_REGISTER),
+      ],
+      schema: {
+        params: zodToFastifySchema(idParamSchema),
+        tags: ['nodes'],
+        summary: 'Rotate mTLS certificate for a node (Administrative)',
+        response: {
+          200: {
+            type: 'object',
+            properties: {
+              success: { type: 'boolean' },
+              message: { type: 'string' },
+              certificatePem: { type: 'string' },
+              serialNumber: { type: 'string' },
+              expiresAt: { type: 'string' },
+              privateKey: { type: 'string' },
+            },
+          },
+        },
+      },
+    },
+    async (request, reply) => {
+      const { id } = request.params;
+
+      const node = await request.tPrisma.edgeNode.findUnique({
+        where: { id },
+      });
+      if (!node) {
+        return reply.status(404).send({ error: 'Node not found' });
+      }
+
+      // Find or create active certificate for the node to get current serial
+      let activeCert = await request.tPrisma.nodeCertificate.findFirst({
+        where: { nodeId: id, isActive: true },
+      });
+
+      if (!activeCert) {
+        const now = new Date();
+        const expiresAt = new Date(now);
+        expiresAt.setDate(expiresAt.getDate() + 365);
+        activeCert = await request.tPrisma.nodeCertificate.create({
+          data: {
+            nodeId: id,
+            serialNumber: `INIT-${id}`,
+            certificatePem: 'INITIAL_PEM_PLACEHOLDER',
+            publicKeyPem: 'INITIAL_PUBLIC_KEY_PLACEHOLDER',
+            issuedAt: now,
+            expiresAt,
+            isActive: true,
+          },
+        });
+      }
+
+      // Generate a new keypair and CSR on behalf of the node (administrative shortcut)
+      const { privateKey, csr } = await AgentCertificateGenerator.generateKeyPairAndCSR(
+        id,
+        node.region || 'us-east-1'
+      );
+
+      // Instantiate CertificateAuthorityManager and CertificateRotationService
+      const caManager = new CertificateAuthorityManager(request.tPrisma as any, fastify.log);
+      await caManager.initialize();
+
+      const rotationService = new CertificateRotationService(
+        caManager,
+        request.tPrisma as any,
+        fastify.log
+      );
+
+      // Perform rotation
+      const result = await rotationService.rotateCertificate(
+        id,
+        csr,
+        activeCert.serialNumber
+      );
+
+      // Create audit log
+      await request.tPrisma.auditLog.create({
+        data: {
+          userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
+          action: 'node.certificate_rotated',
+          entityType: 'node',
+          entityId: id,
+          details: { serialNumber: result.newSerialNumber } as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return {
+        success: true,
+        message: 'Node certificate rotated successfully',
+        certificatePem: result.newCertificate,
+        serialNumber: result.newSerialNumber,
+        expiresAt: result.expiresAt.toISOString(),
+        privateKey,
+      };
+    }
+  );
 }
+
