@@ -142,8 +142,8 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       const workflow = await request.tPrisma.workflow.create({
         data: {
           name,
-          version,
           definition: {
+            version,
             nodes,
             edges,
             variables,
@@ -293,9 +293,10 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       }
 
       let newDefinition = existing.definition as any;
-      if (nodes || edges) {
+      if (nodes || edges || version) {
         newDefinition = {
           ...newDefinition,
+          ...(version && { version }),
           ...(nodes && { nodes }),
           ...(edges && { edges }),
         };
@@ -305,7 +306,6 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
         where: { id },
         data: {
           ...(name !== undefined && { name }),
-          ...(version !== undefined && { version }),
           ...(newDefinition && { definition: newDefinition }),
         },
       });
