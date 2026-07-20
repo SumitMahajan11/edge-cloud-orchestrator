@@ -125,36 +125,36 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
             },
           });
         }
+
+        const workflow = await request.tPrisma.workflow.create({
+          data: {
+            name,
+            definition: {
+              version,
+              nodes,
+              edges,
+              variables,
+              timeout,
+              retryPolicy,
+            } as any,
+            tenantId: request.user!.tenantId!,
+          } as any,
+        });
+
+        return reply.status(201).send(workflow);
       } catch (err: any) {
         request.log.error(
           { err: err.message, stack: err.stack },
-          'DAG Validation failed with error',
+          'Workflow creation failed with error',
         );
         return reply.status(500).send({
           error: {
-            code: 'INTERNAL_ERROR',
-            message: 'An unexpected server error occurred',
+            code: 'DATABASE_ERROR',
+            message: `Workflow creation failed: ${err.message}`,
             requestId: request.id,
           },
         });
       }
-
-      const workflow = await request.tPrisma.workflow.create({
-        data: {
-          name,
-          definition: {
-            version,
-            nodes,
-            edges,
-            variables,
-            timeout,
-            retryPolicy,
-          } as any,
-          tenantId: request.user!.tenantId!,
-        } as any,
-      });
-
-      return reply.status(201).send(workflow);
     },
   );
 
