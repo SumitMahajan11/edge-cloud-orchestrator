@@ -328,5 +328,165 @@ export default async function schedulingRoutes(fastify: FastifyInstance) {
       };
     }
   );
+
+  // PUT /v2/scheduling/policies/:id
+  fastify.put<{
+    Params: { id: string };
+    Body: {
+      name?: string;
+      type?: string;
+      config?: Record<string, any>;
+      isActive?: boolean;
+    };
+  }>(
+    '/policies/:id',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_MANAGE),
+      ],
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+          required: ['id'],
+        },
+        body: {
+          type: 'object',
+          properties: {
+            name: { type: 'string' },
+            type: { type: 'string' },
+            config: { type: 'object' },
+            isActive: { type: 'boolean' },
+          },
+        },
+        tags: ['scheduling'],
+        summary: 'Update an existing scheduling policy',
+      },
+    },
+    async (request, reply) => {
+      const tenantId = request.user?.tenantId;
+      if (!tenantId) {
+        return reply.status(400).send({ error: 'Tenant context required' });
+      }
+
+      const { id } = request.params;
+      const existing = await request.tPrisma.schedulingPolicy.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!existing) {
+        return reply.status(404).send({ error: 'Scheduling policy not found' });
+      }
+
+      const { name, type, config, isActive } = request.body;
+
+      if (isActive) {
+        await request.tPrisma.schedulingPolicy.updateMany({
+          where: { tenantId },
+          data: { isActive: false },
+        });
+      }
+
+      const updatedPolicy = await request.tPrisma.schedulingPolicy.update({
+        where: { id },
+        data: {
+          ...(name !== undefined && { name }),
+          ...(type !== undefined && { type }),
+          ...(config !== undefined && { config }),
+          ...(isActive !== undefined && { isActive }),
+        },
+      });
+
+      // Audit log
+      await request.tPrisma.auditLog.create({
+        data: {
+          userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
+          action: 'scheduling.policy_updated',
+          entityType: 'policy',
+          entityId: updatedPolicy.id,
+          details: { name: updatedPolicy.name, isActive: updatedPolicy.isActive } as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return {
+        success: true,
+        policy: updatedPolicy,
+      };
+    }
+  );
+
+  // DELETE /v2/scheduling/policies/:id
+  fastify.delete<{
+    Params: { id: string };
+  }>(
+    '/policies/:id',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.SCHEDULER_MANAGE),
+      ],
+      schema: {
+        params: {
+          type: 'object',
+          properties: {
+            id: { type: 'string' },
+          },
+          required: ['id'],
+        },
+        tags: ['scheduling'],
+        summary: 'Delete a scheduling policy',
+      },
+    },
+    async (request, reply) => {
+      const tenantId = request.user?.tenantId;
+      if (!tenantId) {
+        return reply.status(400).send({ error: 'Tenant context required' });
+      }
+
+      const { id } = request.params;
+      const existing = await request.tPrisma.schedulingPolicy.findFirst({
+        where: { id, tenantId },
+      });
+
+      if (!existing) {
+        return reply.status(404).send({ error: 'Scheduling policy not found' });
+      }
+
+      if (existing.isActive) {
+        return reply.status(400).send({
+          error: 'Cannot delete an active scheduling policy. Please activate another policy first.',
+        });
+      }
+
+      await request.tPrisma.schedulingPolicy.delete({
+        where: { id },
+      });
+
+      // Audit log
+      await request.tPrisma.auditLog.create({
+        data: {
+          userId: request.user!.id,
+          tenantId: request.user!.tenantId!,
+          action: 'scheduling.policy_deleted',
+          entityType: 'policy',
+          entityId: id,
+          details: { name: existing.name } as any,
+          ipAddress: request.ip,
+          userAgent: request.headers['user-agent'] ?? null,
+        },
+      });
+
+      return {
+        success: true,
+        id,
+      };
+    }
+  );
 }
 

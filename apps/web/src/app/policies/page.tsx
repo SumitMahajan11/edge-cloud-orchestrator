@@ -34,6 +34,9 @@ import {
   useGovernanceMetrics,
   useSchedulingPolicies,
   useCreateSchedulingPolicy,
+  useUpdatePolicyById,
+  useDeleteSchedulingPolicy,
+  SchedulingPolicy,
 } from "@/hooks/usePolicies";
 import { useWebSocketChannel } from "@/lib/websocketClient";
 import { useQueryClient } from "@tanstack/react-query";
@@ -44,25 +47,58 @@ import { toast } from "sonner";
 export default function PoliciesPage() {
   const [search, setSearch] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [editingPolicy, setEditingPolicy] = useState<SchedulingPolicy | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch tenant-specific policy
   const { data: policy, isLoading, isError } = useSchedulingPolicy();
   const updatePolicyMutation = useUpdateSchedulingPolicy();
   const createPolicyMutation = useCreateSchedulingPolicy();
+  const updatePolicyByIdMutation = useUpdatePolicyById();
+  const deletePolicyMutation = useDeleteSchedulingPolicy();
 
   // Fetch governance metrics and policies
   const { data: governanceMetrics } = useGovernanceMetrics();
   const { data: schedulingPolicies } = useSchedulingPolicies();
 
-  const handleCreatePolicy = async (data: any) => {
+  const handlePolicyModalSubmit = async (data: any) => {
     try {
-      await createPolicyMutation.mutateAsync(data);
-      toast.success(`Policy "${data.name}" created successfully`);
+      if (editingPolicy) {
+        await updatePolicyByIdMutation.mutateAsync({
+          id: editingPolicy.id,
+          name: data.name,
+          type: data.type,
+          config: data.config,
+          isActive: data.isActive,
+        });
+        toast.success(`Policy "${data.name}" updated successfully`);
+        setEditingPolicy(null);
+      } else {
+        await createPolicyMutation.mutateAsync(data);
+        toast.success(`Policy "${data.name}" created successfully`);
+      }
+      setIsCreateModalOpen(false);
     } catch (err: any) {
-      toast.error(err.message || "Failed to create policy");
+      toast.error(err.message || "Failed to save policy");
     }
   };
+
+  const handleDeletePolicy = async (policyItem: SchedulingPolicy) => {
+    if (policyItem.isActive) {
+      toast.error("Cannot delete an active scheduling policy. Please activate another policy first.");
+      return;
+    }
+    const displayName = policyItem.name.replace(/ - [a-f0-9-]+$/, "");
+    if (window.confirm(`Are you sure you want to delete policy "${displayName}"?`)) {
+      try {
+        await deletePolicyMutation.mutateAsync(policyItem.id);
+        toast.success(`Policy "${displayName}" deleted successfully`);
+      } catch (err: any) {
+        toast.error(err.message || "Failed to delete policy");
+      }
+    }
+  };
+
 
 
   const metrics = governanceMetrics || {
@@ -172,7 +208,13 @@ export default function PoliciesPage() {
             Tune scheduler objectives and manage fleet-wide workload placement constraints.
           </p>
         </div>
-        <Button className="gap-2" onClick={() => setIsCreateModalOpen(true)}>
+        <Button
+          className="gap-2"
+          onClick={() => {
+            setEditingPolicy(null);
+            setIsCreateModalOpen(true);
+          }}
+        >
           <Plus className="h-4 w-4" /> Create Policy
         </Button>
       </div>
@@ -462,10 +504,23 @@ export default function PoliciesPage() {
                     <TableCell className="text-muted-foreground text-sm">{nodesImpacted} nodes</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => {
+                            setEditingPolicy(policyItem);
+                            setIsCreateModalOpen(true);
+                          }}
+                        >
                           <Edit2 className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 text-rose-400">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-rose-400"
+                          onClick={() => handleDeletePolicy(policyItem)}
+                        >
                           <Trash2 className="h-4 w-4" />
                         </Button>
                       </div>
@@ -480,9 +535,14 @@ export default function PoliciesPage() {
 
       <CreatePolicyModal
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        onSubmit={handleCreatePolicy}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setEditingPolicy(null);
+        }}
+        onSubmit={handlePolicyModalSubmit}
+        initialData={editingPolicy}
       />
     </div>
   );
 }
+

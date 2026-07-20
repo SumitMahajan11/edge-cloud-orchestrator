@@ -173,4 +173,107 @@ describe("UI Remediation E2E Verification", () => {
     expect(activeCert).toBeDefined();
     expect(activeCert.isActive).toBe(true);
   });
+
+  it("should verify Edit Policy (Row 7)", async () => {
+    console.log(`\n=== ROW 7: EDIT POLICY ===`);
+    const created = await prisma.schedulingPolicy.create({
+      data: {
+        name: "Initial Latency Guard",
+        type: "LATENCY",
+        config: { maxLatencyMs: 200 },
+        isActive: false,
+        tenantId,
+      },
+    });
+
+    const policyBefore = await prisma.schedulingPolicy.findUnique({
+      where: { id: created.id },
+    });
+    console.log(`[BEFORE DB QUERY] SELECT * FROM "scheduling_policies" WHERE id = '${created.id}'; -> Name: "${policyBefore.name}", Type: "${policyBefore.type}", Config: ${JSON.stringify(policyBefore.config)}`);
+
+    const response = await context.app.inject({
+      method: "PUT",
+      url: `/v2/scheduling/policies/${created.id}`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+      payload: {
+        name: "Updated Latency Guard (Strict)",
+        type: "LATENCY",
+        config: { maxLatencyMs: 80 },
+        isActive: false,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.payload);
+    expect(body.success).toBe(true);
+
+    const policyAfter = await prisma.schedulingPolicy.findUnique({
+      where: { id: created.id },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT * FROM "scheduling_policies" WHERE id = '${created.id}'; -> Name: "${policyAfter.name}", Type: "${policyAfter.type}", Config: ${JSON.stringify(policyAfter.config)}`);
+
+    expect(policyAfter.name).toBe("Updated Latency Guard (Strict)");
+    expect(policyAfter.config.maxLatencyMs).toBe(80);
+  });
+
+  it("should verify Delete Policy (Row 8)", async () => {
+    console.log(`\n=== ROW 8: DELETE POLICY ===`);
+    const policyToDelete = await prisma.schedulingPolicy.create({
+      data: {
+        name: "Temporary Cost Guardrail",
+        type: "COST",
+        config: { maxCostUSD: 0.10 },
+        isActive: false,
+        tenantId,
+      },
+    });
+
+    const beforeCount = await prisma.schedulingPolicy.count({
+      where: { id: policyToDelete.id },
+    });
+    console.log(`[BEFORE DB QUERY] SELECT COUNT(*) FROM "scheduling_policies" WHERE id = '${policyToDelete.id}'; -> Result: ${beforeCount}`);
+
+    const response = await context.app.inject({
+      method: "DELETE",
+      url: `/v2/scheduling/policies/${policyToDelete.id}`,
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "X-Tenant-ID": tenantId,
+      },
+    });
+
+    expect(response.statusCode).toBe(200);
+    const body = JSON.parse(response.payload);
+    expect(body.success).toBe(true);
+    expect(body.id).toBe(policyToDelete.id);
+
+    const afterCount = await prisma.schedulingPolicy.count({
+      where: { id: policyToDelete.id },
+    });
+    console.log(`[AFTER DB QUERY]  SELECT COUNT(*) FROM "scheduling_policies" WHERE id = '${policyToDelete.id}'; -> Result: ${afterCount}`);
+
+    expect(afterCount).toBe(0);
+
+    const activePolicy = await prisma.schedulingPolicy.findFirst({
+      where: { tenantId, isActive: true },
+    });
+
+    if (activePolicy) {
+      const activeDeleteResp = await context.app.inject({
+        method: "DELETE",
+        url: `/v2/scheduling/policies/${activePolicy.id}`,
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "X-Tenant-ID": tenantId,
+        },
+      });
+      expect(activeDeleteResp.statusCode).toBe(400);
+      const activeDeleteBody = JSON.parse(activeDeleteResp.payload);
+      console.log(`[VERIFIED ACTIVE BLOCK] DELETE on active policy returned HTTP 400: "${activeDeleteBody.error}"`);
+    }
+  });
 });
+

@@ -2667,6 +2667,47 @@ paths:
       responses:
         "200":
           description: Default Response
+  /v2/scheduling/policies/{id}:
+    put:
+      summary: Update an existing scheduling policy
+      tags:
+        - scheduling
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                type:
+                  type: string
+                config:
+                  type: object
+                isActive:
+                  type: boolean
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
+    delete:
+      summary: Delete a scheduling policy
+      tags:
+        - scheduling
+      parameters:
+        - schema:
+            type: string
+          in: path
+          name: id
+          required: true
+      responses:
+        "200":
+          description: Default Response
   /v2/scheduling/policy:
     get:
       summary: Get per-tenant scheduling policy

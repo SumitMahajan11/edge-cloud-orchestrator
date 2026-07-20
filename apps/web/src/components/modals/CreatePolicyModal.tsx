@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { X, Shield } from "lucide-react";
 import { Button } from "../ui/button";
@@ -10,14 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { SchedulingPolicy } from "@/hooks/usePolicies";
 
 interface CreatePolicyModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSubmit: (data: any) => void;
+  initialData?: SchedulingPolicy | null;
 }
 
-export function CreatePolicyModal({ isOpen, onClose, onSubmit }: CreatePolicyModalProps) {
+export function CreatePolicyModal({ isOpen, onClose, onSubmit, initialData }: CreatePolicyModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     type: "LATENCY",
@@ -26,6 +28,28 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit }: CreatePolicyMod
     maxCostUSD: 0.05,
     isActive: false,
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name.replace(/ - [a-f0-9-]+$/, ""),
+        type: initialData.type || "LATENCY",
+        maxLatencyMs: initialData.config?.maxLatencyMs ?? 150,
+        minGreenPercent: initialData.config?.minGreenPercent ?? 80,
+        maxCostUSD: initialData.config?.maxCostUSD ?? 0.05,
+        isActive: !!initialData.isActive,
+      });
+    } else {
+      setFormData({
+        name: "",
+        type: "LATENCY",
+        maxLatencyMs: 150,
+        minGreenPercent: 80,
+        maxCostUSD: 0.05,
+        isActive: false,
+      });
+    }
+  }, [initialData, isOpen]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +65,7 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit }: CreatePolicyMod
     }
 
     onSubmit({
+      id: initialData?.id,
       name: formData.name,
       type: formData.type,
       config,
@@ -87,7 +112,9 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit }: CreatePolicyMod
                     <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
                       <Shield className="h-4 w-4 text-primary" />
                     </div>
-                    <h2 className="text-lg font-semibold">Create Scheduling Policy</h2>
+                    <h2 className="text-lg font-semibold">
+                      {initialData ? "Edit Scheduling Policy" : "Create Scheduling Policy"}
+                    </h2>
                   </div>
                   <button
                     onClick={handleClose}
@@ -216,7 +243,7 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit }: CreatePolicyMod
                     type="submit"
                     className="bg-primary hover:bg-primary/90 text-primary-foreground"
                   >
-                    Create Policy
+                    {initialData ? "Save Changes" : "Create Policy"}
                   </Button>
                 </div>
               </form>
