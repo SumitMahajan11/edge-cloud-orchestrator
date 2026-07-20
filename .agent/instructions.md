@@ -22,6 +22,10 @@ This file contains mandatory instructions for any AI assistant or agent working 
 - **Rule**: Always ask and obtain explicit user approval before executing `git commit`. Do not assume approval.
 - **Rule**: Always paste the literal, raw terminal output of commands (such as `git status`, test runners, or builds) in full as empirical evidence instead of asserting success or status in prose.
 
+## 5. Fact Verification & Anti-Fabrication
+
+- **Rule**: Never state a CVE/GHSA ID, changelog claim, or compatibility fact without it coming from an actual retrieved source in this session. If a specific advisory or version-pairing claim can't be found, say 'no specific advisory/pairing found' — do not produce a plausible-looking ID or number. Fabricating a citation is a more serious violation than admitting you don't know.
+
 ---
 
 _Authorized by USER on July 19, 2026_
