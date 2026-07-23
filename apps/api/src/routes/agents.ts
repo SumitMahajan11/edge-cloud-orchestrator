@@ -30,8 +30,21 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     fastify.log,
   );
 
-  // Initialize CA on startup
-  await caManager.initialize();
+  // Initialize CA on startup (with retries for serverless DB cold starts)
+  let retries = 5;
+  while (retries > 0) {
+    try {
+      await caManager.initialize();
+      break;
+    } catch (error) {
+      retries--;
+      fastify.log.warn(`Failed to initialize CA (DB might be waking up). Retries left: ${retries}. Error: ${error}`);
+      if (retries === 0) {
+        throw error;
+      }
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
 
   const extractNodeId = (request: any): string | null => {
     // 1. Try peer certificate from raw socket (direct connection/local dev)
