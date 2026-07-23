@@ -258,7 +258,6 @@ async function registerPlugins() {
         ]
       : [];
 
-
   if (!isDevelopment && corsOrigins.length === 0) {
     logger.warn(
       'ALLOWED_ORIGINS not set in production - CORS will block all cross-origin requests',
@@ -273,7 +272,29 @@ async function registerPlugins() {
         return;
       }
 
-      if (corsOrigins.includes(origin) || isDevelopment) {
+      if (
+        corsOrigins.includes('*') ||
+        corsOrigins.includes(origin) ||
+        isDevelopment
+      ) {
+        cb(null, true);
+        return;
+      }
+
+      // Wildcard domain pattern matching (e.g. *.vercel.app)
+      const isAllowedByPattern = corsOrigins.some((allowed) => {
+        if (allowed.startsWith('*.')) {
+          const domain = allowed.slice(2);
+          return (
+            origin.endsWith('.' + domain) ||
+            origin === `https://${domain}` ||
+            origin === `http://${domain}`
+          );
+        }
+        return false;
+      });
+
+      if (isAllowedByPattern) {
         cb(null, true);
         return;
       }
@@ -284,6 +305,15 @@ async function registerPlugins() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'x-api-version',
+      'x-tenant-id',
+      'x-request-id',
+      'Accept',
+      'Origin',
+    ],
   });
 
   const jwtSecret = (await secretManager.getSecret('JWT_SECRET')) || '';

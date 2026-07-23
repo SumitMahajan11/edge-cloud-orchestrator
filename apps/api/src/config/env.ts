@@ -58,7 +58,9 @@ const envSchema = baseEnvSchema.extend({
   // --- Networking & CORS ---
   ALLOWED_ORIGINS: z
     .string()
-    .default('http://localhost:5173,http://localhost:3000'),
+    .default(
+      'http://localhost:5173,http://localhost:3000,https://edge-cloud-orchestrator-web-swart.vercel.app,*.vercel.app',
+    ),
 
   // --- Monitoring & Telemetry ---
   METRICS_ENABLED: z
