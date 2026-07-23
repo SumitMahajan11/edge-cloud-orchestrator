@@ -1,3 +1,8 @@
+import dns from 'node:dns';
+// Force IPv4 resolution to prevent Prisma from timing out when connecting to Neon DB
+// in IPv4-only container environments (like Railway) when Neon returns IPv6 AAAA records.
+dns.setDefaultResultOrder('ipv4first');
+
 import 'reflect-metadata';
 import '@fastify/swagger';
 import { initTracing } from '@edgecloud/observability';
