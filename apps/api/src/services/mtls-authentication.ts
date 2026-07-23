@@ -3,7 +3,10 @@ import { createHash, randomBytes, X509Certificate, webcrypto } from 'crypto';
 import * as x509 from '@peculiar/x509';
 import fs from 'fs/promises';
 import path from 'path';
-import type { Logger } from 'pino';
+import type { FastifyBaseLogger } from 'fastify';
+import type { Logger as PinoLogger } from 'pino';
+
+export type Logger = FastifyBaseLogger | PinoLogger;
 
 import { SecretManagerFactory } from '@edgecloud/shared-kernel';
 

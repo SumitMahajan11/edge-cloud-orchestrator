@@ -22,12 +22,12 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   }
   const caManager = new CertificateAuthorityManager(
     fastify.prisma,
-    fastify.log as any,
+    fastify.log,
   );
   const registrationService = new AgentRegistrationService(
     caManager,
     fastify.prisma,
-    fastify.log as any,
+    fastify.log,
   );
 
   // Initialize CA on startup

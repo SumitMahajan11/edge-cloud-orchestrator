@@ -907,13 +907,13 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       );
 
       // Instantiate CertificateAuthorityManager and CertificateRotationService
-      const caManager = new CertificateAuthorityManager(request.tPrisma as any, fastify.log as any);
+      const caManager = new CertificateAuthorityManager(request.tPrisma as any, fastify.log);
       await caManager.initialize();
 
       const rotationService = new CertificateRotationService(
         caManager,
         request.tPrisma as any,
-        fastify.log as any
+        fastify.log
       );
 
       // Perform rotation
