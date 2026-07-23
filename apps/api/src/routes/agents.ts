@@ -31,14 +31,14 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   );
 
   // Initialize CA on startup (with retries for serverless DB cold starts)
-  let retries = 5;
+  let retries = 15;
   while (retries > 0) {
     try {
       await caManager.initialize();
       break;
     } catch (error) {
       retries--;
-      fastify.log.warn(`Failed to initialize CA (DB might be waking up). Retries left: ${retries}. Error: ${error}`);
+      fastify.log.error(`Failed to initialize CA (DB might be waking up). Retries left: ${retries}. Error: ${error}`);
       if (retries === 0) {
         throw error;
       }
