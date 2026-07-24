@@ -1267,17 +1267,28 @@ export async function init(overrides: any = {}) {
 
     await registerRoutes();
 
-    // Initialize monitors/schedulers
-    await heartbeatMonitor.start();
-    await backpressureController.start();
-    priorityScheduler.start();
-    gracefulDegradation.start();
-    await taskScheduler.start();
-    webhookRetryJob.start();
-    consistencyCheckerJob.start();
-    metricCleanupJob.start();
+    // Initialize monitors/schedulers asynchronously so server port binds immediately
+    const initBackground = async () => {
+      try {
+        await heartbeatMonitor.start();
+        await backpressureController.start();
+        priorityScheduler.start();
+        gracefulDegradation.start();
+        await taskScheduler.start();
+        webhookRetryJob.start();
+        consistencyCheckerJob.start();
+        metricCleanupJob.start();
 
-    await initializeServices(app, prisma, redis, logger, idempotencyService);
+        await initializeServices(app, prisma, redis, logger, idempotencyService);
+        logger.info('Background monitors and services initialized successfully');
+      } catch (bgErr) {
+        logger.error(
+          { bgErr },
+          'Error initializing background services (DB cold start pending)',
+        );
+      }
+    };
+    initBackground();
 
     // Monitor mock DB size
     let dbMonitorInterval: NodeJS.Timeout | null = null;
