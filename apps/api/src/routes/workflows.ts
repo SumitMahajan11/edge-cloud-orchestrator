@@ -1,4 +1,4 @@
-import { Permissions } from '@edgecloud/shared-kernel';
+import { Permissions, DAGExecutor } from '@edgecloud/shared-kernel';
 import { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
@@ -105,7 +105,6 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
 
       try {
         // Validate DAG
-        const { DAGExecutor } = await import('@edgecloud/shared-kernel');
         const dagExecutor = new DAGExecutor();
 
         const workflowNodes = nodes.map((node) => ({
@@ -144,7 +143,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
         return reply.status(201).send(workflow);
       } catch (err: any) {
         request.log.error(
-          { err: err.message, stack: err.stack },
+          { err: err.message, stack: err.stack, code: err.code, name: err.name, meta: err.meta },
           'Workflow creation failed with error',
         );
         return reply.status(500).send({

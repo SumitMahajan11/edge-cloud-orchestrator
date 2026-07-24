@@ -57,7 +57,7 @@ export default function TenantsPage() {
     try {
       if (mode === "single") {
         const res = await apiClient.post<{ success: boolean; topic: string }>(
-          "/api/v2/admin/events/republish",
+          "/v2/admin/events/republish",
           {
             eventType,
             entityId,
@@ -71,7 +71,7 @@ export default function TenantsPage() {
           published?: number;
           failed?: number;
           errors?: string[];
-        }>("/api/v2/admin/events/republish-range", {
+        }>("/v2/admin/events/republish-range", {
           eventType,
           fromTimestamp: new Date(fromTime).toISOString(),
           toTimestamp: new Date(toTime).toISOString(),

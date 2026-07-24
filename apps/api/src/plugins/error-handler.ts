@@ -78,6 +78,8 @@ export const globalErrorHandler = (
         details = { target: (error as any).meta?.target };
         break;
       default:
+        // By default, if the database connection failed with some other code, it will bubble up
+        // as a 500 but we want to make sure it's logged properly.
         statusCode = 500;
         code = 'DATABASE_ERROR';
         message = 'A database error occurred';
@@ -85,7 +87,7 @@ export const globalErrorHandler = (
           prismaCode: prismaError.code,
           prismaMessage: prismaError.message,
         };
-    }
+      }
     }
   }
 
@@ -229,7 +231,7 @@ function getGracefulEmptyResponse(request: FastifyRequest) {
   }
   
   if (url.includes('/scheduling/policies')) {
-    return { policies: [] };
+    return [];
   }
   
   if (url.includes('/scheduling/policy')) {

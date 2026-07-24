@@ -75,6 +75,8 @@ export function useRegisterNode() {
   return useMutation({
     mutationFn: async (nodeData: any) => {
       const apiPayload = transformNodeToApi(nodeData);
+      delete apiPayload.status;
+      delete apiPayload.isMaintenanceMode;
       const { data, error } = await postV2Nodes({ body: apiPayload });
       if (error) throw error;
       return data;

@@ -187,7 +187,11 @@ export default function PoliciesPage() {
     updatePolicyMutation.mutate(payload);
   };
 
-  const filteredPolicies = (schedulingPolicies || []).filter((p) => {
+  const safePolicies: any[] = Array.isArray(schedulingPolicies) 
+    ? schedulingPolicies 
+    : ((schedulingPolicies as any)?.policies || []);
+
+  const filteredPolicies = safePolicies.filter((p) => {
     if (!search) return true;
     const cleanName = p.name.replace(/ - [a-f0-9-]+$/, "");
     return (
