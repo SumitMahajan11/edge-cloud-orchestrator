@@ -873,9 +873,10 @@ export async function init(overrides: any = {}) {
   }
 
   const forceMock = env.FORCE_MOCK_DB;
-  // forceMock overrides environment check — allows safe test runs against production config
   const useMockDb = forceMock || (isDevelopment && !dbUrl);
-  prisma = useMockDb ? (mockPrisma as any) : new PrismaClient();
+  prisma = useMockDb
+    ? (mockPrisma as any)
+    : new PrismaClient(dbUrl ? { datasources: { db: { url: dbUrl } } } : undefined);
 
   if (useMockDb) {
     logger.info('Using mock database for development (no PostgreSQL required)');

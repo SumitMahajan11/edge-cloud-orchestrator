@@ -74,17 +74,24 @@ export class AuthService {
     const hashedRefreshToken = this.hashToken(refreshToken);
     const expiresAt = this.calculateExpiry(this.refreshExpiresIn);
 
-    // Create a new session for this refresh token
-    await this.prisma.userSession.create({
-      data: {
-        userId: user.id,
-        refreshTokenHash: hashedRefreshToken,
-        accessTokenJti: jti,
-        ipAddress,
-        userAgent,
-        expiresAt,
-      },
-    });
+    // Create a new session for this refresh token (fail-open on DB write error)
+    try {
+      await this.prisma.userSession.create({
+        data: {
+          userId: user.id,
+          refreshTokenHash: hashedRefreshToken,
+          accessTokenJti: jti,
+          ipAddress,
+          userAgent,
+          expiresAt,
+        },
+      });
+    } catch (sessionErr: any) {
+      console.warn(
+        '[AuthService] Warning: Failed to persist userSession to database (DB cold start or write lag):',
+        sessionErr?.message || sessionErr,
+      );
+    }
 
     return {
       accessToken,
