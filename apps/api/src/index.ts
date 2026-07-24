@@ -286,15 +286,13 @@ async function registerPlugins() {
         return;
       }
 
-      // Wildcard domain pattern matching (e.g. *.vercel.app)
+      // Wildcard domain pattern matching (e.g. *.vercel.app or https://*.vercel.app)
       const isAllowedByPattern = corsOrigins.some((allowed) => {
-        if (allowed.startsWith('*.')) {
-          const domain = allowed.slice(2);
-          return (
-            origin.endsWith('.' + domain) ||
-            origin === `https://${domain}` ||
-            origin === `http://${domain}`
-          );
+        const cleanAllowed = allowed.replace(/^https?:\/\//, '');
+        if (cleanAllowed.startsWith('*.')) {
+          const domain = cleanAllowed.slice(2);
+          const cleanOrigin = origin.replace(/^https?:\/\//, '');
+          return cleanOrigin.endsWith('.' + domain) || cleanOrigin === domain;
         }
         return false;
       });
@@ -304,9 +302,7 @@ async function registerPlugins() {
         return;
       }
 
-      const error = new Error('Not allowed by CORS') as any;
-      error.statusCode = 403;
-      cb(error, false);
+      cb(null, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
