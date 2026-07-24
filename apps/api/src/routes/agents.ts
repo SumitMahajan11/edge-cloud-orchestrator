@@ -30,21 +30,30 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     fastify.log,
   );
 
-  // Initialize CA on startup (with retries for serverless DB cold starts)
-  let retries = 15;
-  while (retries > 0) {
-    try {
-      await caManager.initialize();
-      break;
-    } catch (error) {
-      retries--;
-      fastify.log.error(`Failed to initialize CA (DB might be waking up). Retries left: ${retries}. Error: ${error}`);
-      if (retries === 0) {
-        throw error;
+  // Start CA initialization asynchronously in background so DB cold starts do not block API server port binding
+  const caInitPromise = (async () => {
+    let retries = 20;
+    while (retries > 0) {
+      try {
+        await caManager.initialize();
+        fastify.log.info('Certificate Authority initialized successfully');
+        return;
+      } catch (error) {
+        retries--;
+        fastify.log.warn(
+          `CA init pending (DB waking up). Retries remaining: ${retries}. Error: ${error}`,
+        );
+        if (retries === 0) {
+          fastify.log.error(
+            { err: error },
+            'Failed to initialize CA after maximum retries',
+          );
+        } else {
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
       }
-      await new Promise(resolve => setTimeout(resolve, 3000));
     }
-  }
+  })();
 
   const extractNodeId = (request: any): string | null => {
     // 1. Try peer certificate from raw socket (direct connection/local dev)
@@ -169,6 +178,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
     },
     async (request, reply) => {
       try {
+        await caInitPromise;
         const result = await registrationService.registerAgent(
           request.body as Parameters<import('../services/mtls-authentication.js').AgentRegistrationService['registerAgent']>[0],
         );
@@ -210,6 +220,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       },
     },
     async () => {
+      await caInitPromise;
       return {
         certificate: caManager.getCACertificate(),
       };
