@@ -34,21 +34,43 @@ export class AuthController {
       throw err;
     }
 
-    // 2. Find user
+    // 2. Find user (with retry loop for serverless DB cold starts)
     const prisma = (request.server as any).prisma;
     let user: any;
-    try {
-      user = await Promise.race([
-        prisma.user.findUnique({
-          where: { email },
-          include: { tenantUsers: { take: 1 } },
-        }),
-        new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Database timeout')), 25000),
-        ),
-      ]);
-    } catch (dbErr: any) {
-      request.log.error({ err: dbErr?.message || dbErr }, 'Database error during auth login');
+    let lastError: any = null;
+    const maxRetries = 3;
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        user = await Promise.race([
+          prisma.user.findUnique({
+            where: { email },
+            include: { tenantUsers: { take: 1 } },
+          }),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Database timeout')), 15000),
+          ),
+        ]);
+        lastError = null;
+        break; // Query succeeded, exit retry loop
+      } catch (dbErr: any) {
+        lastError = dbErr;
+        request.log.warn(
+          { attempt, maxRetries, err: dbErr?.message || dbErr },
+          'Database query failed during auth login, retrying for cold start...',
+        );
+        if (attempt < maxRetries) {
+          // Wait 2s before next attempt to allow serverless DB compute to resume
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+        }
+      }
+    }
+
+    if (lastError) {
+      request.log.error(
+        { err: lastError?.message || lastError },
+        'Database error during auth login after retries',
+      );
       const err = new Error(
         'Database unavailable or warming up. Please retry shortly.',
       ) as any;
