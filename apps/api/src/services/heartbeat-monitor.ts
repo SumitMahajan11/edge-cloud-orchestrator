@@ -56,7 +56,13 @@ export class HeartbeatMonitor {
     } catch (err) {
       this.logger.error({ err }, 'Failed to ensure heartbeat-timeout alert rule exists');
     }
-    this.interval = setInterval(() => this.checkNodes(), CHECK_INTERVAL);
+    this.interval = setInterval(
+      () =>
+        void this.checkNodes().catch((err) =>
+          this.logger.warn({ err: err?.message || err }, 'Heartbeat check failed'),
+        ),
+      CHECK_INTERVAL,
+    );
   }
 
   setTaskScheduler(taskScheduler: TaskScheduler): void {

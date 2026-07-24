@@ -807,6 +807,10 @@ export class SagaOrchestrator extends EventEmitter {
           this.emit("error", { sagaId: saga.id, error, phase: "recovery" });
         });
       }
+    } catch (err) {
+      console.warn(
+        `[SagaOrchestrator] Failed to recover incomplete sagas (DB cold start pending): ${err}`,
+      );
     } finally {
       this.isRecovering = false;
     }
