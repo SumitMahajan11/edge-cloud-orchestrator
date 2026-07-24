@@ -6,129 +6,95 @@ import { register } from '../services/metrics-service.js';
 export default async function metricsRoutes(fastify: FastifyInstance) {
   // Helper to build system metrics response
   async function buildSystemMetrics(tenantId: string) {
-    try {
-      const [
-        totalNodes,
-        onlineNodes,
-        degradedNodes,
-        totalTasks,
-        pendingTasks,
-        runningTasks,
-        completedTasks,
-        failedTasks,
-      ] = await Promise.all([
-        fastify.prisma.edgeNode.count({ where: { tenantId } }),
-        fastify.prisma.edgeNode.count({
-          where: { status: 'ONLINE' as any, tenantId },
-        }),
-        fastify.prisma.edgeNode.count({
-          where: { status: 'DEGRADED' as any, tenantId },
-        }),
-        fastify.prisma.task.count({ where: { tenantId } }),
-        fastify.prisma.task.count({
-          where: { status: 'PENDING' as any, tenantId },
-        }),
-        fastify.prisma.task.count({
-          where: { status: 'RUNNING' as any, tenantId },
-        }),
-        fastify.prisma.task.count({
-          where: { status: 'COMPLETED' as any, tenantId },
-        }),
-        fastify.prisma.task.count({
-          where: { status: 'FAILED' as any, tenantId },
-        }),
-      ]);
+    const now = new Date();
 
-      const avgLatency = await (fastify.prisma.edgeNode as any).aggregate({
-        where: {
-          status: { in: ['ONLINE', 'DEGRADED'] } as any,
-          tenantId,
-        },
-        _avg: { latency: true },
-      });
+    const [
+      totalNodes,
+      onlineNodes,
+      degradedNodes,
+      totalTasks,
+      pendingTasks,
+      runningTasks,
+      completedTasks,
+      failedTasks,
+    ] = await Promise.all([
+      fastify.prisma.edgeNode.count({ where: { tenantId } }),
+      fastify.prisma.edgeNode.count({
+        where: { status: 'ONLINE' as any, tenantId },
+      }),
+      fastify.prisma.edgeNode.count({
+        where: { status: 'DEGRADED' as any, tenantId },
+      }),
+      fastify.prisma.task.count({ where: { tenantId } }),
+      fastify.prisma.task.count({
+        where: { status: 'PENDING' as any, tenantId },
+      }),
+      fastify.prisma.task.count({
+        where: { status: 'RUNNING' as any, tenantId },
+      }),
+      fastify.prisma.task.count({
+        where: { status: 'COMPLETED' as any, tenantId },
+      }),
+      fastify.prisma.task.count({
+        where: { status: 'FAILED' as any, tenantId },
+      }),
+    ]);
 
-      const totalCost = await (fastify.prisma.costRecord as any).aggregate({
-        where: { tenantId },
-        _sum: { cost: true },
-      });
+    const avgLatency = await (fastify.prisma.edgeNode as any).aggregate({
+      where: {
+        status: { in: ['ONLINE', 'DEGRADED'] } as any,
+        tenantId,
+      },
+      _avg: { latency: true },
+    });
 
-      const offlineNodes = Math.max(0, totalNodes - onlineNodes - degradedNodes);
-      const healthScore =
-        totalNodes > 0 ? Math.round(((onlineNodes + degradedNodes * 0.5) / totalNodes) * 100) : 0;
-      const completionRate =
-        totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+    const totalCost = await (fastify.prisma.costRecord as any).aggregate({
+      where: { tenantId },
+      _sum: { cost: true },
+    });
 
-      const now = new Date();
-      // 24 hourly data points — matches the monitoring page "Resource Utilization (24h)" lookback
-      const cpuHistory = Array.from({ length: 24 }, (_, i) => ({
-        timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
-        value: totalNodes > 0 ? Math.round(40 + Math.sin(i) * 15 + Math.random() * 5) : 0,
-      }));
+    const offlineNodes = Math.max(0, totalNodes - onlineNodes - degradedNodes);
+    const healthScore =
+      totalNodes > 0 ? Math.round(((onlineNodes + degradedNodes * 0.5) / totalNodes) * 100) : 0;
+    const completionRate =
+      totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
 
-      const costVal = totalCost._sum?.cost || 0;
-      // Match cpuHistory's 24-point 24h lookback
-      const costOverTime = Array.from({ length: 24 }, (_, i) => ({
-        timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
-        value: costVal > 0 ? Math.round((costVal / 24) * (i + 1) * 100) / 100 : 0,
-      }));
+    const cpuHistory = Array.from({ length: 24 }, (_, i) => ({
+      timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
+      value: totalNodes > 0 ? Math.round(40 + Math.sin(i) * 15 + Math.random() * 5) : 0,
+    }));
 
-      return {
-        totalNodes,
-        onlineNodes,
-        offlineNodes,
-        degradedNodes,
-        totalTasks,
-        pendingTasks,
-        runningTasks,
-        completedTasks,
-        failedTasks,
-        avgLatency: avgLatency._avg?.latency || 0,
-        totalCost: costVal,
-        edgeUtilization: (onlineNodes + degradedNodes) > 0 ? Math.min(95, runningTasks * 10) : 0,
-        cloudUtilization: 30,
-        throughput: completedTasks,
-        healthScore,
-        completionRate,
-        cpuHistory,
-        taskDistribution: {
-          edge: Math.round(totalTasks * 0.6),
-          cloud: Math.round(totalTasks * 0.4),
-        },
-        costOverTime,
-        timestamp: new Date().toISOString(),
-      };
-    } catch (error: any) {
-      fastify.log.error(
-        { err: error, tenantId },
-        'Failed to build system metrics due to database error'
-      );
-      // Return graceful empty metrics instead of crashing the endpoint (DB might be cold starting)
-      return {
-        totalNodes: 0,
-        onlineNodes: 0,
-        offlineNodes: 0,
-        degradedNodes: 0,
-        totalTasks: 0,
-        pendingTasks: 0,
-        runningTasks: 0,
-        completedTasks: 0,
-        failedTasks: 0,
-        avgLatency: 0,
-        totalCost: 0,
-        edgeUtilization: 0,
-        cloudUtilization: 0,
-        throughput: 0,
-        healthScore: 0,
-        completionRate: 0,
-        cpuHistory: [],
-        taskDistribution: {
-          edge: 0,
-          cloud: 0,
-        },
-        costOverTime: [],
-        timestamp: new Date().toISOString(),
-      };
-    }
+    const costVal = totalCost._sum?.cost || 0;
+    const costOverTime = Array.from({ length: 24 }, (_, i) => ({
+      timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
+      value: costVal > 0 ? Math.round((costVal / 24) * (i + 1) * 100) / 100 : 0,
+    }));
+
+    return {
+      totalNodes,
+      onlineNodes,
+      offlineNodes,
+      degradedNodes,
+      totalTasks,
+      pendingTasks,
+      runningTasks,
+      completedTasks,
+      failedTasks,
+      avgLatency: avgLatency._avg?.latency || 0,
+      totalCost: costVal,
+      edgeUtilization: (onlineNodes + degradedNodes) > 0 ? Math.min(95, runningTasks * 10) : 0,
+      cloudUtilization: 30,
+      throughput: completedTasks,
+      healthScore,
+      completionRate,
+      cpuHistory,
+      taskDistribution: {
+        edge: Math.round(totalTasks * 0.6),
+        cloud: Math.round(totalTasks * 0.4),
+      },
+      costOverTime,
+      timestamp: new Date().toISOString(),
+    };
   }
 
   // /api/metrics/system

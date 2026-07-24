@@ -43,7 +43,23 @@ export const globalErrorHandler = (
   // 2. Prisma Database Errors
   else if (error.name?.startsWith('PrismaClient') || error.constructor?.name?.startsWith('PrismaClient')) {
     const prismaError = error as any;
-    switch (prismaError.code) {
+    
+    // Handle database cold-start / connection issues gracefully
+    if (prismaError.name === 'PrismaClientInitializationError' || ['P1001', 'P1011', 'P1012', 'P1017', 'P1008'].includes(prismaError.code)) {
+      if (request.method === 'GET') {
+        request.log.warn({
+          msg: 'Database cold start or connection issue, returning graceful empty response',
+          error: prismaError.message,
+          code: prismaError.code
+        });
+        return reply.status(200).send(getGracefulEmptyResponse(request));
+      } else {
+        statusCode = 503;
+        code = 'SERVICE_UNAVAILABLE';
+        message = 'The database is currently starting up or unavailable. Please try again in a few seconds.';
+      }
+    } else {
+      switch (prismaError.code) {
       case 'P2025': // Not found
         statusCode = 404;
         code = 'RESOURCE_NOT_FOUND';
@@ -63,6 +79,7 @@ export const globalErrorHandler = (
           prismaCode: prismaError.code,
           prismaMessage: prismaError.message,
         };
+    }
     }
   }
 
@@ -133,6 +150,92 @@ export const globalErrorHandler = (
 
   return reply.status(statusCode).send(errorResponse);
 };
+
+/**
+ * Returns a structurally valid empty response based on the endpoint URL.
+ * This prevents the frontend from crashing during database cold starts by
+ * providing the expected array or object shapes.
+ */
+function getGracefulEmptyResponse(request: FastifyRequest) {
+  const url = request.url || '';
+  
+  if (url.includes('/metrics/system')) {
+    return {
+      totalNodes: 0,
+      onlineNodes: 0,
+      offlineNodes: 0,
+      degradedNodes: 0,
+      totalTasks: 0,
+      pendingTasks: 0,
+      runningTasks: 0,
+      completedTasks: 0,
+      failedTasks: 0,
+      avgLatency: 0,
+      totalCost: 0,
+      edgeUtilization: 0,
+      cloudUtilization: 0,
+      throughput: 0,
+      healthScore: 0,
+      completionRate: 0,
+      cpuHistory: [],
+      taskDistribution: { edge: 0, cloud: 0 },
+      costOverTime: [],
+      timestamp: new Date().toISOString()
+    };
+  }
+  
+  if (url.includes('/metrics/tenant')) {
+    return {
+      tasks: { total: 0, active: 0, completed: 0, failed: 0 },
+      resources: { cpuUsed: 0, memoryUsed: 0, networkTotal: 0, storageTotal: 0 },
+      cost: { currentMonth: 0, projected: 0, budget: 0 },
+      events: []
+    };
+  }
+
+  if (url.includes('/metrics/')) {
+    return { data: [], timeline: [] };
+  }
+
+  if (url.includes('/alerts')) {
+    return { alerts: [] };
+  }
+
+  if (url.includes('/logs/stats')) {
+    return { total: 0, errorsLast24h: 0, storageUsageGB: 0 };
+  }
+  
+  if (url.includes('/carbon/report') || url.includes('/carbon/stats') || url.includes('/analytics/')) {
+    return { data: [], metrics: {}, summary: {} };
+  }
+  
+  if (url.includes('/scheduling/policies')) {
+    return { policies: [] };
+  }
+  
+  if (url.includes('/webhooks')) {
+    return { webhooks: [] };
+  }
+  
+  if (url.includes('/fl/models') || url.includes('/ml/models')) {
+    return { models: [] };
+  }
+  
+  if (url.includes('/fl/tasks') || url.includes('/ml/tasks')) {
+    return { tasks: [] };
+  }
+  
+  // General fallback for lists with pagination
+  if (url.includes('/tasks') || url.includes('/logs') || url.includes('/nodes')) {
+    return { 
+      data: [], 
+      pagination: { page: 1, limit: 50, total: 0, totalPages: 0, hasNext: false, hasPrev: false } 
+    };
+  }
+
+  // Default fallback for any other unexpected list endpoint
+  return [];
+}
 
 export const errorHandler = fp(async (fastify: FastifyInstance) => {
   process.stdout.write('[errorHandler plugin] INITIALIZING...\n');
