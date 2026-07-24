@@ -45,7 +45,13 @@ export const globalErrorHandler = (
     const prismaError = error as any;
     
     // Handle database cold-start / connection issues gracefully
-    if (prismaError.name === 'PrismaClientInitializationError' || ['P1001', 'P1011', 'P1012', 'P1017', 'P1008'].includes(prismaError.code)) {
+    const isConnectionError = 
+      prismaError.name === 'PrismaClientInitializationError' ||
+      !prismaError.code ||
+      prismaError.code.startsWith('P1') ||
+      prismaError.code === 'P2024';
+
+    if (isConnectionError) {
       if (request.method === 'GET') {
         request.log.warn({
           msg: 'Database cold start or connection issue, returning graceful empty response',
@@ -206,7 +212,20 @@ function getGracefulEmptyResponse(request: FastifyRequest) {
   }
   
   if (url.includes('/carbon/report') || url.includes('/carbon/stats') || url.includes('/analytics/')) {
-    return { data: [], metrics: {}, summary: {} };
+    return { 
+      summary: {
+        totalGco2eq: 0,
+        totalBaselineGco2eq: 0,
+        totalSavedGco2eq: 0,
+        totalDurationMs: 0,
+        totalTasks: 0,
+        deferredTasks: 0,
+      },
+      workloads: [],
+      breakdown: {},
+      data: [],
+      metrics: {}
+    };
   }
   
   if (url.includes('/scheduling/policies')) {
