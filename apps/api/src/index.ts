@@ -149,23 +149,41 @@ app.decorate('requirePermission', (permission: string) => {
 app.addHook('preHandler', async (request, reply) => {
   // 1. Check if route is explicitly marked as public
   const isPublic = request.routeOptions.config?.public === true;
-  
-  // Debug logging to diagnose the issue
-  console.log('[AUTH HOOK] URL:', request.url, 'isPublic:', isPublic, 'config:', request.routeOptions.config);
-  
   if (isPublic) return;
 
-  // 2. Public health and documentation routes (bypass by path pattern)
-  const url = request.url;
+  // 2. Public routes: health checks, docs, websocket, version, and ALL static frontend assets
+  const rawUrl: string = request.url || '';
+  const url: string = rawUrl.includes('?') ? rawUrl.substring(0, rawUrl.indexOf('?')) : rawUrl;
   if (
     url.startsWith('/health') ||
     url === '/version' ||
     url.startsWith('/docs') ||
-    url.startsWith('/ws')
+    url.startsWith('/ws') ||
+    url === '/' ||
+    url.startsWith('/assets/') ||
+    url.startsWith('/static/') ||
+    url.endsWith('.html') ||
+    url.endsWith('.js') ||
+    url.endsWith('.css') ||
+    url.endsWith('.ico') ||
+    url.endsWith('.png') ||
+    url.endsWith('.svg') ||
+    url.endsWith('.json') ||
+    url.endsWith('.webp') ||
+    url.endsWith('.woff') ||
+    url.endsWith('.woff2') ||
+    url.endsWith('.map')
   ) {
     return;
   }
 
+  // 3. Only apply Default Deny to actual API routes
+  if (!url.startsWith('/v1/') && !url.startsWith('/v2/')) {
+    // Non-API, non-asset routes (SPA pages like /dashboard, /nodes, etc.) — serve freely
+    return;
+  }
+
+  // 4. Default Deny: require authentication for all API routes
   try {
     await (app as any).authenticate(request, reply);
   } catch (err: any) {
@@ -183,14 +201,18 @@ app.addHook('preHandler', async (request, reply) => {
 
 app.addHook('onRequest', async (request: any, reply: any) => {
   if (!request || !request.headers) return;
-  const supportedVersions = ['v1', 'v2'];
-  const defaultVersion = 'v1';
-  const headerVersion = request.headers['x-api-version'];
   const url = request.url || '';
+
+  // Only apply version checking to actual API routes
+  if (!url.startsWith('/v1') && !url.startsWith('/v2')) {
+    return;
+  }
+
+  const supportedVersions = ['v1', 'v2'];
+  const headerVersion = request.headers['x-api-version'];
   const urlParts = url.split('/');
   const urlVersion = urlParts.find((p: string) => /^v\d+$/.test(p));
-  const requestedVersion =
-    (headerVersion as string) || urlVersion || defaultVersion;
+  const requestedVersion = (headerVersion as string) || urlVersion || 'v2';
 
   if (!supportedVersions.includes(requestedVersion)) {
     return reply.code(400).send({
