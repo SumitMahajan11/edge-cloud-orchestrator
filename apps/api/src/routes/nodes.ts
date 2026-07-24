@@ -143,18 +143,30 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         }),
       };
 
-      const [nodes, total] = await Promise.all([
-        request.tPrisma.edgeNode.findMany({
-          where,
-          orderBy: { [sortBy]: sortOrder },
-          skip: (page - 1) * limit,
-          take: limit,
-          include: {
-            _count: { select: { tasks: true } },
-          },
-        }),
-        request.tPrisma.edgeNode.count({ where }),
-      ]);
+      let nodes: any[] = [];
+      let total = 0;
+
+      try {
+        const [fetchedNodes, fetchedTotal] = await Promise.all([
+          request.tPrisma.edgeNode.findMany({
+            where,
+            orderBy: { [sortBy]: sortOrder },
+            skip: (page - 1) * limit,
+            take: limit,
+            include: {
+              _count: { select: { tasks: true } },
+            },
+          }),
+          request.tPrisma.edgeNode.count({ where }),
+        ]);
+        nodes = fetchedNodes;
+        total = fetchedTotal;
+      } catch (err: any) {
+        request.log.warn(
+          { err, tenantId: request.user?.tenantId },
+          'Failed to list nodes due to database error, returning empty list (DB might be cold starting)'
+        );
+      }
 
       return {
         data: nodes.map(transformNode),
@@ -162,7 +174,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit),
+          totalPages: total > 0 ? Math.ceil(total / limit) : 0,
           hasNext: page * limit < total,
           hasPrev: page > 1,
         },

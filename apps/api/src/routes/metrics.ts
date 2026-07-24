@@ -102,7 +102,32 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
         { err: error, tenantId },
         'Failed to build system metrics due to database error'
       );
-      throw error;
+      // Return graceful empty metrics instead of crashing the endpoint (DB might be cold starting)
+      return {
+        totalNodes: 0,
+        onlineNodes: 0,
+        offlineNodes: 0,
+        degradedNodes: 0,
+        totalTasks: 0,
+        pendingTasks: 0,
+        runningTasks: 0,
+        completedTasks: 0,
+        failedTasks: 0,
+        avgLatency: 0,
+        totalCost: 0,
+        edgeUtilization: 0,
+        cloudUtilization: 0,
+        throughput: 0,
+        healthScore: 0,
+        completionRate: 0,
+        cpuHistory: [],
+        taskDistribution: {
+          edge: 0,
+          cloud: 0,
+        },
+        costOverTime: [],
+        timestamp: new Date().toISOString(),
+      };
     }
   }
 
