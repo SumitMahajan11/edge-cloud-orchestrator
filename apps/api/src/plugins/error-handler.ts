@@ -59,6 +59,10 @@ export const globalErrorHandler = (
         statusCode = 500;
         code = 'DATABASE_ERROR';
         message = 'A database error occurred';
+        details = {
+          prismaCode: prismaError.code,
+          prismaMessage: prismaError.message,
+        };
     }
   }
 
