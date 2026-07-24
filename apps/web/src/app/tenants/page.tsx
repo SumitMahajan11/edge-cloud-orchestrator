@@ -88,17 +88,19 @@ export default function TenantsPage() {
         }
       }
     } catch (error: unknown) {
+      const err = error as any;
+      let msg = "An unexpected error occurred";
+      
       if (isApiClientError(error)) {
-        // We do not have router in this component, so we just set error state
-        setError(error.response.message || "An error occurred");
-      } else {
-        setError(
-          error instanceof Error
-            ? error.message
-            : "An unexpected error occurred",
-        );
-        console.error("Unexpected error in tenants page:", error);
+        msg = err.response?.error?.message || err.response?.message || "An error occurred";
+      } else if (err.body) {
+        msg = err.body.error?.message || err.body.message || err.message || "An error occurred";
+      } else if (error instanceof Error) {
+        msg = error.message;
       }
+      
+      setError(msg);
+      console.error("Unexpected error in tenants page:", error);
     } finally {
       setLoading(false);
     }

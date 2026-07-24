@@ -37,6 +37,7 @@ import { isApiClientError } from "@edgecloud/api-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { CreateWorkflowModal } from "@/components/modals/CreateWorkflowModal";
+import { useTenant } from "@/contexts/TenantContext";
 
 interface Workflow {
   id: string;
@@ -51,6 +52,7 @@ interface Workflow {
 }
 
 export default function WorkflowsPage() {
+  const tenant = useTenant();
   const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, isLoading: loading, error } = useWorkflows();
@@ -103,10 +105,12 @@ export default function WorkflowsPage() {
             <Info className="mr-2 h-4 w-4" />
             Documentation
           </Button>
-          <Button onClick={() => setIsModalOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Workflow
-          </Button>
+          {tenant.isSuperAdmin && (
+            <Button onClick={() => setIsModalOpen(true)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Workflow
+            </Button>
+          )}
         </div>
       </div>
 
@@ -140,10 +144,12 @@ export default function WorkflowsPage() {
                   Create your first DAG-based workflow to start orchestrating
                   tasks efficiently across your edge infrastructure.
                 </p>
-                <Button className="mt-6" onClick={() => setIsModalOpen(true)}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Create Workflow
-                </Button>
+                {tenant.isSuperAdmin && (
+                  <Button className="mt-6" onClick={() => setIsModalOpen(true)}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Create Workflow
+                  </Button>
+                )}
               </CardContent>
             </Card>
           ) : (

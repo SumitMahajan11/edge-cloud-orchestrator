@@ -42,9 +42,10 @@ import { useWebSocketChannel } from "@/lib/websocketClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { CreatePolicyModal } from "@/components/modals/CreatePolicyModal";
 import { toast } from "sonner";
-
+import { useTenant } from "@/contexts/TenantContext";
 
 export default function PoliciesPage() {
+  const tenant = useTenant();
   const [search, setSearch] = useState("");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [editingPolicy, setEditingPolicy] = useState<SchedulingPolicy | null>(null);
@@ -212,15 +213,17 @@ export default function PoliciesPage() {
             Tune scheduler objectives and manage fleet-wide workload placement constraints.
           </p>
         </div>
-        <Button
-          className="gap-2"
-          onClick={() => {
-            setEditingPolicy(null);
-            setIsCreateModalOpen(true);
-          }}
-        >
-          <Plus className="h-4 w-4" /> Create Policy
-        </Button>
+        {tenant.isSuperAdmin && (
+          <Button
+            className="gap-2"
+            onClick={() => {
+              setEditingPolicy(null);
+              setIsCreateModalOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4" /> Create Policy
+          </Button>
+        )}
       </div>
 
       {/* Dynamic Tunable Scheduling Policy Slider Block */}
@@ -349,19 +352,21 @@ export default function PoliciesPage() {
                   <div className="text-xs text-muted-foreground">
                     Active policy: <span className="font-mono font-medium text-teal-400">{policy?.id ?? "pol-default"}</span>
                   </div>
-                  <Button
-                    onClick={handleSavePolicy}
-                    disabled={updatePolicyMutation.isPending}
-                    className="gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 border-0 text-white font-medium"
-                  >
-                    {updatePolicyMutation.isPending ? (
-                      <>
-                        <RefreshCw className="h-4 w-4 animate-spin" /> Saving...
-                      </>
-                    ) : (
-                      "Apply Scheduling Weights"
-                    )}
-                  </Button>
+                  {tenant.isSuperAdmin && (
+                    <Button
+                      onClick={handleSavePolicy}
+                      disabled={updatePolicyMutation.isPending}
+                      className="gap-2 bg-gradient-to-r from-teal-500 to-cyan-500 hover:from-teal-600 hover:to-cyan-600 border-0 text-white font-medium"
+                    >
+                      {updatePolicyMutation.isPending ? (
+                        <>
+                          <RefreshCw className="h-4 w-4 animate-spin" /> Saving...
+                        </>
+                      ) : (
+                        "Apply Scheduling Weights"
+                      )}
+                    </Button>
+                  )}
                 </div>
               </>
             )}
