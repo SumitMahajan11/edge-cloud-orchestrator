@@ -174,12 +174,16 @@ export class AuthService {
 
     // Revoke old access token in Redis
     if (this.redis) {
-      await this.redis.set(
-        `revoked_token:${session.accessTokenJti}`,
-        'revoked',
-        'EX',
-        3600, // 1 hour TTL is enough for 15min access tokens
-      );
+      try {
+        await this.redis.set(
+          `revoked_token:${session.accessTokenJti}`,
+          'revoked',
+          'EX',
+          3600, // 1 hour TTL is enough for 15min access tokens
+        );
+      } catch (err) {
+        // Redis error should not block auth flow
+      }
     }
 
     return newTokens;
@@ -201,12 +205,16 @@ export class AuthService {
       });
 
       if (this.redis) {
-        await this.redis.set(
-          `revoked_token:${session.accessTokenJti}`,
-          'revoked',
-          'EX',
-          3600,
-        );
+        try {
+          await this.redis.set(
+            `revoked_token:${session.accessTokenJti}`,
+            'revoked',
+            'EX',
+            3600,
+          );
+        } catch (err) {
+          // Ignore Redis failure during logout
+        }
       }
     }
   }
@@ -226,16 +234,20 @@ export class AuthService {
     });
 
     if (this.redis && activeSessions.length > 0) {
-      const pipeline = this.redis.pipeline();
-      for (const session of activeSessions) {
-        pipeline.set(
-          `revoked_token:${session.accessTokenJti}`,
-          'revoked',
-          'EX',
-          3600,
-        );
+      try {
+        const pipeline = this.redis.pipeline();
+        for (const session of activeSessions) {
+          pipeline.set(
+            `revoked_token:${session.accessTokenJti}`,
+            'revoked',
+            'EX',
+            3600,
+          );
+        }
+        await pipeline.exec();
+      } catch (err) {
+        // Ignore Redis error
       }
-      await pipeline.exec();
     }
   }
 
@@ -254,12 +266,16 @@ export class AuthService {
       });
 
       if (this.redis) {
-        await this.redis.set(
-          `revoked_token:${session.accessTokenJti}`,
-          'revoked',
-          'EX',
-          3600,
-        );
+        try {
+          await this.redis.set(
+            `revoked_token:${session.accessTokenJti}`,
+            'revoked',
+            'EX',
+            3600,
+          );
+        } catch (err) {
+          // Ignore Redis error
+        }
       }
     }
   }
