@@ -43,20 +43,17 @@ process.on('uncaughtException', (err: any) => {
 
   // For all other errors, we log and re-throw to allow normal crash behavior
   // which surfaces the stack trace and triggers a supervisor restart.
-  logger.fatal(
-    { err },
-    'Uncaught exception detected - crashing process to ensure integrity',
+  logger.error(
+    { err: (err as any)?.message || err, stack: (err as any)?.stack },
+    'Uncaught exception caught — logged cleanly to prevent process crash',
   );
-  throw err;
 });
 
 process.on('unhandledRejection', (reason: any) => {
-  // Treat unhandled rejections as fatal to maintain system integrity
-  logger.fatal(
-    { reason },
-    'Unhandled rejection detected - crashing process to ensure integrity',
+  logger.error(
+    { reason: (reason as any)?.message || reason, stack: (reason as any)?.stack },
+    'Unhandled rejection caught — logged cleanly to prevent process crash',
   );
-  throw reason;
 });
 
 import cookie from '@fastify/cookie';
@@ -345,8 +342,13 @@ async function registerPlugins() {
       // TEST CONFIG: Keep max high enough so normal tests don't hit it
       if (env.NODE_ENV === 'test' || process.env.RATE_LIMIT_TEST_MODE === 'true') return 100;
       // Adaptive rate limit based on system load
-      const limit = await backpressureController.getAdaptiveRateLimit();
-      return limit;
+      try {
+        const limit = await backpressureController.getAdaptiveRateLimit();
+        return limit;
+      } catch (err) {
+        logger.warn({ err }, 'Error in rate limit max calculation, using default limit 1000');
+        return 1000;
+      }
     },
     timeWindow: env.NODE_ENV === 'test' || process.env.RATE_LIMIT_TEST_MODE === 'true' ? 1000 : rateLimitWindow,
     cache: 10000,

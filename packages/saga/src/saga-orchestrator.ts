@@ -212,6 +212,24 @@ export class SagaOrchestrator extends EventEmitter {
   }
 
   /**
+   * Safely emit error event without throwing unhandled EventEmitter exception when no listeners exist
+   */
+  private safeEmitError(event: string, payload: any): void {
+    try {
+      if (this.listenerCount(event) > 0) {
+        this.emit(event, payload);
+      } else {
+        console.warn(
+          `[SagaOrchestrator] Emitted '${event}' event with no listeners:`,
+          payload?.error?.message || payload?.error || payload,
+        );
+      }
+    } catch (err) {
+      console.warn(`[SagaOrchestrator] Error inside '${event}' event listener:`, err);
+    }
+  }
+
+  /**
    * Register a saga definition
    */
   registerSaga<TContext extends Record<string, unknown>>(
@@ -291,7 +309,7 @@ export class SagaOrchestrator extends EventEmitter {
     // Start executing
     this.executeSaga(saga.id).catch((error: any) => {
       console.error(`[Orchestrator] Error executing saga ${saga.id}:`, error);
-      this.emit("error", { sagaId: saga.id, error, phase: "execution" });
+      this.safeEmitError("error", { sagaId: saga.id, error, phase: "execution" });
     });
 
     return saga as SagaInstance;
@@ -532,7 +550,7 @@ export class SagaOrchestrator extends EventEmitter {
       }
     } catch (error: any) {
       console.error(`[Orchestrator] Error executing saga ${sagaId}:`, error);
-      this.emit("error", { sagaId: sagaId, error, phase: "execution" });
+      this.safeEmitError("error", { sagaId: sagaId, error, phase: "execution" });
 
       // Handle compensation on failure
       const saga = await this.prisma.sagaInstance.findUnique({
@@ -627,7 +645,7 @@ export class SagaOrchestrator extends EventEmitter {
     });
 
     if (!saga) {
-      this.emit("error", {
+      this.safeEmitError("error", {
         sagaId,
         error: new Error("Saga not found during compensation"),
       });
@@ -724,7 +742,7 @@ export class SagaOrchestrator extends EventEmitter {
           `[Orchestrator] Critical error in compensation loop for saga ${sagaId}:`,
           err,
         );
-        this.emit("error", { sagaId, error: err });
+        this.safeEmitError("error", { sagaId, error: err });
       } finally {
         if (span && typeof span.end === "function") {
           span.end();
@@ -804,7 +822,7 @@ export class SagaOrchestrator extends EventEmitter {
           sagaType: saga.sagaType,
         });
         this.executeSaga(saga.id).catch((error) => {
-          this.emit("error", { sagaId: saga.id, error, phase: "recovery" });
+          this.safeEmitError("error", { sagaId: saga.id, error, phase: "recovery" });
         });
       }
     } catch (err) {

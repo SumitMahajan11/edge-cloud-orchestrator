@@ -103,6 +103,11 @@ export async function initializeServices(
 
     sagaOrchestrator = new SagaOrchestrator(prisma, {}, redis);
 
+    // Register error handler on sagaOrchestrator EventEmitter to prevent unhandled error crashes
+    sagaOrchestrator.on('error', (errPayload: any) => {
+      logger.warn({ err: errPayload }, '⚠️ SagaOrchestrator background error event');
+    });
+
     // Register task lifecycle saga
     const scheduler = (app as any).taskScheduler;
     const taskSaga = createTaskLifecycleSaga(

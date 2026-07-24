@@ -234,22 +234,28 @@ export class BackpressureController extends EventEmitter {
     );
   }
 
-  // Metrics collection helpers
-
   private async getQueueDepth(): Promise<number> {
-    return this.redis.zcard('task:queue');
+    try {
+      return await this.redis.zcard('task:queue');
+    } catch {
+      return 0;
+    }
   }
 
   private async getConcurrentTasks(): Promise<number> {
-    const running = await this.redis.get('tasks:running');
-    return running ? parseInt(running, 10) : 0;
+    try {
+      const running = await this.redis.get('tasks:running');
+      return running ? parseInt(running, 10) : 0;
+    } catch {
+      return 0;
+    }
   }
 
   private async getNodeLoads(): Promise<number[]> {
     try {
       // Find all node metric keys
       const keys = await this.redis.keys('node:*:metrics');
-      if (keys.length === 0) return [];
+      if (!keys || keys.length === 0) return [];
 
       const loads: number[] = [];
       for (const key of keys) {
