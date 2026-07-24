@@ -123,6 +123,13 @@ export class AuthService {
 
     // REUSE DETECTION: If token is already revoked, it indicates potential theft
     if (session.revoked) {
+      // Add a 30-second grace period to allow concurrent requests (e.g. from multiple tabs)
+      // to not trigger a complete session wipeout.
+      const GRACE_PERIOD_MS = 30 * 1000;
+      if (session.lastUsedAt && (new Date().getTime() - session.lastUsedAt.getTime()) < GRACE_PERIOD_MS) {
+        throw new Error('Concurrent refresh request detected. Request dropped without invalidating all sessions.');
+      }
+
       // Security measure: Invalidate all sessions for this user
       await this.prisma.userSession.updateMany({
         where: { userId: session.userId },

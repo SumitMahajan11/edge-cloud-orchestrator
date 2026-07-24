@@ -70,7 +70,7 @@ async function buildHeaders(init?: HeadersInit, hasBody?: boolean): Promise<Head
 
 let refreshPromise: Promise<boolean> | null = null;
 
-async function refreshAuth(): Promise<boolean> {
+export async function refreshAuth(): Promise<boolean> {
   if (refreshPromise) return refreshPromise;
 
   refreshPromise = (async () => {
@@ -151,8 +151,17 @@ async function customFetch(
 
     if (res.status === 401 && !refreshed) {
       refreshed = true;
+      const originalRt = authStorage.getRefreshToken();
       const ok = await refreshAuth();
       if (ok) continue;
+
+      // Cross-tab concurrency check: if another tab successfully refreshed the token,
+      // the token in storage would be different now. We should retry with the new token.
+      const currentRt = authStorage.getRefreshToken();
+      if (currentRt && currentRt !== originalRt) {
+        continue;
+      }
+
       authStorage.clear();
       if (typeof window !== "undefined") {
         window.dispatchEvent(new Event("auth-unauthorized"));

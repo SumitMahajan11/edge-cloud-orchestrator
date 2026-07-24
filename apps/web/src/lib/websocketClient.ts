@@ -1,5 +1,6 @@
 // WebSocket client for real-time communication with the backend
 import { authStorage } from "./auth-storage";
+import { refreshAuth } from "./api-client";
 
 type MessageHandler = (data: any) => void;
 type ConnectionHandler = () => void;
@@ -29,6 +30,7 @@ class WebSocketClient {
   private errorHandlers: Set<ErrorHandler> = new Set();
   private isConnecting = false;
   private token: string | null = null;
+  private intentionalDisconnect = false;
 
   constructor(url: string) {
     this.url = url;
@@ -118,16 +120,29 @@ class WebSocketClient {
           this.disconnectionHandlers.forEach((handler) => handler());
           if (event.code === 4001) {
             console.warn(
-              "[WebSocket] Connection unauthorized (4001). Clearing token and redirecting to login.",
+              "[WebSocket] Connection unauthorized (4001). Attempting token refresh...",
             );
-            // Clear stale token and signal auth layer — mirrors customFetch 401 behaviour
-            this.token = null;
-            this.reconnectAttempts = 0;
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new Event("auth-unauthorized"));
-            }
-          } else {
+            refreshAuth().then((success) => {
+              if (success) {
+                const newToken = authStorage.getToken();
+                if (newToken) this.setToken(newToken);
+                this.reconnectAttempts = 0;
+                this.scheduleReconnect();
+              } else {
+                // Clear stale token and signal auth layer
+                this.token = null;
+                this.reconnectAttempts = 0;
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new Event("auth-unauthorized"));
+                }
+              }
+            });
+          } else if (!this.intentionalDisconnect) {
             this.scheduleReconnect();
+          }
+
+          if (this.intentionalDisconnect) {
+            this.intentionalDisconnect = false;
           }
         };
       } catch (error) {
@@ -372,6 +387,7 @@ class WebSocketClient {
   }
 
   disconnect() {
+    this.intentionalDisconnect = true;
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
