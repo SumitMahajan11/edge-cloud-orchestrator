@@ -1261,6 +1261,8 @@ export async function init(overrides: any = {}) {
   try {
     await registerPlugins();
 
+    await initializeServices(app, prisma, redis, logger, idempotencyService);
+
     await registerRoutes();
 
     // Initialize monitors/schedulers asynchronously so server port binds immediately
@@ -1275,7 +1277,6 @@ export async function init(overrides: any = {}) {
         consistencyCheckerJob.start();
         metricCleanupJob.start();
 
-        await initializeServices(app, prisma, redis, logger, idempotencyService);
         logger.info('Background monitors and services initialized successfully');
       } catch (bgErr) {
         logger.error(

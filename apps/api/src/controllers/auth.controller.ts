@@ -80,9 +80,9 @@ export class AuthController {
     void reply.setCookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       expires: tokens.expiresAt,
-      path: '/api/auth',
+      path: '/',
     });
 
     return {
@@ -161,9 +161,9 @@ export class AuthController {
     void reply.setCookie('refreshToken', tokens.refreshToken, {
       httpOnly: true,
       secure: env.NODE_ENV === 'production',
-      sameSite: 'strict',
+      sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
       expires: tokens.expiresAt,
-      path: '/api/auth',
+      path: '/',
     });
 
     return reply.status(201).send({
@@ -204,9 +204,9 @@ export class AuthController {
       void reply.setCookie('refreshToken', tokens.refreshToken, {
         httpOnly: true,
         secure: env.NODE_ENV === 'production',
-        sameSite: 'strict',
+        sameSite: env.NODE_ENV === 'production' ? 'none' : 'lax',
         expires: tokens.expiresAt,
-        path: '/api/auth',
+        path: '/',
       });
 
       return {
@@ -233,7 +233,7 @@ export class AuthController {
     if (refreshToken) {
       await this.authService.revokeSession(refreshToken);
     }
-    void reply.clearCookie('refreshToken', { path: '/api/auth' });
+    void reply.clearCookie('refreshToken', { path: '/' });
     return { success: true };
   }
 
