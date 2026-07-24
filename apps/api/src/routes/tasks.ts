@@ -130,21 +130,33 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           : {}),
       };
 
-      const [tasks, total] = await Promise.all([
-        request.tPrisma.task.findMany({
-          where,
-          orderBy: { [sortBy]: sortOrder },
-          skip: (page - 1) * limit,
-          take: limit,
-          include: {
-            node: {
-              select: { id: true, name: true, region: true },
+      let tasks: any[] = [];
+      let total = 0;
+
+      try {
+        const [fetchedTasks, fetchedTotal] = await Promise.all([
+          request.tPrisma.task.findMany({
+            where,
+            orderBy: { [sortBy]: sortOrder },
+            skip: (page - 1) * limit,
+            take: limit,
+            include: {
+              node: {
+                select: { id: true, name: true, region: true },
+              },
+              executions: true,
             },
-            executions: true,
-          },
-        }),
-        request.tPrisma.task.count({ where }),
-      ]);
+          }),
+          request.tPrisma.task.count({ where }),
+        ]);
+        tasks = fetchedTasks;
+        total = fetchedTotal;
+      } catch (err: any) {
+        request.log.warn(
+          { err, tenantId: request.user?.tenantId },
+          'Failed to list tasks due to database error, returning empty list (DB might be cold starting)'
+        );
+      }
 
       return {
         data: tasks.map(transformTask),
@@ -152,7 +164,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           page,
           limit,
           total,
-          totalPages: Math.ceil(total / limit),
+          totalPages: total > 0 ? Math.ceil(total / limit) : 0,
           hasNext: page * limit < total,
           hasPrev: page > 1,
         },
