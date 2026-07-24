@@ -85,14 +85,14 @@ describe('Database Resilience & Observability', () => {
     // Mock the base client model to always fail
     vi.spyOn(basePrisma.user, 'findFirst').mockRejectedValue(error);
 
-    // The threshold is 5 in our implementation
-    for (let i = 0; i < 5; i++) {
+    // The threshold is 25 in our tuned serverless implementation
+    for (let i = 0; i < 25; i++) {
       await expect(app.prisma.user.findFirst()).rejects.toThrow(
         'Database connection lost',
       );
     }
 
-    // The 6th call should be blocked by the circuit breaker
+    // The 26th call should be blocked by the circuit breaker
     await expect(app.prisma.user.findFirst()).rejects.toThrow(
       /Circuit breaker 'database' is OPEN/,
     );

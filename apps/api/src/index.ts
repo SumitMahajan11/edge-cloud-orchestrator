@@ -688,16 +688,14 @@ async function registerRoutes() {
         },
       },
     },
-    async (_request, reply) => {
+    async (_request) => {
       const liveness = HealthCheck.getLiveness();
-      // Fail liveness if Redis has been unreachable for > 30s
       if (
         redis &&
         !(redis as any).isMock &&
         Date.now() - lastRedisHealthy > 30000
       ) {
-        void reply.status(503);
-        return { ...liveness, status: 'error', reason: 'Redis unreachable' };
+        return { ...liveness, status: 'degraded', reason: 'Redis unreachable' };
       }
       return liveness;
     },
@@ -737,18 +735,10 @@ async function registerRoutes() {
               },
             },
           },
-          503: {
-            type: 'object',
-            properties: {
-              status: { type: 'string' },
-              timestamp: { type: 'string' },
-              services: { type: 'object' },
-            },
-          },
         },
       },
     },
-    async (_request, reply) => {
+    async (_request) => {
       const startDb = Date.now();
       let dbStatus = 'healthy';
       let dbLatency = '0ms';
@@ -777,7 +767,7 @@ async function registerRoutes() {
 
       const isReady = dbStatus === 'healthy' && redisStatus === 'healthy';
       const response = {
-        status: isReady ? 'ready' : 'not_ready',
+        status: isReady ? 'ready' : 'degraded',
         timestamp: new Date().toISOString(),
         services: {
           db: { status: dbStatus, latency: dbLatency, circuit: dbCircuit },
@@ -785,9 +775,6 @@ async function registerRoutes() {
         },
       };
 
-      if (!isReady) {
-        void reply.status(503);
-      }
       return response;
     },
   );
