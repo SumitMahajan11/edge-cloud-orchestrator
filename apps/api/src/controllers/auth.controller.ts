@@ -44,10 +44,11 @@ export class AuthController {
           include: { tenantUsers: { take: 1 } },
         }),
         new Promise((_, reject) =>
-          setTimeout(() => reject(new Error('Database timeout')), 8000),
+          setTimeout(() => reject(new Error('Database timeout')), 25000),
         ),
       ]);
-    } catch (dbErr) {
+    } catch (dbErr: any) {
+      request.log.error({ err: dbErr?.message || dbErr }, 'Database error during auth login');
       const err = new Error(
         'Database unavailable or warming up. Please retry shortly.',
       ) as any;

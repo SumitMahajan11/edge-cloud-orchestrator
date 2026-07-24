@@ -32,11 +32,11 @@ export const prismaPlugin = fp(
     const isMock = (options.prisma as any).isMock;
     const dbQueryDuration = getDbQueryDuration();
 
-    // Create Circuit Breaker for DB - scoped to this plugin instance
+    // Create Circuit Breaker for DB - tuned for serverless DB cold starts
     const dbCircuitBreaker = new CircuitBreaker({
       name: 'database',
-      failureThreshold: 5,
-      resetTimeout: 30000, // 30s
+      failureThreshold: 25,
+      resetTimeout: 5000, // 5s reset timeout to recover quickly from cold starts
     });
 
     // 1. Add Scoped Tenant Extension
