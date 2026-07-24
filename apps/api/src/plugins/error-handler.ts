@@ -213,6 +213,20 @@ function getGracefulEmptyResponse(request: FastifyRequest) {
     return { policies: [] };
   }
   
+  if (url.includes('/scheduling/policy')) {
+    return {
+      id: 'fallback',
+      name: `Fallback Policy`,
+      type: 'TUNABLE',
+      config: {
+        costWeight: 0.33,
+        latencyWeight: 0.33,
+        carbonWeight: 0.34,
+      },
+      isActive: true,
+    };
+  }
+
   if (url.includes('/webhooks')) {
     return { webhooks: [] };
   }
