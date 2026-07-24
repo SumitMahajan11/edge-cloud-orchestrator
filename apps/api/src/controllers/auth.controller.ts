@@ -35,10 +35,26 @@ export class AuthController {
     }
 
     // 2. Find user
-    const user = await (request.server as any).prisma.user.findUnique({
-      where: { email },
-      include: { tenantUsers: { take: 1 } },
-    });
+    const prisma = (request.server as any).prisma;
+    let user: any;
+    try {
+      user = await Promise.race([
+        prisma.user.findUnique({
+          where: { email },
+          include: { tenantUsers: { take: 1 } },
+        }),
+        new Promise((_, reject) =>
+          setTimeout(() => reject(new Error('Database timeout')), 8000),
+        ),
+      ]);
+    } catch (dbErr) {
+      const err = new Error(
+        'Database unavailable or warming up. Please retry shortly.',
+      ) as any;
+      err.statusCode = 503;
+      err.code = 'SERVICE_UNAVAILABLE';
+      throw err;
+    }
 
     // 3. Verify user and password
     if (!user || !user.isActive) {
