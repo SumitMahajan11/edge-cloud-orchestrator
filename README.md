@@ -1,4 +1,4 @@
-﻿# Edge-Cloud Compute Orchestrator
+# Edge-Cloud Compute Orchestrator
 
 > A **production-grade distributed edge-cloud orchestration platform** for intelligent task scheduling, real-time execution, and resilient system management.
 
@@ -223,11 +223,13 @@ http://localhost:5173
 
 ---
 
-##  Testing
+## 🧪 Testing
+
+> **Note**: Test commands (`npx vitest run`, `npm test`) must be executed from inside the `edge-cloud-orchestrator` directory (the workspace root) so that `vitest.config.ts` with global test utilities (`describe`, `it`, `expect`, `vi`) is correctly loaded.
 
 ```bash
-# Unit tests
-npm test
+# Run unit tests
+npx vitest run
 
 # Load testing
 k6 run tests/load-test.js
