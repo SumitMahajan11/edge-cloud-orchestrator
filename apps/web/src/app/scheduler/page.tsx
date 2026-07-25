@@ -65,6 +65,15 @@ export default function TaskSchedulerPage() {
   const [search, setSearch] = useState("");
   const [isSubmitTaskModalOpen, setIsSubmitTaskModalOpen] = useState(false);
 
+  const filteredTasks = tasks.filter((task) => {
+    if (!search) return true;
+    const s = search.toLowerCase();
+    return (
+      task.id.toLowerCase().includes(s) ||
+      (task.name || "Anonymous Task").toLowerCase().includes(s) ||
+      task.status.toLowerCase().includes(s)
+    );
+  });
 
   useEffect(() => {
     const error = tasksError || nodesError;
@@ -182,17 +191,17 @@ export default function TaskSchedulerPage() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ) : tasks.length === 0 ? (
+              ) : filteredTasks.length === 0 ? (
                 <TableRow>
                   <TableCell
                     colSpan={6}
                     className="text-center py-10 text-muted-foreground italic"
                   >
-                    No active tasks in the queue.
+                    {search ? "No tasks match your search." : "No active tasks in the queue."}
                   </TableCell>
                 </TableRow>
               ) : (
-                tasks.map((task) => (
+                filteredTasks.map((task) => (
                   <TableRow key={task.id} className="border-border/50 group">
                     <TableCell>
                       <div className="flex flex-col">
