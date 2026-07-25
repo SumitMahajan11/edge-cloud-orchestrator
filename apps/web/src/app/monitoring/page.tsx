@@ -65,6 +65,38 @@ import {
   CircuitBreakerState,
 } from "@/hooks/useCircuitBreakers";
 
+// TODO: replace MOCK_TRACES with real trace API once available
+const MOCK_TRACES = [
+  {
+    id: "tr-4501",
+    op: "POST /v4/tasks",
+    service: "gateway",
+    status: "success",
+    time: "12ms",
+  },
+  {
+    id: "tr-4502",
+    op: "GET /v2/nodes",
+    service: "node-mgr",
+    status: "success",
+    time: "8ms",
+  },
+  {
+    id: "tr-4503",
+    op: "PUT /v1/scheduler",
+    service: "scheduler",
+    status: "error",
+    time: "145ms",
+  },
+  {
+    id: "tr-4504",
+    op: "POST /v4/tasks/execute",
+    service: "agent-x2",
+    status: "success",
+    time: "12ms",
+  },
+];
+
 // Optimized Tabs from shadcn
 const MonitoringTabsList = TabsList;
 const MonitoringTabsTrigger = TabsTrigger;
@@ -107,6 +139,45 @@ export default function MonitoringPage() {
     name: string;
   }>({ open: false, name: "" });
 
+  const filteredBreakers = useMemo(() => {
+    if (!searchQuery) return circuitBreakers;
+    const lower = searchQuery.toLowerCase();
+    return circuitBreakers.filter((b) => b.name.toLowerCase().includes(lower));
+  }, [circuitBreakers, searchQuery]);
+
+  const filteredTraces = useMemo(() => {
+    if (!searchQuery) return MOCK_TRACES;
+    const lower = searchQuery.toLowerCase();
+    return MOCK_TRACES.filter(
+      (t) =>
+        t.id.toLowerCase().includes(lower) ||
+        t.op.toLowerCase().includes(lower) ||
+        t.service.toLowerCase().includes(lower)
+    );
+  }, [searchQuery]);
+
+  const handleDownload = () => {
+    try {
+      const dataStr = JSON.stringify(
+        { metrics, nodes, circuitBreakers, drift, stats },
+        null,
+        2
+      );
+      const blob = new Blob([dataStr], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `monitoring-export-${new Date().toISOString()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast.success("Monitoring data exported successfully");
+    } catch (e) {
+      toast.error("Failed to export monitoring data");
+    }
+  };
+
   useEffect(() => {
     const error = metricsError || nodesError;
     if (error) {
@@ -144,10 +215,7 @@ export default function MonitoringPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button variant="outline" size="icon">
-            <Filter className="h-4 w-4" />
-          </Button>
-          <Button variant="outline" size="icon">
+          <Button variant="outline" size="icon" onClick={handleDownload} title="Download Report">
             <Download className="h-4 w-4" />
           </Button>
         </div>
@@ -768,7 +836,7 @@ export default function MonitoringPage() {
           </div>
 
           <div className="grid gap-4">
-            {circuitBreakers.length === 0 && !isResilienceLoading && (
+            {filteredBreakers.length === 0 && !isResilienceLoading && (
               <div className="py-12 text-center border border-dashed rounded-lg">
                 <ShieldAlert className="h-8 w-8 text-muted-foreground mx-auto mb-2 opacity-50" />
                 <p className="text-muted-foreground">
@@ -777,7 +845,7 @@ export default function MonitoringPage() {
               </div>
             )}
 
-            {circuitBreakers.map((breaker) => (
+            {filteredBreakers.map((breaker) => (
               <CircuitBreakerCard
                 key={breaker.name}
                 breaker={breaker}
@@ -844,67 +912,44 @@ export default function MonitoringPage() {
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                {[
-                  {
-                    id: "tr-4501",
-                    op: "POST /v4/tasks",
-                    service: "gateway",
-                    status: "success",
-                    time: "12ms",
-                  },
-                  {
-                    id: "tr-4502",
-                    op: "GET /v2/nodes",
-                    service: "node-mgr",
-                    status: "success",
-                    time: "8ms",
-                  },
-                  {
-                    id: "tr-4503",
-                    op: "PUT /v1/scheduler",
-                    service: "scheduler",
-                    status: "error",
-                    time: "145ms",
-                  },
-                  {
-                    id: "tr-4504",
-                    op: "POST /v4/tasks/execute",
-                    service: "agent-x2",
-                    status: "success",
-                    time: "12ms",
-                  },
-                ].map((trace) => (
-                  <div
-                    key={trace.id}
-                    className="flex items-center justify-between p-3 rounded-md border border-border/50 bg-background/30 hover:bg-background/50 transition-colors cursor-pointer"
-                  >
-                    <div className="flex items-center gap-3">
-                      <History className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <span className="font-mono text-xs text-teal-400 mr-2">
-                          {trace.id}
+                {filteredTraces.length === 0 ? (
+                  <div className="py-8 text-center text-muted-foreground border border-dashed rounded-lg">
+                    No traces match your search.
+                  </div>
+                ) : (
+                  filteredTraces.map((trace) => (
+                    <div
+                      key={trace.id}
+                      className="flex items-center justify-between p-3 rounded-md border border-border/50 bg-background/30 hover:bg-background/50 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-center gap-3">
+                        <History className="h-4 w-4 text-muted-foreground" />
+                        <div>
+                          <span className="font-mono text-xs text-teal-400 mr-2">
+                            {trace.id}
+                          </span>
+                          <span className="text-sm font-medium">{trace.op}</span>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] uppercase"
+                        >
+                          {trace.service}
+                        </Badge>
+                        <span className="text-xs text-muted-foreground">
+                          {trace.time}
                         </span>
-                        <span className="text-sm font-medium">{trace.op}</span>
+                        {trace.status === "success" ? (
+                          <CheckCircle2 className="h-4 w-4 text-emerald-400" />
+                        ) : (
+                          <AlertTriangle className="h-4 w-4 text-rose-400" />
+                        )}
                       </div>
                     </div>
-                    <div className="flex items-center gap-4">
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] uppercase"
-                      >
-                        {trace.service}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {trace.time}
-                      </span>
-                      {trace.status === "success" ? (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-400" />
-                      ) : (
-                        <AlertTriangle className="h-4 w-4 text-rose-400" />
-                      )}
-                    </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
               <Button variant="link" className="w-full mt-4 text-teal-400">
                 View in Jaeger →
