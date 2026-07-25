@@ -164,9 +164,6 @@ export default function TaskSchedulerPage() {
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <Button variant="outline" size="sm">
-                <Filter className="h-4 w-4" />
-              </Button>
             </div>
           </div>
         </CardHeader>
