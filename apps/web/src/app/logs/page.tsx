@@ -18,6 +18,7 @@ import {
   Terminal,
   Trash2} from 'lucide-react'
 import { useMemo,useState } from 'react'
+import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -40,10 +41,38 @@ export default function LogsPage() {
   const [level, setLevel] = useState<LogLevel>('all')
   const [isPaused, setIsPaused] = useState(false)
   const [autoScroll, setAutoScroll] = useState(true)
+  const [clearedAt, setClearedAt] = useState<Date | null>(null)
+
+  const handleExport = () => {
+    try {
+      const dataStr = JSON.stringify(logs, null, 2)
+      const blob = new Blob([dataStr], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `logs-export-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.json`
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+      URL.revokeObjectURL(url)
+      toast.success("Logs exported successfully")
+    } catch (e) {
+      toast.error("Failed to export logs")
+    }
+  }
+
+  const handleClear = () => {
+    setClearedAt(new Date())
+    toast.success("Logs cleared locally")
+  }
 
   const filteredLogs = useMemo(() => {
     let result = logs
     
+    if (clearedAt) {
+      result = result.filter(l => new Date(l.timestamp) > clearedAt)
+    }
+
     if (level !== 'all') {
       result = result.filter((l) => l.level === level)
     }
@@ -68,7 +97,7 @@ export default function LogsPage() {
       }
     })
     return counts
-  }, [logs])
+  }, [logs, clearedAt])
 
   return (
     <div className="flex flex-col h-[calc(100vh-10rem)] space-y-4">
@@ -82,10 +111,10 @@ export default function LogsPage() {
             {isPaused ? <Play className="h-4 w-4 mr-2" /> : <Pause className="h-4 w-4 mr-2" />}
             {isPaused ? 'Resume' : 'Pause'}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExport}>
             <Download className="h-4 w-4 mr-2" /> Export
           </Button>
-          <Button variant="outline" size="sm" className="text-rose-400 hover:text-rose-300">
+          <Button variant="outline" size="sm" className="text-rose-400 hover:text-rose-300" onClick={handleClear}>
             <Trash2 className="h-4 w-4 mr-2" /> Clear
           </Button>
         </div>
