@@ -50,7 +50,7 @@
     "@peculiar/x509": "^2.0.0",
     "@prisma/client": "^5.22.0",
     "@types/jsonwebtoken": "^9.0.10",
-    "axios": "^1.16.0",
+    "axios": "^1.18.1",
     "bcryptjs": "^2.4.3",
     "dotenv": "^16.4.5",
     "eventemitter3": "^5.0.0",
