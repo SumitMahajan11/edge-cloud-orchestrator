@@ -10,6 +10,7 @@ const routeLabels: Record<string, string> = {
   "/monitoring": "Monitoring",
   "/logs": "Logs",
   "/policies": "Policies",
+  "/workflows": "Workflows",
   "/webhooks": "Webhooks",
   "/ml-intelligence": "ML Intelligence",
   "/alerts": "Alerts",
