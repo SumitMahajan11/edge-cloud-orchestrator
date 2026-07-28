@@ -333,6 +333,8 @@ async function registerPlugins() {
       'x-request-id',
       'Accept',
       'Origin',
+      'traceparent',
+      'tracestate',
     ],
   });
 

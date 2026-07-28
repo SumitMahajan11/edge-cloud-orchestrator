@@ -1,29 +1,28 @@
-CARBON SHIFT EFFECTIVENESS trial results
-===========================================
-Date: 2026-06-22T19:06:19.068Z
-Total Tasks Processed: 10
-Deferred Tasks Count: 5
+CARBON SHIFT EFFECTIVENESS empirical benchmark results
+=========================================================
+Date: 2026-07-28T11:46:37.208Z
+Total Tasks Processed: 1000
+Deferred Tasks Count: 416
 
 Metrics Summary:
-- Total Carbon Emitted (gCO2eq): 91.0000
-- Baseline Carbon Emitted (gCO2eq): 124.3333
-- Total Carbon Saved (gCO2eq): 33.3333
-- Total Duration (ms): 12000000
+- Total Carbon Emitted (gCO2eq): 37173.8242
+- Baseline Carbon Emitted (gCO2eq): 41963.3617
+- Total Carbon Saved (gCO2eq): 4789.5375 (4.7895 kg)
+- Carbon Reduction Percentage: 11.41%
 
-Workload Details:
-- Task: 1a8077b5-8e19-4491-9385-83823a96e43d, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 1.0000, Saved: 0.0000, Deferred: NO
-- Task: d51bc8eb-ad7f-45c0-abbb-9dda9a1e6123, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
-- Task: 91a97f61-c12b-408d-8765-ace9f1d775b9, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
-- Task: 1cf24bde-280b-4d9f-9114-75d64b9f40b7, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
-- Task: 7db89c7c-ead6-43d6-a49a-1f75f6b7c6cd, Type: CUSTOM, Region: asia-east, Node: 36210cb5-6900-4024-a6a8-3d115324ba1f, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
-- Task: 117b4e34-c0e3-4866-ba98-e2e182e49cb2, Type: CUSTOM, Region: asia-east, Node: 77206f8b-4682-4454-bdcb-d2571ca19587, Emitted: 10.0000, Saved: 0.0000, Deferred: NO
-- Task: bbc33fbe-f858-4cf1-af06-11c4bc5d3698, Type: CUSTOM, Region: eu-central, Node: 55739c85-edd9-4d18-b5a2-cafb890249c5, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
-- Task: 9521faf4-9f51-4bea-ab53-e24463c5736c, Type: CUSTOM, Region: us-west, Node: ddcdca48-3a63-4710-9f26-a7f952087111, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
-- Task: b3f41e28-9203-4c87-8136-32f706f0b681, Type: CUSTOM, Region: asia-east, Node: 36210cb5-6900-4024-a6a8-3d115324ba1f, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
-- Task: dcf78463-4fdb-4671-9d3d-e0f67ff09971, Type: CUSTOM, Region: eu-central, Node: 605332d8-89a2-49f9-98cf-43efad1c21c3, Emitted: 10.0000, Saved: 6.6667, Deferred: YES
+Workload Breakdown (First 10 Sample Tasks):
+- Task: task-0001, Type: BATCH, Region: US-WEST, SubmitHour: 7:00, ScheduledHour: 12:00, BaselineEmitted: 49.80g, ScheduledEmitted: 37.80g, Saved: 12.00g, Deferred: YES
+- Task: task-0002, Type: DATA_PROC, Region: US-EAST, SubmitHour: 14:00, ScheduledHour: 14:00, BaselineEmitted: 58.31g, ScheduledEmitted: 58.31g, Saved: 0.00g, Deferred: NO
+- Task: task-0003, Type: CUSTOM, Region: AP-SG, SubmitHour: 21:00, ScheduledHour: 21:00, BaselineEmitted: 36.36g, ScheduledEmitted: 36.36g, Saved: 0.00g, Deferred: NO
+- Task: task-0004, Type: INFERENCE, Region: EU-FR, SubmitHour: 4:00, ScheduledHour: 4:00, BaselineEmitted: 0.57g, ScheduledEmitted: 0.57g, Saved: 0.00g, Deferred: NO
+- Task: task-0005, Type: BATCH, Region: EU-DE, SubmitHour: 11:00, ScheduledHour: 12:00, BaselineEmitted: 74.70g, ScheduledEmitted: 73.50g, Saved: 1.20g, Deferred: YES
+- Task: task-0006, Type: DATA_PROC, Region: US-WEST, SubmitHour: 18:00, ScheduledHour: 18:00, BaselineEmitted: 33.75g, ScheduledEmitted: 33.75g, Saved: 0.00g, Deferred: NO
+- Task: task-0007, Type: CUSTOM, Region: US-EAST, SubmitHour: 1:00, ScheduledHour: 3:00, BaselineEmitted: 32.52g, ScheduledEmitted: 30.54g, Saved: 1.98g, Deferred: YES
+- Task: task-0008, Type: INFERENCE, Region: AP-SG, SubmitHour: 8:00, ScheduledHour: 8:00, BaselineEmitted: 3.54g, ScheduledEmitted: 3.54g, Saved: 0.00g, Deferred: NO
+- Task: task-0009, Type: BATCH, Region: EU-FR, SubmitHour: 15:00, ScheduledHour: 15:00, BaselineEmitted: 14.10g, ScheduledEmitted: 14.10g, Saved: 0.00g, Deferred: NO
+- Task: task-0010, Type: DATA_PROC, Region: EU-DE, SubmitHour: 22:00, ScheduledHour: 22:00, BaselineEmitted: 82.69g, ScheduledEmitted: 82.69g, Saved: 0.00g, Deferred: NO
 
 Analysis:
-Baseline tasks emitted carbon at full load without delay.
-Carbon-aware tasks were successfully delayed to periods of lower carbon intensity (from 500 gCO2eq/kWh at submission to 300 gCO2eq/kWh at execution).
-Average carbon savings per deferred task: 6.6667 gCO2eq.
-This validates the carbon-aware scheduling policy efficacy.
+Baseline tasks emitted carbon immediately upon submission.
+Carbon-aware tasks were delayed to windows of lower grid carbon intensity based on regional diurnal forecasts.
+Empirical trial confirms 11.41% total carbon reduction across 1,000 tasks.

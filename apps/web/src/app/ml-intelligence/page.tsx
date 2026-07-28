@@ -140,17 +140,19 @@ export default function MLIntelligencePage() {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold ${drift?.isDrifting ? "text-rose-400 animate-pulse" : "text-teal-400"}`}>
-              {isMlLoading ? "..." : drift?.driftScore?.toFixed(3) || "0.042"}
+              {isMlLoading ? "..." : typeof drift?.driftScore === "number" ? drift.driftScore.toFixed(3) : "No data yet"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               {drift?.isDrifting
                 ? "WARNING: Drift threshold (0.1) exceeded!"
-                : "Nominal status (below 0.1 threshold)"}
+                : typeof drift?.driftScore === "number"
+                ? "Nominal status (below 0.1 threshold)"
+                : "No live drift telemetry"}
             </p>
             <div className="mt-3 w-full bg-secondary h-1.5 rounded-full overflow-hidden">
               <div
                 className={`h-full transition-all duration-500 ${drift?.isDrifting ? "bg-rose-500" : "bg-teal-500"}`}
-                style={{ width: `${Math.min((drift?.driftScore || 0.042) * 500, 100)}%` }}
+                style={{ width: `${Math.min((drift?.driftScore || 0) * 500, 100)}%` }}
               />
             </div>
           </CardContent>
@@ -166,10 +168,10 @@ export default function MLIntelligencePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-teal-400">
-              {isMlLoading ? "..." : `${((model?.accuracy || 0.945) * 100).toFixed(1)}%`}
+              {isMlLoading ? "..." : typeof model?.accuracy === "number" ? `${(model.accuracy * 100).toFixed(1)}%` : "N/A — no data"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Target optimization accuracy over last 500 samples
+              Target optimization accuracy over last trained model
             </p>
           </CardContent>
         </Card>
@@ -184,7 +186,7 @@ export default function MLIntelligencePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-purple-400">
-              {isMlLoading ? "..." : `${((stats?.banditExplorationRate || 0.1) * 100).toFixed(0)}%`}
+              {isMlLoading ? "..." : typeof stats?.banditExplorationRate === "number" ? `${(stats.banditExplorationRate * 100).toFixed(0)}%` : "0%"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Resource routing explore-exploit ratio
@@ -202,7 +204,7 @@ export default function MLIntelligencePage() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-blue-400">
-              {isMlLoading ? "..." : `${stats?.outcomesBuffered || 342} / 500`}
+              {isMlLoading ? "..." : typeof stats?.outcomesBuffered === "number" ? `${stats.outcomesBuffered} / 500` : "0 / 500"}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
               Required points for next autonomous update

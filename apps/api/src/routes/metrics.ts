@@ -206,11 +206,26 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
         }),
       ]);
 
+      let avgAccuracy: number | null = null;
+      try {
+        const fs = await import('fs');
+        const path = await import('path');
+        const metaPath = path.join(process.cwd(), 'models', 'model_metadata.json');
+        if (fs.existsSync(metaPath)) {
+          const meta = JSON.parse(fs.readFileSync(metaPath, 'utf-8'));
+          if (typeof meta.accuracy === 'number') {
+            avgAccuracy = meta.accuracy;
+          }
+        }
+      } catch {
+        // Fallback remains null if model_metadata.json doesn't exist
+      }
+
       return {
         activeModels,
         trainingJobs,
-        avgAccuracy: 0.94,
-        totalPredictions: 12500,
+        avgAccuracy,
+        totalPredictions: 0,
       };
     },
   );

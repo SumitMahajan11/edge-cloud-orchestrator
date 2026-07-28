@@ -130,3 +130,33 @@ run_bandit_benchmark.ps1
 tests/tmp/
 actual_paths.json
 expected_paths.json
+
+# One-off diagnostic scripts & session artifacts
+scripts/test_*.ts
+scripts/test-*.ts
+scripts/debug_*.ts
+scripts/debug-*.ts
+scripts/diagnose_*.ts
+scripts/diagnose-*.ts
+scripts/check_*.ts
+scripts/check-*.ts
+scripts/verify_*.ts
+scripts/verify-*.ts
+scripts/inspect_*.ts
+scripts/inspect-*.ts
+scripts/analyze_*.ts
+scripts/analyze-*.ts
+scripts/list_*.ts
+scripts/list-*.ts
+scripts/run-ui-audit.js
+scripts/run_e2e_verification.ts
+apps/api/*.js
+
+# Session output directories & generated files
+artifacts/
+data/
+e2e_audit/
+ui-audit-output/
+models/latest.json
+models/train_output.txt
+
