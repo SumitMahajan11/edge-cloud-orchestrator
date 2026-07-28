@@ -150,7 +150,9 @@ scripts/list_*.ts
 scripts/list-*.ts
 scripts/run-ui-audit.js
 scripts/run_e2e_verification.ts
-apps/api/*.js
+apps/api/fetch-row-counts.js
+apps/api/migrate-db.js
+apps/api/test-neon-connection.js
 
 # Session output directories & generated files
 artifacts/

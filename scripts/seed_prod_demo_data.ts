@@ -1,6 +1,11 @@
-const API_BASE_URL = 'https://edge-cloud-orchestrator-production.up.railway.app';
-const ADMIN_EMAIL = 'admin@demo-org.com';
-const ADMIN_PASSWORD = 'Admin123!';
+const API_BASE_URL = process.env.API_BASE_URL || 'https://edge-cloud-orchestrator-production.up.railway.app';
+const ADMIN_EMAIL = process.env.SEED_ADMIN_EMAIL;
+const ADMIN_PASSWORD = process.env.SEED_ADMIN_PASSWORD;
+
+if (!ADMIN_EMAIL || !ADMIN_PASSWORD) {
+  console.error('Error: SEED_ADMIN_EMAIL and SEED_ADMIN_PASSWORD environment variables are required.');
+  process.exit(1);
+}
 
 async function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
