@@ -68,18 +68,21 @@ export function CarbonSummaryWidget() {
     );
   }
 
-  const summary = data?.summary || {
-    totalGco2eq: 0,
-    totalBaselineGco2eq: 0,
-    totalSavedGco2eq: 0,
-    totalDurationMs: 0,
-    totalTasks: 0,
-    deferredTasks: 0,
+  const summary = {
+    totalGco2eq: data?.summary?.totalGco2eq ?? 0,
+    totalBaselineGco2eq: data?.summary?.totalBaselineGco2eq ?? 0,
+    totalSavedGco2eq: data?.summary?.totalSavedGco2eq ?? 0,
+    totalDurationMs: data?.summary?.totalDurationMs ?? 0,
+    totalTasks: data?.summary?.totalTasks ?? 0,
+    deferredTasks: data?.summary?.deferredTasks ?? 0,
   };
 
   const workloads = Object.entries(data?.breakdown || {}).map(([type, stats]: [string, any]) => ({
     type,
-    ...stats,
+    taskCount: stats?.taskCount ?? 0,
+    totalDurationMs: stats?.totalDurationMs ?? 0,
+    totalGco2eq: stats?.totalGco2eq ?? 0,
+    totalSavedGco2eq: stats?.totalSavedGco2eq ?? 0,
   }));
 
   const savingsPct = summary.totalBaselineGco2eq > 0

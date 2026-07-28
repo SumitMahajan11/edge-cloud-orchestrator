@@ -26,6 +26,19 @@ This file contains mandatory instructions for any AI assistant or agent working 
 
 - **Rule**: Never state a CVE/GHSA ID, changelog claim, or compatibility fact without it coming from an actual retrieved source in this session. If a specific advisory or version-pairing claim can't be found, say 'no specific advisory/pairing found' — do not produce a plausible-looking ID or number. Fabricating a citation is a more serious violation than admitting you don't know.
 
+## 6. Anti-Fabrication Rule
+
+1. Never report something as "confirmed," "verified," or "working" unless it was actually tested — reading code and assuming it works is not the same as testing it. State clearly which one you did.
+2. Always distinguish between:
+   - "Confirmed via direct test/query" — you observed it happen.
+   - "Inferred from code inspection" — you read the code and believe this is what it does, but didn't run it.
+   - "Not confirmed / unknown" — you don't have evidence either way.
+   Never upgrade an inferred or unknown claim to "confirmed" without actually testing it.
+3. If a test used mocked data, fake credentials, or a local/non-production environment, say so explicitly in the result — don't present it as equivalent to testing the real thing.
+4. If you can't access something needed to verify a claim (a production database, a credential, a service that's offline), say exactly what's missing and stop — don't work around it by testing a substitute and reporting it as if it answered the original question.
+5. If you find evidence that contradicts an earlier claim (yours or the user's), report the contradiction directly. Do not quietly soften it, bury it, or omit it to keep the report looking clean.
+6. When uncertain, say "unknown" or "unconfirmed" rather than guessing an explanation that sounds plausible.
+
 ---
 
 _Authorized by USER on July 19, 2026_

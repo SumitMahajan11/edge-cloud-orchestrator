@@ -146,13 +146,16 @@ export function AddNodeModal({ isOpen, onClose, onSubmit }: AddNodeModalProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+        <motion.div
+          key="add-node-modal-wrapper"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50"
+        >
+          <div
             onClick={handleClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
           />
 
           <motion.div
@@ -467,7 +470,7 @@ export function AddNodeModal({ isOpen, onClose, onSubmit }: AddNodeModalProps) {
               </form>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

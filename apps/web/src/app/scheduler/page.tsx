@@ -52,6 +52,7 @@ import { isApiClientError } from "@edgecloud/api-client";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { SubmitTaskModal } from "@/components/modals/SubmitTaskModal";
+import { CreatePolicyModal } from "@/components/modals/CreatePolicyModal";
 
 
 export default function TaskSchedulerPage() {
@@ -64,6 +65,7 @@ export default function TaskSchedulerPage() {
   const { data: nodes = [], error: nodesError } = useNodes();
   const [search, setSearch] = useState("");
   const [isSubmitTaskModalOpen, setIsSubmitTaskModalOpen] = useState(false);
+  const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
   const filteredTasks = tasks.filter((task) => {
     if (!search) return true;
@@ -109,7 +111,7 @@ export default function TaskSchedulerPage() {
           </p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => setIsPolicyModalOpen(true)}>
             <Settings className="h-4 w-4" /> Global Config
           </Button>
           <Button className="gap-2" onClick={() => setIsSubmitTaskModalOpen(true)}>
@@ -300,6 +302,10 @@ export default function TaskSchedulerPage() {
       <SubmitTaskModal
         isOpen={isSubmitTaskModalOpen}
         onClose={() => setIsSubmitTaskModalOpen(false)}
+      />
+      <CreatePolicyModal
+        isOpen={isPolicyModalOpen}
+        onClose={() => setIsPolicyModalOpen(false)}
       />
     </div>
   );

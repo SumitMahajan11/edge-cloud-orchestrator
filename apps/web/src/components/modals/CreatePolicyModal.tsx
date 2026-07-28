@@ -15,7 +15,7 @@ import { SchedulingPolicy } from "@/hooks/usePolicies";
 interface CreatePolicyModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (data: any) => void;
+  onSubmit?: (data: any) => void;
   initialData?: SchedulingPolicy | null;
 }
 
@@ -64,7 +64,7 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit, initialData }: Cr
       config = { maxCostUSD: Number(formData.maxCostUSD) };
     }
 
-    onSubmit({
+    onSubmit?.({
       id: initialData?.id,
       name: formData.name,
       type: formData.type,
@@ -90,13 +90,16 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit, initialData }: Cr
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+        <motion.div
+          key="create-policy-modal-wrapper"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-50"
+        >
+          <div
             onClick={handleClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-50"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
           />
 
           <motion.div
@@ -249,7 +252,7 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit, initialData }: Cr
               </form>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );

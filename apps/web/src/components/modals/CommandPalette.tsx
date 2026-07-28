@@ -224,13 +224,16 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+        <motion.div
+          key="command-palette-modal"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[100]"
+        >
+          <div
             onClick={onClose}
-            className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[100]"
+            className="fixed inset-0 bg-background/80 backdrop-blur-sm"
           />
 
           <motion.div
@@ -343,7 +346,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
               </div>
             </div>
           </motion.div>
-        </>
+        </motion.div>
       )}
     </AnimatePresence>
   );
