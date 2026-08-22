@@ -10,29 +10,52 @@ The **Edge-Cloud Compute Orchestrator** is a production-grade distributed edge-c
 ## Architecture
 
 ```
-                ┌──────────────────────────┐
-                │     Frontend (React)     │
-                └──────────┬───────────────┘
-                           │
-                    API Gateway (Kong/Nginx)
-                           │
-        ┌──────────────────┼──────────────────┐
-        │                  │                  │
-   Task Service     Scheduler Service    Node Service
-        │                  │                  │
-        └─────────── Kafka Event Bus ─────────┘
-                           │
-                    Distributed Workers
-                           │
-                    Edge Nodes / Cloud
+            ┌──────────────────────────┐
+            │     Frontend (React)     │
+            └──────────┬───────────────┘
+                       │
+                API Gateway (Kong/Nginx)
+                       │
+    ┌──────────────────┼──────────────────┐
+    │                  │                  │
+Task Service Scheduler Service Node Service
+│ │ │
+└─────────── Kafka Event Bus ─────────┘
+│
+Distributed Workers
+│
+Edge Nodes / Cloud
 ```
 
-## Empirical Benchmarks
+## Key Features
 
-| Metric / Benchmark | Empirical Result | Source File | Last Verified |
-| --- | --- | --- | --- |
-| **Carbon Shift Efficiency** | 11.41% carbon reduction (4.79 kg CO2 saved across 1,000 tasks, 416 deferred) | [`data/carbon_benchmark_results.json`](data/carbon_benchmark_results.json) | 2026-07-28 |
-| **Scheduling Load & Latency** | 366,387.6 RPS throughput, 0.008 ms P95 latency (2,000 tasks, 100% success rate) | [`data/load_test_results.json`](data/load_test_results.json) | 2026-07-28 |
+**Reliability & Fault Tolerance**
+- Saga pattern for distributed transactions
+- Transactional Outbox pattern
+- Circuit breaker + retry strategies
+- Dead letter queue (DLQ)
+
+**Intelligent Scheduling**
+- Multi-objective scoring (latency, CPU, cost, memory)
+- ML/heuristic-based predictive scheduling
+- Load-aware and cost-aware routing
+
+**System Resilience**
+- Auto-healing system
+- Backpressure control
+- Graceful degradation
+- Recovery storm prevention
+
+## Workflow
+
+1. User submits task
+2. API Gateway routes request
+3. Task Service stores request
+4. Outbox publishes event → Kafka
+5. Scheduler selects optimal node
+6. Node executes task (Docker container)
+7. Metrics + logs collected
+8. Result returned to user
 
 ## Tech Stack
 
@@ -42,6 +65,27 @@ The **Edge-Cloud Compute Orchestrator** is a production-grade distributed edge-c
 - **Database & Storage**: PostgreSQL (Prisma ORM, PgBouncer; CockroachDB compatible)
 - **Infrastructure & Orchestration**: Docker, Docker Compose, Kong / Nginx API Gateway
 - **Observability & Security**: Prometheus, Grafana, Jaeger (Distributed Tracing), mTLS (X.509 CA & RSA CSR; dev-mode default: bypassed via `x-node-id`), HashiCorp Vault (PKI & KV v2; dev-mode default: bypassed via `EnvSecretManager`)
+
+## Testing
+
+> Test commands (`npm vitest run`, `npm test`) must be run from inside the `edge-cloud-orchestrator` directory (the workspace root) so `vitest.config.ts` and global test utilities load correctly.
+
+```bash
+# Run unit tests
+npm vitest run
+
+# Load testing & empirical benchmarks
+npx tsx scripts/system-load-benchmark.ts
+npx tsx scripts/carbon-benchmark.ts
+npx tsx scripts/fl-simulator.ts 5
+```
+
+## Empirical Benchmarks
+
+| Metric / Benchmark | Empirical Result | Source File | Last Verified |
+| --- | --- | --- | --- |
+| **Carbon Shift Efficiency** | 11.41% carbon reduction (4.79 kg CO2 saved across 1,000 tasks, 416 deferred) | [`data/carbon_benchmark_results.json`](data/carbon_benchmark_results.json) | 2026-07-28 |
+| **Scheduling Load & Latency** | 366,387.6 RPS throughput, 0.008 ms P95 latency (2,000 tasks, 100% success rate) | [`data/load_test_results.json`](data/load_test_results.json) | 2026-07-28 |
 
 ## Quickstart
 
