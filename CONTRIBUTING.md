@@ -127,6 +127,39 @@ Before a Pull Request can be merged into `main`, it must satisfy the following:
 
 ---
 
+## 🚀 GitHub Standard Development (GSD) Workflow
+
+This project follows **GitHub Standard Development (GSD)** practices for consistent, high-quality code delivery.
+
+### Quick Commands
+
+```bash
+# Setup GSD workflow
+pnpm gsd:setup
+
+# Run quality checks
+pnpm gsd:check
+
+# Auto-fix issues
+pnpm gsd:fix
+```
+
+### Development Workflow & Quality Gates
+
+1. **Pre-commit**: Automatic linting, formatting, and type checking
+2. **CI/CD**: Comprehensive quality gates and security checks
+3. **Code Review**: Required for all changes to main branches
+
+### Quality Standards Checklist
+
+- ✅ **Linting**: ESLint with TypeScript support
+- ✅ **Formatting**: Prettier for consistent style
+- ✅ **Type Safety**: Strict TypeScript configuration
+- ✅ **Testing**: 80%+ code coverage required
+- ✅ **Security**: Automated dependency auditing
+
+---
+
 ## 🔒 Security Scanning & Secret Prevention
 
 Our CI/CD pipeline automatically executes the following tools on every commit:
@@ -140,3 +173,4 @@ Our CI/CD pipeline automatically executes the following tools on every commit:
 - `coverage/` or test output artifacts.
 - Build target outputs (`dist/`, `target/`, `target_clippy/`).
 - Temporary files, log files (`*.log`), or personal scratch files.
+
