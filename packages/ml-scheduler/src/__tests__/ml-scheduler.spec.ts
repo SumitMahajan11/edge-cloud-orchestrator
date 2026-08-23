@@ -1,3 +1,4 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { MLScheduler } from "../ml-scheduler";
 import {
   createMockNode,
@@ -40,6 +41,7 @@ describe("MLScheduler Fallback Logic", () => {
     network: 0.1,
     ml: 0.1,
     health: 0,
+    carbon: 0,
   };
 
   beforeEach(() => {
@@ -68,8 +70,7 @@ describe("MLScheduler Fallback Logic", () => {
     const task = createMockTask();
 
     // Mock rankNodes to never resolve or at least take a long time
-    const rankNodesMock = vi
-      .spyOn((scheduler as any).scorer, "rankNodes")
+    vi.spyOn((scheduler as any).scorer, "rankNodes")
       .mockImplementation(() => {
         return new Promise((resolve) => {
           setTimeout(

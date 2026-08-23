@@ -1,4 +1,4 @@
-import { FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyReply, FastifyRequest } from "fastify";
 import {
   collectDefaultMetrics,
   Counter,
@@ -95,7 +95,7 @@ export function registerMetrics() {
 
 // Metrics endpoint handler
 export async function metricsEndpoint(
-  request: FastifyRequest,
+  _request: FastifyRequest,
   reply: FastifyReply,
 ) {
   void reply.type("text/plain");

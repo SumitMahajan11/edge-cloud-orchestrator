@@ -1,12 +1,13 @@
-import { MultiObjectiveScorer, ScoreWeights } from "../scoring";
+import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
+import { MultiObjectiveScorer, type ScoreWeights } from "../scoring";
 import { SchedulingPredictor } from "../predictor";
-import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import type { EdgeNode, Task } from "@edgecloud/shared-kernel";
 
 vi.mock("../predictor");
 
 describe("MultiObjectiveScorer", () => {
   let scorer: MultiObjectiveScorer;
-  let predictor: vi.Mocked<SchedulingPredictor>;
+  let predictor: Mocked<SchedulingPredictor>;
 
   const mockTask: Task = {
     id: "task-1",

@@ -1,6 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import Redis from "ioredis";
-import { createLogger, IMetricsCollector } from "@edgecloud/shared-kernel";
+import { createLogger, type IMetricsCollector } from "@edgecloud/shared-kernel";
 
 import { IncrementalUpdater } from "../training/incremental-updater";
 
@@ -23,12 +23,22 @@ export class OutcomeCollector {
   private flushInterval: NodeJS.Timeout | null = null;
   private readonly ALPHA = 0.1; // Learning rate for bandit reward
 
+  private prisma: PrismaClient;
+  private redis: Redis;
+  private metrics: IMetricsCollector;
+  private updater: IncrementalUpdater;
+
   constructor(
-    private prisma: PrismaClient,
-    private redis: Redis,
-    private metrics: IMetricsCollector,
-    private updater: IncrementalUpdater,
-  ) {}
+    prisma: PrismaClient,
+    redis: Redis,
+    metrics: IMetricsCollector,
+    updater: IncrementalUpdater,
+  ) {
+    this.prisma = prisma;
+    this.redis = redis;
+    this.metrics = metrics;
+    this.updater = updater;
+  }
 
   async start() {
     this.flushInterval = setInterval(() => this.flush(), 60000);
@@ -107,7 +117,7 @@ export class OutcomeCollector {
             if (typeof decision === "string") {
               try {
                 decision = JSON.parse(decision);
-              } catch (e) {
+              } catch (_e) {
                 // Keep as string if not valid JSON
               }
             }

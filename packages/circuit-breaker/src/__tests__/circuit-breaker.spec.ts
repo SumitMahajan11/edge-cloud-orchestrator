@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   CircuitBreaker,
   CircuitBreakerOpenError,
@@ -48,7 +48,6 @@ describe("CircuitBreaker core logic", () => {
   });
 
   it("should use fallback function in OPEN state if provided", async () => {
-    const errorFn = vi.fn().mockRejectedValue(new Error("service failure"));
 
     // Force open
     breaker.forceOpen();

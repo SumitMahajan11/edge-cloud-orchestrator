@@ -1,10 +1,10 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import jwt from 'jsonwebtoken';
 import {
   enterWithTenantContext,
   RolePermissions,
 } from '@edgecloud/shared-kernel';
-import { UserPayload, UserRole } from '../types/fastify';
+import type { UserPayload, UserRole } from '../types/fastify';
 import { env } from '../config/env';
 
 function sendAuthError(

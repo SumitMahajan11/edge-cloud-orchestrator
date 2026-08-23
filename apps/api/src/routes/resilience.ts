@@ -1,5 +1,5 @@
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 import { resilienceResetParamSchema } from '../schemas';
 

@@ -1,5 +1,5 @@
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 
 export default async function systemRoutes(fastify: FastifyInstance) {
   // Get circuit breaker health

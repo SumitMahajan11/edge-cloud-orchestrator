@@ -13,8 +13,8 @@
  * - GET /artifacts/:id — Downloads stored WASM bytecode binaries.
  */
 import { Permissions, v1Contracts } from '@edgecloud/shared-kernel';
-import { Task, TaskExecution, TaskStatus, TaskType } from '@prisma/client';
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import { type Task, type TaskExecution, TaskStatus, TaskType } from '@prisma/client';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { TenantId } from '../types/fastify.js';
 
 import { idParamSchema, tasksLogsQuerySchema } from '../schemas';

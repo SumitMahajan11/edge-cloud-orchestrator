@@ -15,7 +15,7 @@
  * - POST /federated/weights/upload — Uploads a binary weights file for a participant node.
  */
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 import { mlDriftHistoryQuerySchema } from '../schemas';
 

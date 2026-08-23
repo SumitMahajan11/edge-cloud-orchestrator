@@ -1,5 +1,5 @@
 import { Permissions, DAGExecutor } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
 import {
@@ -305,6 +305,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
         where: { id },
         data: {
           ...(name !== undefined && { name }),
+          ...(version !== undefined && { version }),
           ...(newDefinition && { definition: newDefinition }),
         },
       });

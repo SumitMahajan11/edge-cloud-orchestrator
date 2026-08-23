@@ -1,4 +1,4 @@
-import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import type { EdgeNode, Task } from "@edgecloud/shared-kernel";
 
 /**
  * Builds a 12-dimensional scheduling feature/context vector for the contextual bandit.
@@ -31,7 +31,7 @@ export function buildSchedulingContext(
     if (typeof task.metadata === "string") {
       try {
         metadata = JSON.parse(task.metadata);
-      } catch (e) {
+      } catch (_e) {
         // Fallback
       }
     } else {

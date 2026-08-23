@@ -14,7 +14,7 @@
  * 7. CompleteTask - Finalize status
  */
 
-import { SagaDefinition, SagaStepDefinition } from '@edgecloud/saga';
+import type { SagaDefinition, SagaStepDefinition } from '@edgecloud/saga';
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import crypto from 'crypto';

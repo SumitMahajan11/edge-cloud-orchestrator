@@ -2,12 +2,12 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   ABACEngine,
-  Action,
+  type Action,
   DEFAULT_POLICIES,
-  Environment,
+  type Environment,
   PolicyBuilder,
-  Resource,
-  Subject,
+  type Resource,
+  type Subject,
 } from "../src/abac";
 
 describe("ABACEngine", () => {

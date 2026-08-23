@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { v1Contracts } from "@edgecloud/shared-kernel";
 
 // Note: This file is a bridge between the TS schema and Rust types for documentation.
 // The actual Rust implementation will use the types defined below.

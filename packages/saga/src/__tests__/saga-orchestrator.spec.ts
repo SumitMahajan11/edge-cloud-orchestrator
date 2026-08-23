@@ -1,4 +1,5 @@
-import { SagaOrchestrator, SagaDefinition } from "../saga-orchestrator";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { SagaOrchestrator, type SagaDefinition } from "../saga-orchestrator";
 
 // Mock Redis client
 class MockRedis {
@@ -30,7 +31,7 @@ class MockRedis {
     return deleted;
   }
 
-  async pexpire(key: string, ttl: number): Promise<number> {
+  async pexpire(key: string, _ttl: number): Promise<number> {
     return this.store.has(key) ? 1 : 0;
   }
 }
@@ -137,22 +138,14 @@ describe("SagaOrchestrator", () => {
   let prisma: MockPrisma;
   let redis: MockRedis;
   let orchestrator: SagaOrchestrator;
-  let mockLogger: any;
 
   beforeEach(() => {
     prisma = new MockPrisma();
     redis = new MockRedis();
-    mockLogger = {
-      debug: vi.fn(),
-      info: vi.fn(),
-      warn: vi.fn(),
-      error: vi.fn(),
-    };
     orchestrator = new SagaOrchestrator(
       prisma as any,
       { recoveryIntervalMs: 100 },
       redis as any,
-      mockLogger,
     );
     vi.useFakeTimers();
   });

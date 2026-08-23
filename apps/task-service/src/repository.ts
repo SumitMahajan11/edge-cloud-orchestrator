@@ -1,5 +1,5 @@
-import { CreateTaskCommand, Task, TaskStatus } from "@edgecloud/shared-kernel";
-import { Pool, QueryResult } from "pg";
+import type { CreateTaskCommand, Task, TaskStatus } from "@edgecloud/shared-kernel";
+import type { Pool } from "pg";
 
 export interface TaskRepository {
   create(command: CreateTaskCommand): Promise<Task>;
@@ -19,7 +19,11 @@ export interface TaskRepository {
 }
 
 export class PostgresTaskRepository implements TaskRepository {
-  constructor(private pool: Pool) {}
+  private pool: Pool;
+
+  constructor(pool: Pool) {
+    this.pool = pool;
+  }
 
   async create(command: CreateTaskCommand): Promise<Task> {
     const query = `

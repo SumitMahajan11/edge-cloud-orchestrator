@@ -27,10 +27,10 @@ import {
   getRequestId,
   SpanKind,
   SpanStatusCode,
-  IPriorityScheduler,
-  IBackpressureController,
-  IGracefulDegradation,
-  ISchedulerRateLimiter,
+  type IPriorityScheduler,
+  type IBackpressureController,
+  type IGracefulDegradation,
+  type ISchedulerRateLimiter,
   SCHEDULER_CONSTANTS,
 } from '@edgecloud/shared-kernel';
 import {

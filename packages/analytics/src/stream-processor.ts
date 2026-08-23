@@ -1,4 +1,4 @@
-import { IEventBus, TOPICS } from "@edgecloud/shared-kernel";
+import { type IEventBus, TOPICS } from "@edgecloud/shared-kernel";
 import { EventEmitter } from "eventemitter3";
 
 // Phase 12: Data Pipeline - Stream Processing & Analytics

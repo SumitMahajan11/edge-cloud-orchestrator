@@ -1,6 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import type { Logger } from 'pino';
-import { DAGExecutor, WorkflowNode } from '@edgecloud/shared-kernel';
+import { DAGExecutor, type WorkflowNode } from '@edgecloud/shared-kernel';
 import type { TaskScheduler } from './task-scheduler';
 import type { WebSocketManager } from './websocket-manager';
 import type { TenantId } from '../types/fastify.js';

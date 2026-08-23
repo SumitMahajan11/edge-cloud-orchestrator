@@ -228,11 +228,13 @@ export class RetryPolicy extends EventEmitter {
 }
 
 export class RetryExhaustedError extends Error {
-  constructor(
-    public readonly errors: Error[],
-    public readonly attempts: number,
-  ) {
+  public readonly errors: Error[];
+  public readonly attempts: number;
+
+  constructor(errors: Error[], attempts: number) {
     super(`All ${attempts} retry attempts exhausted`);
+    this.errors = errors;
+    this.attempts = attempts;
     this.name = "RetryExhaustedError";
   }
 }

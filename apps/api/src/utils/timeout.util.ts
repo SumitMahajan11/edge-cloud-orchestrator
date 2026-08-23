@@ -19,11 +19,16 @@ export interface TimeoutOptions {
 }
 
 export class TimeoutError extends Error {
+  public readonly operationName: string;
+  public readonly timeoutMs: number;
+
   constructor(
-    public readonly operationName: string,
-    public readonly timeoutMs: number,
+    operationName: string,
+    timeoutMs: number,
   ) {
     super(`${operationName} timed out after ${timeoutMs}ms`);
+    this.operationName = operationName;
+    this.timeoutMs = timeoutMs;
     this.name = 'TimeoutError';
   }
 }

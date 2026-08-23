@@ -1,4 +1,4 @@
-import { createLogger, IMetricsCollector } from "@edgecloud/shared-kernel";
+import { createLogger, type IMetricsCollector } from "@edgecloud/shared-kernel";
 import { PrismaClient } from "@prisma/client";
 import { EventEmitter } from "events";
 
@@ -23,11 +23,16 @@ export class DriftDetector extends EventEmitter {
 
   private onDriftCallback?: (mae: number) => void;
 
+  private metrics: IMetricsCollector;
+  private prisma?: PrismaClient;
+
   constructor(
-    private metrics: IMetricsCollector,
-    private prisma?: PrismaClient,
+    metrics: IMetricsCollector,
+    prisma?: PrismaClient,
   ) {
     super();
+    this.metrics = metrics;
+    this.prisma = prisma;
   }
 
   onDrift(callback: (mae: number) => void): void {

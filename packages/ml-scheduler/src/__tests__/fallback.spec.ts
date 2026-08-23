@@ -1,11 +1,18 @@
+import { describe, it, expect, beforeEach } from "vitest";
 import { MLScheduler } from "../ml-scheduler";
-import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import type { EdgeNode, Task } from "@edgecloud/shared-kernel";
 
 describe("MLScheduler Fallback Logic", () => {
   let scheduler: MLScheduler;
 
   beforeEach(() => {
-    scheduler = new MLScheduler({} as any, {} as any, {} as any, {} as any);
+    scheduler = new MLScheduler(
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+      {} as any,
+    );
   });
 
   const mockTask: Task = { id: "task-1" } as any;

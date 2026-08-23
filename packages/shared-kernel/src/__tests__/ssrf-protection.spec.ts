@@ -1,3 +1,4 @@
+import { describe, it, expect, beforeAll, afterAll } from "vitest";
 import { validateWebhookUrl } from "../security/ssrf-protection";
 
 describe("SSRF Protection Utility", () => {
@@ -7,7 +8,7 @@ describe("SSRF Protection Utility", () => {
     originalAllowPrivateIps = process.env.ALLOW_PRIVATE_IPS;
     process.env.ALLOW_PRIVATE_IPS = "false";
     // Ensure NODE_ENV is set to something other than development
-    process.env.NODE_ENV = "test";
+    (process.env as Record<string, string | undefined>).NODE_ENV = "test";
   });
 
   afterAll(() => {
@@ -100,13 +101,13 @@ describe("SSRF Protection Utility", () => {
   describe("Production Restrictions", () => {
     it("should reject HTTP in production", async () => {
       const originalEnv = process.env.NODE_ENV;
-      process.env.NODE_ENV = "production";
+      (process.env as Record<string, string | undefined>).NODE_ENV = "production";
       try {
         const result = await validateWebhookUrl("http://example.com/webhook");
         expect(result.safe).toBe(false);
         expect(result.reason).toBe("Only HTTPS webhooks allowed in production");
       } finally {
-        process.env.NODE_ENV = originalEnv;
+        (process.env as Record<string, string | undefined>).NODE_ENV = originalEnv;
       }
     });
   });

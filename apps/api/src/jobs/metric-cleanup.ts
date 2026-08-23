@@ -1,17 +1,26 @@
 import { PrismaClient } from '@prisma/client';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 import { nodeMetricRowCount } from '../services/metrics-service.js';
 
 export class MetricCleanupJob {
   private interval: NodeJS.Timeout | null = null;
   private isProcessing = false;
+  private prisma: PrismaClient;
+  private logger: Logger;
+  private readonly intervalMs: number;
+  private readonly defaultRetentionDays: number;
 
   constructor(
-    private prisma: PrismaClient,
-    private logger: Logger,
-    private readonly intervalMs: number = 24 * 60 * 60 * 1000, // 24 hours
-    private readonly defaultRetentionDays: number = 30, // 30 days default
-  ) {}
+    prisma: PrismaClient,
+    logger: Logger,
+    intervalMs: number = 24 * 60 * 60 * 1000, // 24 hours
+    defaultRetentionDays: number = 30, // 30 days default
+  ) {
+    this.prisma = prisma;
+    this.logger = logger;
+    this.intervalMs = intervalMs;
+    this.defaultRetentionDays = defaultRetentionDays;
+  }
 
   /**
    * Start the background job

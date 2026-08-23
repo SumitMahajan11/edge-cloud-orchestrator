@@ -4,10 +4,9 @@ import {
   Geographies,
   Geography,
   Marker,
-  Line,
 } from "react-simple-maps";
 import { motion } from "framer-motion";
-import { EdgeNode } from "../../types";
+import type { EdgeNode } from "../../types";
 import { cn } from "../../lib/utils";
 import { useCarbonMetrics } from "../../hooks/useCarbonMetrics";
 

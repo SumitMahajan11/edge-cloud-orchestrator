@@ -1,14 +1,14 @@
 import {
-  EdgeNode,
-  Task,
+  type EdgeNode,
+  type Task,
   createLogger,
-  ScoreWeights,
+  type ScoreWeights,
   tracer,
-  IMetricsCollector,
+  type IMetricsCollector,
 } from "@edgecloud/shared-kernel";
 import path from "path";
 import { SchedulingPredictor } from "./predictor";
-import { MultiObjectiveScorer, NodeScoreResult } from "./scoring";
+import { MultiObjectiveScorer, type NodeScoreResult } from "./scoring";
 import { ModelRegistry } from "./registry";
 import { DriftDetector } from "./drift-detector";
 import { SpanStatusCode } from "@opentelemetry/api";
@@ -25,14 +25,28 @@ export class MLScheduler {
   private shadowVersion: string | null = null;
   private bandit: SchedulingBandit;
 
+  private predictor: SchedulingPredictor;
+  private registry: ModelRegistry;
+  private driftDetector: DriftDetector;
+  private metrics: IMetricsCollector;
+  public outcomeCollector: OutcomeCollector;
+  private carbonClient?: GridCarbonClient;
+
   constructor(
-    private predictor: SchedulingPredictor,
-    private registry: ModelRegistry,
-    private driftDetector: DriftDetector,
-    private metrics: IMetricsCollector,
-    public outcomeCollector: OutcomeCollector,
-    private carbonClient?: GridCarbonClient,
+    predictor: SchedulingPredictor,
+    registry: ModelRegistry,
+    driftDetector: DriftDetector,
+    metrics: IMetricsCollector,
+    outcomeCollector: OutcomeCollector,
+    carbonClient?: GridCarbonClient,
   ) {
+    this.predictor = predictor;
+    this.registry = registry;
+    this.driftDetector = driftDetector;
+    this.metrics = metrics;
+    this.outcomeCollector = outcomeCollector;
+    this.carbonClient = carbonClient;
+
     this.scorer = new MultiObjectiveScorer(this.predictor);
     this.bandit = new SchedulingBandit();
     const version = typeof this.predictor.getVersion === "function" ? this.predictor.getVersion() || "default" : "default";

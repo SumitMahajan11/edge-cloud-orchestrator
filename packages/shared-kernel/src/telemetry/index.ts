@@ -5,8 +5,10 @@ import {
   trace,
   SpanKind,
   SpanStatusCode,
+  type Span,
 } from "@opentelemetry/api";
 export { SpanKind, SpanStatusCode };
+export type { Span };
 import { NodeSDK } from "@opentelemetry/sdk-node";
 import { JaegerExporter } from "@opentelemetry/exporter-jaeger";
 import { getNodeAutoInstrumentations } from "@opentelemetry/auto-instrumentations-node";

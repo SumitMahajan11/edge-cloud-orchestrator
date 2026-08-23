@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from "axios";
+import axios, { type AxiosInstance } from "axios";
 import { EventEmitter } from "eventemitter3";
 
 export interface VaultConfig {
@@ -224,7 +224,7 @@ export class VaultClient extends EventEmitter {
   }
 
   async revokeCertificate(serialNumber: string): Promise<void> {
-    const response = await this.client.post("/v1/pki_int/revoke", {
+    await this.client.post("/v1/pki_int/revoke", {
       serial_number: serialNumber,
     });
   }

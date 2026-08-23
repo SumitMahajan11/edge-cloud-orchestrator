@@ -1,6 +1,6 @@
 import { trace } from '@opentelemetry/api';
 import { X509Certificate } from 'crypto';
-import { FastifyInstance, FastifyPluginAsync } from 'fastify';
+import type { FastifyInstance, FastifyPluginAsync } from 'fastify';
 import { env } from '../config/env.js';
 import type { TenantId } from '../types/fastify.js';
 

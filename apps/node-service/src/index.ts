@@ -15,12 +15,11 @@ import cors from "@fastify/cors";
 import rateLimit from "@fastify/rate-limit";
 import { Pool } from "pg";
 import { EventBus, TOPICS } from "@edgecloud/event-bus";
-import {
+import type {
   EdgeNode,
   RegisterNodeCommand,
-  NodeStatus,
-  type NodeRegisteredEvent,
-  type NodeHeartbeatEvent,
+  NodeRegisteredEvent,
+  NodeHeartbeatEvent,
 } from "@edgecloud/shared-kernel";
 import { CircuitBreakerRegistry } from "@edgecloud/circuit-breaker";
 import type { FastifyRequest, FastifyReply } from "fastify";
@@ -36,8 +35,6 @@ void app.register(fastifyLoggingPlugin, {
 
 let pool: Pool;
 let eventBus: EventBus;
-let jwtSecret: string;
-let serviceToken: string;
 let redisClient: any;
 
 // Circuit breaker registry
@@ -268,10 +265,6 @@ function mapRowToNode(row: any): EdgeNode {
 }
 
 async function start() {
-  // Config is already validated via env.ts
-  jwtSecret = env.JWT_SECRET;
-  serviceToken = env.SERVICE_TOKEN;
-
   pool = new Pool(
     env.DATABASE_URL
       ? { connectionString: env.DATABASE_URL }
@@ -322,9 +315,6 @@ async function start() {
   HealthCheck.setReady(true);
   logger.info(`Node Service running on port ${port}`);
 }
-
-// Graceful shutdown
-let isShuttingDown = false;
 
 // Start the application
 void start();

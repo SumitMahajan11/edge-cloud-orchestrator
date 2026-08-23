@@ -5,7 +5,6 @@ import { getRequestId } from "./logger/context.js";
 export {
   VERSION,
   REGIONS,
-  Region,
   REDIS_CHANNELS,
   NODE_OFFLINE_THRESHOLD_MS,
   NODE_STALE_THRESHOLD_MS,
@@ -13,31 +12,32 @@ export {
   SCHEDULER_CONSTANTS,
   API_CONSTANTS,
 } from "./constants.js";
+export type { Region } from "./constants.js";
 
 // Types
-export {
+export type {
   TaskStatus,
   NodeStatus,
   Priority,
   DomainTask,
   DomainNode,
   ScoreWeights,
-  DEFAULT_SCORE_WEIGHTS,
   HealingAction,
   Alert,
   SystemLoad,
   BackpressureDecision,
 } from "./types/domain.js";
-export { ApiError } from "./types/errors.js";
+export { DEFAULT_SCORE_WEIGHTS } from "./types/domain.js";
+export type { ApiError } from "./types/errors.js";
 
 // Domain models
-export {
+export type {
   EdgeNode,
   NodeMetrics,
   RegisterNodeCommand,
   NodeHealthScore,
 } from "./domain/node.js";
-export {
+export type {
   Task,
   TaskType,
   ExecutionTarget,
@@ -52,6 +52,7 @@ export {
   SpanKind,
   SpanStatusCode,
 } from "./telemetry/index.js";
+export type { Span } from "./telemetry/index.js";
 export {
   injectTraceHeaders,
   extractTraceContext,
@@ -79,26 +80,25 @@ export {
   selectNode,
   calculateNodeScore,
   validateWeights,
-  MLPredictor,
-  SelectNodeOptions,
   SchedulingError,
 } from "./domain/scheduler.js";
+export type { SelectNodeOptions, MLPredictor } from "./domain/scheduler.js";
 export {
   determineHealingAction,
   shouldRetry,
   calculateRetryDelay,
   processBatchAlerts,
-  RecoveryConfig,
 } from "./domain/recovery.js";
+export type { RecoveryConfig } from "./domain/recovery.js";
 export {
   evaluateBackpressure,
   calculateLoadScore,
-  BackpressureConfig,
 } from "./domain/backpressure.js";
+export type { BackpressureConfig } from "./domain/backpressure.js";
 
 // Leader Election
-export {
-  LeaderElection,
+export { LeaderElection } from "./leader-election/index.js";
+export type {
   LeaderElectionConfig,
   LeaderEvents,
 } from "./leader-election/index.js";
@@ -108,7 +108,7 @@ export * from "./interfaces/metrics.js";
 export * from "./interfaces/event-bus.js";
 
 // Events
-export {
+export type {
   DomainEvent,
   TaskCreatedEvent,
   TaskScheduledEvent,
@@ -153,6 +153,8 @@ export {
   HealthSchema,
   CreateTaskCommandSchema,
   RegisterNodeCommandSchema,
+} from "./utils/validation.js";
+export type {
   CreateTaskInput,
   TaskIdParams,
   TaskListQuery,
@@ -165,13 +167,12 @@ export { validateRequiredSecrets } from "./utils/secrets-validation.js";
 export { RedisFactory } from "./utils/redis-factory.js";
 
 // Secrets Management
-export { SecretManager } from "./secrets/SecretManager.js";
+export type { SecretManager } from "./secrets/SecretManager.js";
 export { SecretManagerFactory } from "./secrets/SecretManagerFactory.js";
 
 // Middleware
+export type { AuthUser, AuthConfig } from "./middleware/auth.js";
 export {
-  AuthUser,
-  AuthConfig,
   createAuthMiddleware,
   requireRole,
   requirePermission,
@@ -184,9 +185,10 @@ export * as v1Contracts from "./api-contracts/v1/task.js";
 export * as v1NodeContracts from "./api-contracts/v1/node.js";
 
 // Logging
-export { Logger, LoggerConfig, createLogger, logger } from "./logger/index.js";
+export { createLogger, logger } from "./logger/index.js";
+export type { Logger, LoggerConfig } from "./logger/index.js";
+export type { LogContext } from "./logger/context.js";
 export {
-  LogContext,
   getRequestId,
   getTraceId,
   getLogContext,
@@ -196,8 +198,8 @@ export {
 export { fastifyLoggingPlugin } from "./logger/fastify-plugin.js";
 export { createExpressLoggingMiddleware } from "./logger/express-middleware.js";
 
+export type { TenantContext } from "./context/tenant.js";
 export {
-  TenantContext,
   tenantContext,
   runWithTenantContext,
   enterWithTenantContext,
@@ -220,10 +222,10 @@ export { HealthCheck } from "./lifecycle/health.js";
 // Environment validation
 export {
   baseEnvSchema,
-  BaseEnv,
   validateEnv,
   validateJwtSecret,
 } from "./validate-env.js";
+export type { BaseEnv } from "./validate-env.js";
 
 export { TaskInputSchema, TaskMetadataSchema } from "./schemas/task.js";
 
@@ -231,14 +233,12 @@ export { TaskInputSchema, TaskMetadataSchema } from "./schemas/task.js";
 export * from "./invariants/system-invariants.js";
 
 // Permissions
-export {
-  Permissions,
-  Permission,
-  RolePermissions,
-} from "./auth/permissions.js";
+export { Permissions, RolePermissions } from "./auth/permissions.js";
+export type { Permission } from "./auth/permissions.js";
 
 // Workflow
-export { DAGExecutor, WorkflowNode } from "./workflow/dag-executor.js";
+export { DAGExecutor } from "./workflow/dag-executor.js";
+export type { WorkflowNode } from "./workflow/dag-executor.js";
 
 // SSRF Protection
 export {

@@ -222,11 +222,18 @@ export class CircuitBreaker extends EventEmitter {
       this.emit("halfOpen", { name: this.config.name });
     }
   }
+
+  forceTransition(state: CircuitState): void {
+    this.forceState(state);
+  }
 }
 
 export class CircuitBreakerOpenError extends Error {
-  constructor(public readonly circuitName: string) {
+  public readonly circuitName: string;
+
+  constructor(circuitName: string) {
     super(`Circuit breaker '${circuitName}' is OPEN`);
+    this.circuitName = circuitName;
     this.name = "CircuitBreakerOpenError";
   }
 }

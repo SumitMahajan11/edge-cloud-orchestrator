@@ -63,7 +63,7 @@ export function createMtlsServer(options: MtlsOptions): https.ServerOptions {
     rejectUnauthorized: true,
     minVersion: "TLSv1.3",
     // Custom authorization callback to log rejections
-    SNICallback: (servername, cb) => {
+    SNICallback: (_servername, cb) => {
       // Logic could be added here if multiple certs are used
       cb(null);
     },

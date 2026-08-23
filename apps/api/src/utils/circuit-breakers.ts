@@ -1,11 +1,11 @@
 import {
   CircuitBreaker,
-  CircuitBreakerConfig,
+  type CircuitBreakerConfig,
   CircuitBreakerRegistry,
 } from '@edgecloud/circuit-breaker';
 
 import { createLogger } from '../lib/logger';
-import { WebSocketManager } from '../services/websocket-manager';
+import type { WebSocketManager } from '../services/websocket-manager';
 
 const logger = createLogger('circuit-breaker');
 

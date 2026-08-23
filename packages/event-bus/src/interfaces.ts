@@ -1,4 +1,4 @@
-import { DomainEvent } from "@edgecloud/shared-kernel";
+import type { DomainEvent } from "@edgecloud/shared-kernel";
 
 export interface TaskCreatedEvent extends DomainEvent {
   eventType: "TaskCreated";

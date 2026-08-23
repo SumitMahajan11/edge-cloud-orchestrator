@@ -1,4 +1,4 @@
-import { FastifyPluginAsync } from 'fastify';
+import type { FastifyPluginAsync } from 'fastify';
 
 import adminRoutes from './admin.js';
 import agentRoutes from './agents.js';

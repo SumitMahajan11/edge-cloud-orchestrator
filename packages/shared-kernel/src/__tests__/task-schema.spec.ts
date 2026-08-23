@@ -1,3 +1,4 @@
+import { describe, it, expect } from "vitest";
 import { TaskInputSchema, TaskMetadataSchema } from "../schemas/task";
 
 describe("Task Schemas", () => {

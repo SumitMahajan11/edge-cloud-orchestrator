@@ -1,4 +1,4 @@
-﻿/**
+/**
  * System Administration and Operators Routes
  *
  * What it does: Exposes restricted administrative APIs for system telemetry, security, outbox auditing, and event republishing.
@@ -16,7 +16,7 @@
  * - GET /dlq/stats â€” Returns metrics of Dead Letter Queue events.
  */
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 import {
   adminUserRoleParamSchema,

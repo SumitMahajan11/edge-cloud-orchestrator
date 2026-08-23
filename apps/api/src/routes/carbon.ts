@@ -1,5 +1,5 @@
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 import {
   carbonSavingsQuerySchema,

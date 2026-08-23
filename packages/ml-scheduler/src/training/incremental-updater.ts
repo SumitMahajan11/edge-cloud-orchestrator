@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { createLogger, IMetricsCollector } from "@edgecloud/shared-kernel";
+import { createLogger, type IMetricsCollector } from "@edgecloud/shared-kernel";
 import { ModelRegistry } from "../registry";
 import { spawn } from "child_process";
 import path from "path";
@@ -13,11 +13,19 @@ export class IncrementalUpdater {
   private readonly UPDATE_THRESHOLD = 500;
   private readonly TIME_THRESHOLD = 3600000; // 1 hour
 
+  private prisma: PrismaClient;
+  private registry: ModelRegistry;
+  private metrics: IMetricsCollector;
+
   constructor(
-    private prisma: PrismaClient,
-    private registry: ModelRegistry,
-    private metrics: IMetricsCollector,
-  ) {}
+    prisma: PrismaClient,
+    registry: ModelRegistry,
+    metrics: IMetricsCollector,
+  ) {
+    this.prisma = prisma;
+    this.registry = registry;
+    this.metrics = metrics;
+  }
 
   async onOutcomeRecorded() {
     this.outcomeCount++;

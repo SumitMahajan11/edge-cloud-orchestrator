@@ -6,7 +6,7 @@
 // This middleware enforces authorization at the route level.
 // ============================================================================
 
-import { FastifyRequest, FastifyReply } from 'fastify';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { UserRole } from '../types/fastify';
 import { RolePermissions, type Permission } from '@edgecloud/shared-kernel';
 
@@ -31,13 +31,18 @@ function sendAuthError(
 }
 
 export class AuthorizationError extends Error {
+  public requiredRoles: string[];
+  public userRole?: string;
+
   constructor(
     message: string,
-    public requiredRoles: string[],
-    public userRole?: string,
+    requiredRoles: string[],
+    userRole?: string,
   ) {
     super(message);
     this.name = 'AuthorizationError';
+    this.requiredRoles = requiredRoles;
+    this.userRole = userRole;
   }
 }
 

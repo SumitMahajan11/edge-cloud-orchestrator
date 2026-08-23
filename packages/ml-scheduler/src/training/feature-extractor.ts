@@ -27,7 +27,11 @@ export interface TrainingRow {
 }
 
 export class FeatureExtractor {
-  constructor(private prisma: PrismaClient) {}
+  private prisma: PrismaClient;
+
+  constructor(prisma: PrismaClient) {
+    this.prisma = prisma;
+  }
 
   async extractTrainingData(lookbackDays: number = 7): Promise<TrainingRow[]> {
     logger.info(

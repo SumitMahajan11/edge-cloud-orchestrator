@@ -1,6 +1,6 @@
 import { EventEmitter } from "eventemitter3";
 import Redis from "ioredis";
-import { Pool, PoolClient } from "pg";
+import { Pool, type PoolClient } from "pg";
 
 // Phase 14: Performance Optimization - Caching & Connection Pooling
 

@@ -1,7 +1,8 @@
-import { OutcomeCollector, TaskOutcome } from "../feedback/outcome-collector";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { OutcomeCollector } from "../feedback/outcome-collector";
 import { IncrementalUpdater } from "../training/incremental-updater";
 import { MLScheduler } from "../ml-scheduler";
-import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import type { EdgeNode } from "@edgecloud/shared-kernel";
 
 describe("ML Feedback Loop & Contextual Bandit", () => {
   let outcomeCollector: OutcomeCollector;
@@ -13,7 +14,7 @@ describe("ML Feedback Loop & Contextual Bandit", () => {
       createMany: vi.fn().mockResolvedValue({ count: 1 }),
       findMany: vi.fn().mockResolvedValue([]),
     },
-    $transaction: vi.fn().mockImplementation((args) => Promise.all(args)),
+    $transaction: vi.fn().mockImplementation((args: any) => Promise.all(args)),
   } as any;
 
   const mockRedis = {
@@ -52,7 +53,6 @@ describe("ML Feedback Loop & Contextual Bandit", () => {
     incrementalUpdater = new IncrementalUpdater(
       mockPrisma,
       mockRegistry,
-      mockPredictor,
       mockMetrics,
     );
     outcomeCollector = new OutcomeCollector(

@@ -1,5 +1,8 @@
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
+> [!NOTE]
+> `apps/web` is an in-progress dashboard frontend currently excluded from CI typechecking pending completion of missing UI components and hooks.
+
 ## Getting Started
 
 First, run the development server:

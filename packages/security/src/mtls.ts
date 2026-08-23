@@ -11,7 +11,6 @@
  * - `validateCertificate()`: Validates authenticity, expiration, and CRL membership.
  */
 import {
-  createHash,
   createSign,
   createVerify,
   generateKeyPairSync,
@@ -241,7 +240,7 @@ export class MTLSManager extends EventEmitter {
   }
 
   async revokeCertificate(serialNumber: string, reason: string): Promise<void> {
-    for (const [id, cert] of this.certificates) {
+    for (const [_id, cert] of this.certificates) {
       if (cert.serialNumber === serialNumber) {
         cert.revoked = true;
         cert.revokedAt = new Date();

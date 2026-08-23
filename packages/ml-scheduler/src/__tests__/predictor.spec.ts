@@ -1,5 +1,5 @@
+import { describe, it, expect, vi, beforeEach, beforeAll, afterAll, afterEach } from "vitest";
 import fs from "fs";
-import path from "path";
 
 // Define the mock tfjs-node module
 const mockModelInstance = {
@@ -144,7 +144,7 @@ describe("SchedulingPredictor", () => {
 
   describe("Training", () => {
     it("should train model when not in mock mode", async () => {
-      const data = Array.from({ length: 60 }, (_, i) => ({
+      const data = Array.from({ length: 60 }, (_, _i) => ({
         cpu_usage_pct: 10,
         ram_usage_pct: 20,
         current_task_count: 1,
@@ -199,7 +199,7 @@ describe("SchedulingPredictor", () => {
       // Train model first
       const data = Array.from(
         { length: 60 },
-        (_, i) => ({ outcome_score: 0.9 }) as any,
+        (_, _i) => ({ outcome_score: 0.9 }) as any,
       );
       await predictor.train(data);
 
@@ -211,7 +211,7 @@ describe("SchedulingPredictor", () => {
     it("should handle prediction exceptions and dispose of tensors", async () => {
       const data = Array.from(
         { length: 60 },
-        (_, i) => ({ outcome_score: 0.9 }) as any,
+        (_, _i) => ({ outcome_score: 0.9 }) as any,
       );
       await predictor.train(data);
 
@@ -291,7 +291,7 @@ describe("SchedulingPredictor", () => {
     it("should write metadata and save layers model in saveModel", async () => {
       const data = Array.from(
         { length: 60 },
-        (_, i) => ({ outcome_score: 0.9 }) as any,
+        (_, _i) => ({ outcome_score: 0.9 }) as any,
       );
       await predictor.train(data);
 
@@ -326,7 +326,7 @@ describe("SchedulingPredictor", () => {
     it("should return perturbed feature importance in normal mode", async () => {
       const data = Array.from(
         { length: 60 },
-        (_, i) => ({ outcome_score: 0.9 }) as any,
+        (_, _i) => ({ outcome_score: 0.9 }) as any,
       );
       await predictor.train(data);
 

@@ -1,4 +1,4 @@
-import { DomainEvent } from "../events/domain-events.js";
+import type { DomainEvent } from "../events/domain-events.js";
 
 export interface IEventBus {
   publish<T extends DomainEvent>(

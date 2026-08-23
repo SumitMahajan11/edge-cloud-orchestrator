@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 import { SYSTEM_INVARIANTS, SAFE_FIXES } from '@edgecloud/shared-kernel';
 import {
   consistencyViolationsTotal,
@@ -13,12 +13,18 @@ export class ConsistencyCheckerJob {
   private s3Client: S3Client;
   private reportBucket: string;
   private lastRunDay: string | null = null;
+  private prisma: PrismaClient;
+  private logger: Logger;
+  private readonly scheduleHour: number;
 
   constructor(
-    private prisma: PrismaClient,
-    private logger: Logger,
-    private readonly scheduleHour: number = 3, // Default 3 AM
+    prisma: PrismaClient,
+    logger: Logger,
+    scheduleHour: number = 3, // Default 3 AM
   ) {
+    this.prisma = prisma;
+    this.logger = logger;
+    this.scheduleHour = scheduleHour;
     this.reportBucket = process.env.REPORTS_BUCKET || 'edgecloud-reports';
     this.s3Client = new S3Client({
       region: process.env.AWS_REGION || 'us-east-1',

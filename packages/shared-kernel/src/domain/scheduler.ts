@@ -1,4 +1,4 @@
-import { DomainNode, DomainTask, ScoreWeights } from "../types/domain.js";
+import type { DomainNode, DomainTask, ScoreWeights } from "../types/domain.js";
 
 export type MLPredictor = (
   node: DomainNode,

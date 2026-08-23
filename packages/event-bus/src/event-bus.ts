@@ -13,16 +13,16 @@
  * - `TOPICS`: Central registry of system event topics (tasks, nodes, metrics, scheduler, alerts).
  */
 import {
-  DomainEvent,
+  type DomainEvent,
   generateCorrelationId,
   generateEventId,
   injectTraceHeaders,
   extractTraceContext,
 } from "@edgecloud/shared-kernel";
-import { Consumer, Kafka, Message, Producer } from "kafkajs";
+import { Kafka, type Consumer, type Message, type Producer } from "kafkajs";
 import { Redis } from "ioredis";
 
-import { DeadLetterQueue, DLQConfig } from "./dead-letter-queue";
+import { DeadLetterQueue, type DLQConfig } from "./dead-letter-queue";
 
 export interface EventBusConfig {
   brokers: string[];
@@ -48,8 +48,10 @@ export class EventBus {
   private consumers: Map<string, Consumer> = new Map();
   private isConnected: boolean = false;
   private dlq: DeadLetterQueue | null = null;
+  private config: EventBusConfig;
 
-  constructor(private config: EventBusConfig) {
+  constructor(config: EventBusConfig) {
+    this.config = config;
     this.kafka = new Kafka({
       clientId: config.clientId,
       brokers: config.brokers,
@@ -64,7 +66,7 @@ export class EventBus {
 
   async initializeDLQ(
     prisma: any,
-    topics: string[],
+    _topics: string[],
     config?: Partial<DLQConfig>,
   ): Promise<void> {
     const redisOrUrl =

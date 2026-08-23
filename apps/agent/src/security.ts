@@ -1,6 +1,6 @@
 import fs from "fs";
 import crypto from "crypto";
-import { AgentConfig, TaskPayload } from "./types";
+import type { AgentConfig, TaskPayload } from "./types";
 import pino from "pino";
 
 const logger = pino({ name: "edge-agent-security" });

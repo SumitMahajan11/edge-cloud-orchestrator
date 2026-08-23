@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import { Prisma } from '@prisma/client';
 import { Permissions, validateWebhookUrl } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 
 import {

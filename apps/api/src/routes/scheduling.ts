@@ -1,5 +1,5 @@
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import type { TenantId } from '../types/fastify.js';
 

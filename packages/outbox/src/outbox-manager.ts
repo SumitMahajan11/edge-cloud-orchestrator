@@ -1,5 +1,5 @@
 import { EventEmitter } from "eventemitter3";
-import { Message, Producer } from "kafkajs";
+import type { Message, Producer } from "kafkajs";
 
 // Define types locally to avoid direct Prisma dependency
 export type OutboxStatus = "PENDING" | "PROCESSING" | "PUBLISHED" | "FAILED";

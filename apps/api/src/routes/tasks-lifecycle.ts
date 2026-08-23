@@ -7,7 +7,7 @@
 // ============================================================================
 
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { Prisma, TaskStatus, TaskType } from '@prisma/client';
 import { z } from 'zod';
 

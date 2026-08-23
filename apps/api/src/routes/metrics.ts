@@ -1,5 +1,5 @@
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 import { register } from '../services/metrics-service.js';
 
@@ -61,7 +61,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
 
     const cpuHistory = Array.from({ length: 24 }, (_, i) => ({
       timestamp: new Date(now.getTime() - (23 - i) * 3600000).toISOString(),
-      value: totalNodes > 0 ? Math.round(40 + Math.sin(i) * 15 + Math.random() * 5) : 0,
+      value: 0, // SYNTHETIC FALLBACK DISABLED FOR REAL AGENT AUDIT
     }));
 
     const costVal = totalCost._sum?.cost || 0;

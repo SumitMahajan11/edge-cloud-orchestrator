@@ -1,5 +1,5 @@
-import Redis, { RedisOptions } from "ioredis";
-import { SecretManager } from "../secrets/SecretManager.js";
+import Redis, { type RedisOptions } from "ioredis";
+import type { SecretManager } from "../secrets/SecretManager.js";
 import { createLogger } from "../logger/index.js";
 
 const logger = createLogger("redis-factory");

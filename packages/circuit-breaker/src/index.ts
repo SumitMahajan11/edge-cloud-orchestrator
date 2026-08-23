@@ -14,7 +14,7 @@ export {
   type CircuitState,
 } from "./circuit-breaker";
 export {
-  RetryConfig,
+  type RetryConfig,
   type RetryContext,
   RetryExhaustedError,
   RetryPolicy,

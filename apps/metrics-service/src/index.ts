@@ -19,7 +19,6 @@ import {
   collectDefaultMetrics,
   Gauge,
   Histogram,
-  Counter,
 } from "prom-client";
 
 const app = Fastify({ logger: false });
@@ -54,13 +53,6 @@ const schedulingDecisionHistogram = new Histogram({
   name: "scheduling_decision_duration_ms",
   help: "Duration of scheduling decisions in ms",
   buckets: [10, 50, 100, 200, 500, 1000],
-  registers: [registry],
-});
-
-const taskCompletionsCounter = new Counter({
-  name: "task_completions_total",
-  help: "Total number of task completions",
-  labelNames: ["status"],
   registers: [registry],
 });
 
@@ -159,7 +151,7 @@ async function aggregateBusinessMetrics() {
 }
 
 // Routes
-app.get("/metrics", async (request, reply) => {
+app.get("/metrics", async (_request, reply) => {
   await aggregateBusinessMetrics();
 
   // Start with our own metrics

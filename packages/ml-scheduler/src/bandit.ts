@@ -7,7 +7,7 @@ const logger = createLogger("ml-bandit");
 let tf: any = null;
 try {
   tf = require("@tensorflow/tfjs-node");
-} catch (e) {
+} catch (_e) {
   if ((globalThis as any).tf) {
     tf = (globalThis as any).tf;
   } else {

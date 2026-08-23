@@ -1405,5 +1405,4 @@ export async function setupMTLSServer(
  * └─────────────────────────────────────────────────────────────────┘
  */
 
-// Type imports
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';

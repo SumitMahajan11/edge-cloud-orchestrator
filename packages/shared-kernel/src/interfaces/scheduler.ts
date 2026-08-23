@@ -1,4 +1,4 @@
-import { Priority, SystemLoad, BackpressureDecision } from "../types/domain";
+import type { Priority, SystemLoad, BackpressureDecision } from "../types/domain";
 
 // --- PriorityScheduler ---
 

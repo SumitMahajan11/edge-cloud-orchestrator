@@ -5,7 +5,7 @@ import {
   Registry,
   collectDefaultMetrics,
 } from "prom-client";
-import { IMetricsCollector } from "@edgecloud/shared-kernel";
+import type { IMetricsCollector } from "@edgecloud/shared-kernel";
 
 export interface MetricsConfig {
   serviceName: string;
@@ -122,7 +122,7 @@ export class MetricsCollector implements IMetricsCollector {
     this.mlFallbackTotal.labels(reason, fallback).inc();
   }
 
-  recordSchedulingDecision(type: string, status: string, duration: number) {
+  recordSchedulingDecision(type: string, status: string, _duration: number) {
     this.schedulingDecisionsTotal.labels(type, status).inc();
     // In a real app we'd also record duration to a histogram
   }

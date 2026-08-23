@@ -1,7 +1,7 @@
 import {
   DEFAULT_SCORE_WEIGHTS,
-  EdgeNode,
-  Task,
+  type EdgeNode,
+  type Task,
 } from "@edgecloud/shared-kernel";
 
 import { SchedulingPredictor } from "./predictor";
@@ -14,6 +14,7 @@ export interface ScoreWeights {
   network: number;
   ml: number;
   health: number;
+  carbon?: number;
 }
 
 export interface NodeScoreResult {
@@ -43,10 +44,15 @@ const FALLBACK_SCORE_WEIGHTS = {
 };
 
 export class MultiObjectiveScorer {
+  private predictor: SchedulingPredictor;
+  private weights: ScoreWeights;
+
   constructor(
-    private predictor: SchedulingPredictor,
-    private weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS,
+    predictor: SchedulingPredictor,
+    weights: ScoreWeights = DEFAULT_SCORE_WEIGHTS,
   ) {
+    this.predictor = predictor;
+    this.weights = weights;
     if (!this.weights || Object.keys(this.weights).length === 0) {
       this.weights =
         DEFAULT_SCORE_WEIGHTS && Object.keys(DEFAULT_SCORE_WEIGHTS).length > 0

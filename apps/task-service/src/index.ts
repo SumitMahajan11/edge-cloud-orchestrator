@@ -11,10 +11,7 @@ initTelemetry("task-service");
 
 const logger = createLogger("task-service");
 
-import {
-  CircuitBreaker,
-  CircuitBreakerRegistry,
-} from "@edgecloud/circuit-breaker";
+import { CircuitBreakerRegistry } from "@edgecloud/circuit-breaker";
 import { DEFAULT_TOPIC_CONFIG, EventBus } from "@edgecloud/event-bus";
 import {
   CancelTaskBodySchema,
@@ -23,11 +20,9 @@ import {
   CreateTaskSchema,
   FailTaskBodySchema,
   requirePermission,
-  requireRole,
   ScheduleTaskBodySchema,
   TaskIdParamsSchema,
   TaskListQuerySchema,
-  VERSION,
   SecretManagerFactory,
 } from "@edgecloud/shared-kernel";
 import cors from "@fastify/cors";
@@ -49,29 +44,11 @@ let pool: Pool;
 let eventBus: EventBus;
 let repository: PostgresTaskRepository;
 let taskService: TaskService;
-let jwtSecret: string;
-let serviceToken: string;
 let redisClient: any;
 let redisUrl: string;
 
 // Circuit breaker registry
 const circuitBreakerRegistry = new CircuitBreakerRegistry();
-
-// Circuit breakers for external dependencies
-const dbCircuitBreaker = circuitBreakerRegistry.getOrCreate("database", {
-  failureThreshold: 5,
-  resetTimeout: 30000,
-  halfOpenMaxCalls: 3,
-});
-
-const redisStreamCircuitBreaker = circuitBreakerRegistry.getOrCreate(
-  "redis-streams",
-  {
-    failureThreshold: 3,
-    resetTimeout: 15000,
-    halfOpenMaxCalls: 2,
-  },
-);
 
 // Register plugins
 async function registerPlugins() {
@@ -315,11 +292,6 @@ app.post(
 
 // Start server
 async function start() {
-  // Config is already validated via import { env } from './config/env'
-
-  jwtSecret = env.JWT_SECRET;
-  serviceToken = env.SERVICE_TOKEN;
-
   pool = new Pool({
     host: env.DATABASE_HOST,
     port: env.DATABASE_PORT,

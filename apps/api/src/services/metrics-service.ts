@@ -879,7 +879,7 @@ edgecloud_nodejs_eventloop_lag_seconds 0.002
 // FASTIFY INTEGRATION
 // ============================================================================
 
-import { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyInstance, FastifyReply, FastifyRequest } from 'fastify';
 
 /**
  * Register metrics endpoint and middleware with Fastify

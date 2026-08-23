@@ -1,16 +1,13 @@
 import Docker from "dockerode";
-import { AgentConfig, TaskPayload, ExecutionResult } from "./types";
+import type { AgentConfig, TaskPayload, ExecutionResult } from "./types";
 import pino from "pino";
 
 const logger = pino({ name: "edge-agent-sandbox" });
 
 export class DockerSandbox {
   private docker: Docker;
-  private config: AgentConfig;
 
   constructor(config: AgentConfig) {
-    this.config = config;
-
     const dockerOptions: Docker.DockerOptions = {};
     if (config.DOCKER_HOST) {
       dockerOptions.host = config.DOCKER_HOST;
@@ -179,7 +176,7 @@ export class DockerSandbox {
       this.docker.pull(image, {}, (err, stream) => {
         if (err) return reject(err);
         if (!stream) return reject(new Error("Failed to create pull stream"));
-        this.docker.modem.followProgress(stream, (err, output) => {
+        this.docker.modem.followProgress(stream, (err, _output) => {
           if (err) return reject(err);
           resolve();
         });

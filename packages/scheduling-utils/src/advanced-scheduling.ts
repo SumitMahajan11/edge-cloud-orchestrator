@@ -1,4 +1,4 @@
-import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import type { EdgeNode, Task } from "@edgecloud/shared-kernel";
 import { EventEmitter } from "eventemitter3";
 
 // Phase 11: Advanced Scheduling - Resource Reservations & Gang Scheduling
@@ -163,11 +163,15 @@ export class ResourceReservationManager extends EventEmitter {
 
 export class GangScheduler extends EventEmitter {
   private pendingGangs: Map<string, GangSchedulingRequest> = new Map();
-  private reservationManager: ResourceReservationManager;
+  private _reservationManager: ResourceReservationManager;
 
   constructor(reservationManager: ResourceReservationManager) {
     super();
-    this.reservationManager = reservationManager;
+    this._reservationManager = reservationManager;
+  }
+
+  get reservationManager(): ResourceReservationManager {
+    return this._reservationManager;
   }
 
   async submitGangRequest(request: GangSchedulingRequest): Promise<string> {
@@ -229,7 +233,7 @@ export class AffinityScorer {
   }
 
   private evaluateConstraint(
-    task: Task,
+    _task: Task,
     node: EdgeNode,
     constraint: AffinityConstraint,
   ): number {

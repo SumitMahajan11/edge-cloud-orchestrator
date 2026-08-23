@@ -1,4 +1,4 @@
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import {
   configureForProductionTest,
   restoreTestEnvironment,
@@ -187,9 +187,9 @@ describe('Security Configuration', () => {
 
       // Mock to throw database error
       apiApp.prisma.edgeNode.count = (async () => {
-        const err = new Error('Connection lost') as any;
-        err.name = 'PrismaClientInitializationError';
-        err.code = 'P1001';
+        const err = new Error('Raw query failed') as any;
+        err.name = 'PrismaClientKnownRequestError';
+        err.code = 'P2010';
         throw err;
       }) as any;
 

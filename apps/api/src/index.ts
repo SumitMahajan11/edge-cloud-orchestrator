@@ -13,7 +13,7 @@ import {
   createLogger,
   fastifyLoggingPlugin,
   SecretManagerFactory,
-  SecretManager,
+  type SecretManager,
   GracefulShutdown,
   HealthCheck,
   RedisFactory,
@@ -64,7 +64,8 @@ import rateLimit from '@fastify/rate-limit';
 import staticPlugin from '@fastify/static';
 import websocket from '@fastify/websocket';
 import { PrismaClient } from '@prisma/client';
-import Fastify, { FastifyRequest, FastifyReply } from 'fastify';
+import Fastify from 'fastify';
+import type { FastifyRequest, FastifyReply } from 'fastify';
 import path from 'path';
 
 import {
@@ -299,7 +300,7 @@ async function registerPlugins() {
       if (
         corsOrigins.includes('*') ||
         corsOrigins.includes(origin) ||
-        isDevelopment
+        (isDevelopment && env.NODE_ENV !== 'test')
       ) {
         cb(null, true);
         return;
@@ -321,7 +322,9 @@ async function registerPlugins() {
         return;
       }
 
-      cb(null, false);
+      const error = new Error('Not allowed by CORS') as any;
+      error.statusCode = 403;
+      cb(error, false);
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

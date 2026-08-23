@@ -1,5 +1,7 @@
 import { PrismaClient } from '@prisma/client';
+import { requireProdConfirm } from '../../../scripts/require-prod-confirm';
 
+requireProdConfirm();
 const prisma = new PrismaClient();
 
 async function main() {

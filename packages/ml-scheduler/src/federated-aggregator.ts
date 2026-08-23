@@ -8,7 +8,7 @@ import path from "path";
 let tf: any = null;
 try {
   tf = require("@tensorflow/tfjs-node");
-} catch (e) {
+} catch (_e) {
   if ((globalThis as any).tf) {
     tf = (globalThis as any).tf;
   }
@@ -17,11 +17,19 @@ try {
 const logger = createLogger("federated-aggregator");
 
 export class FederatedAggregator {
+  private prisma: PrismaClient;
+  private modelStorage: ModelStorageService;
+  private modelRegistry: ModelRegistry;
+
   constructor(
-    private prisma: PrismaClient,
-    private modelStorage: ModelStorageService,
-    private modelRegistry: ModelRegistry,
-  ) {}
+    prisma: PrismaClient,
+    modelStorage: ModelStorageService,
+    modelRegistry: ModelRegistry,
+  ) {
+    this.prisma = prisma;
+    this.modelStorage = modelStorage;
+    this.modelRegistry = modelRegistry;
+  }
 
   async aggregate(roundId: string): Promise<string> {
     logger.info({ roundId }, "Starting federated weight aggregation");

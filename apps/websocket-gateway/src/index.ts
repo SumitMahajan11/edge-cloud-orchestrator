@@ -18,7 +18,7 @@ initTelemetry("websocket-gateway");
 const logger = createLogger("websocket-gateway");
 
 import Fastify from "fastify";
-import websocket, { SocketStream } from "@fastify/websocket";
+import websocket, { type SocketStream } from "@fastify/websocket";
 import cors from "@fastify/cors";
 import { EventEmitter } from "eventemitter3";
 import jwt from "jsonwebtoken";
@@ -218,6 +218,9 @@ class ConnectionManager extends EventEmitter {
   }
 
   closeAll(): void {
+    if (this.heartbeatInterval) {
+      clearInterval(this.heartbeatInterval);
+    }
     for (const conn of this.connections.values()) {
       try {
         conn.socket.close(1001, "Shutdown");

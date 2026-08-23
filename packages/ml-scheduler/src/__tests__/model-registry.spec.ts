@@ -1,14 +1,14 @@
-import { ModelRegistry, ModelMetadata } from "../registry";
+import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
+import { ModelRegistry, type ModelMetadata } from "../registry";
 import { Redis } from "ioredis";
 import fs from "fs";
-import path from "path";
 
 vi.mock("ioredis");
 vi.mock("fs");
 
 describe("ModelRegistry", () => {
   let registry: ModelRegistry;
-  let redis: vi.Mocked<Redis>;
+  let redis: Mocked<Redis>;
   const mockModelDir = "/tmp/models";
 
   beforeEach(() => {
@@ -41,7 +41,7 @@ describe("ModelRegistry", () => {
 
   describe("Rollback", () => {
     it("should successfully rollback to previous version", async () => {
-      redis.lpop.mockResolvedValue("v1.0.0");
+      (redis.lpop as any).mockResolvedValue("v1.0.0");
 
       const previous = await registry.rollbackModel();
 

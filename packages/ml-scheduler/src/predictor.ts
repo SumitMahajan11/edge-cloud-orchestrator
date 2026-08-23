@@ -1,4 +1,4 @@
-import { EdgeNode, Task, createLogger } from "@edgecloud/shared-kernel";
+import { type EdgeNode, type Task, createLogger } from "@edgecloud/shared-kernel";
 import path from "path";
 import fs from "fs";
 
@@ -8,7 +8,7 @@ if ((globalThis as any).tf) {
 } else {
   try {
     tf = require("@tensorflow/tfjs-node");
-  } catch (e) {
+  } catch (_e) {
     console.warn("TensorFlow native addon not available, using mock predictor");
   }
 }

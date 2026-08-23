@@ -1,5 +1,5 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
-import { UserRole } from '../types/fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
+import type { UserRole } from '../types/fastify';
 
 export const authState = {
   authenticate: async (

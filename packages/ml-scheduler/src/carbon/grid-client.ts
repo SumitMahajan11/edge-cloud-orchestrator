@@ -17,10 +17,16 @@ export class GridCarbonClient {
   private readonly baseUrl = "https://api.electricitymap.org/v3";
   private readonly cachePrefix = "carbon:zone:";
 
+  private redis: Redis;
+  private apiKey?: string;
+
   constructor(
-    private redis: Redis,
-    private apiKey?: string,
-  ) {}
+    redis: Redis,
+    apiKey?: string,
+  ) {
+    this.redis = redis;
+    this.apiKey = apiKey;
+  }
 
   /**
    * Get carbon intensity for a specific zone (gCO2eq/kWh)

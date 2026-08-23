@@ -1,10 +1,10 @@
 import {
-  Sampler,
   SamplingDecision,
-  SamplingResult,
   TraceIdRatioBasedSampler,
 } from '@opentelemetry/sdk-trace-base';
-import { Attributes, Context, Link, SpanKind } from '@opentelemetry/api';
+import type { Sampler, SamplingResult } from '@opentelemetry/sdk-trace-base';
+import type { Attributes, Context, Link } from '@opentelemetry/api';
+import { SpanKind } from '@opentelemetry/api';
 
 /**
  * CompositeSampler implements the advanced sampling strategy:

@@ -1,4 +1,4 @@
-import { NodeStatus } from "../types/domain.js";
+import type { NodeStatus } from "../types/domain.js";
 
 export interface EdgeNode {
   id: string;

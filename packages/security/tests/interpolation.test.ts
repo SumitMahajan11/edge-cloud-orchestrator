@@ -2,10 +2,10 @@ import { describe, expect, it } from "vitest";
 
 import {
   ABACEngine,
-  Action,
+  type Action,
   PolicyBuilder,
-  Resource,
-  Subject,
+  type Resource,
+  type Subject,
 } from "../src/abac";
 
 describe("ABAC Engine Interpolation", () => {

@@ -1,4 +1,4 @@
-// Using globals
+import { describe, it, expect } from "vitest";
 import { selectNode, SchedulingError } from "../scheduler";
 import { createMockNode, createMockTask } from "./factories";
 
@@ -10,7 +10,8 @@ describe("Scheduling Policies", () => {
     cost: 0.2,
     network: 0.1,
     ml: 0.1,
-    health: 0.1,
+    health: 0.05,
+    carbon: 0.05,
   };
 
   describe("Latency-Aware Policy", () => {

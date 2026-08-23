@@ -8,6 +8,7 @@ import {
   SpanKind,
   SpanStatusCode,
 } from "@edgecloud/shared-kernel";
+import type { Span } from "@opentelemetry/api";
 initTelemetry("edge-agent");
 
 const logger = createLogger("edge-agent");
@@ -16,16 +17,14 @@ import express from "express";
 import cors from "cors";
 import https from "https";
 import http from "http";
-import fs from "fs";
 import "express-async-errors";
 import si from "systeminformation";
 import { CertManager, verifySignature, validateTaskPayload } from "./security";
 import { DockerSandbox } from "./sandbox";
-import { AgentConfig, NodeStats, TaskPayload } from "./types";
+import type { AgentConfig, NodeStats, TaskPayload } from "./types";
 
 const app = express();
 
-let secretManager: any;
 let config: AgentConfig;
 let sandbox: DockerSandbox;
 let certManager: CertManager;
@@ -86,7 +85,7 @@ app.use((req, res, next) => {
 });
 
 // Routes
-app.get("/health", (req, res) => {
+app.get("/health", (_req, res) => {
   res.json({
     status: "healthy",
     nodeId: config.NODE_ID,
@@ -94,7 +93,7 @@ app.get("/health", (req, res) => {
   });
 });
 
-app.get("/metrics", async (req, res) => {
+app.get("/metrics", async (_req, res) => {
   const [cpu, mem] = await Promise.all([si.currentLoad(), si.mem()]);
   nodeStats.cpuUsage = Math.round(cpu.currentLoad);
   nodeStats.memoryUsage = Math.round((mem.used / mem.total) * 100);
@@ -126,7 +125,7 @@ app.post("/run-task", async (req, res) => {
           "node.id": config.NODE_ID,
         },
       },
-      async (span) => {
+      async (span: Span) => {
         try {
           const res = await sandbox.runTask(payload);
           span.setStatus({ code: SpanStatusCode.OK });

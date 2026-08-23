@@ -15,6 +15,8 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import {
   ParentBasedSampler,
   BatchSpanProcessor,
+} from '@opentelemetry/sdk-trace-base';
+import type {
   SpanProcessor,
   ReadableSpan,
 } from '@opentelemetry/sdk-trace-base';
@@ -31,7 +33,11 @@ const logger = createLogger('tracing');
  * Discards spans for ML decisions that are fast (< 20ms) and didn't fallback.
  */
 class TailSamplingSpanProcessor implements SpanProcessor {
-  constructor(private delegate: SpanProcessor) {}
+  private delegate: SpanProcessor;
+
+  constructor(delegate: SpanProcessor) {
+    this.delegate = delegate;
+  }
 
   onStart(span: any, parentContext: any): void {
     this.delegate.onStart(span, parentContext);

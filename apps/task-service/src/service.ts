@@ -1,7 +1,6 @@
 import { EventBus, TOPICS } from "@edgecloud/event-bus";
-import {
+import type {
   CreateTaskCommand,
-  generateCorrelationId,
   Task,
   TaskCancelledEvent,
   TaskCompletedEvent,
@@ -11,13 +10,16 @@ import {
   TaskStatus,
 } from "@edgecloud/shared-kernel";
 
-import { TaskRepository } from "./repository";
+import type { TaskRepository } from "./repository";
 
 export class TaskService {
-  constructor(
-    private repository: TaskRepository,
-    private eventBus: EventBus,
-  ) {}
+  private repository: TaskRepository;
+  private eventBus: EventBus;
+
+  constructor(repository: TaskRepository, eventBus: EventBus) {
+    this.repository = repository;
+    this.eventBus = eventBus;
+  }
 
   async createTask(command: CreateTaskCommand): Promise<Task> {
     // Create task in database

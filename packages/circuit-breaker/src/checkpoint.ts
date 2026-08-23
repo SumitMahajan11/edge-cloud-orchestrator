@@ -106,6 +106,26 @@ export class CheckpointManager extends EventEmitter {
     return this.deserializeState(checkpoint.state);
   }
 
+  async save(taskId: string, state: any): Promise<Checkpoint> {
+    return this.createCheckpoint(taskId, state);
+  }
+
+  async load(taskId: string, checkpointId?: string): Promise<Checkpoint | null> {
+    return this.store.load(taskId, checkpointId);
+  }
+
+  async list(taskId: string): Promise<Checkpoint[]> {
+    return this.getCheckpoints(taskId);
+  }
+
+  async delete(taskId: string, checkpointId?: string): Promise<void> {
+    return this.deleteCheckpoint(taskId, checkpointId);
+  }
+
+  async getLatest(taskId: string): Promise<Checkpoint | null> {
+    return this.store.load(taskId);
+  }
+
   async getCheckpoints(taskId: string): Promise<Checkpoint[]> {
     return this.store.list(taskId);
   }

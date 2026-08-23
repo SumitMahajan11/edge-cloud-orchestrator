@@ -19,6 +19,7 @@ const JWT_SECRET = "a".repeat(32);
 
 process.env.DATABASE_URL =
   "postgresql://mock:mock@localhost:5432/mock?sslmode=require";
+process.env.DATABASE_HOST = "localhost";
 process.env.REDIS_URL = "redis://localhost:6379";
 process.env.JWT_SECRET = JWT_SECRET;
 process.env.ENCRYPTION_KEY = ENCRYPTION_KEY;

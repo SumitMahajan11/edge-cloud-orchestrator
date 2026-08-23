@@ -11,7 +11,7 @@
 
 import { RetryPolicy } from '@edgecloud/circuit-breaker';
 import type { CircuitBreaker } from '@edgecloud/circuit-breaker';
-import axios, { AxiosError, AxiosResponse } from 'axios';
+import axios, { AxiosError, type AxiosResponse } from 'axios';
 
 export interface ReliableCallConfig {
   retries?: number;
@@ -32,14 +32,21 @@ const DEFAULT_CONFIG: Omit<ReliableCallConfig, 'circuitBreaker'> & {
 };
 
 export class ReliableCallError extends Error {
+  cause?: Error;
+  statusCode?: number;
+  attemptCount?: number;
+
   constructor(
     message: string,
-    public cause?: Error,
-    public statusCode?: number,
-    public attemptCount?: number,
+    cause?: Error,
+    statusCode?: number,
+    attemptCount?: number,
   ) {
     super(message);
     this.name = 'ReliableCallError';
+    this.cause = cause;
+    this.statusCode = statusCode;
+    this.attemptCount = attemptCount;
   }
 }
 

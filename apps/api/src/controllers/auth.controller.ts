@@ -1,7 +1,7 @@
-import { FastifyReply, FastifyRequest } from 'fastify';
+import type { FastifyReply, FastifyRequest } from 'fastify';
 import { AuthService } from '../services/auth.service';
 import { RateLimitService } from '../services/rate-limit.service';
-import { InferSchema } from '../types/fastify';
+import type { InferSchema } from '../types/fastify';
 import { loginSchema, registerSchema, refreshTokenSchema } from '../schemas';
 import { env } from '../config/env';
 import { mockPrisma } from '../initializers/mock-prisma';

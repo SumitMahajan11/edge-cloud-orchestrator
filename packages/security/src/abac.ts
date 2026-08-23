@@ -227,7 +227,7 @@ export class ABACEngine extends EventEmitter {
   private conditionMatches(
     condition: PolicyCondition,
     attributes: Record<string, any>,
-    request: AccessRequest,
+    _request: AccessRequest,
   ): boolean {
     const attributeValue = this.getNestedAttribute(
       attributes,
@@ -375,6 +375,20 @@ export class PolicyBuilder {
 
   subject(attribute: string, type: PolicyCondition["type"], value: any): this {
     this.policy.subjects!.push({ type, attribute, value });
+    return this;
+  }
+
+  forSubject(input: any): this {
+    if (typeof input === "object" && input !== null) {
+      if (input.type) {
+        this.subject("type", "equals", input.type);
+      }
+      if (input.attributes) {
+        for (const [key, value] of Object.entries(input.attributes)) {
+          this.subject(key, "equals", value);
+        }
+      }
+    }
     return this;
   }
 

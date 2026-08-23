@@ -1,6 +1,7 @@
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { MLScheduler } from "../ml-scheduler";
 import { GridCarbonClient } from "../carbon/grid-client";
-import { EdgeNode, Task } from "@edgecloud/shared-kernel";
+import type { EdgeNode, Task } from "@edgecloud/shared-kernel";
 
 describe("Carbon-Aware Scheduling", () => {
   let mlScheduler: MLScheduler;
@@ -107,7 +108,7 @@ describe("Carbon-Aware Scheduling", () => {
     // Wait, the latency score difference is small (10ms vs 25ms in a 500ms range).
 
     // Let's adjust values to make the trade-off meaningful.
-    const result = await mlScheduler.schedule(
+    await mlScheduler.schedule(
       task,
       [nodeFastButDirty, nodeSlowButClean],
       {} as any,

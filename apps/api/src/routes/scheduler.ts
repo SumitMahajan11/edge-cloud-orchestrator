@@ -1,5 +1,5 @@
 import { Permissions } from '@edgecloud/shared-kernel';
-import { FastifyInstance } from 'fastify';
+import type { FastifyInstance } from 'fastify';
 import { zodToFastifySchema } from '../utils/zod-schema.js';
 import { schedulerDecisionsQuerySchema } from '../schemas';
 

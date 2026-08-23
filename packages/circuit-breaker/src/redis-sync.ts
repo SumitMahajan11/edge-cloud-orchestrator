@@ -1,15 +1,18 @@
 import { createLogger } from "@edgecloud/shared-kernel";
 import Redis from "ioredis";
 
-import { CircuitBreakerRegistry, CircuitState } from "./circuit-breaker";
+import { CircuitBreakerRegistry, type CircuitState } from "./circuit-breaker";
 
 const logger = createLogger("circuit-breaker-sync");
 
 export class RedisCircuitBreakerSync {
   private readonly stateKeyPrefix = "circuit_breaker:state:";
   private readonly stateTTL = 300; // 5 minutes
+  private redis: Redis;
 
-  constructor(private redis: Redis) {}
+  constructor(redis: Redis) {
+    this.redis = redis;
+  }
 
   // Called when a breaker changes state (CLOSED→OPEN, OPEN→HALF_OPEN, etc.)
   async publishStateChange(

@@ -2,7 +2,7 @@ import Fastify from 'fastify';
 import { z } from 'zod';
 import { Prisma } from '@prisma/client';
 import errorHandler from '../plugins/error-handler';
-import { ApiError } from '@edgecloud/shared-kernel';
+import type { ApiError } from '@edgecloud/shared-kernel';
 import { env } from '../config/env';
 
 describe('Global Error Handler', () => {

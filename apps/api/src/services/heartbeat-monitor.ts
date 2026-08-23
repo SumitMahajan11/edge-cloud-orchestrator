@@ -1,4 +1,4 @@
-import { NodeStatus, PrismaClient, Task } from '@prisma/client';
+import { NodeStatus, PrismaClient, type Task } from '@prisma/client';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
 import { tracer } from '@edgecloud/shared-kernel';

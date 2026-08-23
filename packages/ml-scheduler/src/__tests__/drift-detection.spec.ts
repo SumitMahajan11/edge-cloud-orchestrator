@@ -1,9 +1,10 @@
-import { DriftDetector, PredictionOutcome } from "../drift-detector";
-import { IMetricsCollector } from "@edgecloud/shared-kernel";
+import { describe, it, expect, vi, beforeEach, type Mocked } from "vitest";
+import { DriftDetector, type PredictionOutcome } from "../drift-detector";
+import type { IMetricsCollector } from "@edgecloud/shared-kernel";
 
 describe("DriftDetector", () => {
   let detector: DriftDetector;
-  let metrics: vi.Mocked<IMetricsCollector>;
+  let metrics: Mocked<IMetricsCollector>;
 
   beforeEach(() => {
     metrics = {

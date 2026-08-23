@@ -1,18 +1,27 @@
 import { PrismaClient } from '@prisma/client';
 import axios from 'axios';
 import crypto from 'crypto';
-import { Logger } from 'pino';
+import type { Logger } from 'pino';
 
 export class WebhookRetryJob {
   private interval: NodeJS.Timeout | null = null;
   private isProcessing = false;
+  private prisma: PrismaClient;
+  private logger: Logger;
+  private readonly intervalMs: number;
+  private readonly maxRetries: number;
 
   constructor(
-    private prisma: PrismaClient,
-    private logger: Logger,
-    private readonly intervalMs: number = 60000,
-    private readonly maxRetries: number = 5,
-  ) {}
+    prisma: PrismaClient,
+    logger: Logger,
+    intervalMs: number = 60000,
+    maxRetries: number = 5,
+  ) {
+    this.prisma = prisma;
+    this.logger = logger;
+    this.intervalMs = intervalMs;
+    this.maxRetries = maxRetries;
+  }
 
   /**
    * Start the background job

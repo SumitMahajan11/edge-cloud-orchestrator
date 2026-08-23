@@ -2,11 +2,11 @@ import { beforeEach, describe, expect, it } from "vitest";
 
 import {
   ABACEngine,
-  Action,
+  type Action,
   DEFAULT_POLICIES,
   PolicyBuilder,
-  Resource,
-  Subject,
+  type Resource,
+  type Subject,
 } from "../src/abac";
 
 describe("ABAC Security Rules Validation", () => {

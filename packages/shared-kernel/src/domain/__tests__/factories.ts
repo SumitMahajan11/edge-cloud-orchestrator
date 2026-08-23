@@ -1,4 +1,4 @@
-import { DomainNode, DomainTask, Priority } from "../../types/domain";
+import type { DomainNode, DomainTask, Priority } from "../../types/domain";
 
 export const createMockNode = (
   overrides: Partial<DomainNode> = {},

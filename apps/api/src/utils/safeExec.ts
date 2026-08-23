@@ -9,7 +9,7 @@
 // - Timeout protection
 // ============================================================================
 
-import { spawn, SpawnOptions } from 'child_process';
+import { spawn, type SpawnOptions } from 'child_process';
 
 // Whitelist of allowed commands and their valid arguments
 const ALLOWED_COMMANDS: Record<
@@ -45,14 +45,21 @@ const ALLOWED_COMMANDS: Record<
 type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
 
 export class CommandExecutionError extends Error {
+  command: string;
+  args: string[];
+  exitCode?: number;
+
   constructor(
     message: string,
-    public command: string,
-    public args: string[],
-    public exitCode?: number,
+    command: string,
+    args: string[],
+    exitCode?: number,
   ) {
     super(message);
     this.name = 'CommandExecutionError';
+    this.command = command;
+    this.args = args;
+    this.exitCode = exitCode;
   }
 }
 

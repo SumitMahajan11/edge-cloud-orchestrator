@@ -18,11 +18,13 @@ export class ModelRegistry {
   private readonly REDIS_KEY = "ml:active_model_version";
   private readonly HISTORY_KEY = "ml:model_version_history";
   public readonly MODEL_DIR: string;
+  public redis: Redis;
 
   constructor(
-    public redis: Redis,
+    redis: Redis,
     modelDir?: string,
   ) {
+    this.redis = redis;
     this.MODEL_DIR = modelDir || path.join(process.cwd(), "models");
     if (!fs.existsSync(this.MODEL_DIR)) {
       fs.mkdirSync(this.MODEL_DIR, { recursive: true });
@@ -43,7 +45,7 @@ export class ModelRegistry {
           "utf-8",
         );
         versions.push(JSON.parse(content));
-      } catch (e) {
+      } catch (_e) {
         logger.warn({ file }, "Failed to parse model metadata");
       }
     }
@@ -137,9 +139,9 @@ export class ModelRegistry {
         if (fs.existsSync(artifactPath)) fs.unlinkSync(artifactPath);
 
         logger.info({ version: model.version }, "Pruned old model artifact");
-      } catch (e) {
+      } catch (_e) {
         logger.error(
-          { error: e, version: model.version },
+          { error: _e, version: model.version },
           "Failed to prune model",
         );
       }

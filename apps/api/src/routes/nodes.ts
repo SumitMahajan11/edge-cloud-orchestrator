@@ -20,8 +20,8 @@ import {
   v1NodeContracts,
   validateIpAddress,
 } from '@edgecloud/shared-kernel';
-import { EdgeNode } from '@prisma/client';
-import { FastifyInstance, FastifyRequest } from 'fastify';
+import type { EdgeNode } from '@prisma/client';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { TenantId } from '../types/fastify.js';
 
 import { idParamSchema } from '../schemas';

@@ -1,16 +1,18 @@
+import { describe, it, expect } from "vitest";
 import * as fc from "fast-check";
 import { selectNode } from "../scheduler";
-import { DomainNode, DomainTask, Priority } from "../../types/domain";
+import type { DomainNode, DomainTask, Priority } from "../../types/domain";
 
 describe("Scheduling Property Tests", () => {
   const weights = {
     latency: 0.2,
-    cpu: 0.2,
-    memory: 0.2,
+    cpu: 0.15,
+    memory: 0.15,
     cost: 0.2,
     network: 0.1,
     ml: 0.1,
-    health: 0,
+    health: 0.05,
+    carbon: 0.05,
   };
 
   // Arbitrary generator for DomainNode
