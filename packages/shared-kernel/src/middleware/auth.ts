@@ -19,7 +19,7 @@ export interface AuthConfig {
 
 declare module "fastify" {
   interface FastifyRequest {
-    user?: AuthUser;
+    user: AuthUser;
     serviceAuth?: boolean;
   }
 }

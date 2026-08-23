@@ -15,6 +15,24 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    "baseUrl": ".",
+    "paths": {
+      "@edgecloud/analytics": ["packages/analytics/src/index.ts"],
+      "@edgecloud/api-client": ["packages/api-client/src/index.ts"],
+      "@edgecloud/circuit-breaker": ["packages/circuit-breaker/src/index.ts"],
+      "@edgecloud/event-bus": ["packages/event-bus/src/index.ts"],
+      "@edgecloud/ml-scheduler": ["packages/ml-scheduler/src/index.ts"],
+      "@edgecloud/mock-agent": ["packages/mock-agent/src/index.ts"],
+      "@edgecloud/observability": ["packages/observability/src/index.ts"],
+      "@edgecloud/outbox": ["packages/outbox/src/index.ts"],
+      "@edgecloud/performance": ["packages/performance/src/index.ts"],
+      "@edgecloud/saga": ["packages/saga/src/index.ts"],
+      "@edgecloud/scheduling-utils": ["packages/scheduling-utils/src/index.ts"],
+      "@edgecloud/security": ["packages/security/src/index.ts"],
+      "@edgecloud/shared-kernel": ["packages/shared-kernel/src/index.ts"],
+      "@edgecloud/websocket-client": ["packages/websocket-client/src/index.ts"]
+    },
+
     /* Linting */
     "strict": true,
     "noUnusedLocals": true,

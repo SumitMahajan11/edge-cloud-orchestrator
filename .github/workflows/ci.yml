@@ -58,7 +58,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: 2. Typecheck (tsc --noEmit)
-        run: pnpm run typecheck
+        run: |
+          pnpm --filter @edgecloud/api exec prisma generate
+          pnpm run typecheck
 
       - name: 3. ESLint (all packages)
         run: pnpm run lint

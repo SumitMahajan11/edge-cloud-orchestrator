@@ -95,6 +95,7 @@ export default defineWorkspace([
       ...sharedConfig.test,
       name: "integration",
       include: ["**/*.test.ts"],
+      fileParallelism: false,
       alias: {
         ...sharedConfig.test?.alias,
         "@prisma/client": path.resolve(

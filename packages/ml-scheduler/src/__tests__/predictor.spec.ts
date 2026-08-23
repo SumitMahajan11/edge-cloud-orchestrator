@@ -69,11 +69,16 @@ describe("SchedulingPredictor", () => {
     predictor = new SchedulingPredictor();
     vi.clearAllMocks();
 
+    mockModelInstance.compile = vi.fn();
+    mockModelInstance.fit = vi.fn();
+    mockModelInstance.predict = vi.fn();
+    mockModelInstance.save = vi.fn();
+
     // Re-register mock implementations so they survive restoreAllMocks()
-    mockTf.tensor2d.mockReturnValue(mockTensorInstance);
-    mockTf.sequential.mockReturnValue(mockModelInstance);
-    mockTf.loadLayersModel.mockResolvedValue(mockModelInstance);
-    mockTf.zeros.mockReturnValue(mockTensorInstance);
+    mockTf.tensor2d = vi.fn().mockReturnValue(mockTensorInstance);
+    mockTf.sequential = vi.fn().mockReturnValue(mockModelInstance);
+    mockTf.loadLayersModel = vi.fn().mockResolvedValue(mockModelInstance);
+    mockTf.zeros = vi.fn().mockReturnValue(mockTensorInstance);
 
     mockModelInstance.compile.mockReturnValue(undefined);
     mockModelInstance.fit.mockResolvedValue({
