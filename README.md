@@ -64,7 +64,7 @@ Edge Nodes / Cloud
 - **Messaging & Caching**: Apache Kafka (Event Streaming), Redis (Pub/Sub & Rate Limiting)
 - **Database & Storage**: PostgreSQL (Prisma ORM, PgBouncer; CockroachDB compatible)
 - **Infrastructure & Orchestration**: Docker, Docker Compose, Kong / Nginx API Gateway
-- **Observability & Security**: Prometheus, Grafana, Jaeger (Distributed Tracing), mTLS (X.509 CA & RSA CSR; dev-mode default: bypassed via `x-node-id`), HashiCorp Vault (PKI & KV v2; dev-mode default: bypassed via `EnvSecretManager`)
+- **Observability & Security**: Prometheus, Grafana, Jaeger (Distributed Tracing), mTLS (X.509 CA & RSA CSR — certificate management fully implemented and tested; server-side enforcement (`setupMTLSServer`) is scaffolded but not yet wired into the running server or its dependency installed; dev-mode default: bypassed via `x-node-id`), HashiCorp Vault (PKI & KV v2; dev-mode default: bypassed via `EnvSecretManager`)
 
 ## Testing
 

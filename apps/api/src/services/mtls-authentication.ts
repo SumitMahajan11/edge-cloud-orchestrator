@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { createHash, randomBytes, X509Certificate, webcrypto } from 'crypto';
 import * as x509 from '@peculiar/x509';
+
 import fs from 'fs/promises';
 import path from 'path';
 import type { FastifyBaseLogger } from 'fastify';
@@ -417,10 +418,10 @@ export class CertificateAuthorityManager {
           },
         });
 
-        if (!t) throw new Error('Invalid bootstrap token');
-        if (t.usedAt) throw new Error('Bootstrap token already used');
+        if (!t) {throw new Error('Invalid bootstrap token');}
+        if (t.usedAt) {throw new Error('Bootstrap token already used');}
         if (t.expiresAt < new Date())
-          throw new Error('Bootstrap token expired');
+          {throw new Error('Bootstrap token expired');}
 
         return await tx.bootstrapToken.update({
           where: { token },
@@ -1196,15 +1197,24 @@ export async function createMTLSServer(
   validator: CertificateValidator,
 ): Promise<void> {
   // Register TLS options
-  await fastify.register(require('@fastify/https'), {
-    cert: config.cert,
-    key: config.key,
-    ca: config.ca,
-    requestCert: config.requestCert,
-    rejectUnauthorized: config.rejectUnauthorized,
-    minVersion: config.minVersion,
-    ciphers: config.ciphers,
-  });
+  // NOTE: @fastify/https is not currently an installed dependency.
+  // setupMTLSServer/createMTLSServer are scaffolded but not called
+  // anywhere in the running app. This dynamic import intentionally
+  // no-ops if the package is absent rather than crashing.
+  // See README for current mTLS implementation status.
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fastifyHttpsMod: any = await import('@fastify/https').catch(() => null);
+  if (fastifyHttpsMod) {
+    await fastify.register(fastifyHttpsMod.default || fastifyHttpsMod, {
+      cert: config.cert,
+      key: config.key,
+      ca: config.ca,
+      requestCert: config.requestCert,
+      rejectUnauthorized: config.rejectUnauthorized,
+      minVersion: config.minVersion,
+      ciphers: config.ciphers,
+    });
+  }
 
   // Add mTLS verification hook
   fastify.addHook('onRequest', async (request, reply) => {
