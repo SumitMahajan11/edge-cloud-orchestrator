@@ -62,10 +62,7 @@ jobs:
           pnpm --filter @edgecloud/api exec prisma generate
           pnpm run typecheck
 
-      - name: 3. ESLint (all packages)
-        run: pnpm run lint
-
-      - name: 4. Unit tests (all packages, with coverage)
+      - name: 3. Unit tests (all packages, with coverage)
         run: pnpm run test --coverage
         env:
           NODE_ENV: test
@@ -126,6 +123,23 @@ jobs:
         with:
           name: coverage-report
           path: coverage/
+
+  lint:
+    name: Code Quality (ESLint)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: ESLint check (independent status)
+        run: pnpm run lint
 
   security-audit:
     name: Security Audit
