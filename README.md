@@ -108,7 +108,8 @@ Open `http://localhost:5173` in your browser.
 ## License
 
 MIT License
-
 ## Development
 
 This project is actively developed and maintained.
+
+Contributions that improve reliability, scheduling, testing, and documentation are welcome.
