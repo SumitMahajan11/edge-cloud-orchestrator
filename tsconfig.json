@@ -17,7 +17,6 @@
 
     "baseUrl": ".",
     "paths": {
-      "@edgecloud/analytics": ["packages/analytics/src/index.ts"],
       "@edgecloud/api-client": ["packages/api-client/src/index.ts"],
       "@edgecloud/circuit-breaker": ["packages/circuit-breaker/src/index.ts"],
       "@edgecloud/event-bus": ["packages/event-bus/src/index.ts"],
