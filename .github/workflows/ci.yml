@@ -158,9 +158,9 @@ jobs:
       - name: Audit for critical vulnerabilities
         run: pnpm audit --audit-level critical
         # Fails build on critical CVEs
-      - name: Audit for high vulnerabilities (warning only)
-        run: pnpm audit --audit-level high || true
-        # Informational — does not fail build but logs warnings
+      - name: Audit for high vulnerabilities
+        run: pnpm audit --audit-level high
+        # Fails build on high or critical CVEs
       - name: Check for outdated packages
         run: pnpm outdated --recursive || true
         # Informational only
