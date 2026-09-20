@@ -240,6 +240,98 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
     },
   );
 
+  // GET /api/v2/carbon/export
+  fastify.get(
+    '/export',
+    {
+      preHandler: [
+        fastify.authenticate,
+        fastify.requirePermission(Permissions.CARBON_READ),
+      ],
+      schema: {
+        tags: ['carbon'],
+        summary: 'Export tenant carbon data in EU CSRD format',
+        querystring: zodToFastifySchema(carbonReportQuerySchema),
+      },
+    },
+    async (request: FastifyRequest, reply: FastifyReply) => {
+      const tenantId = request.user?.tenantId;
+      if (!tenantId) {
+        return reply.status(400).send({
+          error: 'A tenant context is required for carbon compliance exports',
+        });
+      }
+
+      const { from, to } =
+        (request.query as { from?: string; to?: string }) || {};
+      const startDate = from
+        ? new Date(from)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const endDate = to ? new Date(to) : new Date();
+
+      const records = await request.tPrisma.carbonRecord.findMany({
+        where: {
+          tenantId,
+          recordedAt: { gte: startDate, lte: endDate },
+        },
+        orderBy: { recordedAt: 'asc' },
+      });
+
+      const totalEnergyKwh = records.reduce(
+        (total: number, record: any) =>
+          total + (record.estimatedWatts * record.durationMs) / 3_600_000_000,
+        0,
+      );
+      const weightedIntensity = records.reduce(
+        (total: number, record: any) =>
+          total +
+          record.carbonIntensity *
+            ((record.estimatedWatts * record.durationMs) / 3_600_000_000),
+        0,
+      );
+      const carbonIntensityGCO2KWh = totalEnergyKwh
+        ? weightedIntensity / totalEnergyKwh
+        : 0;
+      const totalCarbonScope2EmissionsKg = records.reduce(
+        (total: number, record: any) => total + record.estimatedGco2eq / 1000,
+        0,
+      );
+
+      const csvCell = (value: string | number) =>
+        `"${String(value).replace(/"/g, '""')}"`;
+      const csv = [
+        [
+          'TenantID',
+          'PeriodStart',
+          'PeriodEnd',
+          'TotalEnergyKWh',
+          'CarbonIntensityGCO2KWh',
+          'TotalCarbonScope2EmissionsKg',
+        ],
+        [
+          tenantId,
+          startDate.toISOString(),
+          endDate.toISOString(),
+          totalEnergyKwh.toFixed(6),
+          carbonIntensityGCO2KWh.toFixed(6),
+          totalCarbonScope2EmissionsKg.toFixed(6),
+        ],
+      ]
+        .map((row) => row.map(csvCell).join(','))
+        .join('\n');
+
+      return reply
+        .header('Content-Type', 'text/csv')
+        .header(
+          'Content-Disposition',
+          `attachment; filename="carbon-compliance-${
+            startDate.toISOString().split('T')[0]
+          }-to-${endDate.toISOString().split('T')[0]}.csv"`,
+        )
+        .send(csv);
+    },
+  );
+
   // GET /api/v2/carbon/report
   fastify.get(
     '/report',
@@ -255,9 +347,13 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
-      const { from, to, format } = (request.query as { from?: string; to?: string; format?: string }) || {};
+      const { from, to, format } =
+        (request.query as { from?: string; to?: string; format?: string }) ||
+        {};
 
-      const startDate = from ? new Date(from) : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      const startDate = from
+        ? new Date(from)
+        : new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
       const endDate = to ? new Date(to) : new Date();
 
       // Query database
@@ -295,7 +391,8 @@ export default async function carbonRoutes(fastify: FastifyInstance) {
 
       for (const r of recordWithTaskType) {
         totalGco2eq += r.estimatedGco2eq;
-        totalBaselineGco2eq += r.baselineGco2eq !== null ? r.baselineGco2eq : r.estimatedGco2eq;
+        totalBaselineGco2eq +=
+          r.baselineGco2eq !== null ? r.baselineGco2eq : r.estimatedGco2eq;
         totalSavedGco2eq += r.carbonSavedGco2eq || 0;
         totalDurationMs += r.durationMs;
         if (r.wasDeferred) {
