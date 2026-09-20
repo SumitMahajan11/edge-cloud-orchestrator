@@ -3,6 +3,9 @@ packages:
   - "packages/experimental/*"
   - "apps/*"
 
+overrides:
+  tar: ">=7.5.21"
+
 allowBuilds:
   "@prisma/client": true
   "@prisma/engines": true
