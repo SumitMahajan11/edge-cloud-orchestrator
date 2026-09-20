@@ -5,8 +5,6 @@ requireProdConfirm();
 const prisma = new PrismaClient();
 
 async function main() {
-  const tenantId = '68c7e6c3-1f1d-4f1d-8f1d-1f1d1f1d1f1d'; // Standard tenant ID from common-tenant.ts if it exists
-
   // Try to find a tenant
   const tenant = await prisma.tenant.findFirst();
   if (!tenant) {
