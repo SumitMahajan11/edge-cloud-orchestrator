@@ -1,4 +1,11 @@
 use sysinfo::{System, Disks};
+use std::process::Command;
+
+#[derive(Clone, Debug, Default)]
+pub struct GpuInfo {
+    pub model: String,
+    pub memory_mb: Option<u64>,
+}
 
 pub struct SystemMetrics {
     sys: System,
@@ -62,6 +69,43 @@ impl SystemMetrics {
         System::load_average().one
     }
 
+    /// Detect a GPU without making the agent depend on a vendor SDK.
+    /// NVIDIA memory is reported when `nvidia-smi` is available. For other
+    /// PCI-visible GPUs, the model is still reported and memory remains null.
+    pub fn detect_gpu(&self) -> Option<GpuInfo> {
+        if let Ok(output) = Command::new("nvidia-smi")
+            .args(["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"])
+            .output()
+        {
+            if output.status.success() {
+                if let Some(line) = String::from_utf8_lossy(&output.stdout).lines().next() {
+                    let mut parts = line.split(',').map(str::trim);
+                    if let Some(model) = parts.next().filter(|value| !value.is_empty()) {
+                        let memory_mb = parts.next().and_then(|value| value.parse().ok());
+                        return Some(GpuInfo { model: model.to_string(), memory_mb });
+                    }
+                }
+            }
+        }
+
+        let output = Command::new("lspci").output().ok()?;
+        if !output.status.success() {
+            return None;
+        }
+        String::from_utf8_lossy(&output.stdout)
+            .lines()
+            .find(|line| {
+                let lower = line.to_ascii_lowercase();
+                lower.contains("vga compatible controller")
+                    || lower.contains("3d controller")
+                    || lower.contains("display controller")
+            })
+            .map(|line| GpuInfo {
+                model: line.split(':').nth(2).unwrap_or(line).trim().to_string(),
+                memory_mb: None,
+            })
+    }
+
     /// Internal method to refresh and get agent process metrics
     pub fn get_process_metrics(&mut self, pid: sysinfo::Pid) -> (f64, u64) {
         self.sys.refresh_process(pid);
@@ -108,4 +152,3 @@ mod tests {
         }
     }
 }
-

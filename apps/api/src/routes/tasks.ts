@@ -13,7 +13,12 @@
  * - GET /artifacts/:id — Downloads stored WASM bytecode binaries.
  */
 import { Permissions, v1Contracts } from '@edgecloud/shared-kernel';
-import { type Task, type TaskExecution, TaskStatus, TaskType } from '@prisma/client';
+import {
+  type Task,
+  type TaskExecution,
+  TaskStatus,
+  TaskType,
+} from '@prisma/client';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { TenantId } from '../types/fastify.js';
 
@@ -305,7 +310,10 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           include: { metrics: { take: 1, orderBy: { timestamp: 'desc' } } },
         });
 
-        const status = (node && node.metrics && node.metrics.length > 0) ? 'ONLINE' : node?.status;
+        const status =
+          node && node.metrics && node.metrics.length > 0
+            ? 'ONLINE'
+            : node?.status;
 
         if (!node || status !== 'ONLINE' || node.isMaintenanceMode) {
           return reply.status(400).send({
@@ -331,13 +339,17 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           isDeferrable: data.isDeferrable ?? false,
           maxDelayMinutes: data.maxDelayMinutes ?? 0,
           reason: 'Manually submitted',
-          input: data.input || {},
+          input: {
+            ...(data.input || {}),
+            requiresGpu: data.requiresGpu ?? false,
+          },
           metadata: {
             ...(data.metadata || {}),
             specs: data.specs,
           },
           maxRetries: data.maxRetries,
           runtime: data.runtime,
+          requiresGpu: data.requiresGpu ?? false,
           image: data.image ?? null,
           wasmArtifactId: data.wasmArtifactId ?? null,
           affinity: data.affinity ?? null,
@@ -373,7 +385,10 @@ export default async function taskRoutes(fastify: FastifyInstance) {
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
-          details: { name: task.name, type: task.type } as import('@prisma/client').Prisma.InputJsonValue,
+          details: {
+            name: task.name,
+            type: task.type,
+          } as import('@prisma/client').Prisma.InputJsonValue,
           ipAddress: request.ip,
           userAgent: request.headers['user-agent'] ?? null,
         },
@@ -444,7 +459,9 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         task.nodeId &&
         ['SCHEDULED', 'RUNNING'].includes(task.status)
       ) {
-        await fastify.taskScheduler.schedulerRateLimiter.recordTaskCompleted(task.nodeId);
+        await fastify.taskScheduler.schedulerRateLimiter.recordTaskCompleted(
+          task.nodeId,
+        );
       }
 
       // Broadcast via WebSocket
@@ -714,14 +731,14 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       const buffer = await data.toBuffer();
       const { v4: uuidv4 } = await import('uuid');
       const artifactId = uuidv4();
-      
+
       const redisKey = `wasm:artifact:${artifactId}`;
       // Store in Redis with 7 days TTL (7 * 24 * 3600 seconds)
       const base64Data = buffer.toString('base64');
       await fastify.redis.setex(redisKey, 7 * 24 * 3600, base64Data);
 
       return reply.status(201).send({ artifactId });
-    }
+    },
   );
 
   // GET /artifacts/:id (Download WASM artifact)
@@ -764,9 +781,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       }
 
       const buffer = Buffer.from(base64Data, 'base64');
-      return reply
-        .type('application/wasm')
-        .send(buffer);
-    }
+      return reply.type('application/wasm').send(buffer);
+    },
   );
 }

@@ -32,7 +32,6 @@ import {
   AgentCertificateGenerator,
 } from '../services/mtls-authentication.js';
 
-
 const NodeStatus = {
   ONLINE: 'ONLINE',
   OFFLINE: 'OFFLINE',
@@ -132,7 +131,6 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
     },
     async (
       request: FastifyRequest<{ Querystring: v1NodeContracts.NodeQueryV1 }>,
-      _reply,
     ) => {
       const { region, status, page, limit, sortBy, sortOrder } = request.query;
 
@@ -287,6 +285,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           cpuCores: data.cpuCores,
           memoryGB: data.memoryGB,
           storageGB: data.storageGB,
+          gpuModel: data.gpuModel ?? null,
+          gpuMemoryMb: data.gpuMemoryMb ?? null,
           url: `http://${data.ipAddress}:${data.port}`,
           status: 'OFFLINE',
           ...(data.maxTasks !== undefined && { maxTasks: data.maxTasks }),
@@ -463,6 +463,9 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       tasksRunning?: number;
       networkIn?: number;
       networkOut?: number;
+      gpuModel?: string | null;
+      gpuMemoryMb?: number | null;
+      gpuUtilization?: number | null;
     };
   }>(
     '/:id/heartbeat',
@@ -480,6 +483,9 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
             tasksRunning: { type: 'number' },
             networkIn: { type: 'number' },
             networkOut: { type: 'number' },
+            gpuModel: { type: 'string', nullable: true },
+            gpuMemoryMb: { type: 'integer', nullable: true },
+            gpuUtilization: { type: 'number', nullable: true },
           },
           required: ['cpuUsage', 'memoryUsage'],
         },
@@ -517,6 +523,10 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           storageUsage: metrics.storageUsage ?? 0,
           latency: metrics.latency ?? 0,
           tasksRunning: metrics.tasksRunning ?? 0,
+          ...(metrics.gpuModel !== undefined && { gpuModel: metrics.gpuModel }),
+          ...(metrics.gpuMemoryMb !== undefined && {
+            gpuMemoryMb: metrics.gpuMemoryMb,
+          }),
           lastHeartbeat: new Date(),
           status: 'ONLINE',
         },
@@ -537,19 +547,21 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         });
 
         // Emit system log: node came back online
-        await request.tPrisma.auditLog.create({
-          data: {
-            tenantId: node.tenantId,
-            action: 'node.online',
-            entityType: 'node',
-            entityId: id,
-            details: {
-              nodeName: node.name,
-              previousStatus,
-              reason: 'heartbeat_received',
-            } as any,
-          },
-        }).catch(() => {}); // Non-critical — don't fail the heartbeat
+        await request.tPrisma.auditLog
+          .create({
+            data: {
+              tenantId: node.tenantId,
+              action: 'node.online',
+              entityType: 'node',
+              entityId: id,
+              details: {
+                nodeName: node.name,
+                previousStatus,
+                reason: 'heartbeat_received',
+              } as any,
+            },
+          })
+          .catch(() => {}); // Non-critical — don't fail the heartbeat
       }
 
       // Store metrics
@@ -901,26 +913,30 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       }
 
       // Generate a new keypair and CSR on behalf of the node (administrative shortcut)
-      const { privateKey, csr } = await AgentCertificateGenerator.generateKeyPairAndCSR(
-        id,
-        node.region || 'us-east-1'
-      );
+      const { privateKey, csr } =
+        await AgentCertificateGenerator.generateKeyPairAndCSR(
+          id,
+          node.region || 'us-east-1',
+        );
 
       // Instantiate CertificateAuthorityManager and CertificateRotationService
-      const caManager = new CertificateAuthorityManager(request.tPrisma as any, fastify.log);
+      const caManager = new CertificateAuthorityManager(
+        request.tPrisma as any,
+        fastify.log,
+      );
       await caManager.initialize();
 
       const rotationService = new CertificateRotationService(
         caManager,
         request.tPrisma as any,
-        fastify.log
+        fastify.log,
       );
 
       // Perform rotation
       const result = await rotationService.rotateCertificate(
         id,
         csr,
-        activeCert.serialNumber
+        activeCert.serialNumber,
       );
 
       // Create audit log
@@ -945,7 +961,6 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
         expiresAt: result.expiresAt.toISOString(),
         privateKey,
       };
-    }
+    },
   );
 }
-
