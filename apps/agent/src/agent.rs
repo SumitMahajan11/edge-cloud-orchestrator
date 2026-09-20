@@ -82,6 +82,7 @@ impl Agent {
             let mut interval = time::interval(Duration::from_secs(5));
             let mut metrics_unavailable_warned = false;
             let pid = sysinfo::get_current_pid().expect("Failed to get current PID");
+            let gpu_info = metrics_hb.lock().await.detect_gpu();
 
             loop {
                 interval.tick().await;
@@ -116,6 +117,8 @@ impl Agent {
                         "agent_process_cpu": agent_cpu,
                         "agent_process_memory_mb": agent_mem_bytes / 1_048_576,
                         "agent_metrics_unavailable": metrics_unavailable,
+                        "gpu_model": gpu_info.as_ref().map(|gpu| gpu.model.clone()),
+                        "gpu_memory_mb": gpu_info.as_ref().and_then(|gpu| gpu.memory_mb),
                     }
                 });
 

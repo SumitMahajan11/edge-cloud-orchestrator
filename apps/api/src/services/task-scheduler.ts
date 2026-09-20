@@ -187,7 +187,7 @@ export class TaskScheduler extends EventEmitter {
       this.redis,
       process.env.NODE_ENV === 'test'
         ? path.join(process.cwd(), 'apps', 'api', 'models')
-        : undefined
+        : undefined,
     );
     this.driftDetector = new DriftDetector(this.metrics, this.prisma);
 
@@ -200,17 +200,27 @@ export class TaskScheduler extends EventEmitter {
 
       // 1. Critical drift triggers rollback
       if (mae >= 0.5) {
-        this.logger.error({ mae }, 'Critical ML drift detected! Attempting automatic model rollback.');
+        this.logger.error(
+          { mae },
+          'Critical ML drift detected! Attempting automatic model rollback.',
+        );
         try {
           const rolledBackVersion = await this.modelRegistry.rollbackModel();
           if (rolledBackVersion) {
-            this.logger.warn({ version: rolledBackVersion }, 'Successfully rolled back to previous model checkpoint.');
+            this.logger.warn(
+              { version: rolledBackVersion },
+              'Successfully rolled back to previous model checkpoint.',
+            );
             this.driftDetector.reset();
-            this.wsManager.broadcast('ml:model:rolledback', { version: rolledBackVersion });
+            this.wsManager.broadcast('ml:model:rolledback', {
+              version: rolledBackVersion,
+            });
             // Immediately check hot swap to load the rolled back model
             await this.mlScheduler.checkHotSwap();
           } else {
-            this.logger.error('Critical drift detected, but no rollback version history is available.');
+            this.logger.error(
+              'Critical drift detected, but no rollback version history is available.',
+            );
           }
         } catch (err: any) {
           this.logger.error({ err }, 'Failed to rollback model.');
@@ -221,7 +231,10 @@ export class TaskScheduler extends EventEmitter {
       if (mae >= 0.3) {
         this.logger.info({ mae }, 'Triggering background model retraining.');
         this.triggerMLRetrain().catch((err) => {
-          this.logger.error({ err }, 'Failed to trigger automated background retraining.');
+          this.logger.error(
+            { err },
+            'Failed to trigger automated background retraining.',
+          );
         });
       }
 
@@ -249,7 +262,9 @@ export class TaskScheduler extends EventEmitter {
               },
             },
           );
-          this.logger.info('Successfully triggered GitHub ml-retrain workflow.');
+          this.logger.info(
+            'Successfully triggered GitHub ml-retrain workflow.',
+          );
         } catch (error: any) {
           this.logger.error(
             { error: error.message },
@@ -284,7 +299,11 @@ export class TaskScheduler extends EventEmitter {
       this.carbonClient,
     );
     this.featureExtractor = new FeatureExtractor(this.prisma);
-    this.nodeHealthScorer = new NodeHealthScorer(this.prisma, this.wsManager, this.logger);
+    this.nodeHealthScorer = new NodeHealthScorer(
+      this.prisma,
+      this.wsManager,
+      this.logger,
+    );
 
     // Default weights - can be updated via API
     this.schedulerWeights = {
@@ -680,7 +699,11 @@ export class TaskScheduler extends EventEmitter {
     // If we've already exceeded the max delay, we must run it now
     if (elapsedMinutes >= task.maxDelayMinutes) {
       this.logger.info(
-        { taskId: task.id, elapsedMinutes, maxDelayMinutes: task.maxDelayMinutes },
+        {
+          taskId: task.id,
+          elapsedMinutes,
+          maxDelayMinutes: task.maxDelayMinutes,
+        },
         'Task exceeded maximum delay limit; executing immediately',
       );
       // Clean up any deferral keys in Redis
@@ -689,7 +712,9 @@ export class TaskScheduler extends EventEmitter {
     }
 
     // Check if we already have an active deferral decision in Redis
-    const deferredUntilStr = await this.redis.get(`task:deferred:${task.id}:until`);
+    const deferredUntilStr = await this.redis.get(
+      `task:deferred:${task.id}:until`,
+    );
     if (deferredUntilStr) {
       const deferredUntil = parseInt(deferredUntilStr, 10);
       if (now < deferredUntil) {
@@ -747,7 +772,10 @@ export class TaskScheduler extends EventEmitter {
       }
     }
 
-    this.logger.debug({ bestZone }, 'Determined best carbon zone for forecast evaluation');
+    this.logger.debug(
+      { bestZone },
+      'Determined best carbon zone for forecast evaluation',
+    );
 
     if (bestForecast.length === 0) {
       return false; // Could not get forecast
@@ -770,7 +798,8 @@ export class TaskScheduler extends EventEmitter {
 
     // Find the minimum intensity point in the future
     const minPoint = validForecasts.reduce(
-      (min, point) => (point.carbonIntensity < min.carbonIntensity ? point : min),
+      (min, point) =>
+        point.carbonIntensity < min.carbonIntensity ? point : min,
       firstPoint,
     );
 
@@ -796,7 +825,10 @@ export class TaskScheduler extends EventEmitter {
       );
 
       const predictedSavings = currentIntensity - minPoint.carbonIntensity;
-      this.metrics.recordCarbonMetrics(minPoint.carbonIntensity, predictedSavings);
+      this.metrics.recordCarbonMetrics(
+        minPoint.carbonIntensity,
+        predictedSavings,
+      );
 
       // Save the target time in Redis
       const remainingDelayMs = deadline - now;
@@ -890,7 +922,9 @@ export class TaskScheduler extends EventEmitter {
 
     // 3. Pre-fetch tenant policies/weights in a single query
     const tenantIds = Array.from(
-      new Set(pendingTasks.map((t) => t.tenantId).filter((id): id is string => !!id)),
+      new Set(
+        pendingTasks.map((t) => t.tenantId).filter((id): id is string => !!id),
+      ),
     );
     let tenantPolicyMap = new Map<string, any>();
     if (tenantIds.length > 0) {
@@ -898,7 +932,7 @@ export class TaskScheduler extends EventEmitter {
         tenantIds.map(async (tid) => {
           const cached = await this.redis.get(`tenant:policy:${tid}`);
           return { tid, cached };
-        })
+        }),
       );
       const missingTenantIds: string[] = [];
       for (const r of cacheResults) {
@@ -917,7 +951,11 @@ export class TaskScheduler extends EventEmitter {
         for (const p of policies) {
           if (p.config) {
             tenantPolicyMap.set(p.tenantId, p.config);
-            await this.redis.setex(`tenant:policy:${p.tenantId}`, 10, JSON.stringify(p.config));
+            await this.redis.setex(
+              `tenant:policy:${p.tenantId}`,
+              10,
+              JSON.stringify(p.config),
+            );
           }
         }
       }
@@ -1057,7 +1095,8 @@ export class TaskScheduler extends EventEmitter {
       const affinityJson = (task as any).affinity;
       if (affinityJson) {
         try {
-          const { AffinityScorer } = await import('@edgecloud/scheduling-utils');
+          const { AffinityScorer } =
+            await import('@edgecloud/scheduling-utils');
           const scorer = new AffinityScorer();
           const constraints =
             typeof affinityJson === 'string'
@@ -1098,7 +1137,8 @@ export class TaskScheduler extends EventEmitter {
       }
 
       // Node selection
-      let matchedNode: { id: string; url: string; mlResult?: any } | null = null;
+      let matchedNode: { id: string; url: string; mlResult?: any } | null =
+        null;
       if (task.policy === 'ml-optimized') {
         try {
           const selectedResult = await this.mlScheduler.schedule(
@@ -1147,7 +1187,11 @@ export class TaskScheduler extends EventEmitter {
 
           if (!nodeCheck.allowed) {
             this.logger.warn(
-              { taskId: task.id, nodeId: matchedNode.id, reason: nodeCheck.reason },
+              {
+                taskId: task.id,
+                nodeId: matchedNode.id,
+                reason: nodeCheck.reason,
+              },
               '[Scheduler] Selected node rate/pending limit exceeded. Skipping task for this tick.',
             );
             skipped++;
@@ -1160,7 +1204,9 @@ export class TaskScheduler extends EventEmitter {
         }
 
         // Increment tasksRunning in-memory for this node
-        const nodeToUpdate = inMemoryNodes.find((n) => n.id === matchedNode!.id);
+        const nodeToUpdate = inMemoryNodes.find(
+          (n) => n.id === matchedNode!.id,
+        );
         if (nodeToUpdate) {
           nodeToUpdate.tasksRunning++;
         }
@@ -1246,21 +1292,27 @@ export class TaskScheduler extends EventEmitter {
   private async findNode(
     task: Task,
   ): Promise<{ id: string; url: string; mlResult?: any } | null> {
-    console.log(`[DEBUG_TEST] findNode called for task: ${task.id}, policy: ${task.policy}, tenantId: ${(task as any).tenantId}`);
+    console.log(
+      `[DEBUG_TEST] findNode called for task: ${task.id}, policy: ${task.policy}, tenantId: ${(task as any).tenantId}`,
+    );
     const nodes = await this.prisma.edgeNode.findMany({
       where: {
         status: 'ONLINE',
         isMaintenanceMode: false,
         tasksRunning: { lt: 10 }, // Max tasks per node
+        ...((task as any).requiresGpu && { gpuModel: { not: null } }),
         ...(!env.FORCE_MOCK_DB && { tenantId: (task as any).tenantId }),
       },
       orderBy: [
         { tasksRunning: 'asc' }, // Prefer least loaded
-        { latency: 'asc' },      // Then lowest latency
+        { latency: 'asc' }, // Then lowest latency
       ],
     });
 
-    console.log(`[DEBUG_TEST] findNode DB query found ${nodes.length} nodes:`, nodes.map(n => ({ id: n.id, status: n.status, tenantId: n.tenantId })));
+    console.log(
+      `[DEBUG_TEST] findNode DB query found ${nodes.length} nodes:`,
+      nodes.map((n) => ({ id: n.id, status: n.status, tenantId: n.tenantId })),
+    );
 
     if (nodes.length === 0) {
       return null;
@@ -1272,7 +1324,9 @@ export class TaskScheduler extends EventEmitter {
     // (e.g. ["docker", "wasm"]).  Only keep nodes that explicitly support the
     // required runtime, OR nodes that have no capabilities array (legacy /
     // unconfigured nodes are assumed to support any runtime).
-    const taskRuntime: string = ((task as any).runtime ?? 'DOCKER').toLowerCase();
+    const taskRuntime: string = (
+      (task as any).runtime ?? 'DOCKER'
+    ).toLowerCase();
     const runtimeCompatibleNodes = nodes.filter((n: any) => {
       const caps: string[] | undefined = n.capabilities;
       if (!caps || caps.length === 0) return true; // unconfigured → allow all
@@ -1287,11 +1341,12 @@ export class TaskScheduler extends EventEmitter {
       // Graceful degradation: if no node declares support, use all nodes so
       // the system does not deadlock.  This mirrors the existing no-node path.
     }
-    const candidateNodes = runtimeCompatibleNodes.length > 0
-      ? runtimeCompatibleNodes
-      : nodes;
+    const candidateNodes =
+      runtimeCompatibleNodes.length > 0 ? runtimeCompatibleNodes : nodes;
 
-    console.log(`[DEBUG_TEST] findNode step 1 (runtime check) done. Candidate count: ${candidateNodes.length}`);
+    console.log(
+      `[DEBUG_TEST] findNode step 1 (runtime check) done. Candidate count: ${candidateNodes.length}`,
+    );
 
     // ── 2. Circuit-breaker exclusion ─────────────────────────────────────────
     const circuitStates = await Promise.all(
@@ -1315,16 +1370,22 @@ export class TaskScheduler extends EventEmitter {
       return null;
     }
 
-    console.log(`[DEBUG_TEST] findNode step 3 (circuit check) done. Available nodes: ${availableNodes.length}`);
+    console.log(
+      `[DEBUG_TEST] findNode step 3 (circuit check) done. Available nodes: ${availableNodes.length}`,
+    );
 
     // ── 2b. Node Health penalty multiplier mapping ───────────────────────────
     const nodeIds = availableNodes.map((n) => n.id);
     const healthScores = await this.prisma.nodeHealthScore.findMany({
       where: { nodeId: { in: nodeIds } },
     });
-    console.log(`[DEBUG_TEST] findNode step 4 (node health scores fetched) done. count: ${healthScores.length}`);
+    console.log(
+      `[DEBUG_TEST] findNode step 4 (node health scores fetched) done. count: ${healthScores.length}`,
+    );
 
-    const healthMap = new Map(healthScores.map((h) => [h.nodeId, h.penaltyMultiplier]));
+    const healthMap = new Map(
+      healthScores.map((h) => [h.nodeId, h.penaltyMultiplier]),
+    );
 
     const availableNodesWithHealth = availableNodes.map((node) => {
       const penaltyMultiplier = healthMap.get(node.id) ?? 1.0;
@@ -1339,9 +1400,21 @@ export class TaskScheduler extends EventEmitter {
     // We score every candidate node and sort descending so the best-fit node
     // is first. The existing ML / selectNode path then picks from this ordered
     // list, preserving all downstream policy logic.
-    let affinityOrderedNodes = availableNodesWithHealth;
+    // Keep scarce GPU capacity available for GPU workloads. GPU tasks are
+    // filtered above; ordinary tasks prefer CPU-only nodes when all other
+    // scheduling signals are equal.
+    const requiresGpu = Boolean((task as any).requiresGpu);
+    let affinityOrderedNodes = [...availableNodesWithHealth].sort(
+      (a: any, b: any) => {
+        const aHasGpu = a.gpuModel ? 1 : 0;
+        const bHasGpu = b.gpuModel ? 1 : 0;
+        return requiresGpu ? bHasGpu - aHasGpu : aHasGpu - bHasGpu;
+      },
+    );
     const affinityJson: string | null | undefined = (task as any).affinity;
-    console.log(`[DEBUG_TEST] findNode step 5 (affinity start). affinityJson: ${affinityJson}`);
+    console.log(
+      `[DEBUG_TEST] findNode step 5 (affinity start). affinityJson: ${affinityJson}`,
+    );
     if (affinityJson) {
       try {
         const { AffinityScorer } = await import('@edgecloud/scheduling-utils');
@@ -1350,7 +1423,11 @@ export class TaskScheduler extends EventEmitter {
         if (Array.isArray(constraints) && constraints.length > 0) {
           const scored = availableNodesWithHealth.map((node: any) => ({
             node,
-            score: scorer.calculateAffinityScore(task as any, node, constraints),
+            score: scorer.calculateAffinityScore(
+              task as any,
+              node,
+              constraints,
+            ),
           }));
           // Sort highest score first; ties retain the DB ordering (fewest tasks / lowest latency)
           scored.sort((a, b) => b.score - a.score);
@@ -1358,7 +1435,10 @@ export class TaskScheduler extends EventEmitter {
           this.logger.debug(
             {
               taskId: task.id,
-              scores: scored.map((s) => ({ nodeId: s.node.id, score: s.score })),
+              scores: scored.map((s) => ({
+                nodeId: s.node.id,
+                score: s.score,
+              })),
             },
             'Affinity scores computed',
           );
@@ -1421,7 +1501,9 @@ export class TaskScheduler extends EventEmitter {
     if (task.policy === 'ml-optimized') {
       console.log(`[DEBUG_TEST] findNode step 6 (ML-policy path matched).`);
       const { withSpan } = await import('../lib/tracing.js');
-      console.log(`[DEBUG_TEST] findNode step 7 (calling mlScheduler.schedule).`);
+      console.log(
+        `[DEBUG_TEST] findNode step 7 (calling mlScheduler.schedule).`,
+      );
       try {
         const selectedResult = await withSpan(
           'scheduler:ml_decision',
@@ -1438,7 +1520,10 @@ export class TaskScheduler extends EventEmitter {
           },
         );
 
-        console.log(`[DEBUG_TEST] findNode step 8 (mlScheduler.schedule returned):`, JSON.stringify(selectedResult));
+        console.log(
+          `[DEBUG_TEST] findNode step 8 (mlScheduler.schedule returned):`,
+          JSON.stringify(selectedResult),
+        );
 
         if (selectedResult) {
           const node = affinityOrderedNodes.find(
@@ -1455,10 +1540,14 @@ export class TaskScheduler extends EventEmitter {
     }
 
     // ── 6. Default shared-kernel selectNode (all other policies) ─────────────
-    const selected = await selectNode(affinityOrderedNodes as any, task as any, {
-      weights: activeWeights,
-      policy: task.policy,
-    });
+    const selected = await selectNode(
+      affinityOrderedNodes as any,
+      task as any,
+      {
+        weights: activeWeights,
+        policy: task.policy,
+      },
+    );
 
     return selected ? { id: selected.id, url: (selected as any).url } : null;
   }
@@ -1504,7 +1593,14 @@ export class TaskScheduler extends EventEmitter {
     try {
       const task = await this.prisma.task.findUnique({
         where: { id: taskId },
-        select: { id: true, policy: true, metadata: true, nodeId: true, tenantId: true, submittedAt: true },
+        select: {
+          id: true,
+          policy: true,
+          metadata: true,
+          nodeId: true,
+          tenantId: true,
+          submittedAt: true,
+        },
       });
 
       if (!task) {
@@ -1571,9 +1667,11 @@ export class TaskScheduler extends EventEmitter {
 
       // Shadow Mode (A/B testing) evaluation logic
       await this.processShadowOutcome(metadata, actualScore);
-
     } catch (error) {
-      console.error('[ERROR_ML_OUTCOME] Failed to record task outcome for ML:', error);
+      console.error(
+        '[ERROR_ML_OUTCOME] Failed to record task outcome for ML:',
+        error,
+      );
       this.logger.error(
         { taskId, error },
         'Failed to record task outcome for ML',
@@ -1597,9 +1695,11 @@ export class TaskScheduler extends EventEmitter {
     status: 'COMPLETED' | 'FAILED',
   ): Promise<void> {
     try {
-      const decision = await (this.prisma as any).schedulingDecision.findUnique({
-        where: { taskId: task.id },
-      });
+      const decision = await (this.prisma as any).schedulingDecision.findUnique(
+        {
+          where: { taskId: task.id },
+        },
+      );
 
       let explanation: any = {};
       if (decision) {
@@ -1622,7 +1722,10 @@ export class TaskScheduler extends EventEmitter {
           select: { carbonIntensity: true, cpuUsage: true },
         });
         if (node) {
-          if (node.carbonIntensity !== undefined && node.carbonIntensity !== null) {
+          if (
+            node.carbonIntensity !== undefined &&
+            node.carbonIntensity !== null
+          ) {
             carbonIntensity = node.carbonIntensity;
           }
           if (node.cpuUsage !== undefined && node.cpuUsage !== null) {
@@ -1640,7 +1743,12 @@ export class TaskScheduler extends EventEmitter {
       );
 
       // Update bandit agent in MLScheduler
-      if (task.nodeId && context && Array.isArray(context) && context.length === 12) {
+      if (
+        task.nodeId &&
+        context &&
+        Array.isArray(context) &&
+        context.length === 12
+      ) {
         await this.mlScheduler.updateBandit(task.nodeId, context, reward);
       }
 
@@ -1666,7 +1774,10 @@ export class TaskScheduler extends EventEmitter {
         'Agent improved scheduling efficiency: updated bandit weights from outcome.',
       );
     } catch (err: any) {
-      console.error('[ERROR_BANDIT] Failed to execute contextual bandit feedback loop update:', err);
+      console.error(
+        '[ERROR_BANDIT] Failed to execute contextual bandit feedback loop update:',
+        err,
+      );
       this.logger.error(
         { taskId: task.id, error: err.message },
         'Failed to execute contextual bandit feedback loop update',
@@ -1683,7 +1794,11 @@ export class TaskScheduler extends EventEmitter {
   ): Promise<void> {
     const shadowResult = metadata.shadowResult;
     console.log(`[DEBUG_OUTCOME] shadowResult=`, JSON.stringify(shadowResult));
-    if (shadowResult && shadowResult.version && typeof shadowResult.score === 'number') {
+    if (
+      shadowResult &&
+      shadowResult.version &&
+      typeof shadowResult.score === 'number'
+    ) {
       const shadowScore = shadowResult.score;
       const shadowVersion = shadowResult.version;
       const shadowError = Math.abs(shadowScore - actualScore);
@@ -1692,10 +1807,14 @@ export class TaskScheduler extends EventEmitter {
       await this.redis.rpush('ml:shadow_errors', String(shadowError));
       // Increment evaluated shadow count 'ml:shadow_eval_count'
       const rawCount = await this.redis.incr('ml:shadow_eval_count');
-      const shadowCount = typeof rawCount === 'number' ? rawCount : parseInt(rawCount, 10);
+      const shadowCount =
+        typeof rawCount === 'number' ? rawCount : parseInt(rawCount, 10);
 
       // Get SHADOW_EVAL_LIMIT (default 100, 5 in test/development if configured)
-      const shadowEvalLimit = parseInt(process.env.SHADOW_EVAL_LIMIT || '100', 10);
+      const shadowEvalLimit = parseInt(
+        process.env.SHADOW_EVAL_LIMIT || '100',
+        10,
+      );
 
       this.logger.info(
         { shadowVersion, shadowCount, shadowEvalLimit, shadowError },
@@ -1706,7 +1825,8 @@ export class TaskScheduler extends EventEmitter {
         // Compute shadow MAE
         const rawErrors = await this.redis.lrange('ml:shadow_errors', 0, -1);
         const errors = rawErrors.map((err) => parseFloat(err));
-        const shadowMAE = errors.reduce((acc, val) => acc + val, 0) / errors.length;
+        const shadowMAE =
+          errors.reduce((acc, val) => acc + val, 0) / errors.length;
 
         // Compare against active model's MAE
         const activeMetadata = await this.modelRegistry.getActiveModel();
@@ -1786,11 +1906,16 @@ export class TaskScheduler extends EventEmitter {
       if (!task) return;
 
       // Check if a carbon record already exists for this taskId to prevent duplicate key errors
-      const existingRecord = await (this.prisma as any).carbonRecord.findUnique({
-        where: { taskId },
-      });
+      const existingRecord = await (this.prisma as any).carbonRecord.findUnique(
+        {
+          where: { taskId },
+        },
+      );
       if (existingRecord) {
-        this.logger.debug({ taskId }, 'Carbon record already exists, skipping duplicate creation');
+        this.logger.debug(
+          { taskId },
+          'Carbon record already exists, skipping duplicate creation',
+        );
         return;
       }
 
@@ -1917,8 +2042,14 @@ export class TaskScheduler extends EventEmitter {
           select: { tasksRunning: true, maxTasks: true, status: true },
         });
 
-        if (!currentNode || currentNode.status !== 'ONLINE' || currentNode.tasksRunning >= (currentNode.maxTasks ?? 10)) {
-          throw new Error('Node capacity exceeded or offline during atomic assignment');
+        if (
+          !currentNode ||
+          currentNode.status !== 'ONLINE' ||
+          currentNode.tasksRunning >= (currentNode.maxTasks ?? 10)
+        ) {
+          throw new Error(
+            'Node capacity exceeded or offline during atomic assignment',
+          );
         }
 
         await tx.edgeNode.update({
@@ -2016,14 +2147,23 @@ export class TaskScheduler extends EventEmitter {
       });
     } catch (err: any) {
       if (err.code === 'P2003') {
-        this.logger.warn({ taskId: task.id }, 'Task execution creation failed due to P2003 (Task likely deleted). Skipping assignment.');
+        this.logger.warn(
+          { taskId: task.id },
+          'Task execution creation failed due to P2003 (Task likely deleted). Skipping assignment.',
+        );
         return;
       }
-      if (err.message === 'Node capacity exceeded or offline during atomic assignment') {
+      if (
+        err.message ===
+        'Node capacity exceeded or offline during atomic assignment'
+      ) {
         this.logger.warn({ taskId: task.id, nodeId: node.id }, err.message);
         return;
       }
-      this.logger.error({ taskId: task.id, err }, 'Failed to persist scheduling decision or audit log');
+      this.logger.error(
+        { taskId: task.id, err },
+        'Failed to persist scheduling decision or audit log',
+      );
       throw err;
     }
 
@@ -2078,28 +2218,26 @@ export class TaskScheduler extends EventEmitter {
                   .update(JSON.stringify(payload))
                   .digest('hex');
 
-                await axios.post(
-                  `${node.url}/run-task`,
-                  payload,
-                  {
-                    timeout: REQUEST_TIMEOUT,
-                    signal: controller.signal,
-                    headers: {
-                      'X-Request-ID': requestId,
-                      'X-Trace-ID': traceId,
-                      'X-Source': 'task-scheduler',
-                      'x-signature': signature,
-                    },
+                await axios.post(`${node.url}/run-task`, payload, {
+                  timeout: REQUEST_TIMEOUT,
+                  signal: controller.signal,
+                  headers: {
+                    'X-Request-ID': requestId,
+                    'X-Trace-ID': traceId,
+                    'X-Source': 'task-scheduler',
+                    'x-signature': signature,
                   },
-                );
+                });
                 span.setStatus({ code: SpanStatusCode.OK });
               } catch (err: any) {
-                const isConnectionRefused = err.code === 'ECONNREFUSED' || 
-                                            err.message?.includes('ECONNREFUSED') ||
-                                            err.code === 'ETIMEDOUT' ||
-                                            err.message?.includes('ETIMEDOUT') ||
-                                            (axios.isAxiosError(err) && (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT'));
-                
+                const isConnectionRefused =
+                  err.code === 'ECONNREFUSED' ||
+                  err.message?.includes('ECONNREFUSED') ||
+                  err.code === 'ETIMEDOUT' ||
+                  err.message?.includes('ETIMEDOUT') ||
+                  (axios.isAxiosError(err) &&
+                    (err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT'));
+
                 if (isConnectionRefused) {
                   isPullAgent = true;
                   span.setStatus({ code: SpanStatusCode.OK });
@@ -2107,7 +2245,7 @@ export class TaskScheduler extends EventEmitter {
                 }
                 span.recordException(err);
                 span.setStatus({ code: SpanStatusCode.ERROR });
-                
+
                 await this.prisma.$transaction(async (tx) => {
                   await tx.edgeNode.update({
                     where: { id: node.id },
@@ -2115,7 +2253,10 @@ export class TaskScheduler extends EventEmitter {
                   });
                   await tx.task.update({
                     where: { id: task.id },
-                    data: { status: 'FAILED', reason: 'Node rejected or timed out during dispatch' },
+                    data: {
+                      status: 'FAILED',
+                      reason: 'Node rejected or timed out during dispatch',
+                    },
                   });
                   if (execution) {
                     await tx.taskExecution.update({
@@ -2124,11 +2265,11 @@ export class TaskScheduler extends EventEmitter {
                     });
                   }
                 });
-                
+
                 if (this.schedulerRateLimiter) {
                   await this.schedulerRateLimiter.recordTaskCompleted(node.id);
                 }
-                
+
                 throw err;
               } finally {
                 span.end();
@@ -2153,7 +2294,8 @@ export class TaskScheduler extends EventEmitter {
           ? performance.now() - schedulingStartTime
           : 0;
         const mlScore = mlResult?.decision?.score ?? 1.0;
-        const usedML = task.policy === 'ml-optimized' && !mlResult?.fallbackUsed;
+        const usedML =
+          task.policy === 'ml-optimized' && !mlResult?.fallbackUsed;
         let edgeNode: any = null;
         try {
           edgeNode = await this.prisma.edgeNode.findUnique({
@@ -2169,15 +2311,19 @@ export class TaskScheduler extends EventEmitter {
           } catch (err) {}
         }
         const costUsd = edgeNode?.costPerHour ?? 0;
-        this.wsManager.broadcast('scheduler:decision', {
-          taskId: task.id,
-          selectedNodeId: node.id,
-          mlScore,
-          usedML,
-          latencyMs,
-          carbonIntensity,
-          costUsd,
-        }, task.tenantId);
+        this.wsManager.broadcast(
+          'scheduler:decision',
+          {
+            taskId: task.id,
+            selectedNodeId: node.id,
+            mlScore,
+            usedML,
+            latencyMs,
+            carbonIntensity,
+            costUsd,
+          },
+          task.tenantId,
+        );
         return;
       }
 
@@ -2201,11 +2347,15 @@ export class TaskScheduler extends EventEmitter {
       // Node task count was already updated in the atomic assignment transaction
 
       const tWs = performance.now();
-      this.wsManager.broadcast('task:started', {
-        taskId: task.id,
-        nodeId: node.id,
-        timestamp: new Date().toISOString(),
-      }, task.tenantId);
+      this.wsManager.broadcast(
+        'task:started',
+        {
+          taskId: task.id,
+          nodeId: node.id,
+          timestamp: new Date().toISOString(),
+        },
+        task.tenantId,
+      );
 
       // Calculate scheduling latency
       const latencyMs = schedulingStartTime
@@ -2252,15 +2402,19 @@ export class TaskScheduler extends EventEmitter {
 
       const costUsd = (node as any).costPerHour ?? edgeNode?.costPerHour ?? 0;
 
-      this.wsManager.broadcast('scheduler:decision', {
-        taskId: task.id,
-        selectedNodeId: node.id,
-        mlScore,
-        usedML,
-        latencyMs,
-        carbonIntensity,
-        costUsd,
-      }, task.tenantId);
+      this.wsManager.broadcast(
+        'scheduler:decision',
+        {
+          taskId: task.id,
+          selectedNodeId: node.id,
+          mlScore,
+          usedML,
+          latencyMs,
+          carbonIntensity,
+          costUsd,
+        },
+        task.tenantId,
+      );
 
       // We can't easily pass this back up without changing method signatures
       // So we'll just log it if it's slow
@@ -2308,7 +2462,7 @@ export class TaskScheduler extends EventEmitter {
               error: errorMessage,
               completedAt: new Date(),
             },
-          })
+          }),
         );
       }
       await this.prisma.$transaction(ops);
@@ -2395,14 +2549,25 @@ export class TaskScheduler extends EventEmitter {
       const errLower = result.error.toLowerCase();
       if (errLower.includes('timeout')) {
         finalOutcome = 'TIMEOUT';
-      } else if (errLower.includes('oom') || errLower.includes('out of memory')) {
+      } else if (
+        errLower.includes('oom') ||
+        errLower.includes('out of memory')
+      ) {
         finalOutcome = 'OOM';
       }
     }
     try {
-      await this.nodeHealthScorer.recordTaskOutcome(nodeId, task.tenantId, finalOutcome, result.duration);
+      await this.nodeHealthScorer.recordTaskOutcome(
+        nodeId,
+        task.tenantId,
+        finalOutcome,
+        result.duration,
+      );
     } catch (err) {
-      this.logger.error({ err, nodeId, taskId }, 'Failed to record task outcome in health scorer');
+      this.logger.error(
+        { err, nodeId, taskId },
+        'Failed to record task outcome in health scorer',
+      );
     }
 
     // Record carbon footprint attribution record
@@ -2423,12 +2588,16 @@ export class TaskScheduler extends EventEmitter {
       });
     }
 
-    this.wsManager.broadcast(`task:${result.status}`, {
-      taskId,
-      nodeId,
-      duration: result.duration,
-      timestamp: new Date().toISOString(),
-    }, task.tenantId);
+    this.wsManager.broadcast(
+      `task:${result.status}`,
+      {
+        taskId,
+        nodeId,
+        duration: result.duration,
+        timestamp: new Date().toISOString(),
+      },
+      task.tenantId,
+    );
 
     // ML Observability: Record outcome for drift detection
     try {
@@ -2487,12 +2656,15 @@ export class TaskScheduler extends EventEmitter {
     if (task.policy === 'ml-optimized') {
       const banditStatus: 'COMPLETED' | 'FAILED' =
         result.status === 'completed' ? 'COMPLETED' : 'FAILED';
-      this.processBanditOutcome(task as any, result.duration, banditStatus).catch(
-        (err) =>
-          this.logger.error(
-            { taskId, err },
-            'handleTaskCompletion: processBanditOutcome failed',
-          ),
+      this.processBanditOutcome(
+        task as any,
+        result.duration,
+        banditStatus,
+      ).catch((err) =>
+        this.logger.error(
+          { taskId, err },
+          'handleTaskCompletion: processBanditOutcome failed',
+        ),
       );
     }
   }
@@ -2579,8 +2751,14 @@ export class TaskScheduler extends EventEmitter {
       this.retrainStatus === 'TRAINING' ||
       this.retrainStatus === 'VALIDATING'
     ) {
-      this.logger.warn({ currentStatus: this.retrainStatus }, 'ML retraining already in progress. Ignoring trigger.');
-      return { success: false, message: `Retraining already in progress: ${this.retrainStatus}` };
+      this.logger.warn(
+        { currentStatus: this.retrainStatus },
+        'ML retraining already in progress. Ignoring trigger.',
+      );
+      return {
+        success: false,
+        message: `Retraining already in progress: ${this.retrainStatus}`,
+      };
     }
 
     this.logger.info('ML retraining triggered');
@@ -2605,7 +2783,9 @@ export class TaskScheduler extends EventEmitter {
         const newVersion = await this.incrementalUpdater.runUpdate();
 
         if (!newVersion) {
-          throw new Error('Retraining script failed to generate a new model version.');
+          throw new Error(
+            'Retraining script failed to generate a new model version.',
+          );
         }
 
         this.retrainStatus = 'VALIDATING';
@@ -2616,19 +2796,31 @@ export class TaskScheduler extends EventEmitter {
         });
 
         // Check new model validation (get metadata)
-        const newMetadata = await this.modelRegistry.getModelMetadata(newVersion);
+        const newMetadata =
+          await this.modelRegistry.getModelMetadata(newVersion);
         if (!newMetadata) {
-          throw new Error(`Failed to load metadata for newly trained model: ${newVersion}`);
+          throw new Error(
+            `Failed to load metadata for newly trained model: ${newVersion}`,
+          );
         }
 
         const activeMetadata = await this.modelRegistry.getActiveModel();
-        if (activeMetadata && newMetadata.mae > activeMetadata.mae && newMetadata.mae > 0.35) {
+        if (
+          activeMetadata &&
+          newMetadata.mae > activeMetadata.mae &&
+          newMetadata.mae > 0.35
+        ) {
           // Reject immediately if new model has worse accuracy than active AND is above the 0.35 safety threshold
-          throw new Error(`Newly trained model rejected: MAE (${newMetadata.mae}) is worse than active model (${activeMetadata.mae})`);
+          throw new Error(
+            `Newly trained model rejected: MAE (${newMetadata.mae}) is worse than active model (${activeMetadata.mae})`,
+          );
         }
 
         // Put new model in Shadow Mode (A/B testing)
-        this.logger.info({ newVersion }, 'Placing new model in SHADOW MODE for A/B evaluation.');
+        this.logger.info(
+          { newVersion },
+          'Placing new model in SHADOW MODE for A/B evaluation.',
+        );
         await this.redis.set('ml:shadow_model_version', newVersion);
         await this.redis.set('ml:shadow_eval_count', '0');
         await this.redis.del('ml:shadow_errors');
@@ -2636,7 +2828,7 @@ export class TaskScheduler extends EventEmitter {
         // Immediately trigger checkHotSwap to load the shadow model
         await this.mlScheduler.checkHotSwap();
       } catch (err: any) {
-        console.error("RETRAIN_ERROR", err);
+        console.error('RETRAIN_ERROR', err);
         this.logger.error({ err }, 'ML retraining failed.');
         this.retrainStatus = 'FAILED';
         this.retrainError = err.message;
@@ -2734,4 +2926,3 @@ export class TaskScheduler extends EventEmitter {
     this.logger.info({ priority, tenantId }, 'Task submission recorded');
   }
 }
-

@@ -49,6 +49,7 @@ export const CreateTaskV1Schema = z
     metadata: z.record(z.unknown()).optional(),
     maxRetries: z.number().int().min(0).max(10).default(3),
     runtime: z.enum(["NATIVE", "DOCKER", "WASM"]).default("DOCKER"),
+    requiresGpu: z.boolean().default(false),
     image: z.string().optional(),
     wasmArtifactId: z.string().optional(),
     affinity: z.string().optional(),
@@ -59,10 +60,14 @@ export const CreateTaskV1Schema = z
   })
   .superRefine((data, ctx) => {
     if (data.runtime === "WASM") {
-      if (!data.wasmArtifactId && (!data.image || !data.image.startsWith("http"))) {
+      if (
+        !data.wasmArtifactId &&
+        (!data.image || !data.image.startsWith("http"))
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: "WASM runtime requires either a valid URL for the image or a wasmArtifactId",
+          message:
+            "WASM runtime requires either a valid URL for the image or a wasmArtifactId",
           path: ["image"],
         });
       }
@@ -103,6 +108,7 @@ export const TaskV1ResponseSchema = z.object({
   error: z.string().optional().nullable(),
   metadata: z.record(z.unknown()).optional(),
   runtime: z.enum(["NATIVE", "DOCKER", "WASM"]),
+  requiresGpu: z.boolean(),
   image: z.string().optional().nullable(),
   wasmArtifactId: z.string().optional().nullable(),
   affinity: z.string().optional().nullable(),

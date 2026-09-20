@@ -13,6 +13,13 @@ export const RegisterNodeV1Schema = z.object({
   cpuCores: z.number().int().min(1).max(128),
   memoryGB: z.number().int().min(1).max(1024),
   storageGB: z.number().int().min(1).max(10000),
+  gpuModel: z.string().min(1).max(200).optional(),
+  gpuMemoryMb: z
+    .number()
+    .int()
+    .min(1)
+    .max(1024 * 1024)
+    .optional(),
   costPerHour: z.number().min(0).max(100).optional(),
   maxTasks: z.number().int().min(1).max(1000).optional(),
   bandwidthInMbps: z.number().int().min(1).optional(),
@@ -26,6 +33,14 @@ export const UpdateNodeV1Schema = z.object({
   cpuCores: z.number().int().min(1).max(128).optional(),
   memoryGB: z.number().int().min(1).max(1024).optional(),
   storageGB: z.number().int().min(1).max(10000).optional(),
+  gpuModel: z.string().min(1).max(200).nullable().optional(),
+  gpuMemoryMb: z
+    .number()
+    .int()
+    .min(1)
+    .max(1024 * 1024)
+    .nullable()
+    .optional(),
   costPerHour: z.number().min(0).max(100).optional(),
   maxTasks: z.number().int().min(1).max(1000).optional(),
   isMaintenanceMode: z.boolean().optional(),
@@ -43,6 +58,8 @@ export const NodeV1ResponseSchema = z.object({
     cpuCores: z.number(),
     memoryGB: z.number(),
     storageGB: z.number(),
+    gpuModel: z.string().nullable().optional(),
+    gpuMemoryMb: z.number().nullable().optional(),
   }),
   load: z
     .object({
