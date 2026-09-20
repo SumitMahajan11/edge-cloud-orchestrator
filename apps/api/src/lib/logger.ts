@@ -6,8 +6,8 @@
  */
 
 import pino from 'pino';
-import { trace } from '@opentelemetry/api';
 import { env } from '../config/env';
+import { getActiveTraceContext } from './otel-log-context';
 
 // Configure log level based on environment
 const logLevel = env.LOG_LEVEL || 'info';
@@ -18,11 +18,7 @@ export const logger = pino({
   level: logLevel,
   // Inject OpenTelemetry context automatically
   mixin() {
-    const span = trace.getActiveSpan();
-    if (!span) return {};
-
-    const { traceId, spanId } = span.spanContext();
-    return { traceId, spanId };
+    return getActiveTraceContext();
   },
   // Pretty print in development, JSON in production
   ...(logFormat === 'pretty' && env.NODE_ENV !== 'production'
