@@ -18,7 +18,7 @@ export class GridCarbonClient {
   private readonly cachePrefix = "carbon:zone:";
 
   private redis: Redis;
-  private apiKey?: string;
+  private apiKey?: string | undefined;
 
   constructor(
     redis: Redis,

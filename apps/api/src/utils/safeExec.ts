@@ -47,7 +47,7 @@ type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
 export class CommandExecutionError extends Error {
   command: string;
   args: string[];
-  exitCode?: number;
+  exitCode?: number | undefined;
 
   constructor(
     message: string,

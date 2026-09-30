@@ -30,7 +30,7 @@ export class MLScheduler {
   private driftDetector: DriftDetector;
   private metrics: IMetricsCollector;
   public outcomeCollector: OutcomeCollector;
-  private carbonClient?: GridCarbonClient;
+  private carbonClient?: GridCarbonClient | undefined;
 
   constructor(
     predictor: SchedulingPredictor,

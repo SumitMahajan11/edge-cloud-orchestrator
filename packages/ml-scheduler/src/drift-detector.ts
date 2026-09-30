@@ -24,7 +24,7 @@ export class DriftDetector extends EventEmitter {
   private onDriftCallback?: (mae: number) => void;
 
   private metrics: IMetricsCollector;
-  private prisma?: PrismaClient;
+  private prisma?: PrismaClient | undefined;
 
   constructor(
     metrics: IMetricsCollector,

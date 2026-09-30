@@ -32,7 +32,7 @@ function sendAuthError(
 
 export class AuthorizationError extends Error {
   public requiredRoles: string[];
-  public userRole?: string;
+  public userRole?: string | undefined;
 
   constructor(
     message: string,

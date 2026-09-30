@@ -32,9 +32,9 @@ const DEFAULT_CONFIG: Omit<ReliableCallConfig, 'circuitBreaker'> & {
 };
 
 export class ReliableCallError extends Error {
-  cause?: Error;
-  statusCode?: number;
-  attemptCount?: number;
+  cause?: Error | undefined;
+  statusCode?: number | undefined;
+  attemptCount?: number | undefined;
 
   constructor(
     message: string,
