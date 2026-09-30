@@ -4,6 +4,7 @@ import {
   Geographies,
   Geography,
   Marker,
+  Line,
 } from "react-simple-maps";
 import { motion } from "framer-motion";
 import type { EdgeNode } from "../../types";
