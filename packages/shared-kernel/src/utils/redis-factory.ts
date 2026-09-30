@@ -75,11 +75,24 @@ export class RedisFactory {
     }
 
     if (redisUrl) {
+      let cleanUrl = redisUrl.trim().replace(/^["']|["']$/g, '');
+      const match = cleanUrl.match(/(rediss?:\/\/[^\s]+)/i);
+      if (match && match[1]) {
+        cleanUrl = match[1];
+      }
+      if (cleanUrl.includes('upstash.io') && cleanUrl.startsWith('redis://')) {
+        cleanUrl = cleanUrl.replace('redis://', 'rediss://');
+      }
+
       logger.info(
-        { url: redisUrl.replace(/:[^:@]+@/, ":***@") },
+        { url: cleanUrl.replace(/:[^:@]+@/, ":***@") },
         "Initializing Redis with standard URL",
       );
-      return new Redis(redisUrl, config);
+      const client = new Redis(cleanUrl, config);
+      client.on("error", (err) => {
+        logger.error({ err: err.message }, "Redis connection error");
+      });
+      return client;
     }
 
     // Fallback to localhost
