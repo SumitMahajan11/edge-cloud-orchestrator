@@ -23,7 +23,10 @@ const envSchema = baseEnvSchema.extend({
     .default('false'),
 
   // --- Redis & Messaging ---
-  REDIS_URL: z.string().url().optional(),
+  REDIS_URL: z
+    .string()
+    .optional()
+    .transform((val) => (val && val.trim() !== '' ? val.trim() : undefined)),
   REDIS_SENTINELS: z.string().optional(),
   REDIS_SENTINEL_NAME: z.string().default('mymaster'),
   REDIS_PASSWORD: z.string().optional(),
@@ -102,7 +105,10 @@ const envSchema = baseEnvSchema.extend({
   GITHUB_TOKEN: z.string().optional(),
   GITHUB_REPO_OWNER: z.string().optional(),
   GITHUB_REPO_NAME: z.string().optional(),
-  ALERT_WEBHOOK_URL: z.string().url().optional(),
+  ALERT_WEBHOOK_URL: z
+    .string()
+    .optional()
+    .transform((val) => (val && val.trim() !== '' ? val.trim() : undefined)),
   ALERT_THROTTLE_MS: z.coerce.number().default(60000),
   ELECTRICITY_MAPS_API_KEY: z.string().optional(),
 
@@ -132,7 +138,10 @@ const envSchema = baseEnvSchema.extend({
   BP_THROTTLE_THRESHOLD: z.coerce.number().default(0.7),
 
   // --- Secret Management (Optional backend) ---
-  VAULT_ADDR: z.string().url().optional(),
+  VAULT_ADDR: z
+    .string()
+    .optional()
+    .transform((val) => (val && val.trim() !== '' ? val.trim() : undefined)),
   VAULT_TOKEN: z.string().optional(),
   SECRET_BACKEND: z.enum(['env', 'vault', 'k8s']).default('env'),
 
