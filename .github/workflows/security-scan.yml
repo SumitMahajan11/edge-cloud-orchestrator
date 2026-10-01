@@ -21,9 +21,6 @@ jobs:
           - app: agent
             context: apps/agent
             dockerfile: apps/agent/Dockerfile
-          - app: web
-            context: .
-            dockerfile: apps/web/Dockerfile
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4

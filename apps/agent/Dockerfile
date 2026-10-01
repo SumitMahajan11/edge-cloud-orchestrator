@@ -1,5 +1,5 @@
 # Stage 1: Builder
-FROM rust:1.78-alpine AS builder
+FROM rust:1.85-alpine AS builder
 RUN apk add --no-cache musl-dev musl-utils openssl-dev openssl-libs-static pkgconfig git
 
 WORKDIR /app
