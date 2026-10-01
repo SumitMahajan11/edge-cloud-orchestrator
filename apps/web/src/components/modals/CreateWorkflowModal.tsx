@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Network, Link as LinkIcon, Settings } from "lucide-react";
+import { X, Network } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { cn } from "../../lib/utils";
 
 interface CreateWorkflowModalProps {
   isOpen: boolean;

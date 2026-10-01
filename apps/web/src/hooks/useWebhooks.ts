@@ -9,7 +9,6 @@ import {
   postV2WebhooksDeliveriesByIdRetry,
   getV2WebhooksStats,
 } from "@edgecloud/api-client";
-import { api } from "../lib/api-client";
 import { queryKeys, STALE, queryClient } from "../lib/query-client";
 
 export function useWebhooks() {

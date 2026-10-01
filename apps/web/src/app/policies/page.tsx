@@ -9,7 +9,6 @@ import {
   Trash2,
   Edit2,
   Search,
-  Filter,
   Sliders,
   Leaf,
   DollarSign,

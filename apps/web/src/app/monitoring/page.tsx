@@ -8,13 +8,11 @@ import {
   Database,
   Zap,
   Globe,
-  BarChart3,
   ShieldAlert,
   Leaf,
   History,
   Workflow,
   Search,
-  Filter,
   Download,
   AlertTriangle,
   CheckCircle2,
@@ -22,7 +20,6 @@ import {
   RefreshCw,
   Server,
   Lock,
-  ArrowRight,
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { toast } from "sonner";
@@ -52,8 +49,6 @@ import {
   Cell,
   LineChart,
   Line,
-  PieChart,
-  Pie,
 } from "recharts";
 import { WorldMap } from "@/components/charts/WorldMap";
 import { useSystemMetrics } from "@/hooks/useMetrics";

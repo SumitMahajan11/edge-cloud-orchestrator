@@ -42,7 +42,7 @@ const ALLOWED_COMMANDS: Record<
   },
 };
 
-type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
+export type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
 
 export class CommandExecutionError extends Error {
   command: string;

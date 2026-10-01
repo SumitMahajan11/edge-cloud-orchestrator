@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import {
   Play,
   ArrowLeft,
@@ -28,7 +28,6 @@ import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
 import { formatDistanceToNow } from "date-fns";
-import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 import { toast } from "sonner";
 
@@ -55,7 +54,6 @@ interface Workflow {
 
 export default function WorkflowDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const [workflow, setWorkflow] = useState<Workflow | null>(null);
@@ -110,7 +108,7 @@ export default function WorkflowDetailPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ input: {} }),
       });
-      const data = await response.json();
+      await response.json();
       toast.success("Workflow execution triggered");
       void fetchWorkflow();
     } catch (error) {
@@ -128,8 +126,6 @@ export default function WorkflowDetailPage() {
   if (!workflow) {
     return <div className="p-8 text-center">Workflow not found</div>;
   }
-
-  const latestExecution = workflow.executions[0];
 
   return (
     <div className="flex flex-col gap-6 p-8 max-w-7xl mx-auto w-full">

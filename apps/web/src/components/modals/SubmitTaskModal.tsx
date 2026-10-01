@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Play, Cpu, Server, Compass, Layers } from "lucide-react";
+import { X, Play, Cpu, Compass, Layers } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {

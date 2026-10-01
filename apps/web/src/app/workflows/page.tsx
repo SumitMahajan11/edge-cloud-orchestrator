@@ -8,9 +8,6 @@ import {
   MoreHorizontal,
   GitBranch,
   Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
