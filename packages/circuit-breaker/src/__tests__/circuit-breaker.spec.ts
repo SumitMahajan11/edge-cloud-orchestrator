@@ -232,7 +232,9 @@ describe("CircuitBreaker Unit Tests", () => {
       expect(breaker.getMetrics().failures).toBe(0);
     });
 
-    it("should reject calls exceeding halfOpenMaxCalls in HALF_OPEN state", async () => {
+    // TODO: fix tracked in https://github.com/SumitMahajan11/edge-cloud-orchestrator/issues/75
+    // HALF_OPEN rejections increment rejectedCalls but do not emit("rejected"), unlike OPEN rejections.
+    it.fails("should reject calls exceeding halfOpenMaxCalls in HALF_OPEN state", async () => {
       breaker.forceTransition("HALF_OPEN"); // halfOpenMaxCalls = 2
 
       // Create unresolved promises to simulate in-flight/consecutive probes
@@ -240,6 +242,9 @@ describe("CircuitBreaker Unit Tests", () => {
       const slowFn1 = vi.fn().mockImplementation(() => new Promise<string>((res) => { resolve1 = res; }));
       let resolve2!: (val: string) => void;
       const slowFn2 = vi.fn().mockImplementation(() => new Promise<string>((res) => { resolve2 = res; }));
+
+      const rejectedSpy = vi.fn();
+      breaker.on("rejected", rejectedSpy);
 
       const call1 = breaker.execute(slowFn1);
       const call2 = breaker.execute(slowFn2);
@@ -249,6 +254,8 @@ describe("CircuitBreaker Unit Tests", () => {
       await expect(breaker.execute(call3Fn)).rejects.toThrow(CircuitBreakerOpenError);
       expect(call3Fn).not.toHaveBeenCalled();
       expect(breaker.getMetrics().rejectedCalls).toBe(1);
+      // BUG: this assertion fails — rejected event is not emitted for HALF_OPEN rejections
+      expect(rejectedSpy).toHaveBeenCalledWith({ name: "payment-service" });
 
       // Resolve in-flight calls
       resolve1("ok1");
