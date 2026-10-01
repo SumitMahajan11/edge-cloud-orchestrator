@@ -1,6 +1,6 @@
 # ADR-0001: Event-Driven Architecture with Distributed Event Bus, Sagas, and Outbox Pattern
 
-* **Status:** Accepted
+* **Status:** Accepted with known gaps
 * **Deciders:** Edge-Cloud Orchestrator Architecture Team
 * **Date:** 2026-10-01
 * **Technical Story:** Issue #34 (Event-Driven Architecture Specification)
@@ -111,16 +111,110 @@ Chosen option: **Option 4 — Hybrid Event-Driven Architecture**, using:
 * **End-to-End Tracing:** Trace IDs are extracted and injected across Kafka and async execution contexts ([`packages/event-bus/src/event-bus.ts#L163-L184`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/packages/event-bus/src/event-bus.ts#L163-L184)).
 
 ### Real Downsides & Technical Debt Found in the Code
+
 1. **Dual Broker Ambiguity / Dual-Stack Messaging:**
-   - The primary `EventBus` class in [`packages/event-bus/src/event-bus.ts#L45-L65`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/packages/event-bus/src/event-bus.ts#L45-L65) uses `kafkajs` (Kafka), whereas [`packages/event-bus/src/dead-letter-queue.ts#L74-L100`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/packages/event-bus/src/dead-letter-queue.ts#L74-L100) and legacy ADR 002 ([`docs/decisions/002-redis-streams-event-bus.md#L34`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/docs/decisions/002-redis-streams-event-bus.md#L34)) use Redis Streams. In `apps/task-service/src/index.ts#L330-L336`, log messages refer to "Redis Streams" while passing `kafkaBrokers` to `EventBus`.
+   - Cited: `packages/event-bus/src/event-bus.ts#L45-L65` (Kafka), `packages/event-bus/src/dead-letter-queue.ts#L74-L100` (Redis Streams), `apps/task-service/src/index.ts#L330-L336`.
+   - **Verified context** — `event-bus.ts` L45-L65 (accurate):
+     ```
+     45: export class EventBus {
+     46:   private kafka: Kafka;
+     47:   private producer: Producer;
+     48:   private consumers: Map<string, Consumer> = new Map();
+     49:   private isConnected: boolean = false;
+     50:   private dlq: DeadLetterQueue | null = null;
+     51:   private config: EventBusConfig;
+     52: 
+     53:   constructor(config: EventBusConfig) {
+     54:     this.config = config;
+     55:     this.kafka = new Kafka({ clientId: config.clientId, brokers: config.brokers, ... });
+     ```
+   - **Verified context** — `dead-letter-queue.ts` L74-L104 (accurate, class is at L74 not L74-L100):
+     ```
+     74: export class DeadLetterQueue extends EventEmitter {
+     75:   private prisma: PrismaClientLike;
+     76:   private config: DLQConfig;
+     77:   private redisClient: Redis;
+     ...   // initializes Redis client for Redis Streams
+     100:   this.redisClient = redisOrUrl;
+     104:   this.redisClient.on("error", ...);
+     ```
+   - **Verified context** — `task-service/src/index.ts` L330-L336 (accurate — log says "Redis Streams" but `EventBus` receives `kafkaBrokers`):
+     ```
+     314:   const kafkaBrokers = env.KAFKA_BROKERS.split(",");
+     316:   eventBus = new EventBus({ clientId: "task-service", brokers: kafkaBrokers, redis: redisClient });
+     330:   await eventBus.connect();
+     331:   await eventBus.createTopics(DEFAULT_TOPIC_CONFIG);
+     332:   logger.info(`Event bus connected to Redis Streams at ${redisUrl}`);  // misleading log
+     ```
+   - **Conclusion:** All three citations are accurate. Line ranges are correct.
+
 2. **Outbox Polling Latency:**
-   - [`packages/outbox/src/outbox-manager.ts#L51-L58`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/packages/outbox/src/outbox-manager.ts#L51-L58) relies on periodic timer polling (`pollingIntervalMs: 1000`) rather than PostgreSQL `LISTEN`/`NOTIFY` or Change Data Capture (CDC / Debezium), adding up to 1 second latency to outbox delivery.
+   - Cited: `packages/outbox/src/outbox-manager.ts#L51-L58`.
+   - **Verified context** (accurate — `DEFAULT_OUTBOX_CONFIG` is at L51):
+     ```
+     51: export const DEFAULT_OUTBOX_CONFIG: OutboxConfig = {
+     52:   pollingIntervalMs: 1000,
+     53:   batchSize: 100,
+     54:   maxAttempts: 5,
+     55:   retryBaseDelayMs: 1000,
+     56:   retryMaxDelayMs: 60000,
+     57:   enabled: true,
+     58: };
+     ```
+   - **Conclusion:** Citation accurate. `pollingIntervalMs: 1000` is the default; no LISTEN/NOTIFY or CDC is wired.
+
 3. **Locking Fallback Risk in Saga Orchestrator:**
-   - In [`packages/saga/src/saga-orchestrator.ts#L135-L137`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/packages/saga/src/saga-orchestrator.ts#L135-L137), if Redis is omitted or disconnected, `acquireLock` silently returns `true`. In a multi-replica deployment without Redis, concurrent instances could attempt to execute or recover the same saga instance concurrently.
+   - Cited: `packages/saga/src/saga-orchestrator.ts#L135-L137`.
+   - **Verified context** (accurate — `acquireLock` starts at L130, `return true` is at L136):
+     ```
+     130:   private async acquireLock(sagaId: string, ttlMs: number = 30000): Promise<boolean> {
+     131:     console.log(`[Orchestrator] Acquiring lock for saga ${sagaId}`);
+     132:     // ...
+     135:     if (!this.redis) {
+     136:       return true;
+     137:     } // Skip if Redis not configured
+     138: 
+     139:     const lockKey = `saga:lock:${sagaId}`;
+     ```
+   - **Corrected citation:** `#L135-L137` is accurate (was originally cited as `#L135-L137` ✅). No correction needed.
+
 4. **Direct Publishing Bypassing Outbox:**
-   - In [`apps/task-service/src/service.ts#L43`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/task-service/src/service.ts#L43), `TaskService.createTask` writes directly to PostgreSQL and then immediately calls `this.eventBus.publish()`, bypassing the `OutboxManager`. A process crash between database commit and `eventBus.publish` could result in an un-emitted event.
+   - Cited: `apps/task-service/src/service.ts#L43`.
+   - **Verified context** (accurate — `eventBus.publish` is at L43, preceded by the DB write at L26):
+     ```
+     24:   async createTask(command: CreateTaskCommand): Promise<Task> {
+     25:     // Create task in database
+     26:     const task = await this.repository.create(command);
+     27: 
+     28:     // Publish TaskCreated event
+     29:     const event: TaskCreatedEvent = { ... };
+     ...
+     43:     await this.eventBus.publish(TOPICS.TASK_EVENTS, event);
+     44: 
+     45:     return task;
+     46:   }
+     ```
+   - **Conclusion:** Citation accurate. `OutboxManager` is not used here.
+
 5. **Duck-Typed DLQ Prisma Dependency:**
    - [`packages/event-bus/src/dead-letter-queue.ts#L57-L68`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/packages/event-bus/src/dead-letter-queue.ts#L57-L68) uses duck-typed `PrismaClientLike` for `deadLetterEvent` operations rather than generated type references.
+
+---
+
+## Deployed Reality (Railway + Neon + Upstash)
+
+This section records the **actual** infrastructure in the active Railway deployment versus the architecture described above.
+
+| Concern | Architecture Decision | Deployed Reality |
+|---------|----------------------|------------------|
+| **Primary message broker** | KafkaJS (`EventBus`) | **Unverified.** `KAFKA_BROKERS` is listed in `apps/api/.env.example` (L51-52) and `apps/task-service/src/index.ts` (L314), but `docs/DEPLOYMENT.md` lists only `DATABASE_URL` and `REDIS_URL` as configured Railway environment variables. No Kafka service is listed in the Railway deployment. If `KAFKA_BROKERS` is absent at runtime, `EventBus` will fail to connect and fall through to the catch block (index.ts L333-L336), meaning the task-service runs **without event bus**. |
+| **PostgreSQL** | Neon (cited in `.env.example` placeholder) | `DATABASE_URL` set in Railway dashboard. Provider unverified — endpoint format in `apps/api/.env.example` L26 uses `ep-placeholder.region.aws.neon.tech`, suggesting Neon, but the Railway `DATABASE_URL` value is not visible in-repo. **Unverified.** |
+| **Redis / DLQ / Circuit Breaker sync** | Upstash Redis (cited in `.env.example` placeholder) | `REDIS_URL` set in Railway dashboard. `apps/api/.env.example` L51 uses `rediss://...upstash.io:6379` as placeholder, suggesting Upstash. **Unverified** — actual value not committed. |
+| **Dead Letter Queue (Redis Streams)** | Redis Streams via `DeadLetterQueue` | Requires Redis; if Upstash is the Redis provider, Redis Streams are supported. **Unverified** whether `initializeDLQ` is called in the Railway deployment. |
+| **Transactional Outbox** | `OutboxManager` polling PostgreSQL every 1000ms | **Unverified** whether `OutboxManager.start()` is called in the Railway deployment. No startup wiring was found in `apps/api/src/initializers/services.ts` for outbox. |
+| **Saga recovery loop** | `startRecovery()` called in `apps/api/src/initializers/services.ts#L126` | Verified in source; Railway deployment assumed to run this path. |
+
+> **Summary:** The Railway deployment runs a **Fastify API monolith** + **OpenResty gateway**. Only `DATABASE_URL` and `REDIS_URL` are confirmed configured. `KAFKA_BROKERS` is absent from the Railway env var list in `DEPLOYMENT.md`, meaning the Kafka-backed `EventBus` likely fails silently at startup and event-driven messaging is effectively disabled in production. This is the most critical gap between this ADR and deployed reality.
 
 ---
 
