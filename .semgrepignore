@@ -1,0 +1,13 @@
+# Dependencies and build outputs
+node_modules/
+**/node_modules/
+dist/
+**/dist/
+.next/
+**/.next/
+coverage/
+**/coverage/
+
+# Generated integration client
+tests/integration/client/
+**/tests/integration/client/

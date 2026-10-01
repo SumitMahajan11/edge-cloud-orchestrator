@@ -12,14 +12,24 @@ jobs:
     name: Trivy Container Scan
     runs-on: ubuntu-latest
     strategy:
+      fail-fast: false
       matrix:
-        app: [api, agent, web]
+        include:
+          - app: api
+            context: .
+            dockerfile: apps/api/Dockerfile
+          - app: agent
+            context: apps/agent
+            dockerfile: apps/agent/Dockerfile
+          - app: web
+            context: .
+            dockerfile: apps/web/Dockerfile
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Build local image for scan
-        run: docker build -t ${{ matrix.app }}:scan -f apps/${{ matrix.app }}/Dockerfile .
+        run: docker build -t ${{ matrix.app }}:scan -f ${{ matrix.dockerfile }} ${{ matrix.context }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master

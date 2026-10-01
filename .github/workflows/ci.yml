@@ -57,12 +57,15 @@ jobs:
       - name: 1. Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: 2. Typecheck (tsc --noEmit)
+      - name: 2. Build workspace packages & generate Prisma client
         run: |
           pnpm --filter @edgecloud/api exec prisma generate
-          pnpm run typecheck
+          pnpm --filter "./packages/*" run build
 
-      - name: 3. Unit tests (all packages, with coverage)
+      - name: 3. Typecheck (tsc --noEmit)
+        run: pnpm run typecheck
+
+      - name: 4. Unit tests (all packages, with coverage)
         run: pnpm run test --coverage
         env:
           NODE_ENV: test
