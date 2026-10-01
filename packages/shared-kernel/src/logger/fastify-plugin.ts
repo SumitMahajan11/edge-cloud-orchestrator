@@ -60,7 +60,7 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
             url: request.url,
             remoteAddress: request.ip,
             requestId,
-            traceId,
+            trace_id: traceId,
           },
           `Incoming ${request.method} ${request.url}`,
         );

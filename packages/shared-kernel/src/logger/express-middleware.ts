@@ -38,7 +38,7 @@ export function createExpressLoggingMiddleware(logger: Logger) {
           url: req.url,
           remoteAddress: req.ip,
           requestId,
-          traceId,
+          trace_id: traceId,
         },
         `Incoming ${req.method} ${req.url}`,
       );
