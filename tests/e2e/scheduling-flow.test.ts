@@ -59,7 +59,7 @@ const TASK_SERVICE_PORT = 4011;
 const AGENT_PORT = 4012;
 
 // Shared state for mocks
-const mockKafkaHandlers: Map<string, Function[]> = new Map();
+const mockKafkaHandlers: Map<string, ((...args: any[]) => any)[]> = new Map();
 
 // Mock jsonwebtoken
 vi.mock("jsonwebtoken", () => ({
@@ -73,7 +73,7 @@ vi.mock("jsonwebtoken", () => ({
           tenantId: "default",
         };
       }
-      return require("jsonwebtoken").verify(token, "a".repeat(32));
+      return { id: "user-id", tenantId: "default", role: "USER" };
     }),
     sign: vi.fn().mockReturnValue("mock-token"),
   },
@@ -242,9 +242,9 @@ const mockCreateMockModel = (stateKey: string) => ({
     const item = (mockDbState as any)[stateKey].get(id);
     if (item) {
       if (data && data.tasksRunning && typeof data.tasksRunning === "object") {
-        if (data.tasksRunning.increment) item.tasksRunning = (item.tasksRunning || 0) + data.tasksRunning.increment;
-        if (data.tasksRunning.decrement) item.tasksRunning = Math.max(0, (item.tasksRunning || 0) - data.tasksRunning.decrement);
-        const { tasksRunning, ...restData } = data;
+        if (data.tasksRunning.increment) {item.tasksRunning = (item.tasksRunning || 0) + data.tasksRunning.increment;}
+        if (data.tasksRunning.decrement) {item.tasksRunning = Math.max(0, (item.tasksRunning || 0) - data.tasksRunning.decrement);}
+        const { tasksRunning: _tasksRunning, ...restData } = data;
         Object.assign(item, restData);
       } else {
         Object.assign(item, data);

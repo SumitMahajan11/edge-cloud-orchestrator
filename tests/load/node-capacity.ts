@@ -3,6 +3,7 @@ import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -29,7 +30,6 @@ async function measureCapacity() {
   const API_URL = process.env.API_URL || "http://127.0.0.1:3090/v2";
 
   console.log("Cleaning up previous test nodes from database...");
-  const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
   try {
     const deletedNodes = await prisma.edgeNode.deleteMany({
@@ -78,7 +78,7 @@ async function measureCapacity() {
         }
         const responses = await Promise.all(batch);
         responses.forEach((r) => nodeIds.push(r.data.id));
-        if (i % 500 === 0) process.stdout.write(".");
+        if (i % 500 === 0) {process.stdout.write(".");}
       }
       console.log(`\n✅ Registered in ${Date.now() - startReg}ms`);
     }

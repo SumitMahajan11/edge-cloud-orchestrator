@@ -48,7 +48,9 @@
     "backend/src",
     "apps/*/tests",
     "packages/*/tests",
-    "backend/tests"
+    "backend/tests",
+    "tests",
+    "vitest.setup.ts"
   ],
   "exclude": [
     "node_modules",

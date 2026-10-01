@@ -62,7 +62,12 @@
     "reports/**"
   ],
   "globals": {
-    "NodeJS": "readonly"
+    "NodeJS": "readonly",
+    "RequestInit": "readonly",
+    "Response": "readonly",
+    "Request": "readonly",
+    "Headers": "readonly",
+    "fetch": "readonly"
   },
   "overrides": [
     {

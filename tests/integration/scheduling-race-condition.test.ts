@@ -3,7 +3,6 @@ import pino from "pino";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { TaskScheduler } from "../../apps/api/src/services/task-scheduler";
-import { WebSocketManager } from "../../apps/api/src/services/websocket-manager";
 import { setupTestApp, teardownTestApp } from "./helpers";
 
 describe("Scheduling Race Condition", () => {
@@ -19,7 +18,7 @@ describe("Scheduling Race Condition", () => {
     const { createMockRedis } =
       await import("../../apps/api/src/initializers/mock-redis");
     const logger = pino({ level: "silent" });
-    redis = createMockRedis(logger) as any;
+    redis = createMockRedis(logger);
     const wsManager = {} as any; // Mock
 
     scheduler = new TaskScheduler(prisma, redis, wsManager, logger);
@@ -73,7 +72,7 @@ describe("Scheduling Race Condition", () => {
         },
       }),
     );
-    const tasks = await Promise.all(taskPromises);
+    await Promise.all(taskPromises);
 
     // 3. Trigger concurrent scheduling
     // Since processQueue is usually called in a loop, we'll simulate concurrent calls

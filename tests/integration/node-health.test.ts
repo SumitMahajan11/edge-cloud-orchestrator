@@ -18,10 +18,10 @@ describe("Anomaly-Aware Self-Healing Scheduler Integration", () => {
     context = await setupTestApp();
     prisma = context.prisma;
     tenantId = context.tenantId;
-    redis = (context.app as any).redis;
+    redis = (context.app).redis;
 
-    if ((context.app as any).taskScheduler) {
-      (context.app as any).taskScheduler.stop();
+    if ((context.app).taskScheduler) {
+      (context.app).taskScheduler.stop();
     }
 
     const logger = pino({ level: "silent" });
@@ -284,7 +284,7 @@ describe("Anomaly-Aware Self-Healing Scheduler Integration", () => {
       },
     });
 
-    await scheduler.enqueue(task as any);
+    await scheduler.enqueue(task);
     await scheduler.processQueue();
 
     // Verify task is assigned to Healthy Node A despite Node B having better basic stats

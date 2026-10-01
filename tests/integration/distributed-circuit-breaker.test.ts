@@ -8,7 +8,7 @@ import {
 
 describe("Distributed Circuit Breaker Sync", () => {
   let redis: any;
-  let registry1: CircuitBreakerRegistry;
+  let _registry1: CircuitBreakerRegistry;
   let registry2: CircuitBreakerRegistry;
   let sync1: RedisCircuitBreakerSync;
   let sync2: RedisCircuitBreakerSync;
@@ -18,7 +18,7 @@ describe("Distributed Circuit Breaker Sync", () => {
     // Use a shared data store for all mock instances
     redis = new Redis();
 
-    registry1 = new CircuitBreakerRegistry();
+    _registry1 = new CircuitBreakerRegistry();
     registry2 = new CircuitBreakerRegistry();
 
     sync1 = new RedisCircuitBreakerSync(redis);
