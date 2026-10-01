@@ -140,6 +140,7 @@ scripts/diagnose_*.ts
 scripts/diagnose-*.ts
 scripts/check_*.ts
 scripts/check-*.ts
+!scripts/check-env-example.ts
 scripts/verify_*.ts
 scripts/verify-*.ts
 scripts/inspect_*.ts
