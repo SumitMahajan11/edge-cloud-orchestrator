@@ -1453,12 +1453,16 @@ export class TaskScheduler extends EventEmitter {
           },
         );
 
-        this.logger.debug(
-          { selectedResult },
-          '[findNode] Step 8 mlScheduler.schedule returned',
-        );
-
         if (selectedResult) {
+          this.logger.debug(
+            {
+              nodeId: selectedResult.decision.nodeId,
+              score: selectedResult.decision.score,
+              modelVersion: selectedResult.modelVersion,
+              fallbackUsed: selectedResult.fallbackUsed,
+            },
+            '[findNode] Step 8 mlScheduler.schedule returned',
+          );
           const node = affinityOrderedNodes.find(
             (n) => n.id === selectedResult.decision.nodeId,
           );
@@ -1590,9 +1594,9 @@ export class TaskScheduler extends EventEmitter {
       // Shadow Mode (A/B testing) evaluation logic
       await this.processShadowOutcome(metadata, actualScore);
 
-    } catch (error) {
+    } catch (err: any) {
       this.logger.error(
-        { taskId, error },
+        { taskId, err },
         '[ML_OUTCOME] Failed to record task outcome for ML',
       );
     }
@@ -1698,10 +1702,10 @@ export class TaskScheduler extends EventEmitter {
     actualScore: number,
   ): Promise<void> {
     const shadowResult = metadata.shadowResult;
-    this.logger.debug({ shadowResult }, '[processShadowOutcome] shadowResult outcome');
     if (shadowResult && shadowResult.version && typeof shadowResult.score === 'number') {
       const shadowScore = shadowResult.score;
       const shadowVersion = shadowResult.version;
+      this.logger.debug({ version: shadowVersion, score: shadowScore }, '[processShadowOutcome] shadowResult outcome');
       const shadowError = Math.abs(shadowScore - actualScore);
 
       // Store this error in Redis list 'ml:shadow_errors'

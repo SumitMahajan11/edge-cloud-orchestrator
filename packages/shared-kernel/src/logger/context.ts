@@ -48,8 +48,6 @@ export function getActiveTraceContext(): Record<string, string> {
       return {
         trace_id: spanContext.traceId,
         span_id: spanContext.spanId,
-        traceId: spanContext.traceId,
-        spanId: spanContext.spanId,
       };
     }
   }
@@ -61,11 +59,9 @@ export function getActiveTraceContext(): Record<string, string> {
     const spanId = store.span_id || store.spanId;
     if (traceId) {
       result.trace_id = traceId;
-      result.traceId = traceId;
     }
     if (spanId) {
       result.span_id = spanId;
-      result.spanId = spanId;
     }
     return result;
   }
@@ -116,9 +112,8 @@ export function runWithRequestId<T>(
     {
       ...existing,
       requestId,
-      traceId: tid,
       trace_id: tid,
-      ...(spanId ? { spanId, span_id: spanId } : {}),
+      ...(spanId ? { span_id: spanId } : {}),
     },
     fn,
   );

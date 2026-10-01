@@ -1,5 +1,8 @@
-import { describe, it, expect, vi } from "vitest";
+vi.unmock("@opentelemetry/api");
+import { describe, it, expect, vi, beforeAll } from "vitest";
 import { trace, context, SpanKind } from "@opentelemetry/api";
+import { BasicTracerProvider } from "@opentelemetry/sdk-trace-base";
+import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
 import {
   createLogger,
   getActiveTraceContext,
@@ -8,7 +11,17 @@ import {
 } from "../index.js";
 
 describe("OpenTelemetry Logger Tracing Helper", () => {
-  const tracer = trace.getTracer("test-tracer");
+  let tracer: any;
+
+  beforeAll(() => {
+    const contextManager = new AsyncLocalStorageContextManager();
+    contextManager.enable();
+    context.setGlobalContextManager(contextManager);
+
+    const provider = new BasicTracerProvider();
+    trace.setGlobalTracerProvider(provider);
+    tracer = trace.getTracer("test-tracer");
+  });
 
   it("should return empty object and omit trace fields when no active span exists", () => {
     // Ensure no active span on current context
@@ -35,8 +48,8 @@ describe("OpenTelemetry Logger Tracing Helper", () => {
 
       expect(traceCtx.trace_id).toBe(spanContext.traceId);
       expect(traceCtx.span_id).toBe(spanContext.spanId);
-      expect(traceCtx.traceId).toBe(spanContext.traceId);
-      expect(traceCtx.spanId).toBe(spanContext.spanId);
+      expect(traceCtx.traceId).toBeUndefined();
+      expect(traceCtx.spanId).toBeUndefined();
 
       const logRecord = { message: "operation succeeded", userId: "usr-123" };
       const enriched: any = injectTraceContextToLog(logRecord);
@@ -47,6 +60,43 @@ describe("OpenTelemetry Logger Tracing Helper", () => {
     });
 
     span.end();
+  });
+
+  it("should generate distinct trace_ids for two separate spans using the real OTel API", () => {
+    const span1 = tracer.startSpan("span-1");
+    const spanContext1 = span1.spanContext();
+
+    let traceId1: string | undefined;
+    let spanId1: string | undefined;
+
+    context.with(trace.setSpan(context.active(), span1), () => {
+      const traceCtx1 = getActiveTraceContext();
+      traceId1 = traceCtx1.trace_id;
+      spanId1 = traceCtx1.span_id;
+    });
+    span1.end();
+
+    const span2 = tracer.startSpan("span-2");
+    const spanContext2 = span2.spanContext();
+
+    let traceId2: string | undefined;
+    let spanId2: string | undefined;
+
+    context.with(trace.setSpan(context.active(), span2), () => {
+      const traceCtx2 = getActiveTraceContext();
+      traceId2 = traceCtx2.trace_id;
+      spanId2 = traceCtx2.span_id;
+    });
+    span2.end();
+
+    expect(traceId1).toBe(spanContext1.traceId);
+    expect(traceId2).toBe(spanContext2.traceId);
+    expect(spanId1).toBe(spanContext1.spanId);
+    expect(spanId2).toBe(spanContext2.spanId);
+    expect(traceId1).toBeDefined();
+    expect(traceId2).toBeDefined();
+    expect(traceId1).not.toBe(traceId2);
+    expect(spanId1).not.toBe(spanId2);
   });
 
   it("should automatically inject trace_id and span_id into Pino logs via createLogger mixin", () => {
@@ -68,8 +118,8 @@ describe("OpenTelemetry Logger Tracing Helper", () => {
         const mixinResult = mixinFn();
         expect(mixinResult.trace_id).toBe(spanContext.traceId);
         expect(mixinResult.span_id).toBe(spanContext.spanId);
-        expect(mixinResult.traceId).toBe(spanContext.traceId);
-        expect(mixinResult.spanId).toBe(spanContext.spanId);
+        expect(mixinResult.traceId).toBeUndefined();
+        expect(mixinResult.spanId).toBeUndefined();
       }
     });
 
@@ -83,7 +133,7 @@ describe("OpenTelemetry Logger Tracing Helper", () => {
     runWithRequestId("req-999", customTraceId, () => {
       const traceCtx = getActiveTraceContext();
       expect(traceCtx.trace_id).toBe(customTraceId);
-      expect(traceCtx.traceId).toBe(customTraceId);
+      expect(traceCtx.traceId).toBeUndefined();
 
       const enriched: any = injectTraceContextToLog({ msg: "context log" });
       expect(enriched.trace_id).toBe(customTraceId);

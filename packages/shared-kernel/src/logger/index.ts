@@ -34,7 +34,7 @@ export function createLogger(serviceName: string): Logger {
       version: VERSION,
       environment,
     },
-    // Tracing mixin: Automatically include trace_id, span_id, traceId, spanId in every log
+    // Tracing mixin: Automatically include trace_id, span_id in every log
     mixin() {
       const traceContext = getActiveTraceContext();
       const requestId = getRequestId();

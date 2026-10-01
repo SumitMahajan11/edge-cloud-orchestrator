@@ -28,8 +28,6 @@ export const logger = pino({
     return {
       trace_id: traceId,
       span_id: spanId,
-      traceId,
-      spanId,
     };
   },
   // Pretty print in development, JSON in production
