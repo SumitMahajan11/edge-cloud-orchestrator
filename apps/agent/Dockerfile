@@ -6,13 +6,14 @@ WORKDIR /app
 
 # Copy Cargo files for dependency caching
 COPY Cargo.toml Cargo.lock ./
-# Create a dummy main.rs to build dependencies
-RUN mkdir src && echo "fn main() {}" > src/main.rs
+# Create dummy files to build dependencies
+RUN mkdir -p src benches && echo "fn main() {}" > src/main.rs && echo "fn main() {}" > benches/cold_start.rs
 RUN cargo build --release --target x86_64-unknown-linux-musl
-RUN rm -rf src/
+RUN rm -rf src/ benches/
 
 # Copy real source and build
 COPY src ./src
+COPY benches ./benches
 RUN touch src/main.rs
 RUN cargo build --release --target x86_64-unknown-linux-musl
 
