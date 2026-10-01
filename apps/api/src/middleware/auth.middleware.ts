@@ -34,7 +34,7 @@ export async function authenticate(
 
   try {
     const authHeader = request.headers.authorization;
-    console.log('[AUTHENTICATE] URL:', request.url, 'authHeader:', authHeader);
+    request.log.debug({ url: request.url, hasAuthHeader: !!authHeader }, '[AUTHENTICATE] Processing auth header');
 
     if (!authHeader?.startsWith('Bearer ')) {
       // Check for API Key
@@ -97,7 +97,7 @@ export async function authenticate(
 
     enterWithTenantContext(decoded.tenantId || undefined);
   } catch (error: any) {
-    console.error('--- AUTH ERROR ---', error.message);
+    request.log.error({ err: error.message }, '--- AUTH ERROR ---');
     return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication failed');
   }
 }
@@ -131,13 +131,13 @@ export function requirePermission(permission: string) {
     const normalize = (p: string): string => {
       const parts = p.split(':');
       let res = parts[0] || '';
-      if (res === 'nodes') res = 'node';
-      if (res === 'tasks') res = 'task';
-      if (res === 'alerts') res = 'alert';
-      if (res === 'costs') res = 'cost';
-      if (res === 'webhooks') res = 'webhook';
-      if (res === 'schedule') res = 'scheduler';
-      if (res === 'metrics') res = 'system';
+      if (res === 'nodes') {res = 'node';}
+      if (res === 'tasks') {res = 'task';}
+      if (res === 'alerts') {res = 'alert';}
+      if (res === 'costs') {res = 'cost';}
+      if (res === 'webhooks') {res = 'webhook';}
+      if (res === 'schedule') {res = 'scheduler';}
+      if (res === 'metrics') {res = 'system';}
       parts[0] = res;
       return parts.join(':');
     };

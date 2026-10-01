@@ -4,9 +4,10 @@ import { vi } from "vitest";
 // Mock Opentelemetry and Trace APIs to avoid binary/resolution issues in monorepo tests
 vi.mock("@opentelemetry/api", async (importOriginal) => {
   const actual = (await importOriginal()) as any;
+  let activeSpan: any = null;
   const mockSpan = {
     end: () => {},
-    spanContext: () => ({ traceId: "1", spanId: "1" }),
+    spanContext: () => ({ traceId: "4bf92f3577b34da6a3ce929d0e0e4736", spanId: "00f067aa0ba902b7" }),
     setStatus: () => {},
     setAttribute: () => {},
     setAttributes: () => {},
@@ -15,19 +16,53 @@ vi.mock("@opentelemetry/api", async (importOriginal) => {
   return {
     ...actual,
     trace: {
-      getSpan: () => null,
+      ...(actual.trace || {}),
+      getSpan: (ctx: any) => (ctx && ctx._span !== undefined ? ctx._span : activeSpan),
+      getActiveSpan: () => activeSpan,
+      setSpan: (ctx: any, span: any) => ({ ...(ctx || {}), _span: span }),
       getTracer: () => ({
-        startSpan: () => mockSpan,
+        startSpan: (_name?: string, _options?: any) => ({
+          ...mockSpan,
+          spanContext: () => ({
+            traceId: "4bf92f3577b34da6a3ce929d0e0e4736",
+            spanId: "00f067aa0ba902b7",
+          }),
+        }),
         startActiveSpan: (name: string, options: any, fn?: any) => {
           const callback = typeof options === "function" ? options : fn;
-          return callback(mockSpan);
+          const prev = activeSpan;
+          const span = {
+            ...mockSpan,
+            spanContext: () => ({
+              traceId: "4bf92f3577b34da6a3ce929d0e0e4736",
+              spanId: "00f067aa0ba902b7",
+            }),
+          };
+          activeSpan = span;
+          try {
+            return callback(span);
+          } finally {
+            activeSpan = prev;
+          }
         },
       }),
     },
-    context: Object.assign(Object.create(actual.context), {
-      active: () => ({}),
-    }),
-    propagation: Object.assign(Object.create(actual.propagation), {
+    context: {
+      ...(actual.context || {}),
+      active: () => ({ _span: activeSpan }),
+      with: (ctx: any, fn: any) => {
+        const prev = activeSpan;
+        if (ctx && ctx._span !== undefined) {
+          activeSpan = ctx._span;
+        }
+        try {
+          return fn();
+        } finally {
+          activeSpan = prev;
+        }
+      },
+    },
+    propagation: Object.assign(Object.create(actual.propagation || {}), {
       inject: () => {},
       extract: () => ({}),
     }),

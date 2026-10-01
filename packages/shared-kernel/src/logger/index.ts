@@ -1,10 +1,18 @@
 import pino from "pino";
 import type { Logger, LoggerOptions } from "pino";
-import { trace, context } from "@opentelemetry/api";
-import { getRequestId } from "./context.js";
+import { getRequestId, getActiveTraceContext } from "./context.js";
 import { VERSION } from "../constants.js";
 
 export type { Logger };
+export {
+  getActiveTraceContext,
+  injectTraceContextToLog,
+  getRequestId,
+  getTraceId,
+  getLogContext,
+  runWithContext,
+  runWithRequestId,
+} from "./context.js";
 
 export interface LoggerConfig {
   serviceName: string;
@@ -26,18 +34,14 @@ export function createLogger(serviceName: string): Logger {
       version: VERSION,
       environment,
     },
-    // Tracing mixin: Automatically include traceId and spanId in every log
+    // Tracing mixin: Automatically include trace_id, span_id, traceId, spanId in every log
     mixin() {
-      const activeSpan = trace.getSpan(context.active());
+      const traceContext = getActiveTraceContext();
       const requestId = getRequestId();
 
-      const tracing: Record<string, string> = {};
-
-      if (activeSpan) {
-        const spanContext = activeSpan.spanContext();
-        tracing.traceId = spanContext.traceId;
-        tracing.spanId = spanContext.spanId;
-      }
+      const tracing: Record<string, string> = {
+        ...traceContext,
+      };
 
       if (requestId) {
         tracing.requestId = requestId;
