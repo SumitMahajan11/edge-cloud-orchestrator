@@ -74,7 +74,7 @@ class DockerClient {
     name: string;
     cmd?: string[] | undefined;
     env?: string[] | undefined;
-    ports?: Record<string, {}> | undefined;
+    ports?: Record<string, unknown> | undefined;
     labels?: Record<string, string> | undefined;
     resources?:
       | {
@@ -133,7 +133,7 @@ class DockerClient {
     );
     const logs = await response.text();
     // Docker logs have an 8-byte header, strip it
-    return logs.replace(/[\x00-\x08]/g, "").trim();
+    return logs.split("").filter((c) => c.charCodeAt(0) > 8).join("").trim();
   }
 
   async pullImage(image: string): Promise<void> {

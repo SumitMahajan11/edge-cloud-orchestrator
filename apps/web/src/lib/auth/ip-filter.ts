@@ -118,7 +118,7 @@ class IpFilter {
         const ips = value.split(",").map((ip) => ip.trim());
         if (ips.length > 0) {
           const firstIp = ips[0];
-          if (firstIp) return firstIp;
+          if (firstIp) {return firstIp;}
         }
       }
     }

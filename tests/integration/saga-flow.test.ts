@@ -164,17 +164,17 @@ describe("Saga Flow Integration", () => {
             where: { id: task.id },
           });
           const state = await orchestrator.getSagaStatus(internalSagaId);
+          const updatedNode = await ctx.prisma.edgeNode.findUnique({
+            where: { id: node.id },
+          });
           return (
-            updatedTask?.status === "PENDING" && state?.status === "FAILED"
+            updatedTask?.status === "PENDING" &&
+            state?.status === "FAILED" &&
+            updatedNode?.tasksRunning === 0
           );
         },
-        { timeout: 30000, interval: 1000 },
+        { timeout: 30000, interval: 500 },
       );
-
-      const updatedNode = await ctx.prisma.edgeNode.findUnique({
-        where: { id: node.id },
-      });
-      expect(updatedNode?.tasksRunning).toBe(0);
     }
   }, 120000);
 });

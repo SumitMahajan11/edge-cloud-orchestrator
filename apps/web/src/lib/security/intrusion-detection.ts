@@ -149,7 +149,7 @@ class IntrusionDetectionSystem {
         );
 
         // Check for path traversal
-        const pathTraversal = /\.\.[\/\\]/;
+        const pathTraversal = /\.\.[/\\]/;
         const hasPathTraversal = Object.values(details).some(
           (v) => typeof v === "string" && pathTraversal.test(v),
         );

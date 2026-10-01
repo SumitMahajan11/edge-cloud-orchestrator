@@ -2,7 +2,84 @@ import { describe, it, expect } from 'vitest';
 import { registerSchema, createNodeSchema } from '../schemas/index';
 
 describe('Schema Regex Validation Tests', () => {
-  describe('registerSchema name regex', () => {
+  describe('Direct Old vs New Regex Equivalence (10 inputs each)', () => {
+    it('asserts equal results for name regex on 10 inputs', () => {
+      const oldNameRegex = /^[a-zA-Z\s\-\.]+$/;
+      const newNameRegex = /^[a-zA-Z\s\-.]+$/;
+
+      const testInputs = [
+        'John Doe',
+        'Mary-Jane',
+        'Dr. Smith',
+        'St. John-Smythe III',
+        'Alice',
+        'User123',
+        'John <script>',
+        'Doe#1',
+        'Name@Domain',
+        '!Invalid',
+      ];
+
+      expect(testInputs).toHaveLength(10);
+      for (const input of testInputs) {
+        const oldResult = oldNameRegex.test(input);
+        const newResult = newNameRegex.test(input);
+        expect(newResult).toBe(oldResult);
+      }
+    });
+
+    it('asserts equal results for location regex on 10 inputs', () => {
+      const oldLocationRegex = /^[a-zA-Z0-9\s\-_,\.]+$/;
+      const newLocationRegex = /^[a-zA-Z0-9\s\-_,.]+$/;
+
+      const testInputs = [
+        'us-east-1',
+        'Data Center 1, Bldg. B',
+        'US_East_1',
+        'Floor 3, Rack-12.A',
+        'Room_101, Zone-B',
+        'Site#12',
+        '<invalid>',
+        'Zone@East',
+        'Rack!1',
+        'DC$5',
+      ];
+
+      expect(testInputs).toHaveLength(10);
+      for (const input of testInputs) {
+        const oldResult = oldLocationRegex.test(input);
+        const newResult = newLocationRegex.test(input);
+        expect(newResult).toBe(oldResult);
+      }
+    });
+
+    it('asserts equal results for region regex on 10 inputs', () => {
+      const oldRegionRegex = /^[a-z0-9\-]+$/;
+      const newRegionRegex = /^[a-z0-9-]+$/;
+
+      const testInputs = [
+        'us-east-1',
+        'eu-west-2',
+        'ap-south-1',
+        'region1',
+        'zone-99',
+        'US-EAST-1',
+        'us_east_1',
+        'us east',
+        'eu.west',
+        'ap@south',
+      ];
+
+      expect(testInputs).toHaveLength(10);
+      for (const input of testInputs) {
+        const oldResult = oldRegionRegex.test(input);
+        const newResult = newRegionRegex.test(input);
+        expect(newResult).toBe(oldResult);
+      }
+    });
+  });
+
+  describe('registerSchema name regex parsing', () => {
     it('accepts valid names containing letters, spaces, hyphens, and dots', () => {
       const validNames = [
         'John Doe',

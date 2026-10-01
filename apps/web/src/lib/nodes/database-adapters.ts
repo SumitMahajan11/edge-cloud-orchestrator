@@ -272,7 +272,8 @@ class SQLiteAdapter implements DatabaseAdapter {
       try {
         const sqliteModule = await (async () => {
           try {
-            return await import("better-sqlite3");
+            const sqliteName = "better-sqlite3";
+            return await import(sqliteName);
           } catch {
             return null;
           }
