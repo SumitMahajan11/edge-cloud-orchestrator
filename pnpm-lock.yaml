@@ -671,22 +671,6 @@ importers:
         specifier: ^5.3.0
         version: 5.9.3
 
-  packages/analytics:
-    dependencies:
-      '@edgecloud/shared-kernel':
-        specifier: workspace:*
-        version: link:../shared-kernel
-      eventemitter3:
-        specifier: ^5.0.0
-        version: 5.0.4
-    devDependencies:
-      '@types/node':
-        specifier: ^20.0.0
-        version: 20.19.37
-      typescript:
-        specifier: ^5.3.0
-        version: 5.9.3
-
   packages/api-client:
     dependencies:
       zod:

@@ -115,12 +115,11 @@ echo "  [OK] apps/web/src/context/ is canonical — no contexts/ directory found
 
 echo ""
 echo "=== CATEGORY 4: Unbuilt scaffold packages ==="
-# These packages have real source (analytics, chaos, integration, sandbox, scheduler,
+# These packages have real source (chaos, integration, sandbox, scheduler,
 # websocket-client). None are imported by any app or service directly.
 # DECISION: KEEP — they are interconnected via @edgecloud/integration/service-container.ts
 # and have real implementation code. tsconfig.json was added in previous session.
 # DO NOT delete — they just need to be built before they are usable.
-echo "  [KEEP] packages/analytics    — real source, connected via integration package"
 echo "  [KEEP] packages/chaos        — real source, connected via integration package"
 echo "  [KEEP] packages/integration  — real source, imports all other packages"
 echo "  [KEEP] packages/sandbox      — real source, connected via integration package"
