@@ -54,11 +54,24 @@
     "test-results/**",
     "reports/**"
   ],
+  "globals": {
+    "NodeJS": "readonly"
+  },
   "overrides": [
     {
       "files": ["apps/web/**/*.{ts,tsx}"],
       "env": {
         "browser": true
+      },
+      "globals": {
+        "React": "readonly"
+      }
+    },
+    {
+      "files": ["packages/websocket-client/**/*.{ts,tsx}"],
+      "env": {
+        "browser": true,
+        "node": true
       }
     },
     {
