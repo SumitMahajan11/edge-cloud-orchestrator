@@ -201,20 +201,29 @@ Chosen option: **Option 4 — Hybrid Event-Driven Architecture**, using:
 
 ---
 
-## Deployed Reality (Railway + Neon + Upstash)
+## Deployed Reality (Render Free + Neon + Upstash + Vercel)
 
-This section records the **actual** infrastructure in the active Railway deployment versus the architecture described above.
+This section records the **actual** deployed architecture from codebase analysis against the architecture described above.
 
-| Concern | Architecture Decision | Deployed Reality |
-|---------|----------------------|------------------|
-| **Primary message broker** | KafkaJS (`EventBus`) | **Unverified.** `KAFKA_BROKERS` is listed in `apps/api/.env.example` (L51-52) and `apps/task-service/src/index.ts` (L314), but `docs/DEPLOYMENT.md` lists only `DATABASE_URL` and `REDIS_URL` as configured Railway environment variables. No Kafka service is listed in the Railway deployment. If `KAFKA_BROKERS` is absent at runtime, `EventBus` will fail to connect and fall through to the catch block (index.ts L333-L336), meaning the task-service runs **without event bus**. |
-| **PostgreSQL** | Neon (cited in `.env.example` placeholder) | `DATABASE_URL` set in Railway dashboard. Provider unverified — endpoint format in `apps/api/.env.example` L26 uses `ep-placeholder.region.aws.neon.tech`, suggesting Neon, but the Railway `DATABASE_URL` value is not visible in-repo. **Unverified.** |
-| **Redis / DLQ / Circuit Breaker sync** | Upstash Redis (cited in `.env.example` placeholder) | `REDIS_URL` set in Railway dashboard. `apps/api/.env.example` L51 uses `rediss://...upstash.io:6379` as placeholder, suggesting Upstash. **Unverified** — actual value not committed. |
-| **Dead Letter Queue (Redis Streams)** | Redis Streams via `DeadLetterQueue` | Requires Redis; if Upstash is the Redis provider, Redis Streams are supported. **Unverified** whether `initializeDLQ` is called in the Railway deployment. |
-| **Transactional Outbox** | `OutboxManager` polling PostgreSQL every 1000ms | **Unverified** whether `OutboxManager.start()` is called in the Railway deployment. No startup wiring was found in `apps/api/src/initializers/services.ts` for outbox. |
-| **Saga recovery loop** | `startRecovery()` called in `apps/api/src/initializers/services.ts#L126` | Verified in source; Railway deployment assumed to run this path. |
+In the live production setup, only `apps/api` is deployed as a backend container on Render Free (using [`apps/api/Dockerfile`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/Dockerfile) with `SECRET_BACKEND=env`), connecting to Neon PostgreSQL and Upstash Redis. The frontend is hosted on Vercel. Microservices like `apps/task-service` and `apps/node-service` are not deployed in this environment.
 
-> **Summary:** The Railway deployment runs a **Fastify API monolith** + **OpenResty gateway**. Only `DATABASE_URL` and `REDIS_URL` are confirmed configured. `KAFKA_BROKERS` is absent from the Railway env var list in `DEPLOYMENT.md`, meaning the Kafka-backed `EventBus` likely fails silently at startup and event-driven messaging is effectively disabled in production. This is the most critical gap between this ADR and deployed reality.
+| Concern | Architecture Decision | Deployed Code Reality | Status |
+|---------|----------------------|-----------------------|--------|
+| **EventBus Startup Construction** | KafkaJS (`EventBus`) startup connection | `apps/api` does **not** construct or connect an `EventBus` during startup ([`apps/api/src/initializers/services.ts`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/initializers/services.ts)). `EventBus` is only dynamically imported on-demand within administrative republishing endpoints ([`apps/api/src/routes/admin.ts#L611-L613`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/admin.ts#L611-L613), [`#L729-L731`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/admin.ts#L729-L731), [`#L961-L963`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/admin.ts#L961-L963)). | **Verified from code** |
+| **Kafka Broker Configuration (`KAFKA_BROKERS`)** | Dedicated Kafka broker cluster | `KAFKA_BROKERS` is defaulted in `apps/api/src/config/env.ts#L37` (`z.string().default('localhost:9092')`). Because it is defaulted and not strictly required, the API server boots normally without a Kafka cluster configured in environment variables. | **Verified from code** |
+| **Transactional Outbox Worker** | `OutboxManager` polling PostgreSQL | `OutboxManager` is **not** initialized or started anywhere in `apps/api` ([`apps/api/src/initializers/services.ts`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/initializers/services.ts)). Outbox polling is not active in the deployed API container. | **Verified from code** |
+| **Dead Letter Queue Initialization** | `DeadLetterQueue` initialized at startup | `initializeDLQ` is **not** invoked in `apps/api`. DLQ records are queried directly from PostgreSQL via Prisma for admin inspection in [`apps/api/src/routes/admin.ts`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/routes/admin.ts). | **Verified from code** |
+| **Saga Orchestrator & Recovery Loop** | `SagaOrchestrator` with Redis locking | `sagaOrchestrator.startRecovery()` is explicitly initialized at startup in [`apps/api/src/initializers/services.ts#L126`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/src/initializers/services.ts#L126), registering `createTaskLifecycleSaga`. Distributed locking uses Redis when `REDIS_URL` is configured. | **Verified from code** |
+| **PostgreSQL & Redis Providers** | Managed cloud infrastructure | Database and Redis connectivity rely on `DATABASE_URL` and `REDIS_URL`. Provider details (Neon and Upstash) are runtime configuration. | **Unverified** (runtime environment) |
+
+### Manual Verification Checklist (Render Dashboard)
+To verify the runtime configuration for the Render backend container, confirm the presence of the following **environment variable names** (never share or log their secret values):
+- `DATABASE_URL` (Required: connection string for PostgreSQL / Neon)
+- `REDIS_URL` (Optional / Recommended: connection string for Redis / Upstash)
+- `JWT_SECRET` (Required: min 32 characters for token signing)
+- `ENCRYPTION_KEY` (Required: min 32 characters for AES encryption)
+- `SECRET_BACKEND` (Set to `env` for direct container environment variable injection)
+- `KAFKA_BROKERS` (Optional: only needed if triggering on-demand admin republish endpoints)
 
 ---
 
