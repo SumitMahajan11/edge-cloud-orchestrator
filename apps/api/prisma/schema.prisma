@@ -2,8 +2,7 @@
 // PostgreSQL database schema
 
 generator client {
-  provider      = "prisma-client-js"
-  binaryTargets = ["native", "debian-openssl-3.0.x"]
+  provider = "prisma-client-js"
 }
 
 // Recommended Pool Settings (to be applied in DATABASE_URL):
