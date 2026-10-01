@@ -19,14 +19,16 @@ const eslintConfig = [
       "node_modules/**",
       "docs/**",
       "public/**",
-      "src/lib/**",
-      "src/lib/**/*",
-      "**/src/lib/**",
-      "**/src/hooks/useCachedMetrics.ts",
     ],
   },
   ...compat.extends("next/core-web-vitals"),
   {
+    languageOptions: {
+      parserOptions: {
+        project: ["./tsconfig.json"],
+        tsconfigRootDir: __dirname,
+      },
+    },
     rules: {
       // Relax strict rules from root config to allow production build to complete
       "no-console": "warn",
