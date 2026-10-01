@@ -37,7 +37,7 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)(
         expect(response.headers['deprecation']).toBe('true');
         expect(response.headers['sunset']).toBeDefined();
 
-        const sunsetDate = new Date(response.headers['sunset']);
+        const sunsetDate = new Date(response.headers['sunset'] as string);
         const now = new Date();
         const sixMonthsFromNow = new Date();
         sixMonthsFromNow.setMonth(now.getMonth() + 5); // Roughly 6 months

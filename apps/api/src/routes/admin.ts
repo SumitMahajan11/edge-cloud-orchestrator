@@ -607,7 +607,6 @@ export default async function adminRoutes(fastify: FastifyInstance) {
 
       const topic = targetTopic || defaultTopic;
 
-      // @ts-expect-error dynamic import of workspace event-bus
       const { EventBus } = await import('@edgecloud/event-bus');
       const { env } = await import('../config/env.js');
       const eventBus = new EventBus({
@@ -725,7 +724,6 @@ export default async function adminRoutes(fastify: FastifyInstance) {
         };
       }
 
-      // @ts-expect-error dynamic import of workspace event-bus
       const { EventBus } = await import('@edgecloud/event-bus');
       const { env } = await import('../config/env.js');
       const eventBus = new EventBus({
@@ -957,7 +955,6 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       });
 
       try {
-        // @ts-expect-error -- dynamic import of event-bus
         const { EventBus } = await import('@edgecloud/event-bus');
         const { env } = await import('../config/env.js');
         const eventBus = new EventBus({
