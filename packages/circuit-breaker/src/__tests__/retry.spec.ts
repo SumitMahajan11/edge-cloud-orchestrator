@@ -246,9 +246,7 @@ describe("RetryPolicy Unit Tests", () => {
   });
 
   describe("Retry Budget", () => {
-    // TODO: fix tracked in https://github.com/SumitMahajan11/edge-cloud-orchestrator/issues/74
-    // The budget check fires BEFORE incrementing retryCount, so the budget exhausts one retry early.
-    it.fails("should exhaust retry budget and throw error when limit is reached", async () => {
+    it("should exhaust retry budget and throw error when limit is reached", async () => {
       const policy = new RetryPolicy({
         maxAttempts: 3,
         initialDelay: 10,
