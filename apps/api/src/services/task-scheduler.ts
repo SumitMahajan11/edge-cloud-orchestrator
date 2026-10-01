@@ -1438,16 +1438,9 @@ export class TaskScheduler extends EventEmitter {
           },
         );
 
+        console.log(`[DEBUG_TEST] findNode step 8 (mlScheduler.schedule returned):`, JSON.stringify(selectedResult));
+
         if (selectedResult) {
-          this.logger.debug(
-            {
-              nodeId: selectedResult.decision.nodeId,
-              score: selectedResult.decision.score,
-              modelVersion: selectedResult.modelVersion,
-              fallbackUsed: selectedResult.fallbackUsed,
-            },
-            '[findNode] Step 8 mlScheduler.schedule returned',
-          );
           const node = affinityOrderedNodes.find(
             (n) => n.id === selectedResult.decision.nodeId,
           );
@@ -1456,7 +1449,7 @@ export class TaskScheduler extends EventEmitter {
             : null;
         }
       } catch (err: any) {
-        this.logger.error({ err }, '[findNode] Error in mlScheduler.schedule');
+        console.error(`[DEBUG_TEST] Error in mlScheduler.schedule:`, err);
         throw err;
       }
     }
@@ -1579,9 +1572,10 @@ export class TaskScheduler extends EventEmitter {
       // Shadow Mode (A/B testing) evaluation logic
       await this.processShadowOutcome(metadata, actualScore);
 
-    } catch (err: any) {
+    } catch (error) {
+      console.error('[ERROR_ML_OUTCOME] Failed to record task outcome for ML:', error);
       this.logger.error(
-        { taskId, err },
+        { taskId, error },
         'Failed to record task outcome for ML',
       );
     }
@@ -1672,8 +1666,9 @@ export class TaskScheduler extends EventEmitter {
         'Agent improved scheduling efficiency: updated bandit weights from outcome.',
       );
     } catch (err: any) {
+      console.error('[ERROR_BANDIT] Failed to execute contextual bandit feedback loop update:', err);
       this.logger.error(
-        { taskId: task.id, err },
+        { taskId: task.id, error: err.message },
         'Failed to execute contextual bandit feedback loop update',
       );
     }
@@ -1687,10 +1682,10 @@ export class TaskScheduler extends EventEmitter {
     actualScore: number,
   ): Promise<void> {
     const shadowResult = metadata.shadowResult;
+    console.log(`[DEBUG_OUTCOME] shadowResult=`, JSON.stringify(shadowResult));
     if (shadowResult && shadowResult.version && typeof shadowResult.score === 'number') {
       const shadowScore = shadowResult.score;
       const shadowVersion = shadowResult.version;
-      this.logger.debug({ version: shadowVersion, score: shadowScore }, '[processShadowOutcome] shadowResult outcome');
       const shadowError = Math.abs(shadowScore - actualScore);
 
       // Store this error in Redis list 'ml:shadow_errors'
