@@ -22,7 +22,7 @@ const isDev = process.env.NODE_ENV === "development";
  * Correlates frontend user actions with backend traces using traceparent propagation.
  */
 export function initTracing() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
 
   const sampler = new ParentBasedSampler({
     root: new CompositeSampler(0.1),

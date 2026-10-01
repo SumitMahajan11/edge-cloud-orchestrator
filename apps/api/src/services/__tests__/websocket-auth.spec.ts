@@ -23,7 +23,7 @@ describe('WebSocketManager Authentication', () => {
       error: vi.fn(),
       debug: vi.fn(),
     };
-    wsManager = new WebSocketManager(mockLogger as any);
+    wsManager = new WebSocketManager(mockLogger);
   });
 
   it('should accept connection with valid JWT in query parameter', async () => {

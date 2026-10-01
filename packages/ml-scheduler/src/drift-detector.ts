@@ -80,7 +80,7 @@ export class DriftDetector extends EventEmitter {
   }
 
   private calculateMAE(): void {
-    if (this.outcomes.length === 0) return;
+    if (this.outcomes.length === 0) {return;}
 
     const sumAbsoluteError = this.outcomes.reduce((acc, curr) => {
       return acc + Math.abs(curr.predictedScore - curr.actualScore);

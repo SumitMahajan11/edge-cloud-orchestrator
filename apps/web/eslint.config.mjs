@@ -19,6 +19,7 @@ const eslintConfig = [
       "node_modules/**",
       "docs/**",
       "public/**",
+      "src/lib/**",
     ],
   },
   ...compat.extends("next/core-web-vitals"),

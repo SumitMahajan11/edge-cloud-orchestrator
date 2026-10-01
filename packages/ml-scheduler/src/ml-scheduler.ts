@@ -113,7 +113,7 @@ export class MLScheduler {
             carbonWeight = 0.4;
 
             // Find fastest and lowest-carbon nodes for trade-off calculation
-            const firstNode = nodes[0]!;
+            const firstNode = nodes[0];
             const fastestNode = nodes.reduce(
               (prev, curr) => (curr.latency < prev.latency ? curr : prev),
               firstNode,
@@ -166,7 +166,7 @@ export class MLScheduler {
               const randomNode =
                 eligibleNodes[
                   Math.floor(Math.random() * eligibleNodes.length)
-                ]!;
+                ];
               const context = buildSchedulingContext(
                 task,
                 randomNode,
@@ -257,7 +257,7 @@ export class MLScheduler {
           });
 
           blendedNodes.sort((a, b) => b.score - a.score);
-          const bestNodeResult = blendedNodes[0]!;
+          const bestNodeResult = blendedNodes[0];
           const bestNode = nodes.find((n) => n.id === bestNodeResult.nodeId)!;
 
           // Calculate feature importance for the selected node
@@ -286,7 +286,7 @@ export class MLScheduler {
           );
 
           // 5. Calculate carbon metrics
-          const firstNodeForMetric = nodes[0]!;
+          const firstNodeForMetric = nodes[0];
           const fastestNodeForMetric = nodes.reduce(
             (prev, curr) => (curr.latency < prev.latency ? curr : prev),
             firstNodeForMetric,
@@ -380,7 +380,7 @@ export class MLScheduler {
       (n) => n.status !== "OFFLINE" && n.status !== "DRAINING",
     );
 
-    if (eligibleNodes.length === 0) return null;
+    if (eligibleNodes.length === 0) {return null;}
 
     // 2. Sort by:
     //    a. CPU Availability (1 - cpuUsage/100) -> higher is better
@@ -388,7 +388,7 @@ export class MLScheduler {
     const sorted = [...eligibleNodes].sort((a, b) => {
       // Ascending usage = Descending availability
       const cpuDiff = a.cpuUsage - b.cpuUsage;
-      if (Math.abs(cpuDiff) > 1) return cpuDiff;
+      if (Math.abs(cpuDiff) > 1) {return cpuDiff;}
 
       return a.memoryUsage - b.memoryUsage;
     });
@@ -396,16 +396,16 @@ export class MLScheduler {
     const best = sorted[0];
 
     return {
-      nodeId: best!.id,
+      nodeId: best.id,
       score: 1.0, // Placeholder score for fallback
       components: {
-        latency: 1 - Math.min(best!.latency / 500, 1),
-        cpu: 1 - best!.cpuUsage / 100,
-        memory: 1 - best!.memoryUsage / 100,
+        latency: 1 - Math.min(best.latency / 500, 1),
+        cpu: 1 - best.cpuUsage / 100,
+        memory: 1 - best.memoryUsage / 100,
         cost: 0.5,
         network: 0.5,
         mlPrediction: 0.5,
-        health: best!.status === "ONLINE" ? 1.0 : 0.0,
+        health: best.status === "ONLINE" ? 1.0 : 0.0,
         carbon: 0.5,
       },
     };

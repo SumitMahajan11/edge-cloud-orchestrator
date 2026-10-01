@@ -145,7 +145,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
           priority: data.priority,
           target: data.target,
           nodeId: data.nodeId ?? null,
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
           policy: data.policy ?? (data.nodeId ? 'manual' : 'auto'),
           isDeferrable: data.isDeferrable ?? false,
           maxDelayMinutes: data.maxDelayMinutes ?? 0,
@@ -157,7 +157,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             create: {
               status: 'PENDING',
               attemptNumber: 1,
-              tenantId: request.user!.tenantId!,
+              tenantId: request.user.tenantId!,
             },
           },
         },
@@ -173,8 +173,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'task.created',
           entityType: 'task',
           entityId: task.id,
@@ -266,7 +266,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         sortOrder,
         from,
         to,
-      } = request.query as unknown as z.infer<typeof taskQuerySchema>;
+      } = request.query as z.infer<typeof taskQuerySchema>;
 
       const where: Prisma.TaskWhereInput = {
         ...(status && { status: status as TaskStatus }),
@@ -307,10 +307,10 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
         pagination: { page: page ?? 1, limit: limit ?? 20, total, totalPages },
         _links: {
           self: { href: `/api/v1/tasks?page=${page ?? 1}&limit=${limit ?? 20}` },
-          ...(page! < totalPages && {
+          ...(page < totalPages && {
             next: { href: `/api/v1/tasks?page=${(page ?? 1) + 1}&limit=${limit ?? 20}` },
           }),
-          ...(page! > 1 && {
+          ...(page > 1 && {
             prev: { href: `/api/v1/tasks?page=${(page ?? 1) - 1}&limit=${limit ?? 20}` },
           }),
           last: { href: `/api/v1/tasks?page=${totalPages}&limit=${limit ?? 20}` },
@@ -578,8 +578,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'task.cancelled',
           entityType: 'task',
           entityId: id,
@@ -749,7 +749,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
             taskId: id,
             status: 'PENDING',
             attemptNumber: allExecutions + 1,
-            tenantId: request.user!.tenantId!,
+            tenantId: request.user.tenantId!,
             retryOf: previousExecution?.id ?? null,
           },
         }),
@@ -771,8 +771,8 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'task.retried',
           entityType: 'task',
           entityId: id,
@@ -866,7 +866,7 @@ export default async function taskLifecycleRoutes(fastify: FastifyInstance) {
     async (request) => {
       const { id } = request.params as { id: string };
       const { level, executionId, source, from, to, limit, offset } =
-        request.query as unknown as z.infer<typeof taskLogsQuerySchema>;
+        request.query as z.infer<typeof taskLogsQuerySchema>;
 
       // Verify task exists
       const task = await request.tPrisma.task.findUnique({

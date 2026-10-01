@@ -49,7 +49,7 @@ class PrismaClientWithReplicas {
       const baseReplica = new PrismaClient({
         datasources: {
           db: {
-            url: readReplicaUrl!,
+            url: readReplicaUrl,
           },
         },
         log:

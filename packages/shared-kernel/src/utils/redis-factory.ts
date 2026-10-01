@@ -57,7 +57,7 @@ export class RedisFactory {
     if (sentinelHosts) {
       const sentinels = sentinelHosts.split(",").map((s) => {
         const [host, port] = s.trim().split(":");
-        return { host: host!, port: parseInt(port || "26379", 10) };
+        return { host: host, port: parseInt(port || "26379", 10) };
       });
 
       logger.info(

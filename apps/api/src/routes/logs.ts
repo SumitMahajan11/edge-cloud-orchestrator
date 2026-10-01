@@ -29,7 +29,7 @@ export default async function logRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       const { taskId, nodeId, level, limit, offset } = request.query as z.infer<typeof LogQuerySchema>;
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
 
       // --- Task-level logs from TaskLog table ---
       const taskLogs = await fastify.prisma.taskLog.findMany({
@@ -75,9 +75,9 @@ export default async function logRoutes(fastify: FastifyInstance) {
 
       // Map AuditLog rows → LogEntry shape
       const mapAuditLevel = (action: string): 'DEBUG' | 'INFO' | 'WARN' | 'ERROR' => {
-        if (action.startsWith('error.')) return 'ERROR';
-        if (action.startsWith('warn.')) return 'WARN';
-        if (action.startsWith('debug.')) return 'DEBUG';
+        if (action.startsWith('error.')) {return 'ERROR';}
+        if (action.startsWith('warn.')) {return 'WARN';}
+        if (action.startsWith('debug.')) {return 'DEBUG';}
         return 'INFO';
       };
 
@@ -144,7 +144,7 @@ export default async function logRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
       const since24h = new Date(Date.now() - 24 * 60 * 60 * 1000);
 
       const [taskTotal, taskErrors, auditTotal] = await Promise.all([

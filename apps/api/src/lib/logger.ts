@@ -19,7 +19,7 @@ export const logger = pino({
   // Inject OpenTelemetry context automatically
   mixin() {
     const span = trace.getActiveSpan();
-    if (!span) return {};
+    if (!span) {return {};}
 
     const { traceId, spanId } = span.spanContext();
     return { traceId, spanId };

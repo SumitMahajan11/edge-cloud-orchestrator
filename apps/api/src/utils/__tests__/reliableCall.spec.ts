@@ -175,7 +175,7 @@ describe('reliableCall', () => {
 
       let fails = 0;
       const fn = vi.fn().mockImplementation(async () => {
-        if (fails++ < 2) throw new Error('Fail');
+        if (fails++ < 2) {throw new Error('Fail');}
         return 'success';
       });
 

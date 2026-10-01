@@ -140,13 +140,13 @@ export default function MonitoringPage() {
   }>({ open: false, name: "" });
 
   const filteredBreakers = useMemo(() => {
-    if (!searchQuery) return circuitBreakers;
+    if (!searchQuery) {return circuitBreakers;}
     const lower = searchQuery.toLowerCase();
     return circuitBreakers.filter((b) => b.name.toLowerCase().includes(lower));
   }, [circuitBreakers, searchQuery]);
 
   const filteredTraces = useMemo(() => {
-    if (!searchQuery) return MOCK_TRACES;
+    if (!searchQuery) {return MOCK_TRACES;}
     const lower = searchQuery.toLowerCase();
     return MOCK_TRACES.filter(
       (t) =>
@@ -1010,8 +1010,8 @@ function CircuitBreakerCard({
 
   useEffect(() => {
     if (breaker.state !== prevState.current) {
-      if (breaker.state === "OPEN") setFlash("rose");
-      else if (breaker.state === "CLOSED") setFlash("emerald");
+      if (breaker.state === "OPEN") {setFlash("rose");}
+      else if (breaker.state === "CLOSED") {setFlash("emerald");}
 
       const timer = setTimeout(() => setFlash("none"), 1500);
       prevState.current = breaker.state;

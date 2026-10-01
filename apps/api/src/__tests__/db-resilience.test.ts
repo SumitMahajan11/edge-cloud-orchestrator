@@ -45,7 +45,7 @@ describe('Database Resilience & Observability', () => {
       }
 
       const isReady = dbStatus === 'healthy';
-      if (!isReady) reply.status(503);
+      if (!isReady) {reply.status(503);}
 
       return {
         status: isReady ? 'ready' : 'not_ready',

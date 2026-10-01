@@ -57,7 +57,7 @@ export default function WorkflowsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, isLoading: loading, error } = useWorkflows();
   const createWorkflowMutation = useCreateWorkflow();
-  const workflows = (data as any as Workflow[]) || [];
+  const workflows = (data as Workflow[]) || [];
 
 
   useEffect(() => {

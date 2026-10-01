@@ -16,21 +16,21 @@ export function ConnectionStatusPill() {
 
   // Tick every 1s so the "xs ago" label stays fresh without re-rendering the store
   useEffect(() => {
-    if (status !== "LIVE" || !lastEventAt) return;
+    if (status !== "LIVE" || !lastEventAt) {return;}
     const id = setInterval(() => tick((n) => (n + 1) % 1_000_000), 1_000);
     return () => clearInterval(id);
   }, [status, lastEventAt]);
 
   const label = useMemo(() => {
     if (status === "LIVE") {
-      if (!lastEventAt) return "LIVE";
+      if (!lastEventAt) {return "LIVE";}
       const secs = Math.max(0, Math.floor((Date.now() - lastEventAt) / 1000));
-      if (secs < 1) return "LIVE · now";
-      if (secs < 60) return `LIVE · ${secs}s ago`;
+      if (secs < 1) {return "LIVE · now";}
+      if (secs < 60) {return `LIVE · ${secs}s ago`;}
       const mins = Math.floor(secs / 60);
       return `LIVE · ${mins}m ago`;
     }
-    if (status === "RECONNECTING") return "RECONNECTING";
+    if (status === "RECONNECTING") {return "RECONNECTING";}
     return "DISCONNECTED";
   }, [status, lastEventAt]);
 

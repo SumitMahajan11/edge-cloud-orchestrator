@@ -27,7 +27,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {return;}
 
     onSubmit({
       name: formData.name.trim(),
@@ -35,7 +35,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
       nodes: [
         {
           id: "step-1",
-          name: formData.name.trim() + " Initial Step",
+          name: `${formData.name.trim()  } Initial Step`,
           type: "task",
           config: { trigger: formData.trigger, description: formData.description },
           inputs: [],

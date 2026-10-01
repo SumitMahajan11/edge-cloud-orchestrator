@@ -146,7 +146,7 @@ export const createMockRedis = (logger: Logger) => {
     },
     lrange: async (key: string, start: number, stop: number) => {
       const list = mockStorage.get(key);
-      if (!Array.isArray(list)) return [];
+      if (!Array.isArray(list)) {return [];}
       const end = stop === -1 ? undefined : stop + 1;
       return list.slice(start, end);
     },
@@ -174,7 +174,7 @@ export const createMockRedis = (logger: Logger) => {
     },
     lrem: async (key: string, count: number, value: any) => {
       const list = mockStorage.get(key);
-      if (!Array.isArray(list)) return 0;
+      if (!Array.isArray(list)) {return 0;}
       let removed = 0;
       if (count === 0) {
         const initialLen = list.length;
@@ -215,12 +215,12 @@ export const createMockRedis = (logger: Logger) => {
     },
     hget: async (key: string, field: string) => {
       const hash = mockStorage.get(key);
-      if (!(hash instanceof Map)) return null;
+      if (!(hash instanceof Map)) {return null;}
       return hash.get(field) || null;
     },
     hgetall: async (key: string) => {
       const hash = mockStorage.get(key);
-      if (!(hash instanceof Map)) return null;
+      if (!(hash instanceof Map)) {return null;}
       const obj: Record<string, any> = {};
       hash.forEach((v, k) => {
         obj[k] = v;
@@ -229,10 +229,10 @@ export const createMockRedis = (logger: Logger) => {
     },
     hdel: async (key: string, ...fields: string[]) => {
       const hash = mockStorage.get(key);
-      if (!(hash instanceof Map)) return 0;
+      if (!(hash instanceof Map)) {return 0;}
       let deleted = 0;
       fields.forEach((f) => {
-        if (hash.delete(f)) deleted++;
+        if (hash.delete(f)) {deleted++;}
       });
       return deleted;
     },
@@ -252,7 +252,7 @@ export const createMockRedis = (logger: Logger) => {
       return val;
     },
     setnx: async (key: string, value: any) => {
-      if (mockStorage.has(key)) return 0;
+      if (mockStorage.has(key)) {return 0;}
       mockStorage.set(key, value);
       return 1;
     },

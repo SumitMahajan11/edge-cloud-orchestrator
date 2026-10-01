@@ -36,7 +36,7 @@ export function DecisionLogPanel({ nodeId }: DecisionLogPanelProps) {
         const { data: logs, error } = await getV2AdminAuditLogs({
           query: { action: "SCHEDULE_TASK", limit: 20 } as any,
         });
-        if (error) throw error;
+        if (error) {throw error;}
 
         // Match logs with actual decisions (mocking some if real data is sparse)
         const mockDecisions: SchedulingDecision[] = (logs as any[]).map(

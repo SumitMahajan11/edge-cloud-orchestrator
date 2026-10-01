@@ -53,7 +53,7 @@ export function CreatePolicyModal({ isOpen, onClose, onSubmit, initialData }: Cr
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {return;}
 
     let config: Record<string, any> = {};
     if (formData.type === "LATENCY") {

@@ -7,7 +7,11 @@
   "parserOptions": {
     "ecmaVersion": "latest",
     "sourceType": "module",
-    "project": "./tsconfig.json"
+    "project": [
+      "./tsconfig.json",
+      "./apps/*/tsconfig.json",
+      "./packages/*/tsconfig.json"
+    ]
   },
   "extends": [
     "eslint:recommended",
@@ -35,11 +39,20 @@
     "prefer-template": "error"
   },
   "ignorePatterns": [
-    "node_modules/",
-    "dist/",
-    "coverage/",
+    "**/node_modules/**",
+    "**/dist/**",
+    "**/coverage/**",
+    "**/.next/**",
     "**/*.js",
-    "**/*.d.ts"
+    "**/*.d.ts",
+    ".agent/**",
+    "archive/**",
+    "artifacts/**",
+    "e2e_audit/**",
+    "ui-audit-output/**",
+    "temp_ml/**",
+    "test-results/**",
+    "reports/**"
   ],
   "overrides": [
     {

@@ -505,7 +505,7 @@ export class ColdStartHandler extends EventEmitter {
       const scoreB = b.mlConfidence * 0.6 + b.successRate * 0.4;
       return scoreB - scoreA;
     });
-    return sorted[0] as NodeColdStartState;
+    return sorted[0];
   }
 
   private selectBestWarmNode(
@@ -514,7 +514,7 @@ export class ColdStartHandler extends EventEmitter {
   ): NodeColdStartState {
     // Prefer nodes closer to normal phase
     const sorted = nodes.sort((a, b) => b.tasksCompleted - a.tasksCompleted);
-    return sorted[0] as NodeColdStartState;
+    return sorted[0];
   }
 
   private selectBestColdNode(
@@ -523,7 +523,7 @@ export class ColdStartHandler extends EventEmitter {
   ): NodeColdStartState {
     // For cold nodes, just pick the one with most tasks (closest to warm)
     const sorted = nodes.sort((a, b) => b.tasksCompleted - a.tasksCompleted);
-    return sorted[0] as NodeColdStartState;
+    return sorted[0];
   }
 
   private estimateDuration(

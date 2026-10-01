@@ -84,9 +84,9 @@ export class FederatedAggregator {
 
         const weight = sub.sampleCount / totalSamples;
         for (let k = 0; k < paramLength; k++) {
-          const currentVal = avgDeltas![k] ?? 0;
+          const currentVal = avgDeltas[k] ?? 0;
           const subVal = subDeltas[k] ?? 0;
-          avgDeltas![k] = currentVal + subVal * weight;
+          avgDeltas[k] = currentVal + subVal * weight;
         }
       } catch (err) {
         logger.error({ err, nodeId: sub.nodeId, url: sub.weightsUrl }, "Failed to process weight submission");
@@ -145,7 +145,7 @@ export class FederatedAggregator {
     const newWeights = new Float32Array(currentWeights.length);
     for (let k = 0; k < currentWeights.length; k++) {
       const currentVal = currentWeights[k] ?? 0;
-      const avgVal = avgDeltas![k] ?? 0;
+      const avgVal = avgDeltas[k] ?? 0;
       newWeights[k] = currentVal + avgVal;
     }
 

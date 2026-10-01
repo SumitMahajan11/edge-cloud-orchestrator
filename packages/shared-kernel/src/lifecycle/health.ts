@@ -11,7 +11,7 @@ export class HealthCheck {
 
   public static setReady(ready: boolean): void {
     this.isReady = ready;
-    if (ready) this.isStarting = false;
+    if (ready) {this.isStarting = false;}
   }
 
   public static getLiveness(): HealthStatus {
@@ -40,7 +40,7 @@ export class HealthCheck {
       for (const [name, check] of Object.entries(checks)) {
         try {
           results[name] = await check();
-          if (!results[name]) overallOk = false;
+          if (!results[name]) {overallOk = false;}
         } catch (err) {
           results[name] = false;
           overallOk = false;

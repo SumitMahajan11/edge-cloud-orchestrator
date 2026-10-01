@@ -75,7 +75,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const { userId, action, limit = 100 } = request.query;
 
       const where = {
-        tenantId: request.user!.tenantId!,
+        tenantId: request.user.tenantId!,
         ...(userId && { userId }),
         ...(action && { action }),
       };
@@ -126,7 +126,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       const where = {
         tenantUsers: {
           some: {
-            tenantId: request.user!.tenantId!,
+            tenantId: request.user.tenantId!,
           },
         },
       };
@@ -221,7 +221,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
       await fastify.prisma.auditLog.create({
         data: {
           userId: currentUser.id,
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
           action: 'user.role_changed',
           entityType: 'user',
           entityId: id,
@@ -350,7 +350,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           .deleteMany({
             where: {
               timestamp: { lt: cutoff },
-              node: { tenantId: request.user!.tenantId! },
+              node: { tenantId: request.user.tenantId! },
             },
           })
           .then((r) => r.count);
@@ -361,7 +361,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           .deleteMany({
             where: {
               timestamp: { lt: cutoff },
-              task: { tenantId: request.user!.tenantId! },
+              task: { tenantId: request.user.tenantId! },
             },
           })
           .then((r) => r.count);
@@ -372,7 +372,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           .deleteMany({
             where: {
               createdAt: { lt: cutoff },
-              tenantId: request.user!.tenantId!,
+              tenantId: request.user.tenantId!,
             },
           })
           .then((r) => r.count);
@@ -383,7 +383,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
           .deleteMany({
             where: {
               createdAt: { lt: cutoff },
-              tenantId: request.user!.tenantId!,
+              tenantId: request.user.tenantId!,
             },
           })
           .then((r) => r.count);
@@ -759,7 +759,7 @@ export default async function adminRoutes(fastify: FastifyInstance) {
               nodeId: entity.id,
               name: entity.name,
               region: entity.region || '',
-              capabilities: (entity as any).capabilities || [],
+              capabilities: (entity).capabilities || [],
               aggregateId: entity.id,
               version: 1,
             };

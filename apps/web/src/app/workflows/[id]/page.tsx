@@ -84,7 +84,7 @@ export default function WorkflowDetailPage() {
   };
 
   const handleSaveEdit = async () => {
-    if (!editName.trim()) return;
+    if (!editName.trim()) {return;}
     try {
       const response = await fetch(`/api/v2/workflows/${id}`, {
         method: "PUT",

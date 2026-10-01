@@ -18,7 +18,7 @@ export function useNodes() {
     queryKey: queryKeys.nodes.all,
     queryFn: async () => {
       const { data, error } = await getV2Nodes();
-      if (error) throw error;
+      if (error) {throw error;}
       return transformNodesFromApi((data as any).data || []);
     },
     staleTime: STALE.nodeHealth,
@@ -30,7 +30,7 @@ export function useNode(id: string) {
     queryKey: queryKeys.nodes.detail(id),
     queryFn: async () => {
       const { data, error } = await getV2NodesById({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return transformNodeFromApi(data as any);
     },
     enabled: !!id,
@@ -41,7 +41,7 @@ export function useDrainNode() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await postV2NodesByIdDrain({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: (_, id) => {
@@ -57,7 +57,7 @@ export function useForceOfflineNode() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await postV2NodesByIdOffline({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: (_, id) => {
@@ -78,7 +78,7 @@ export function useRegisterNode() {
       delete apiPayload.status;
       delete apiPayload.isMaintenanceMode;
       const { data, error } = await postV2Nodes({ body: apiPayload });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {

@@ -203,7 +203,7 @@ export function TaskDistributionAndNodeStatus({
                 margin={{ top: 10, right: 10, left: -20, bottom: 20 }}
                 onClick={(state: any) => {
                   const id = state?.activePayload?.[0]?.payload?.id;
-                  if (id) router.push(`/nodes?node=${encodeURIComponent(id)}`);
+                  if (id) {router.push(`/nodes?node=${encodeURIComponent(id)}`);}
                 }}
               >
                 <CartesianGrid

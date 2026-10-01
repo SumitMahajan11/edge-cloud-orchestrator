@@ -95,8 +95,8 @@ export function useCarbonReport(from?: string, to?: string) {
     queryKey: ["carbon", "report", from, to],
     queryFn: async () => {
       let path = "/v2/carbon/report?format=json";
-      if (from) path += `&from=${encodeURIComponent(from)}`;
-      if (to) path += `&to=${encodeURIComponent(to)}`;
+      if (from) {path += `&from=${encodeURIComponent(from)}`;}
+      if (to) {path += `&to=${encodeURIComponent(to)}`;}
       return api.get<any>(path);
     },
     staleTime: 30_000,
@@ -104,8 +104,8 @@ export function useCarbonReport(from?: string, to?: string) {
 
   const downloadCsv = async () => {
     let path = "/v2/carbon/report?format=csv";
-    if (from) path += `&from=${encodeURIComponent(from)}`;
-    if (to) path += `&to=${encodeURIComponent(to)}`;
+    if (from) {path += `&from=${encodeURIComponent(from)}`;}
+    if (to) {path += `&to=${encodeURIComponent(to)}`;}
     const csvContent = await api.get<string>(path);
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);

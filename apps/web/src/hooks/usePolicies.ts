@@ -14,7 +14,7 @@ export function usePolicies() {
     queryKey: ["policies"],
     queryFn: async () => {
       const { data, error } = await getV2Policies();
-      if (error) throw error;
+      if (error) {throw error;}
       return data as { active: string; available: any[] };
     },
     staleTime: STALE.default,
@@ -26,7 +26,7 @@ export function useActivePolicy() {
     queryKey: ["policies", "active"],
     queryFn: async () => {
       const { data, error } = await getV2PoliciesActive();
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     staleTime: STALE.default,
@@ -38,7 +38,7 @@ export function usePolicyConfig() {
     queryKey: ["policies", "config"],
     queryFn: async () => {
       const { data, error } = await getV2PoliciesConfig();
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     staleTime: STALE.default,
@@ -49,7 +49,7 @@ export function useUpdatePolicy() {
   return useMutation({
     mutationFn: async (policy: string) => {
       const { data, error } = await patchV2PoliciesActive({ body: { policy } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {
@@ -63,7 +63,7 @@ export function useThresholds() {
     queryKey: ["policies", "thresholds"],
     queryFn: async () => {
       const { data, error } = await getV2PoliciesThresholds();
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     staleTime: STALE.default,
@@ -76,7 +76,7 @@ export function useUpdateThreshold() {
       const { data, error } = await patchV2PoliciesThresholds({
         body: thresholds,
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {

@@ -141,8 +141,8 @@ app.post("/run-task", async (req, res) => {
     );
 
     nodeStats.tasksRunning--;
-    if (result.status === "completed") nodeStats.tasksCompleted++;
-    else nodeStats.tasksFailed++;
+    if (result.status === "completed") {nodeStats.tasksCompleted++;}
+    else {nodeStats.tasksFailed++;}
 
     res.json(result);
   });
@@ -184,7 +184,7 @@ export async function startAgent() {
 
   if (config.ENABLE_MTLS) {
     const options = certManager.getSecureContextOptions();
-    if (!options) throw new Error("mTLS enabled but no options generated");
+    if (!options) {throw new Error("mTLS enabled but no options generated");}
 
     server = https.createServer(options, app);
     logger.info(

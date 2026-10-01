@@ -318,7 +318,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
         }
       }
 
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
 
       const task = await request.tPrisma.task.create({
         data: {
@@ -368,7 +368,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
+          userId: request.user.id,
           tenantId: tenantId,
           action: 'task.created',
           entityType: 'task',
@@ -531,7 +531,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
             taskId: id,
             status: 'PENDING',
             attemptNumber: executionCount + 1,
-            tenantId: request.user!.tenantId!,
+            tenantId: request.user.tenantId!,
             retryOf: previousExecution?.id ?? null,
           },
         }),
@@ -563,7 +563,7 @@ export default async function taskRoutes(fastify: FastifyInstance) {
       // Record metric
       fastify.taskScheduler.recordTaskSubmission(
         tUpdatedTask.priority,
-        request.user!.tenantId!,
+        request.user.tenantId!,
       );
 
       return reply.status(201).send(tUpdatedTask);

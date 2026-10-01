@@ -18,14 +18,14 @@ export function HealthScoreGauge({
   const strokeDashoffset = circumference - (score / 100) * circumference;
 
   const color = useMemo(() => {
-    if (score >= 80) return "hsl(145, 70%, 45%)"; // success
-    if (score >= 60) return "hsl(38, 92%, 50%)"; // warning
+    if (score >= 80) {return "hsl(145, 70%, 45%)";} // success
+    if (score >= 60) {return "hsl(38, 92%, 50%)";} // warning
     return "hsl(0, 72%, 55%)"; // destructive
   }, [score]);
 
   const getStatusText = () => {
-    if (score >= 80) return "Healthy";
-    if (score >= 60) return "Warning";
+    if (score >= 80) {return "Healthy";}
+    if (score >= 60) {return "Warning";}
     return "Critical";
   };
 
@@ -47,7 +47,7 @@ export function HealthScoreGauge({
         <circle
           stroke={color}
           strokeWidth={strokeWidth}
-          strokeDasharray={circumference + " " + circumference}
+          strokeDasharray={`${circumference  } ${  circumference}`}
           style={{
             strokeDashoffset,
             transition: "stroke-dashoffset 0.5s ease",

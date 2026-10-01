@@ -68,7 +68,7 @@ export default function TaskSchedulerPage() {
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
   const filteredTasks = tasks.filter((task) => {
-    if (!search) return true;
+    if (!search) {return true;}
     const s = search.toLowerCase();
     return (
       task.id.toLowerCase().includes(s) ||

@@ -41,7 +41,7 @@ export class ConsistencyCheckerJob {
    * Start the background job with a 1-minute check interval
    */
   start(): void {
-    if (this.interval) return;
+    if (this.interval) {return;}
 
     this.logger.info(
       { scheduleHour: this.scheduleHour },
@@ -50,7 +50,7 @@ export class ConsistencyCheckerJob {
 
     this.interval = setInterval(() => {
       const now = new Date();
-      const currentDay = now.toISOString().split('T')[0]!;
+      const currentDay = now.toISOString().split('T')[0];
       const currentHour = now.getUTCHours();
 
       if (currentHour === this.scheduleHour && this.lastRunDay !== currentDay) {
@@ -85,7 +85,7 @@ export class ConsistencyCheckerJob {
    * Run the consistency check suite
    */
   async run(): Promise<void> {
-    if (this.isProcessing) return;
+    if (this.isProcessing) {return;}
     this.isProcessing = true;
 
     const startTime = Date.now();

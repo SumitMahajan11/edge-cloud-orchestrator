@@ -141,7 +141,7 @@ app.get("/nodes", async (request: FastifyRequest) => {
   }
 
   if (conditions.length > 0) {
-    query += " WHERE " + conditions.join(" AND ");
+    query += ` WHERE ${  conditions.join(" AND ")}`;
   }
 
   query += " ORDER BY created_at DESC";

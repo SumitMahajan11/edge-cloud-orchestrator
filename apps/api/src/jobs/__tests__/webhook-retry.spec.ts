@@ -19,7 +19,7 @@ describe('WebhookRetryJob', () => {
       $transaction: vi.fn((cb) => (typeof cb === 'function' ? cb(prisma) : cb)),
     };
     logger = pino({ level: 'silent' });
-    job = new WebhookRetryJob(prisma as any, logger, 60000, 5);
+    job = new WebhookRetryJob(prisma, logger, 60000, 5);
 
     // Enable system time mocking
     vi.useFakeTimers();

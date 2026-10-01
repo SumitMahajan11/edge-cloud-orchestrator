@@ -43,7 +43,7 @@ export function TaskDetailDrawer({
   onRetry,
   onCancel,
 }: TaskDetailDrawerProps) {
-  if (!task) return null;
+  if (!task) {return null;}
 
   const taskLogs = logs.filter((l) => l.taskId === task.id);
 
@@ -279,11 +279,11 @@ function TaskLifecycle({ status }: { status: Task["status"] }) {
   ];
 
   const getStatusIndex = (s: Task["status"]) => {
-    if (s === "pending") return 0;
-    if (s === "scheduled") return 1;
-    if (s === "running") return 2;
-    if (s === "completed") return 3;
-    if (s === "failed") return 2; // Show up to running then failed
+    if (s === "pending") {return 0;}
+    if (s === "scheduled") {return 1;}
+    if (s === "running") {return 2;}
+    if (s === "completed") {return 3;}
+    if (s === "failed") {return 2;} // Show up to running then failed
     return -1;
   };
 

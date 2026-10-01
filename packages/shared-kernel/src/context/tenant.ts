@@ -49,8 +49,8 @@ const jsonFields = new Set([
 ]);
 
 function serializeJsonFields(obj: any): any {
-  if (obj === null || obj === undefined) return obj;
-  if (obj instanceof Date) return obj;
+  if (obj === null || obj === undefined) {return obj;}
+  if (obj instanceof Date) {return obj;}
   if (Array.isArray(obj)) {
     return obj.map(serializeJsonFields);
   }
@@ -74,8 +74,8 @@ function serializeJsonFields(obj: any): any {
 }
 
 function deserializeJsonFields(obj: any): any {
-  if (obj === null || obj === undefined) return obj;
-  if (obj instanceof Date) return obj;
+  if (obj === null || obj === undefined) {return obj;}
+  if (obj instanceof Date) {return obj;}
   if (Array.isArray(obj)) {
     return obj.map(deserializeJsonFields);
   }
@@ -109,10 +109,10 @@ export function prismaForTenant(prisma: any, forcedTenantId?: string) {
         $allModels: {
           async $allOperations({ args, query }: any) {
             if (args) {
-              if (args.data) args.data = serializeJsonFields(args.data);
-              if (args.create) args.create = serializeJsonFields(args.create);
-              if (args.update) args.update = serializeJsonFields(args.update);
-              if (args.where) args.where = serializeJsonFields(args.where);
+              if (args.data) {args.data = serializeJsonFields(args.data);}
+              if (args.create) {args.create = serializeJsonFields(args.create);}
+              if (args.update) {args.update = serializeJsonFields(args.update);}
+              if (args.where) {args.where = serializeJsonFields(args.where);}
             }
             const result = await query(args);
             return deserializeJsonFields(result);

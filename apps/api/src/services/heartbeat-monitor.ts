@@ -313,7 +313,7 @@ export class HeartbeatMonitor {
         });
 
         if (this.taskScheduler) {
-          await this.taskScheduler.enqueue(updatedTask as Task);
+          await this.taskScheduler.enqueue(updatedTask);
         }
       }
 

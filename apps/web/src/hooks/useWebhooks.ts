@@ -17,7 +17,7 @@ export function useWebhooks() {
     queryKey: queryKeys.webhooks.all,
     queryFn: async () => {
       const { data, error } = await getV2Webhooks();
-      if (error) throw error;
+      if (error) {throw error;}
       return data as any[];
     },
     staleTime: STALE.default,
@@ -29,7 +29,7 @@ export function useWebhookStats() {
     queryKey: ["webhooks", "stats"],
     queryFn: async () => {
       const { data, error } = await getV2WebhooksStats();
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     staleTime: STALE.default,
@@ -43,7 +43,7 @@ export function useWebhookDeliveries(id: string) {
       const { data, error } = await getV2WebhooksByIdDeliveries({
         path: { id },
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data as any[];
     },
     enabled: !!id,
@@ -55,9 +55,9 @@ export function useCreateWebhook() {
   return useMutation({
     mutationFn: async (webhookData: any) => {
       const { data, error } = await postV2Webhooks({
-        body: webhookData as any,
+        body: webhookData,
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {
@@ -74,7 +74,7 @@ export function useUpdateWebhook() {
         path: { id },
         body: config,
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {
@@ -87,7 +87,7 @@ export function useDeleteWebhook() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await deleteV2WebhooksById({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {
@@ -104,7 +104,7 @@ export function useToggleWebhook() {
         path: { id },
         body: { enabled } as any,
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {
@@ -117,7 +117,7 @@ export function useTestWebhook() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await postV2WebhooksByIdTest({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
   });
@@ -129,7 +129,7 @@ export function useRetryDelivery() {
       const { data, error } = await postV2WebhooksDeliveriesByIdRetry({
         path: { id },
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {

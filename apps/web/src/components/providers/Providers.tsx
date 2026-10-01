@@ -39,7 +39,7 @@ function AppShell({ children }: { children: React.ReactNode }) {
 
   // Initialize theme from persisted state
   useEffect(() => {
-    if (!persistedLoaded) return;
+    if (!persistedLoaded) {return;}
     const isDark = persistedState.theme === "dark";
     document.documentElement.classList.toggle("light", !isDark);
     document.documentElement.classList.toggle("dark", isDark);

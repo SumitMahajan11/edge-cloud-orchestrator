@@ -18,7 +18,7 @@ export function useAlerts() {
     queryKey: ["alerts"],
     queryFn: async () => {
       const { data, error } = await getV2Alerts();
-      if (error) throw error;
+      if (error) {throw error;}
       return ((data as any)?.alerts || []) as SystemAlert[];
     },
     refetchInterval: 10000,

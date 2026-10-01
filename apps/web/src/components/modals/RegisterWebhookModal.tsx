@@ -51,7 +51,7 @@ export function RegisterWebhookModal({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.url.trim()) return;
+    if (!formData.name.trim() || !formData.url.trim()) {return;}
 
     onSubmit({
       ...formData,

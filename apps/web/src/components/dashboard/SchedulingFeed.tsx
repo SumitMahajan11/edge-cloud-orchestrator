@@ -307,25 +307,25 @@ function inferOutcome(
   d: any,
   type: string,
 ): "ml" | "fallback" | "failed" | "unknown" {
-  if (type.includes("failed")) return "failed";
-  if (d?.fallbackUsed === true || d?.mlModelVersion == null) return "fallback";
-  if (d?.mlModelVersion) return "ml";
-  if (d?.policy === "ml-optimized") return "ml";
+  if (type.includes("failed")) {return "failed";}
+  if (d?.fallbackUsed === true || d?.mlModelVersion == null) {return "fallback";}
+  if (d?.mlModelVersion) {return "ml";}
+  if (d?.policy === "ml-optimized") {return "ml";}
   return "unknown";
 }
 
 function outcomeLabel(o: string): string {
-  if (o === "ml") return "ML_OPT";
-  if (o === "fallback") return "FALLBACK";
-  if (o === "failed") return "FAIL";
+  if (o === "ml") {return "ML_OPT";}
+  if (o === "fallback") {return "FALLBACK";}
+  if (o === "failed") {return "FAIL";}
   return "—";
 }
 
 function safeSummary(d: any): string {
-  if (!d || typeof d !== "object") return String(d ?? "");
+  if (!d || typeof d !== "object") {return String(d ?? "");}
   const keys = ["taskId", "nodeId", "message", "status", "reason", "policy"];
   for (const k of keys) {
-    if (d[k]) return `${k.toUpperCase()}: ${String(d[k]).slice(0, 80)}`;
+    if (d[k]) {return `${k.toUpperCase()}: ${String(d[k]).slice(0, 80)}`;}
   }
   try {
     return JSON.stringify(d).slice(0, 120);

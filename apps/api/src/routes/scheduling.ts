@@ -311,8 +311,8 @@ export default async function schedulingRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'scheduling.policy_created',
           entityType: 'policy',
           entityId: policy.id,
@@ -403,8 +403,8 @@ export default async function schedulingRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'scheduling.policy_updated',
           entityType: 'policy',
           entityId: updatedPolicy.id,
@@ -471,8 +471,8 @@ export default async function schedulingRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'scheduling.policy_deleted',
           entityType: 'policy',
           entityId: id,

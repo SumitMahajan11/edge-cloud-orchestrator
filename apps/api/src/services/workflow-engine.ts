@@ -117,7 +117,7 @@ export class WorkflowEngine {
       include: { execution: { include: { workflow: true } } },
     });
 
-    if (!taskRun) return; // Not part of a workflow
+    if (!taskRun) {return;} // Not part of a workflow
 
     this.logger.debug(
       { taskId, status, executionId: taskRun.executionId },

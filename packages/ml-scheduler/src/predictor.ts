@@ -53,7 +53,7 @@ export class SchedulingPredictor {
   ): Promise<{ version: string; mae: number }> {
     if (this.useMock) {
       logger.warn("Mock predictor: training simulated");
-      return { version: "mock-" + Date.now(), mae: 0.1 };
+      return { version: `mock-${  Date.now()}`, mae: 0.1 };
     }
 
     if (historicalData.length < 50) {
@@ -201,8 +201,8 @@ export class SchedulingPredictor {
     const c = stripV(current).split(".").map(Number);
     const m = stripV(min).split(".").map(Number);
     for (let i = 0; i < 3; i++) {
-      if ((c[i] || 0) > (m[i] || 0)) return true;
-      if ((c[i] || 0) < (m[i] || 0)) return false;
+      if ((c[i] || 0) > (m[i] || 0)) {return true;}
+      if ((c[i] || 0) < (m[i] || 0)) {return false;}
     }
     return true; // Exactly equal
   }
@@ -255,8 +255,8 @@ export class SchedulingPredictor {
     score *= 1 - (node.cpuUsage / 100) * 0.4;
     score *= 1 - (node.memoryUsage / 100) * 0.3;
     score *= 1 - Math.min(1, node.latency / 500) * 0.2;
-    if (node.status !== "ONLINE") score *= 0.1;
-    if (node.tasksRunning >= node.maxTasks) score *= 0.05;
+    if (node.status !== "ONLINE") {score *= 0.1;}
+    if (node.tasksRunning >= node.maxTasks) {score *= 0.05;}
     return score;
   }
 
@@ -312,9 +312,9 @@ export class SchedulingPredictor {
 
       // Calculate a local delta
       const delta = 0.1;
-      let perturbedValue = originalValue! + delta;
+      let perturbedValue = originalValue + delta;
       if (perturbedValue > 1.0) {
-        perturbedValue = originalValue! - delta;
+        perturbedValue = originalValue - delta;
       }
 
       perturbedFeatures[i] = perturbedValue;
@@ -331,7 +331,7 @@ export class SchedulingPredictor {
       // const normalizedDiff = diff / (perturbedValue - originalValue); // Gradient approximation
 
       importance.push({
-        name: featureNames[i]!,
+        name: featureNames[i],
         contribution: Math.abs(diff),
         direction: diff > 0 ? "positive" : ("negative" as const),
       });

@@ -66,14 +66,14 @@ export function useMLMetrics() {
     // Poll every 15 seconds if a retraining job is in progress
     refetchInterval: (query) => {
       const data = query.state.data;
-      if (!data) return false;
+      if (!data) {return false;}
       return ["QUEUED", "TRAINING", "VALIDATING"].includes(data.status)
         ? 15_000
         : false;
     },
     staleTime: (query) => {
       const data = query.state.data;
-      if (!data) return 0;
+      if (!data) {return 0;}
       return ["QUEUED", "TRAINING", "VALIDATING"].includes(data.status)
         ? 10_000
         : 30_000;
