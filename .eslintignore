@@ -6,6 +6,7 @@ packages/api-client/src/**/*.gen.js
 
 # Mock/test infrastructure — relaxed rules
 apps/api/src/initializers/mock-prisma.ts
+apps/api/scratch-test.ts
 
 # Build outputs & non-source directories
 **/dist/**
