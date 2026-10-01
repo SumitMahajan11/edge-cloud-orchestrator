@@ -22,38 +22,38 @@ export class HealthCheck {
     };
   }
 
-  public static getReadiness(
+  public static async getReadiness(
     checks: Record<string, () => Promise<boolean>> = {},
   ): Promise<HealthStatus> {
-    return new Promise(async (resolve) => {
-      if (!this.isReady) {
-        return resolve({
-          status: "starting",
-          version: process.env.APP_VERSION || "unknown",
-          timestamp: new Date().toISOString(),
-        });
-      }
-
-      const results: Record<string, boolean> = {};
-      let overallOk = true;
-
-      for (const [name, check] of Object.entries(checks)) {
-        try {
-          results[name] = await check();
-          if (!results[name]) {overallOk = false;}
-        } catch (err) {
-          results[name] = false;
-          overallOk = false;
-        }
-      }
-
-      resolve({
-        status: overallOk ? "ok" : "error",
+    if (!this.isReady) {
+      return {
+        status: "starting",
         version: process.env.APP_VERSION || "unknown",
         timestamp: new Date().toISOString(),
-        details: results,
-      });
-    });
+      };
+    }
+
+    const results: Record<string, boolean> = {};
+    let overallOk = true;
+
+    for (const [name, check] of Object.entries(checks)) {
+      try {
+        results[name] = await check();
+        if (!results[name]) {
+          overallOk = false;
+        }
+      } catch (_err) {
+        results[name] = false;
+        overallOk = false;
+      }
+    }
+
+    return {
+      status: overallOk ? "ok" : "error",
+      version: process.env.APP_VERSION || "unknown",
+      timestamp: new Date().toISOString(),
+      details: results,
+    };
   }
 
   public static getStartup(): HealthStatus {

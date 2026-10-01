@@ -56,6 +56,12 @@
   ],
   "overrides": [
     {
+      "files": ["apps/web/**/*.{ts,tsx}"],
+      "env": {
+        "browser": true
+      }
+    },
+    {
       "files": ["**/*.spec.ts", "**/*.test.ts"],
       "globals": {
         "describe": "readonly",

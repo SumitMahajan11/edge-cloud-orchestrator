@@ -1203,7 +1203,7 @@ export async function createMTLSServer(
   // no-ops if the package is absent rather than crashing.
   // See README for current mTLS implementation status.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  // @ts-ignore - optional dependency that is not installed in standard build
+  // @ts-expect-error - optional dependency that is not installed in standard build
   const fastifyHttpsMod: any = await import('@fastify/https').catch(() => null);
   if (fastifyHttpsMod) {
     await fastify.register(fastifyHttpsMod.default || fastifyHttpsMod, {

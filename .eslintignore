@@ -15,6 +15,10 @@ apps/api/src/initializers/mock-prisma.ts
 **/prisma/migrations/**
 **/*.gen.ts
 apps/web/src/lib/**
+apps/web/src/hooks/useCachedMetrics.ts
+**/scripts/**
+**/*.config.ts
+**/*.workspace.ts
 .agent/**
 archive/**
 artifacts/**

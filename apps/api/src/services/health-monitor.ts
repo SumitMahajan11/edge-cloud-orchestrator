@@ -346,7 +346,7 @@ export class HealthMonitor extends EventEmitter {
 
       timer();
 
-      if (kafkaConnected === 'true' || true) {
+      if (kafkaConnected === 'true' || kafkaConnected === null) {
         // Assume connected for now
         checkCounter.inc({ component: 'kafka', status: 'healthy' });
         return {

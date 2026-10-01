@@ -8,6 +8,7 @@ import {
   CustomObjectsApi,
   KubeConfig,
   KubernetesObjectApi,
+  Watch,
 } from '@kubernetes/client-node';
 
 import { createLogger } from '../lib/logger';
@@ -263,7 +264,7 @@ export class EdgeCloudOperator {
   watchEdgeNodes(
     callback: (event: string, node: EdgeNodeResource) => void,
   ): void {
-    const watch = new (require('@kubernetes/client-node').Watch)(this.kc);
+    const watch = new Watch(this.kc);
 
     watch.watch(
       `/apis/edge-cloud.io/v1/namespaces/${this.namespace}/edgenodes`,

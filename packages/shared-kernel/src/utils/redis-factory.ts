@@ -22,7 +22,7 @@ export class RedisFactory {
   ): Promise<Redis> {
     if (process.env.FORCE_MOCK_REDIS === "true") {
       logger.info("Initializing Redis Mock (FORCE_MOCK_REDIS=true)");
-      // @ts-ignore
+      // @ts-expect-error ioredis-mock default export type compatibility
       const MockRedis = (await import("ioredis-mock")).default;
       return new MockRedis(options) as unknown as Redis;
     }

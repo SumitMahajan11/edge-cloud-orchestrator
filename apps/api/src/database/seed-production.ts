@@ -8,10 +8,6 @@
  * - API keys
  * - Webhooks
  */
-
-// @ts-nocheck
-// This file contains seed data that requires schema alignment for full type safety
-
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { v4 as uuidv4 } from 'uuid';
