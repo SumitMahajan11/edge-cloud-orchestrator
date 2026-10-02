@@ -205,7 +205,7 @@ Chosen option: **Option 4 — Hybrid Event-Driven Architecture**, using:
 
 This section records the **actual** deployed architecture from codebase analysis against the architecture described above.
 
-In the live production setup, only `apps/api` is deployed as a backend container on Render Free (using [`apps/api/Dockerfile`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/Dockerfile) with `SECRET_BACKEND=env`), connecting to Neon PostgreSQL and Upstash Redis. The frontend is hosted on Vercel. Microservices like `apps/task-service` and `apps/node-service` are not deployed in this environment.
+In the live production setup, only `apps/api` is deployed as a backend container on Render Free (using [`apps/api/Dockerfile`](file:///d:/Projects/Cloud1/edge-cloud-orchestrator/apps/api/Dockerfile) with `SECRET_BACKEND=env`), connecting to Neon PostgreSQL and Upstash Redis. The frontend is hosted on Vercel.
 
 | Concern | Architecture Decision | Deployed Code Reality | Status |
 |---------|----------------------|-----------------------|--------|
