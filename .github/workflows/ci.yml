@@ -62,6 +62,9 @@ jobs:
           pnpm --filter @edgecloud/api exec prisma generate
           pnpm --filter "./packages/*" run build
 
+      - name: Generate integration test Prisma client
+        run: pnpm exec prisma generate --schema=tests/integration/client/schema.prisma
+
       - name: 3. Typecheck (tsc --noEmit)
         run: pnpm run typecheck
 
