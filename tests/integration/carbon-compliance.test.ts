@@ -227,12 +227,14 @@ describe("Carbon Compliance Reporting", () => {
 
     expect(resA.statusCode).toBe(200);
     expect(resA.headers["content-type"]).toBe("text/csv");
-    expect(resA.headers["content-disposition"]).toContain("attachment; filename=");
+    expect(resA.headers["content-disposition"]).toContain(
+      "attachment; filename=",
+    );
 
     const lines = resA.payload.trim().split("\n");
     expect(lines.length).toBe(3); // 1 header row + 2 data rows
     expect(lines[0]).toBe(
-      "Task ID,Task Type,Region,Node ID,Carbon Intensity (gCO2eq/kWh),Duration (ms),Estimated gCO2eq,Estimated Watts,Was Deferred,Baseline gCO2eq,Carbon Saved gCO2eq,Recorded At"
+      "Task ID,Task Type,Region,Node ID,Carbon Intensity (gCO2eq/kWh),Duration (ms),Estimated gCO2eq,Estimated Watts,Was Deferred,Baseline gCO2eq,Carbon Saved gCO2eq,Recorded At",
     );
 
     // Verify row values
@@ -242,5 +244,30 @@ describe("Carbon Compliance Reporting", () => {
     expect(lines[2]).toContain("task-a2");
     expect(lines[2]).toContain("ML_TRAINING");
     expect(lines[2]).toContain("FALSE"); // wasDeferred
+  });
+
+  it("should export tenant-scoped CSRD energy and emissions totals", async () => {
+    const resA = await ctx.app.inject({
+      method: "GET",
+      url: "/v2/carbon/export",
+      headers: { Authorization: `Bearer ${tokenA}` },
+    });
+
+    expect(resA.statusCode).toBe(200);
+    expect(resA.headers["content-type"]).toBe("text/csv");
+    expect(resA.headers["content-disposition"]).toContain(
+      "attachment; filename=",
+    );
+
+    const lines = resA.payload.trim().split("\n");
+    expect(lines).toHaveLength(2);
+    expect(lines[0]).toBe(
+      "TenantID,PeriodStart,PeriodEnd,TotalEnergyKWh,CarbonIntensityGCO2KWh,TotalCarbonScope2EmissionsKg",
+    );
+    expect(lines[1]).toContain('"tenant-a"');
+    expect(lines[1]).toContain('"0.140000"');
+    expect(lines[1]).toContain('"278.571429"');
+    expect(lines[1]).toContain('"0.049400"');
+    expect(lines[1]).not.toContain("20.000000");
   });
 });
