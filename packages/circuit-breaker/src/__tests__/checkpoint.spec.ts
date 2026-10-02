@@ -160,7 +160,7 @@ describe("CheckpointManager", () => {
     });
 
     it("should save checkpoint on failure and propagate error", async () => {
-      let taskState = { step: "started" };
+      const taskState = { step: "started" };
 
       await expect(
         manager.withCheckpoint(
@@ -240,7 +240,7 @@ describe("AutomaticCheckpointing", () => {
   });
 
   it("should periodically create checkpoints and emit autoCheckpoint", async () => {
-    let state = { processed: 0 };
+    const state = { processed: 0 };
     const autoSpy = vi.fn();
     auto.on("autoCheckpoint", autoSpy);
 

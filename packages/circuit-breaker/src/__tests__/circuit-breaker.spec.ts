@@ -563,8 +563,12 @@ describe("CircuitBreaker Unit Tests", () => {
         "circuit_breaker:state:bad-json",
       ]);
       mockRedis.get.mockImplementation(async (key: string) => {
-        if (key.includes("empty-key")) return null;
-        if (key.includes("bad-json")) return "{invalid-json";
+        if (key.includes("empty-key")) {
+          return null;
+        }
+        if (key.includes("bad-json")) {
+          return "{invalid-json";
+        }
         return null;
       });
 
