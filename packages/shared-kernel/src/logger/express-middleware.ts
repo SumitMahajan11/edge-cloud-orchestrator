@@ -11,12 +11,14 @@ import { SpanStatusCode } from "@opentelemetry/api";
 export function createExpressLoggingMiddleware(logger: Logger) {
   return (req: Request, res: Response, next: NextFunction) => {
     const requestId = (req.headers["x-request-id"] as string) || uuidv4();
-    const traceId = (req.headers["x-trace-id"] as string) || requestId;
+    const traceId = req.headers["x-trace-id"] as string | undefined;
 
     res.setHeader("x-request-id", requestId);
-    res.setHeader("x-trace-id", traceId);
+    if (traceId) {
+      res.setHeader("x-trace-id", traceId);
+    }
 
-    runWithContext({ requestId, traceId }, () => {
+    runWithContext({ requestId, ...(traceId ? { traceId } : {}) }, () => {
       const startTime = Date.now();
 
       // Start OTel span
@@ -25,7 +27,7 @@ export function createExpressLoggingMiddleware(logger: Logger) {
         "http.method": req.method,
         "http.url": req.url,
         "http.request_id": requestId,
-        "http.trace_id": traceId,
+        ...(traceId ? { "http.trace_id": traceId } : {}),
       });
 
       // Attach span to request
@@ -38,7 +40,7 @@ export function createExpressLoggingMiddleware(logger: Logger) {
           url: req.url,
           remoteAddress: req.ip,
           requestId,
-          trace_id: traceId,
+          ...(traceId ? { trace_id: traceId } : {}),
         },
         `Incoming ${req.method} ${req.url}`,
       );

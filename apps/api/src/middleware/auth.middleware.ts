@@ -97,7 +97,7 @@ export async function authenticate(
 
     enterWithTenantContext(decoded.tenantId || undefined);
   } catch (error: any) {
-    request.log.error({ err: error.message }, '--- AUTH ERROR ---');
+    request.log.error({ err: error }, '--- AUTH ERROR ---');
     return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication failed');
   }
 }

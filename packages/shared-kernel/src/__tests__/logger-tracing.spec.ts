@@ -261,6 +261,7 @@ describe("OpenTelemetry Logger Tracing Helper", () => {
     for (const line of noSpanLogLines) {
       console.log(line);
       const parsed = JSON.parse(line);
+      expect(parsed.trace_id).toBeUndefined();
       expect(parsed.span_id).toBeUndefined();
       expect(parsed.traceId).toBeUndefined();
       expect(parsed.spanId).toBeUndefined();
