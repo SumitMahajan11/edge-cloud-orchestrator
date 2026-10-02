@@ -31,7 +31,7 @@ export function getTraceId(): string | undefined {
 }
 
 /**
- * Get active OpenTelemetry trace context fields (trace_id, span_id, traceId, spanId).
+ * Get active OpenTelemetry trace context fields (trace_id, span_id).
  * Fallback: returns empty object (omits fields) if no active span or valid trace context exists.
  */
 export function getActiveTraceContext(): Record<string, string> {

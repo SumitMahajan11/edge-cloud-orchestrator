@@ -140,4 +140,130 @@ describe("OpenTelemetry Logger Tracing Helper", () => {
       expect(enriched.requestId).toBe("req-999");
     }, customSpanId);
   });
+
+  it("should integrate with fastifyLoggingPlugin and inject trace_id/span_id during app.inject GET /health", async () => {
+    const { Writable } = await import("stream");
+    const fastifyModule = await import("fastify");
+    const fastify = fastifyModule.default || fastifyModule;
+    const pinoModule = await import("pino");
+    const pino = pinoModule.default || pinoModule;
+    const { fastifyLoggingPlugin } = await import("../logger/fastify-plugin.js");
+
+    const logLines: string[] = [];
+    const captureStream = new Writable({
+      write(chunk, _encoding, callback) {
+        const str = chunk.toString().trim();
+        if (str) {
+          str.split("\n").forEach((line: string) => {
+            if (line.trim()) logLines.push(line.trim());
+          });
+        }
+        callback();
+      },
+    });
+
+    const customLogger = pino(
+      {
+        level: "info",
+        base: { service: "test-service", version: "1.0.0", environment: "test" },
+        mixin() {
+          return getActiveTraceContext();
+        },
+      },
+      captureStream,
+    );
+
+    const app = fastify({ logger: false });
+    await app.register(fastifyLoggingPlugin, {
+      logger: customLogger,
+      serviceName: "test-service",
+    });
+
+    app.get("/health", async () => ({ status: "ok" }));
+
+    const span = tracer.startSpan("http-health-span");
+    const spanContext = span.spanContext();
+
+    await context.with(trace.setSpan(context.active(), span), async () => {
+      await app.inject({
+        method: "GET",
+        url: "/health",
+        headers: {
+          "x-request-id": "req-fastify-12345",
+          "x-trace-id": spanContext.traceId,
+        },
+      });
+    });
+    span.end();
+
+    expect(logLines.length).toBeGreaterThan(0);
+    console.log("=== RAW PROBE LOG LINES (ACTIVE SPAN) ===");
+    for (const line of logLines) {
+      console.log(line);
+      const parsed = JSON.parse(line);
+      expect(parsed.trace_id).toBe(spanContext.traceId);
+      expect(parsed.span_id).toBe(spanContext.spanId);
+      expect(parsed.traceId).toBeUndefined();
+      expect(parsed.spanId).toBeUndefined();
+    }
+  });
+
+  it("should integrate with fastifyLoggingPlugin and omit trace context when no active span exists", async () => {
+    const { Writable } = await import("stream");
+    const fastifyModule = await import("fastify");
+    const fastify = fastifyModule.default || fastifyModule;
+    const pinoModule = await import("pino");
+    const pino = pinoModule.default || pinoModule;
+    const { fastifyLoggingPlugin } = await import("../logger/fastify-plugin.js");
+
+    const noSpanLogLines: string[] = [];
+    const captureStream = new Writable({
+      write(chunk, _encoding, callback) {
+        const str = chunk.toString().trim();
+        if (str) {
+          str.split("\n").forEach((line: string) => {
+            if (line.trim()) noSpanLogLines.push(line.trim());
+          });
+        }
+        callback();
+      },
+    });
+
+    const customLogger = pino(
+      {
+        level: "info",
+        base: { service: "test-service", version: "1.0.0", environment: "test" },
+        mixin() {
+          return getActiveTraceContext();
+        },
+      },
+      captureStream,
+    );
+
+    const app = fastify({ logger: false });
+    await app.register(fastifyLoggingPlugin, {
+      logger: customLogger,
+      serviceName: "test-service",
+    });
+
+    app.get("/health", async () => ({ status: "ok" }));
+
+    await app.inject({
+      method: "GET",
+      url: "/health",
+      headers: {
+        "x-request-id": "req-fastify-nospan",
+      },
+    });
+
+    expect(noSpanLogLines.length).toBeGreaterThan(0);
+    console.log("=== RAW PROBE LOG LINES (NO ACTIVE SPAN) ===");
+    for (const line of noSpanLogLines) {
+      console.log(line);
+      const parsed = JSON.parse(line);
+      expect(parsed.span_id).toBeUndefined();
+      expect(parsed.traceId).toBeUndefined();
+      expect(parsed.spanId).toBeUndefined();
+    }
+  });
 });
