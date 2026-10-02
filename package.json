@@ -76,5 +76,10 @@
   },
   "dependencies": {
     "@fastify/multipart": "^7.7.3"
+  },
+  "pnpm": {
+    "overrides": {
+      "tar": ">=7.5.21"
+    }
   }
 }
