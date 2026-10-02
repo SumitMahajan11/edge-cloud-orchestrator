@@ -29,6 +29,7 @@
     "format:check": "prettier --check \"**/*.{ts,js,json,md}\"",
     "typecheck": "tsc --noEmit",
     "typecheck:watch": "tsc --noEmit --watch",
+    "check:env": "tsx scripts/check-env-example.ts",
     "prepare": "echo skipping husky",
     "docker:build": "docker-compose build",
     "docker:up": "docker-compose up -d",
