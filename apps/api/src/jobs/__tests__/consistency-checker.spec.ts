@@ -29,7 +29,7 @@ describe('ConsistencyCheckerJob', () => {
       $transaction: vi.fn((cb) => (typeof cb === 'function' ? cb(prisma) : cb)),
     };
     logger = pino({ level: 'silent' });
-    job = new ConsistencyCheckerJob(prisma as any, logger, 3);
+    job = new ConsistencyCheckerJob(prisma, logger, 3);
 
     vi.useFakeTimers();
   });

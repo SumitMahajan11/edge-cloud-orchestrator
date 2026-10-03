@@ -124,13 +124,13 @@ export function SystemAlertsBanner() {
     setDismissed((prev) => {
       const active = new Set(derived.map((a) => a.id));
       const next = new Set<string>();
-      for (const id of prev) if (active.has(id)) next.add(id);
+      for (const id of prev) {if (active.has(id)) {next.add(id);}}
       return next.size === prev.size ? prev : next;
     });
   }, [derived]);
 
   const visible = derived.filter((a) => !dismissed.has(a.id));
-  if (visible.length === 0) return null;
+  if (visible.length === 0) {return null;}
 
   return (
     <div className="sticky top-16 z-20 -mx-6 mb-4 px-6">

@@ -29,7 +29,7 @@ export function generateTestToken(options: TokenOptions = {}): string {
       // Always populate permissions from the role if not explicitly provided:
       permissions:
         options.permissions ||
-        (RolePermissions as Record<string, Permission[]>)[role] ||
+        (RolePermissions)[role] ||
         [],
     },
     JWT_SECRET,

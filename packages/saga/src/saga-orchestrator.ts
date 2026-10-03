@@ -279,7 +279,7 @@ export class SagaOrchestrator extends EventEmitter {
       await this.prisma.sagaStep.create({
         data: {
           sagaId: saga.id,
-          stepName: step!.name,
+          stepName: step.name,
           stepOrder: i,
           status: "PENDING" as StepStatus,
           input: initialContext as unknown as Prisma.InputJsonValue,
@@ -393,8 +393,8 @@ export class SagaOrchestrator extends EventEmitter {
           let context = this.parseContext(saga.context);
 
           for (let i = saga.currentStep; i < definition.steps.length; i++) {
-            const stepDef = definition.steps[i]!;
-            const stepRecord = saga.steps[i]!;
+            const stepDef = definition.steps[i];
+            const stepRecord = saga.steps[i];
 
             // Re-check global saga timeout between steps
             const currentElapsed = Date.now() - saga.startedAt.getTime();
@@ -405,15 +405,15 @@ export class SagaOrchestrator extends EventEmitter {
             }
 
             // Generate idempotency key
-            const idempotencyKey = `${sagaId}:${stepDef!.name}:${i}`;
+            const idempotencyKey = `${sagaId}:${stepDef.name}:${i}`;
 
             // Check if step was already executed (idempotency check)
             if (
-              await this.wasStepExecuted(sagaId, stepDef!.name, idempotencyKey)
+              await this.wasStepExecuted(sagaId, stepDef.name, idempotencyKey)
             ) {
               this.emit("step_skipped", {
                 sagaId,
-                stepName: stepDef!.name,
+                stepName: stepDef.name,
                 reason: "already_executed",
               });
               continue;
@@ -424,7 +424,7 @@ export class SagaOrchestrator extends EventEmitter {
               try {
                 // Update step to in progress
                 await this.prisma.sagaStep.update({
-                  where: { id: stepRecord!.id },
+                  where: { id: stepRecord.id },
                   data: {
                     status: "IN_PROGRESS" as StepStatus,
                     startedAt: new Date(),
@@ -433,15 +433,15 @@ export class SagaOrchestrator extends EventEmitter {
 
                 this.emit("step_started", {
                   sagaId,
-                  stepName: stepDef!.name,
+                  stepName: stepDef.name,
                   stepIndex: i,
                 });
 
                 // Execute step with timeout
                 const stepTimeout =
-                  stepDef!.timeout || this.config.stepTimeoutMs;
+                  stepDef.timeout || this.config.stepTimeoutMs;
                 const result = await this.executeStepWithTimeout(
-                  stepDef!,
+                  stepDef,
                   context,
                   i,
                   stepTimeout,
@@ -452,7 +452,7 @@ export class SagaOrchestrator extends EventEmitter {
 
                 // Update step to completed
                 await this.prisma.sagaStep.update({
-                  where: { id: stepRecord!.id },
+                  where: { id: stepRecord.id },
                   data: {
                     status: "COMPLETED" as StepStatus,
                     completedAt: new Date(),
@@ -471,7 +471,7 @@ export class SagaOrchestrator extends EventEmitter {
 
                 this.emit("step_completed", {
                   sagaId,
-                  stepName: stepDef!.name,
+                  stepName: stepDef.name,
                   stepIndex: i,
                   result,
                 });
@@ -486,11 +486,11 @@ export class SagaOrchestrator extends EventEmitter {
 
             if (typeof tracer.startActiveSpan === "function") {
               await tracer.startActiveSpan(
-                `saga_step:${stepDef!.name}`,
+                `saga_step:${stepDef.name}`,
                 {
                   attributes: {
                     "saga.id": sagaId,
-                    "step.name": stepDef!.name,
+                    "step.name": stepDef.name,
                     "step.index": i,
                   },
                 },
@@ -678,16 +678,16 @@ export class SagaOrchestrator extends EventEmitter {
 
           const compensateStep = async (stepSpan?: any) => {
             try {
-              await stepDef!.compensate(parsedContext, i);
+              await stepDef.compensate(parsedContext, i);
 
               await this.prisma.sagaStep.update({
-                where: { id: stepRecord!.id },
+                where: { id: stepRecord.id },
                 data: { status: "COMPENSATED" as StepStatus },
               });
 
               this.emit("step_compensated", {
                 sagaId,
-                stepName: stepDef!.name,
+                stepName: stepDef.name,
                 stepIndex: i,
               });
             } catch (compError: any) {
@@ -696,7 +696,7 @@ export class SagaOrchestrator extends EventEmitter {
                 stepSpan.setStatus({ code: 2, message: compError.message });
               }
               console.error(
-                `[Orchestrator] Compensation failed for step ${stepDef!.name}:`,
+                `[Orchestrator] Compensation failed for step ${stepDef.name}:`,
                 compError,
               );
               this.emit("compensation_failed", {
@@ -709,11 +709,11 @@ export class SagaOrchestrator extends EventEmitter {
 
           if (typeof tracer.startActiveSpan === "function") {
             await tracer.startActiveSpan(
-              `saga_compensate:${stepDef!.name}`,
+              `saga_compensate:${stepDef.name}`,
               {
                 attributes: {
                   "saga.id": sagaId,
-                  "step.name": stepDef!.name,
+                  "step.name": stepDef.name,
                   "step.index": i,
                 },
               },

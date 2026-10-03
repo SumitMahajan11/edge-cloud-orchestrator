@@ -32,7 +32,7 @@ export function StatCards({ metrics, onOpenHealthBreakdown }: StatCardsProps) {
   const latencySeries = schedEvents
     .slice(-20)
     .map((e) =>
-      Number((e.data as any)?.latencyMs ?? (e.data as any)?.latency ?? 0),
+      Number((e.data)?.latencyMs ?? (e.data)?.latency ?? 0),
     )
     .filter((n) => Number.isFinite(n) && n > 0);
 
@@ -237,7 +237,7 @@ function StatCard({
 }
 
 function Sparkline({ values, color }: { values: number[]; color: string }) {
-  if (values.length < 2) return null;
+  if (values.length < 2) {return null;}
   const max = Math.max(...values);
   const min = Math.min(...values);
   const range = max - min || 1;
@@ -251,16 +251,16 @@ function Sparkline({ values, color }: { values: number[]; color: string }) {
   }));
 
   const p0 = points[0];
-  if (!p0) return null;
+  if (!p0) {return null;}
   const last = points[points.length - 1];
-  if (!last) return null;
+  if (!last) {return null;}
 
   const pathData =
-    `M ${p0.x} ${p0.y} ` +
+    `M ${p0.x} ${p0.y} ${ 
     points
       .slice(1)
       .map((p) => `L ${p.x} ${p.y}`)
-      .join(" ");
+      .join(" ")}`;
 
   const areaData = `${pathData} L ${last.x} ${h} L ${p0.x} ${h} Z`;
 

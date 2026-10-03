@@ -18,11 +18,11 @@ describe("Tunable Scheduling Policy Integration", () => {
     prisma = context.prisma;
     accessToken = context.accessToken;
     tenantId = context.tenantId;
-    redis = (context.app as any).redis;
+    redis = (context.app).redis;
 
     // Stop background scheduler to avoid resource contention and race conditions
-    if ((context.app as any).taskScheduler) {
-      (context.app as any).taskScheduler.stop();
+    if ((context.app).taskScheduler) {
+      (context.app).taskScheduler.stop();
     }
 
     const logger = pino({ level: "debug" });
@@ -45,7 +45,7 @@ describe("Tunable Scheduling Policy Integration", () => {
       await prisma.taskExecution.deleteMany({ where: { tenantId } });
     } catch {}
     try {
-      await (prisma as any).schedulingDecision.deleteMany({ where: { tenantId } });
+      await (prisma).schedulingDecision.deleteMany({ where: { tenantId } });
     } catch {}
     try {
       await prisma.task.deleteMany({ where: { tenantId } });
@@ -184,7 +184,7 @@ describe("Tunable Scheduling Policy Integration", () => {
     });
 
     // Enqueue task to the scheduler's Redis queue
-    await scheduler.enqueue(task as any);
+    await scheduler.enqueue(task);
 
     // Run scheduler process queue (which calls findNode internally)
     await scheduler.processQueue();
@@ -227,7 +227,7 @@ describe("Tunable Scheduling Policy Integration", () => {
     });
 
     // Enqueue task 2 to the scheduler's Redis queue
-    await scheduler.enqueue(task2 as any);
+    await scheduler.enqueue(task2);
 
     // Run scheduler process queue
     await scheduler.processQueue();

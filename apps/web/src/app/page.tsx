@@ -27,7 +27,7 @@ export default function DashboardPage() {
     );
   }
 
-  if (!metrics || !nodes) return null;
+  if (!metrics || !nodes) {return null;}
 
   const cpuHistory = metrics.cpuHistory || [];
 

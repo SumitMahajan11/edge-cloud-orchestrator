@@ -19,14 +19,14 @@ describe('Security Configuration', () => {
 
     const mockSecretManager = {
       getSecret: async (key: string) => {
-        if (key === 'JWT_SECRET') return 'a'.repeat(32);
-        if (key === 'ENCRYPTION_KEY') return 'b'.repeat(32);
+        if (key === 'JWT_SECRET') {return 'a'.repeat(32);}
+        if (key === 'ENCRYPTION_KEY') {return 'b'.repeat(32);}
         if (key === 'DATABASE_URL')
-          return 'postgresql://localhost:5432/test?sslmode=require';
+          {return 'postgresql://localhost:5432/test?sslmode=require';}
         if (key === 'ALLOWED_ORIGINS')
-          return 'http://localhost:5173,http://localhost:3000';
-        if (key === 'JWT_EXPIRES_IN') return '15m';
-        if (key === 'RATE_LIMIT_WINDOW_MS') return '60000';
+          {return 'http://localhost:5173,http://localhost:3000';}
+        if (key === 'JWT_EXPIRES_IN') {return '15m';}
+        if (key === 'RATE_LIMIT_WINDOW_MS') {return '60000';}
         return process.env[key] || null;
       },
     };

@@ -151,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const hasPermission = useCallback(
     (permission: string): boolean => {
-      if (!user) return false;
+      if (!user) {return false;}
       const permissions = ROLE_PERMISSIONS[user.role.toUpperCase()] || [];
       return permissions.includes("*") || permissions.includes(permission);
     },
@@ -181,6 +181,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (!context) throw new Error("useAuth must be used within AuthProvider");
+  if (!context) {throw new Error("useAuth must be used within AuthProvider");}
   return context;
 }

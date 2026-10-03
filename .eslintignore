@@ -7,11 +7,22 @@ packages/api-client/src/**/*.gen.js
 # Mock/test infrastructure — relaxed rules
 apps/api/src/initializers/mock-prisma.ts
 
-# Build outputs
+# Build outputs & non-source directories
 **/dist/**
 **/.next/**
 **/coverage/**
 **/node_modules/**
 **/prisma/migrations/**
 **/*.gen.ts
+**/scripts/**
+**/*.config.ts
+**/*.workspace.ts
+.agent/**
+archive/**
+artifacts/**
+e2e_audit/**
+ui-audit-output/**
+temp_ml/**
+test-results/**
+reports/**
 

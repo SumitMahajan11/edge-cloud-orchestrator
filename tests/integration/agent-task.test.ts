@@ -17,7 +17,6 @@ describe("Agent Task Execution Integration", () => {
     process.env.ENABLE_MTLS = "false";
     // For test simplicity, allow any image (we will test latest explicitly)
     process.env.IMAGE_ALLOWLIST_REGEX = ".*";
-    const cwd = process.cwd().replace(/\\/g, "/");
     process.env.SANDBOX_ROOT_DIR = "/tmp/magic/sandbox";
 
     const { startAgent } = await import("../../apps/agent/src/index");

@@ -127,13 +127,13 @@ export function requirePermission(permission: string) {
     const normalize = (p: string): string => {
       const parts = p.split(':');
       let res = parts[0] || '';
-      if (res === 'nodes') res = 'node';
-      if (res === 'tasks') res = 'task';
-      if (res === 'alerts') res = 'alert';
-      if (res === 'costs') res = 'cost';
-      if (res === 'webhooks') res = 'webhook';
-      if (res === 'schedule') res = 'scheduler';
-      if (res === 'metrics') res = 'system';
+      if (res === 'nodes') {res = 'node';}
+      if (res === 'tasks') {res = 'task';}
+      if (res === 'alerts') {res = 'alert';}
+      if (res === 'costs') {res = 'cost';}
+      if (res === 'webhooks') {res = 'webhook';}
+      if (res === 'schedule') {res = 'scheduler';}
+      if (res === 'metrics') {res = 'system';}
       parts[0] = res;
       return parts.join(':');
     };

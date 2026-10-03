@@ -36,7 +36,7 @@ export function NodeDetailModal({
   onClose,
 }: NodeDetailModalProps) {
   const healthData = useMemo(() => {
-    if (!node) return [];
+    if (!node) {return [];}
     return node.healthHistory.map((h, i) => ({
       index: i,
       cpu: h.cpu,
@@ -45,7 +45,7 @@ export function NodeDetailModal({
     }));
   }, [node]);
 
-  if (!node) return null;
+  if (!node) {return null;}
 
   return (
     <AnimatePresence>

@@ -8,7 +8,6 @@ import fs from "fs";
 import path from "path";
 import {
   createTestNode,
-  createTestTask,
   setupTestApp,
   teardownTestApp,
   type TestContext,
@@ -50,13 +49,13 @@ describe("ML Retraining and Rollout Pipeline", () => {
     fs.writeFileSync(modelPath, "mock base model");
 
     // Fix: Ensure incrementalUpdater uses the same mocked registry
-    (scheduler.incrementalUpdater as any).registry = registry;
+    (scheduler.incrementalUpdater).registry = registry;
 
     await registry.promoteModel(baseVersion);
     await scheduler.mlScheduler.checkHotSwap();
 
     // Verify base model is active
-    let activeModel = await registry.getActiveModel();
+    const activeModel = await registry.getActiveModel();
     expect(activeModel?.version).toBe(baseVersion);
 
     // Seed outcome logs so the incremental updater has data
@@ -180,7 +179,7 @@ describe("ML Retraining and Rollout Pipeline", () => {
     scheduler.driftDetector.reset();
 
     // Active model is currently 1.0.1
-    let activeModel = await registry.getActiveModel();
+    const activeModel = await registry.getActiveModel();
     const currentActiveVersion = activeModel?.version || "1.0.1";
 
     // 1. Seed outcome log
@@ -279,7 +278,7 @@ describe("ML Retraining and Rollout Pipeline", () => {
     scheduler.driftDetector.reset();
 
     // Currently active model might be 1.0.1 or 1.0.0 depending on previous tests
-    let activeModel = await registry.getActiveModel();
+    const activeModel = await registry.getActiveModel();
     const currentActiveVersion = activeModel?.version || "1.0.0";
 
     // Let's trigger critical drift (MAE >= 0.5)

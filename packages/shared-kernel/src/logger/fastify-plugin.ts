@@ -17,7 +17,7 @@ const SENSITIVE_KEYS =
  * Standardized sanitization logic for logged objects.
  */
 export function sanitize(obj: any): any {
-  if (!obj || typeof obj !== "object") return obj;
+  if (!obj || typeof obj !== "object") {return obj;}
 
   const result: any = Array.isArray(obj) ? [] : {};
 
@@ -27,7 +27,7 @@ export function sanitize(obj: any): any {
     } else if (typeof value === "object") {
       result[key] = sanitize(value);
     } else if (typeof value === "string" && value.length > 512) {
-      result[key] = value.substring(0, 512) + "... [TRUNCATED]";
+      result[key] = `${value.substring(0, 512)  }... [TRUNCATED]`;
     } else {
       result[key] = value;
     }

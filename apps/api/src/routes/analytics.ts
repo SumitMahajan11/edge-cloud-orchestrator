@@ -59,7 +59,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
         to?: string;
         nodeId?: string;
       };
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
 
       const startTime = from
         ? new Date(from)
@@ -181,7 +181,7 @@ export default async function analyticsRoutes(fastify: FastifyInstance) {
       },
     },
     async (request) => {
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
 
       // 1. Active Constraints: SchedulingPolicies (isActive) + AlertRules (enabled) + 12 baseline constraints
       const activePolicies = await request.tPrisma.schedulingPolicy.count({

@@ -8,7 +8,7 @@ export function useLogs(params?: Record<string, unknown>) {
     queryKey: ["logs", params],
     queryFn: async () => {
       const { data, error } = await getV2Logs({ query: params as any });
-      if (error) throw error;
+      if (error) {throw error;}
       return transformLogsFromApi((data as any).data || []);
     },
     staleTime: STALE.live,
@@ -20,7 +20,7 @@ export function useLogStats() {
     queryKey: ["logs", "stats"],
     queryFn: async () => {
       const { data, error } = await getV2LogsStats();
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     staleTime: STALE.default,

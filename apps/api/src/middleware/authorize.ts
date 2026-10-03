@@ -109,7 +109,7 @@ export function requirePermissions(...permissions: string[]) {
     const userPermissions: Permission[] =
       request.user.permissions?.length
         ? (request.user.permissions as Permission[])
-        : (RolePermissions as Record<string, Permission[]>)[request.user.role] ?? [];
+        : (RolePermissions)[request.user.role] ?? [];
 
     const hasPermission = permissions.every((p) =>
       userPermissions.includes(p as Permission)

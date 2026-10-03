@@ -17,7 +17,7 @@ describe("DriftDetector", () => {
     predicted: number,
     actual: number,
   ): PredictionOutcome => ({
-    taskId: "t-" + Math.random(),
+    taskId: `t-${  Math.random()}`,
     nodeId: "n-1",
     modelVersion: "v1.0.0",
     predictedScore: predicted,

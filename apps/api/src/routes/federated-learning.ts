@@ -18,7 +18,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
     },
     async (request) => {
       const models = await fastify.prisma.fLModel.findMany({
-        where: { tenantId: request.user!.tenantId! },
+        where: { tenantId: request.user.tenantId! },
         include: {
           sessions: {
             orderBy: { startedAt: 'desc' },
@@ -71,7 +71,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
           parameters,
           weightsUrl: weightsUrl ?? null,
           weightsSize: weightsSize ?? null,
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
       });
 
@@ -92,7 +92,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const model = await fastify.prisma.fLModel.findUnique({
-        where: { id: request.params.id, tenantId: request.user!.tenantId! },
+        where: { id: request.params.id, tenantId: request.user.tenantId! },
         include: {
           sessions: {
             orderBy: { startedAt: 'desc' },
@@ -142,7 +142,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       const modelId = request.params.id;
 
       const model = await fastify.prisma.fLModel.findUnique({
-        where: { id: modelId, tenantId: request.user!.tenantId! },
+        where: { id: modelId, tenantId: request.user.tenantId! },
       });
 
       if (!model) {
@@ -159,7 +159,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
         const { url: weightsUrl, checksum: weightsChecksum } = await fastify.modelStorage.uploadWeights(modelId, buffer);
 
         await fastify.prisma.fLModel.update({
-          where: { id: modelId, tenantId: request.user!.tenantId! },
+          where: { id: modelId, tenantId: request.user.tenantId! },
           data: {
             weightsUrl,
             weightsSize: buffer.length,
@@ -199,7 +199,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const model = await fastify.prisma.fLModel.findUnique({
-        where: { id: request.params.id, tenantId: request.user!.tenantId! },
+        where: { id: request.params.id, tenantId: request.user.tenantId! },
       });
 
       if (!model || !model.weightsUrl) {
@@ -252,7 +252,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       const { modelId, totalRounds, config } = request.body;
 
       const model = await fastify.prisma.fLModel.findUnique({
-        where: { id: modelId, tenantId: request.user!.tenantId! },
+        where: { id: modelId, tenantId: request.user.tenantId! },
       });
 
       if (!model) {
@@ -269,7 +269,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
         where: {
           status: 'ONLINE',
           isMaintenanceMode: false,
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
         take: config?.maxClients || 10,
       });
@@ -294,7 +294,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
           totalRounds,
           config: (config as any) || {},
           status: 'RUNNING',
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
       });
 
@@ -317,7 +317,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       const session = await fastify.prisma.fLSession.findUnique({
         where: {
           id: request.params.id,
-          model: { tenantId: request.user!.tenantId! },
+          model: { tenantId: request.user.tenantId! },
         },
         include: { model: true },
       });
@@ -351,7 +351,7 @@ export default async function flRoutes(fastify: FastifyInstance) {
       const session = await fastify.prisma.fLSession.update({
         where: {
           id: request.params.id,
-          model: { tenantId: request.user!.tenantId! },
+          model: { tenantId: request.user.tenantId! },
         },
         data: {
           status: 'COMPLETED',

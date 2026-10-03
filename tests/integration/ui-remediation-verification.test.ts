@@ -22,10 +22,10 @@ describe("UI Remediation E2E Verification", () => {
       await prisma.webhook.deleteMany({ where: { tenantId } });
     } catch {}
     try {
-      await (prisma as any).workflow?.deleteMany({ where: { tenantId } });
+      await (prisma).workflow?.deleteMany({ where: { tenantId } });
     } catch {}
     try {
-      await (prisma as any).nodeCertificate?.deleteMany({});
+      await (prisma).nodeCertificate?.deleteMany({});
     } catch {}
     try {
       await prisma.edgeNode.deleteMany({ where: { tenantId } });
@@ -141,7 +141,7 @@ describe("UI Remediation E2E Verification", () => {
     });
 
     // 2. Query certificates before rotation
-    const certsBefore = await (prisma as any).nodeCertificate.findMany({
+    const certsBefore = await (prisma).nodeCertificate.findMany({
       where: { nodeId: node.id },
     });
     console.log(`[BEFORE DB QUERY] SELECT * FROM "node_certificates" WHERE "nodeId" = '${node.id}'; -> Result Count: ${certsBefore.length}`);
@@ -163,7 +163,7 @@ describe("UI Remediation E2E Verification", () => {
     expect(body.certificatePem).toBeDefined();
 
     // 4. Query node certificates after rotation
-    const certsAfter = await (prisma as any).nodeCertificate.findMany({
+    const certsAfter = await (prisma).nodeCertificate.findMany({
       where: { nodeId: node.id },
     });
 

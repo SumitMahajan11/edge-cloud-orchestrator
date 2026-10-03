@@ -50,19 +50,19 @@ export class ApiError extends Error {
 
 async function buildHeaders(init?: HeadersInit, hasBody?: boolean): Promise<Headers> {
   const h = new Headers(init);
-  if (hasBody && !h.has("Content-Type")) h.set("Content-Type", "application/json");
+  if (hasBody && !h.has("Content-Type")) {h.set("Content-Type", "application/json");}
 
   const token = authStorage.getToken();
-  if (token) h.set("Authorization", `Bearer ${token}`);
+  if (token) {h.set("Authorization", `Bearer ${token}`);}
 
   const tenantId = getActiveTenantId();
-  if (tenantId) h.set("X-Tenant-ID", tenantId);
+  if (tenantId) {h.set("X-Tenant-ID", tenantId);}
 
   // Inject OTel traceparent from active context
   const carrier: Record<string, string> = {};
   propagation.inject(context.active(), carrier);
   for (const k of Object.keys(carrier)) {
-    if (carrier[k]) h.set(k, carrier[k]);
+    if (carrier[k]) {h.set(k, carrier[k]);}
   }
 
   return h;
@@ -71,22 +71,22 @@ async function buildHeaders(init?: HeadersInit, hasBody?: boolean): Promise<Head
 let refreshPromise: Promise<boolean> | null = null;
 
 export async function refreshAuth(): Promise<boolean> {
-  if (refreshPromise) return refreshPromise;
+  if (refreshPromise) {return refreshPromise;}
 
   refreshPromise = (async () => {
     const rt = authStorage.getRefreshToken();
-    if (!rt) return false;
+    if (!rt) {return false;}
     try {
       const res = await fetch(`${getBaseUrl()}/v2/auth/refresh`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken: rt }),
       });
-      if (!res.ok) return false;
+      if (!res.ok) {return false;}
       const data = await res.json();
       if (data?.token) {
         authStorage.setToken(data.token);
-        if (data.refreshToken) authStorage.setRefreshToken(data.refreshToken);
+        if (data.refreshToken) {authStorage.setRefreshToken(data.refreshToken);}
         return true;
       }
     } catch {
@@ -106,10 +106,7 @@ async function customFetch(
 ): Promise<Response> {
   let attempt = 0;
   let refreshed = false;
-
-  const url = input instanceof Request ? input.url : String(input);
-
-  while (true) {
+  for (;;) {
     // When the @hey-api/openapi-ts client calls customFetch, it passes
     // a fully-constructed Request object as `input` and undefined as `init`.
     // The Request object contains serialized body, content-type, etc.
@@ -153,7 +150,7 @@ async function customFetch(
       refreshed = true;
       const originalRt = authStorage.getRefreshToken();
       const ok = await refreshAuth();
-      if (ok) continue;
+      if (ok) {continue;}
 
       // Cross-tab concurrency check: if another tab successfully refreshed the token,
       // the token in storage would be different now. We should retry with the new token.
@@ -239,12 +236,12 @@ export const authApi = {
     const { data, error } = await postV2AuthLogin({
       body: { email, password },
     });
-    if (error) throw new ApiError("Login failed", 401, error);
+    if (error) {throw new ApiError("Login failed", 401, error);}
     const body = data as any;
 
     // Persist tokens so every subsequent API call carries Authorization header
-    if (body.token) authStorage.setToken(body.token);
-    if (body.refreshToken) authStorage.setRefreshToken(body.refreshToken);
+    if (body.token) {authStorage.setToken(body.token);}
+    if (body.refreshToken) {authStorage.setRefreshToken(body.refreshToken);}
 
     const user = transformUserFromApi(body.user);
     authStorage.setUser(user as any);
@@ -255,7 +252,7 @@ export const authApi = {
     const { data, error } = await postV2AuthRegister({
       body: { email, password, name },
     });
-    if (error) throw new ApiError("Registration failed", 400, error);
+    if (error) {throw new ApiError("Registration failed", 400, error);}
     return transformUserFromApi((data as any).user ?? data);
   },
   logout: async () => {
@@ -264,7 +261,7 @@ export const authApi = {
   },
   getMe: async () => {
     const { data, error } = await getV2AuthMe();
-    if (error) throw new ApiError("Fetch failed", 400, error);
+    if (error) {throw new ApiError("Fetch failed", 400, error);}
     return transformUserFromApi(data);
   },
 };

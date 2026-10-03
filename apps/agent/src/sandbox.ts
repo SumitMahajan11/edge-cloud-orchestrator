@@ -116,7 +116,7 @@ export class DockerSandbox {
 
       // 7. Monitor container with timeout
       const executionPromise = (async (): Promise<ExecutionResult> => {
-        const stream = await container!.logs({
+        const stream = await container.logs({
           stdout: true,
           stderr: true,
           follow: true,
@@ -135,7 +135,7 @@ export class DockerSandbox {
           } as any,
         );
 
-        const waitResult = await container!.wait();
+        const waitResult = await container.wait();
 
         return {
           taskId: payload.taskId,
@@ -174,10 +174,10 @@ export class DockerSandbox {
   private async pullImage(image: string): Promise<void> {
     return new Promise((resolve, reject) => {
       this.docker.pull(image, {}, (err, stream) => {
-        if (err) return reject(err);
-        if (!stream) return reject(new Error("Failed to create pull stream"));
+        if (err) {return reject(err);}
+        if (!stream) {return reject(new Error("Failed to create pull stream"));}
         this.docker.modem.followProgress(stream, (err, _output) => {
-          if (err) return reject(err);
+          if (err) {return reject(err);}
           resolve();
         });
       });
@@ -191,7 +191,7 @@ export class DockerSandbox {
       g: 1024 ** 3,
     };
     const match = mem.toLowerCase().match(/^(\d+)([kmg])?$/);
-    if (!match || !match[1]) return 512 * 1024 * 1024;
+    if (!match || !match[1]) {return 512 * 1024 * 1024;}
     const value = parseInt(match[1], 10);
     const unit = match[2];
     const multiplier = unit ? (units[unit] ?? 1) : 1;

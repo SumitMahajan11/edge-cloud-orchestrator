@@ -76,16 +76,16 @@ export default function EdgeNodesPage() {
           n.name.toLowerCase().includes(q) ||
           n.region?.toLowerCase().includes(q) ||
           n.location?.toLowerCase().includes(q);
-        if (!hit) return false;
+        if (!hit) {return false;}
       }
       if (status !== "all") {
         if (status === "draining") {
-          if (!n.isMaintenanceMode) return false;
+          if (!n.isMaintenanceMode) {return false;}
         } else if (n.status !== status) {
           return false;
         }
       }
-      if (region !== "__all__" && n.region !== region) return false;
+      if (region !== "__all__" && n.region !== region) {return false;}
       return true;
     });
 

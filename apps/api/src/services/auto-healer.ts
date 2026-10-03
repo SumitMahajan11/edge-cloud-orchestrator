@@ -628,7 +628,7 @@ export class AutoHealer extends EventEmitter {
    * Check service health
    */
   private async checkServiceHealth(): Promise<void> {
-    if (!this.config.enableKubernetesActions) return;
+    if (!this.config.enableKubernetesActions) {return;}
 
     try {
       const namespace = this.config.kubernetesNamespace;

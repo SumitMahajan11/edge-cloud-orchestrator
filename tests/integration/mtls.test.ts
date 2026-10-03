@@ -1,4 +1,3 @@
-import { execSync } from "child_process";
 import Fastify from "fastify";
 import fs from "fs";
 import https from "https";

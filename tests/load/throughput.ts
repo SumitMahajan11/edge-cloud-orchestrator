@@ -57,7 +57,7 @@ async function measureThroughput() {
     }
     const responses = await Promise.all(batch).catch(() => []);
     responses.forEach((r) => r && nodeIds.push(r.data.id));
-    if (i % 100 === 0) process.stdout.write(".");
+    if (i % 100 === 0) {process.stdout.write(".");}
   }
   console.log(`\n✅ Registered 500 nodes.`);
 
@@ -82,7 +82,7 @@ async function measureThroughput() {
       );
     }
     await Promise.all(batch).catch(() => []);
-    if (i % 100 === 0) process.stdout.write(".");
+    if (i % 100 === 0) {process.stdout.write(".");}
   }
   console.log("\n✅ Nodes online.");
 
@@ -158,7 +158,7 @@ async function measureThroughput() {
         `\rScheduled: ${finalScheduled}, Pending: ${pendingCount}   `,
       );
 
-      if (pendingCount === 0 && finalScheduled > 0) break;
+      if (pendingCount === 0 && finalScheduled > 0) {break;}
     } catch (err) {}
     await new Promise((r) => setTimeout(r, 1000));
   }

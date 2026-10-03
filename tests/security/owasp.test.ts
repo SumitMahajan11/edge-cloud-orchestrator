@@ -180,7 +180,7 @@ describe("Security Tests (OWASP Top 10)", () => {
       }
 
       const responses = await Promise.all(requests);
-      const rateLimited = responses.some(
+      const _rateLimited = responses.some(
         (r: { statusCode: number }) => r.statusCode === 429,
       );
       // Rate limiting may or may not be enabled, test documents expected behavior
@@ -350,7 +350,7 @@ describe("Security Tests (OWASP Top 10)", () => {
       });
 
       // Verify audit log exists
-      const auditLog = await ctx.prisma.auditLog.findFirst({
+      const _auditLog = await ctx.prisma.auditLog.findFirst({
         where: {
           action: "auth.login.failed",
         },

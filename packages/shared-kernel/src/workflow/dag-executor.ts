@@ -31,7 +31,7 @@ export class DAGExecutor {
   ): WorkflowNode[] {
     return nodes.filter((node) => {
       // If already completed, it's not ready (it's done)
-      if (completedIds.has(node.id)) return false;
+      if (completedIds.has(node.id)) {return false;}
 
       // If all dependencies are in completedIds, it's ready
       return node.dependsOn.every((depId) => completedIds.has(depId));
@@ -61,8 +61,8 @@ export class DAGExecutor {
     const recStack = new Set<string>();
 
     const hasCycle = (nodeId: string): boolean => {
-      if (recStack.has(nodeId)) return true;
-      if (visited.has(nodeId)) return false;
+      if (recStack.has(nodeId)) {return true;}
+      if (visited.has(nodeId)) {return false;}
 
       visited.add(nodeId);
       recStack.add(nodeId);
@@ -70,7 +70,7 @@ export class DAGExecutor {
       const node = nodes.find((n) => n.id === nodeId);
       if (node) {
         for (const depId of node.dependsOn) {
-          if (hasCycle(depId)) return true;
+          if (hasCycle(depId)) {return true;}
         }
       }
 
@@ -100,8 +100,8 @@ export class DAGExecutor {
     const tempVisited = new Set<string>();
 
     const visit = (nodeId: string) => {
-      if (tempVisited.has(nodeId)) throw new Error("Cycle detected");
-      if (visited.has(nodeId)) return;
+      if (tempVisited.has(nodeId)) {throw new Error("Cycle detected");}
+      if (visited.has(nodeId)) {return;}
 
       tempVisited.add(nodeId);
 
@@ -114,7 +114,7 @@ export class DAGExecutor {
 
       tempVisited.delete(nodeId);
       visited.add(nodeId);
-      if (node) result.push(node);
+      if (node) {result.push(node);}
     };
 
     for (const node of nodes) {

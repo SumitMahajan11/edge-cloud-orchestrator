@@ -345,10 +345,10 @@ async function start() {
     // Initialize shutdown manager
     GracefulShutdown.init();
     GracefulShutdown.registerHandler("bus", async () => {
-      if (eventBus) await eventBus.disconnect();
+      if (eventBus) {await eventBus.disconnect();}
     });
     GracefulShutdown.registerHandler("db", async () => {
-      if (pool) await pool.end();
+      if (pool) {await pool.end();}
     });
     GracefulShutdown.registerHandler("app", async () => {
       await app.close();

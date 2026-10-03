@@ -70,7 +70,7 @@ export class IncrementalUpdater {
 
       // 3. Prepare data for Python script
       const tempDir = path.join(process.cwd(), "temp_ml");
-      if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+      if (!fs.existsSync(tempDir)) {fs.mkdirSync(tempDir, { recursive: true });}
 
       const dataPath = path.join(tempDir, `incr_data_${Date.now()}.json`);
       fs.writeFileSync(dataPath, JSON.stringify(trainingData));
@@ -79,7 +79,7 @@ export class IncrementalUpdater {
       const activeVersion = await this.registry.getActiveModel();
       if (!activeVersion) {
         logger.error("No active model found for incremental update");
-        if (fs.existsSync(dataPath)) fs.unlinkSync(dataPath);
+        if (fs.existsSync(dataPath)) {fs.unlinkSync(dataPath);}
         return null;
       }
 
@@ -95,7 +95,7 @@ export class IncrementalUpdater {
       );
 
       // Cleanup
-      if (fs.existsSync(dataPath)) fs.unlinkSync(dataPath);
+      if (fs.existsSync(dataPath)) {fs.unlinkSync(dataPath);}
 
       if (success) {
         // 6. Validate updated model

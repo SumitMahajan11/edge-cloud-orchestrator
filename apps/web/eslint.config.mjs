@@ -23,6 +23,12 @@ const eslintConfig = [
   },
   ...compat.extends("next/core-web-vitals"),
   {
+    languageOptions: {
+      parserOptions: {
+        project: ["./tsconfig.json"],
+        tsconfigRootDir: __dirname,
+      },
+    },
     rules: {
       // Relax strict rules from root config to allow production build to complete
       "no-console": "warn",

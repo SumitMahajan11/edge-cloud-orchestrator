@@ -98,7 +98,7 @@ export class OutcomeCollector {
   async flush() {
     try {
       const outcomes = await this.redis.zrange(this.bufferKey, 0, -1);
-      if (outcomes.length === 0) return;
+      if (outcomes.length === 0) {return;}
 
       logger.info(`Flushing ${outcomes.length} outcomes to PostgreSQL`);
 

@@ -33,7 +33,7 @@ export function determineHealingAction(alert: Alert): HealingAction | null {
   };
 
   const type = alertMap[alertName];
-  if (!type) return null;
+  if (!type) {return null;}
 
   return {
     type,

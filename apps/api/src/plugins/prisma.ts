@@ -15,7 +15,7 @@ declare module 'fastify' {
 function getDbQueryDuration() {
   const name = 'db_query_duration_seconds';
   const existing = globalRegister.getSingleMetric(name);
-  if (existing) return existing as Histogram<string>;
+  if (existing) {return existing as Histogram<string>;}
 
   return new Histogram({
     name,

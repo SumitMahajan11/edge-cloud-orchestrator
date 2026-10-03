@@ -65,9 +65,6 @@ describe("ML Feedback Loop Integration", () => {
     });
 
     // 3. Mock Node Metrics (Telemetry)
-    const startedAt = new Date(Date.now() - 10000);
-    const completedAt = new Date();
-
     await ctx.prisma.nodeMetric.create({
       data: {
         nodeId: node.id,
@@ -84,6 +81,7 @@ describe("ML Feedback Loop Integration", () => {
     });
 
     // 4. Mock Task Execution
+    const startedAt = new Date(Date.now() - 10000);
     await ctx.prisma.taskExecution.create({
       data: {
         taskId: task.id,

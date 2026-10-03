@@ -43,9 +43,6 @@ describe("SchedulerRateLimiter Fallback Integration", () => {
     expect(rateLimiter.isDegraded()).toBe(false);
 
     // 2. Mock Redis failure
-    const originalPing = ctx.app.redis.ping;
-    const originalExec = ctx.app.redis.pipeline().exec;
-
     // Inject failure into Redis
     vi.spyOn(ctx.app.redis, "get").mockRejectedValue(
       new Error("Redis Connection Lost"),

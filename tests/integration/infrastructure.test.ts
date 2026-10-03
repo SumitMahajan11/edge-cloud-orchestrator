@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { setupTestApp, teardownTestApp, TestContext } from "./helpers";
-import * as path from "path";
 
 describe("Integration Test Infrastructure Verification", () => {
   let ctx: TestContext;

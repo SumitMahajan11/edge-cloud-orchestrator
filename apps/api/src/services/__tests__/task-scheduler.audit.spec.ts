@@ -114,10 +114,10 @@ describe('TaskScheduler Audit Model', () => {
     };
 
     scheduler = new TaskScheduler(
-      mockPrisma as any,
-      mockRedis as any,
-      mockWsManager as any,
-      mockLogger as any,
+      mockPrisma,
+      mockRedis,
+      mockWsManager,
+      mockLogger,
     );
   });
 

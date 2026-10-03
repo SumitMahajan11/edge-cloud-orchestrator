@@ -375,9 +375,9 @@ export class TaskScheduler extends EventEmitter {
     // Call cold start handler if registered
     if (
       this.coldStartHandler &&
-      typeof (this.coldStartHandler as any).syncAllNodes === 'function'
+      typeof (this.coldStartHandler).syncAllNodes === 'function'
     ) {
-      await (this.coldStartHandler as any).syncAllNodes(this.prisma);
+      await (this.coldStartHandler).syncAllNodes(this.prisma);
     }
 
     this.logger.info(
@@ -734,7 +734,7 @@ export class TaskScheduler extends EventEmitter {
           (n) => this.carbonClient.mapRegionToZone(n.region) === zone,
         );
         const firstForecast = forecast[0];
-        if (!firstForecast) continue;
+        if (!firstForecast) {continue;}
         const currentIntensity =
           zoneNodes.find((n) => n.carbonIntensity !== null)?.carbonIntensity ??
           firstForecast.carbonIntensity;
@@ -814,7 +814,7 @@ export class TaskScheduler extends EventEmitter {
   }
 
   async processQueue(): Promise<void> {
-    if (!this.isRunning) return;
+    if (!this.isRunning) {return;}
 
     const isLeader = this.leaderElection.isCurrentlyLeader();
     if (!isLeader) {
@@ -892,7 +892,7 @@ export class TaskScheduler extends EventEmitter {
     const tenantIds = Array.from(
       new Set(pendingTasks.map((t) => t.tenantId).filter((id): id is string => !!id)),
     );
-    let tenantPolicyMap = new Map<string, any>();
+    const tenantPolicyMap = new Map<string, any>();
     if (tenantIds.length > 0) {
       const cacheResults = await Promise.all(
         tenantIds.map(async (tid) => {
@@ -1038,7 +1038,7 @@ export class TaskScheduler extends EventEmitter {
       const taskRuntime = ((task as any).runtime ?? 'DOCKER').toLowerCase();
       const runtimeCompatible = nodesForTask.filter((n: any) => {
         const caps: string[] | undefined = n.capabilities;
-        if (!caps || caps.length === 0) return true;
+        if (!caps || caps.length === 0) {return true;}
         return caps.some((c: string) => c.toLowerCase() === taskRuntime);
       });
       const candidateNodes =
@@ -1160,7 +1160,7 @@ export class TaskScheduler extends EventEmitter {
         }
 
         // Increment tasksRunning in-memory for this node
-        const nodeToUpdate = inMemoryNodes.find((n) => n.id === matchedNode!.id);
+        const nodeToUpdate = inMemoryNodes.find((n) => n.id === matchedNode.id);
         if (nodeToUpdate) {
           nodeToUpdate.tasksRunning++;
         }
@@ -1275,7 +1275,7 @@ export class TaskScheduler extends EventEmitter {
     const taskRuntime: string = ((task as any).runtime ?? 'DOCKER').toLowerCase();
     const runtimeCompatibleNodes = nodes.filter((n: any) => {
       const caps: string[] | undefined = n.capabilities;
-      if (!caps || caps.length === 0) return true; // unconfigured → allow all
+      if (!caps || caps.length === 0) {return true;} // unconfigured → allow all
       return caps.some((c: string) => c.toLowerCase() === taskRuntime);
     });
 
@@ -1783,7 +1783,7 @@ export class TaskScheduler extends EventEmitter {
         where: { id: taskId },
         select: { tenantId: true, isDeferrable: true, metadata: true },
       });
-      if (!task) return;
+      if (!task) {return;}
 
       // Check if a carbon record already exists for this taskId to prevent duplicate key errors
       const existingRecord = await (this.prisma as any).carbonRecord.findUnique({
@@ -1799,7 +1799,7 @@ export class TaskScheduler extends EventEmitter {
         where: { id: nodeId },
         select: { region: true },
       });
-      if (!node) return;
+      if (!node) {return;}
 
       const zone = this.carbonClient.mapRegionToZone(node.region);
 
@@ -2266,10 +2266,10 @@ export class TaskScheduler extends EventEmitter {
       // So we'll just log it if it's slow
       const wsTime = performance.now() - tWs;
       if (wsTime > 10)
-        this.logger.warn(
+        {this.logger.warn(
           { wsTime, taskId: task.id },
           'Slow WebSocket broadcast',
-        );
+        );}
     } catch (error) {
       // Circuit breaker automatically records failure
       // Sync to Redis if circuit is now open
@@ -2447,7 +2447,7 @@ export class TaskScheduler extends EventEmitter {
             // ignore
           }
         }
-        const predictions = (explanation as any)?.predictions;
+        const predictions = (explanation)?.predictions;
         const predictedLatency =
           typeof predictions?.latency === 'number' ? predictions.latency : 100;
         const predictedCpuUsage =
@@ -2512,7 +2512,7 @@ export class TaskScheduler extends EventEmitter {
 
   async getMLModelCurrent(): Promise<any> {
     const active = await this.modelRegistry.getActiveModel();
-    if (!active) return null;
+    if (!active) {return null;}
 
     return {
       version: active.version,
@@ -2566,7 +2566,7 @@ export class TaskScheduler extends EventEmitter {
         timestamp: new Date().toISOString(),
         score: current.driftScore,
       });
-      if (this.driftHistory.length > 100) this.driftHistory.shift();
+      if (this.driftHistory.length > 100) {this.driftHistory.shift();}
       this.lastDriftCheck = now;
     }
 

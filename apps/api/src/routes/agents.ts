@@ -57,7 +57,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
   const extractNodeId = (request: any): string | null => {
     // 1. Try peer certificate from raw socket (direct connection/local dev)
-    const cert = (request.raw.socket as any).getPeerCertificate?.();
+    const cert = (request.raw.socket).getPeerCertificate?.();
     if (cert?.subject?.CN) {
       return cert.subject.CN;
     }
@@ -274,7 +274,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Resolve tenant context for the node to enable Prisma tenant filtering
       const node = await fastify.prisma.edgeNode.findUnique({
-        where: { id: nodeId as string },
+        where: { id: nodeId },
         select: { tenantId: true },
       });
 
@@ -296,7 +296,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       // Find oldest pending or scheduled task assigned to this node
       const task = await fastify.prisma.task.findFirst({
         where: {
-          nodeId: nodeId as string,
+          nodeId: nodeId,
           status: { in: ['PENDING', 'SCHEDULED'] },
         },
         orderBy: {
@@ -344,7 +344,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           fastify.prisma.taskExecution.create({
             data: {
               taskId: task.id,
-              nodeId: nodeId as string,
+              nodeId: nodeId,
               status: 'RUNNING',
               startedAt: new Date(),
               tenantId: node.tenantId,
@@ -418,7 +418,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Resolve tenant context
       const node = await fastify.prisma.edgeNode.findUnique({
-        where: { id: nodeId as string },
+        where: { id: nodeId },
         select: { tenantId: true },
       });
 
@@ -438,7 +438,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       // Update node status and metrics
       const data = request.body as Record<string, unknown>;
       await fastify.prisma.edgeNode.update({
-        where: { id: nodeId as string },
+        where: { id: nodeId },
         data: {
           status: 'ONLINE',
           lastHeartbeat: new Date((data.timestamp as number) * 1000),
@@ -495,7 +495,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Resolve tenant context
       const node = await fastify.prisma.edgeNode.findUnique({
-        where: { id: nodeId as string },
+        where: { id: nodeId },
         select: { tenantId: true },
       });
       if (!node) {
@@ -516,7 +516,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       const execution = await fastify.prisma.taskExecution.findFirst({
         where: {
           taskId,
-          nodeId: nodeId as string,
+          nodeId: nodeId,
           status: { in: ['PENDING', 'SCHEDULED'] },
         },
         orderBy: { attemptNumber: 'desc' },
@@ -525,7 +525,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       if (!execution) {
         // If it's already RUNNING, just return OK (idempotency)
         const alreadyRunning = await fastify.prisma.taskExecution.findFirst({
-          where: { taskId, nodeId: nodeId as string, status: 'RUNNING' },
+          where: { taskId, nodeId: nodeId, status: 'RUNNING' },
         });
         if (alreadyRunning) {
           return { status: 'OK' };
@@ -617,7 +617,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Resolve tenant context
       const node = await fastify.prisma.edgeNode.findUnique({
-        where: { id: nodeId as string },
+        where: { id: nodeId },
         select: { tenantId: true },
       });
 
@@ -641,7 +641,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       await fastify.prisma.$transaction(async (tx) => {
         // Find the execution record
         const execution = await tx.taskExecution.findFirst({
-          where: { taskId, nodeId: nodeId as string, status: 'RUNNING' },
+          where: { taskId, nodeId: nodeId, status: 'RUNNING' },
           orderBy: { attemptNumber: 'desc' },
         });
 
@@ -677,7 +677,7 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           where: { id: taskId },
           data: {
             status: status as any,
-            nodeId: nodeId as string,
+            nodeId: nodeId,
           },
         });
       });

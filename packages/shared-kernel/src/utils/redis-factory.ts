@@ -22,8 +22,8 @@ export class RedisFactory {
   ): Promise<Redis> {
     if (process.env.FORCE_MOCK_REDIS === "true") {
       logger.info("Initializing Redis Mock (FORCE_MOCK_REDIS=true)");
-      // @ts-ignore
-      const MockRedis = (await import("ioredis-mock")).default;
+      const ioredisMockMod: any = await import("ioredis-mock");
+      const MockRedis = ioredisMockMod.default || ioredisMockMod;
       return new MockRedis(options) as unknown as Redis;
     }
 
@@ -57,7 +57,7 @@ export class RedisFactory {
     if (sentinelHosts) {
       const sentinels = sentinelHosts.split(",").map((s) => {
         const [host, port] = s.trim().split(":");
-        return { host: host!, port: parseInt(port || "26379", 10) };
+        return { host: host, port: parseInt(port || "26379", 10) };
       });
 
       logger.info(

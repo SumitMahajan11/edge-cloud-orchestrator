@@ -342,18 +342,16 @@ export class HealthMonitor extends EventEmitter {
     try {
       // Check if we can connect to Kafka
       // This is a simplified check - in production, use admin client
-      const kafkaConnected = await this.redis.get('kafka:connected');
+      await this.redis.get('kafka:connected');
 
       timer();
 
-      if (kafkaConnected === 'true' || true) {
-        // Assume connected for now
-        checkCounter.inc({ component: 'kafka', status: 'healthy' });
-        return {
-          status: 'healthy',
-          message: 'Kafka connection OK',
-        };
-      }
+      // Assume connected for now
+      checkCounter.inc({ component: 'kafka', status: 'healthy' });
+      return {
+        status: 'healthy',
+        message: 'Kafka connection OK',
+      };
     } catch (error) {
       timer();
       checkCounter.inc({ component: 'kafka', status: 'unhealthy' });

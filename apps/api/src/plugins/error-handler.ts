@@ -133,7 +133,7 @@ export const globalErrorHandler = (
       code,
       message,
       requestId:
-        (request.headers['x-request-id'] as string) || (request.id as string),
+        (request.headers['x-request-id'] as string) || (request.id),
       timestamp: new Date().toISOString(),
       details,
       ...(env.NODE_ENV !== 'production' && { stack: error.stack }),

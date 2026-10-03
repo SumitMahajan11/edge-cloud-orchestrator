@@ -31,15 +31,15 @@ const TenantContext = createContext<TenantInfo | undefined>(undefined);
  * Minimal, dependency-free JWT payload decoder. Returns {} on failure.
  */
 function decodeJwt(token: string | null): Record<string, any> {
-  if (!token) return {};
+  if (!token) {return {};}
   if (token === "mock-admin-token" || token.startsWith("mock-")) {
     return { role: "admin", tenantId: "tenant-default" };
   }
   try {
     const parts = token.split(".");
-    if (parts.length < 2) return {};
+    if (parts.length < 2) {return {};}
     const payload = parts[1];
-    if (!payload) return {};
+    if (!payload) {return {};}
     const base64 = payload.replace(/-/g, "+").replace(/_/g, "/");
     const padded = base64 + "=".repeat((4 - (base64.length % 4)) % 4);
     const json = atob(padded);
@@ -60,7 +60,7 @@ export function TenantProvider({ children }: { children: ReactNode }) {
   // Refresh tenant info whenever auth_token changes in another tab
   useEffect(() => {
     const onStorage = (e: StorageEvent) => {
-      if (e.key === "auth_token") setTokenTick((t) => t + 1);
+      if (e.key === "auth_token") {setTokenTick((t) => t + 1);}
       if (e.key === ACTIVE_TENANT_KEY) {
         setOverrideTenantId(e.newValue);
       }
@@ -116,9 +116,9 @@ export function useTenant(): TenantInfo {
  * Read the current active tenant id outside React (for api-client headers).
  */
 export function getActiveTenantId(): string | null {
-  if (typeof window === "undefined") return null;
+  if (typeof window === "undefined") {return null;}
   const override = localStorage.getItem(ACTIVE_TENANT_KEY);
-  if (override) return override;
+  if (override) {return override;}
   const claims = decodeJwt(authStorage.getToken());
   return claims.tenantId ?? claims.tenant_id ?? null;
 }

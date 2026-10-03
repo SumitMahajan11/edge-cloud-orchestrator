@@ -1,19 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain,
-  Cpu,
   TrendingUp,
   RefreshCw,
   Activity,
   Play,
   Square,
   Sparkles,
-  BarChart3,
-  Server,
-  Settings,
   Database,
   History,
   AlertTriangle,

@@ -26,7 +26,7 @@ describe("Carbon Compliance Reporting", () => {
     { issuer: ISSUER, audience: AUDIENCE },
   );
 
-  const tokenB = jwt.sign(
+  const _tokenB = jwt.sign(
     {
       id: "user-b",
       email: "b@tenant-b.com",

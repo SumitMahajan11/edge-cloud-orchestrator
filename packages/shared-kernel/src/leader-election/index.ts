@@ -90,7 +90,7 @@ export class LeaderElection extends EventEmitter {
   }
 
   private onLeadershipAcquired() {
-    if (this.isLeader) return;
+    if (this.isLeader) {return;}
     this.isLeader = true;
     this.logger.info(
       { lockKey: this.config.lockKey, serviceId: this.serviceId },
@@ -102,7 +102,7 @@ export class LeaderElection extends EventEmitter {
   }
 
   private onLeadershipLost() {
-    if (!this.isLeader) return;
+    if (!this.isLeader) {return;}
     this.isLeader = false;
     this.lock = null;
     this.logger.warn(
@@ -165,7 +165,7 @@ export class LeaderElection extends EventEmitter {
 
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
       const acquired = await this.acquireLease(serviceId, ttlMs);
-      if (acquired) return true;
+      if (acquired) {return true;}
 
       if (attempt < maxAttempts) {
         const delay = Math.min(

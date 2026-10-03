@@ -173,7 +173,7 @@ export async function setupTestApp(): Promise<TestContext> {
   console.log("[setupTestApp] Tokens:", JSON.stringify(tokens));
 
   return {
-    app: testApp!,
+    app: testApp,
     prisma: testPrisma!,
     accessToken: tokens.token,
     refreshToken: tokens.refreshToken,

@@ -1,15 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
 import {
-  Calendar,
   Clock,
-  Cpu,
   Globe,
   Plus,
   Search,
-  Filter,
   BarChart3,
   Play,
   Pause,
@@ -68,7 +64,7 @@ export default function TaskSchedulerPage() {
   const [isPolicyModalOpen, setIsPolicyModalOpen] = useState(false);
 
   const filteredTasks = tasks.filter((task) => {
-    if (!search) return true;
+    if (!search) {return true;}
     const s = search.toLowerCase();
     return (
       task.id.toLowerCase().includes(s) ||

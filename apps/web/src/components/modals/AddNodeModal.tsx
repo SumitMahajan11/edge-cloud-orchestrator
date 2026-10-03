@@ -70,9 +70,9 @@ export function AddNodeModal({ isOpen, onClose, onSubmit }: AddNodeModalProps) {
     const newErrors: Record<string, string> = {};
 
     if (s === 1) {
-      if (!formData.name.trim()) newErrors.name = "Node name is required";
+      if (!formData.name.trim()) {newErrors.name = "Node name is required";}
       if (!formData.location.trim())
-        newErrors.location = "Location is required";
+        {newErrors.location = "Location is required";}
     } else if (s === 2) {
       if (!formData.ip.trim()) {
         newErrors.ip = "IP address is required";
@@ -84,12 +84,12 @@ export function AddNodeModal({ isOpen, onClose, onSubmit }: AddNodeModalProps) {
             const n = parseInt(p, 10);
             return /^\d+$/.test(p) && n >= 0 && n <= 255;
           });
-        if (!valid) newErrors.ip = "Invalid IP format";
+        if (!valid) {newErrors.ip = "Invalid IP format";}
       }
     } else if (s === 3) {
-      if (formData.cpu < 1) newErrors.cpu = "Min 1 core";
-      if (formData.memory < 512) newErrors.memory = "Min 512 MB";
-      if (formData.storage < 10) newErrors.storage = "Min 10 GB";
+      if (formData.cpu < 1) {newErrors.cpu = "Min 1 core";}
+      if (formData.memory < 512) {newErrors.memory = "Min 512 MB";}
+      if (formData.storage < 10) {newErrors.storage = "Min 10 GB";}
     }
 
     setErrors(newErrors);
@@ -97,7 +97,7 @@ export function AddNodeModal({ isOpen, onClose, onSubmit }: AddNodeModalProps) {
   };
 
   const handleNext = () => {
-    if (validateStep(step)) setStep((s) => s + 1);
+    if (validateStep(step)) {setStep((s) => s + 1);}
   };
 
   const handleBack = () => {
@@ -106,7 +106,7 @@ export function AddNodeModal({ isOpen, onClose, onSubmit }: AddNodeModalProps) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validateStep(3)) return;
+    if (!validateStep(3)) {return;}
 
     const nodeData: Partial<EdgeNode> = {
       ...formData,

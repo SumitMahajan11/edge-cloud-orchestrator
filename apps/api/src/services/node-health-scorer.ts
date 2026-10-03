@@ -46,7 +46,7 @@ export class NodeHealthScorer {
     const baselineLatency = node.latency || 100;
 
     // Load existing health score or initialize a new one
-    let health = await this.prisma.nodeHealthScore.findUnique({
+    const health = await this.prisma.nodeHealthScore.findUnique({
       where: { nodeId },
     });
 

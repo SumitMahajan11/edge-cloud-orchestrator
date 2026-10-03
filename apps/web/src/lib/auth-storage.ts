@@ -16,7 +16,7 @@ export const authStorage = {
   setRefreshToken: (token: string) =>
     isBrowser && localStorage.setItem(REFRESH_TOKEN_KEY, token),
   getUser: (): User | null => {
-    if (!isBrowser) return null;
+    if (!isBrowser) {return null;}
     const user = localStorage.getItem(USER_KEY);
     return user ? JSON.parse(user) : null;
   },

@@ -8,9 +8,6 @@ import {
   MoreHorizontal,
   GitBranch,
   Clock,
-  CheckCircle2,
-  XCircle,
-  AlertCircle,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -57,7 +54,7 @@ export default function WorkflowsPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { data, isLoading: loading, error } = useWorkflows();
   const createWorkflowMutation = useCreateWorkflow();
-  const workflows = (data as any as Workflow[]) || [];
+  const workflows = (data as Workflow[]) || [];
 
 
   useEffect(() => {

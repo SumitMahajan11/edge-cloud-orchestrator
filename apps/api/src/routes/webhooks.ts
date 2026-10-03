@@ -18,7 +18,7 @@ const isSqlite =
   process.env.DATABASE_URL?.includes('.db');
 
 function formatWebhook(webhook: any) {
-  if (!webhook) return webhook;
+  if (!webhook) {return webhook;}
   if (isSqlite && typeof webhook.events === 'string') {
     try {
       webhook.events = JSON.parse(webhook.events);
@@ -45,7 +45,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       const webhooks = await fastify.prisma.webhook.findMany({
-        where: { tenantId: request.user!.tenantId! },
+        where: { tenantId: request.user.tenantId! },
         include: {
           _count: { select: { deliveries: true } },
         },
@@ -91,7 +91,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
 
       const [total, active, failedLast24h] = await Promise.all([
         fastify.prisma.webhook.count({ where: { tenantId } }),
@@ -152,7 +152,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
           events: (isSqlite ? JSON.stringify(events) : events) as unknown as string[],
           secret: secret || crypto.randomBytes(32).toString('hex'),
           enabled,
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
       });
 
@@ -209,7 +209,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       };
 
       const webhook = await fastify.prisma.webhook.update({
-        where: { id, tenantId: request.user!.tenantId! },
+        where: { id, tenantId: request.user.tenantId! },
         data: updateData,
       });
 
@@ -233,7 +233,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       await fastify.prisma.webhook.delete({
-        where: { id: request.params.id, tenantId: request.user!.tenantId! },
+        where: { id: request.params.id, tenantId: request.user.tenantId! },
       });
       return { success: true };
     },
@@ -262,7 +262,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         {
           where: {
             webhookId: id,
-            webhook: { tenantId: request.user!.tenantId! },
+            webhook: { tenantId: request.user.tenantId! },
           },
           orderBy: { createdAt: 'desc' },
           take: limit,
@@ -304,7 +304,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
         where: {
           id: deliveryId,
           webhookId: id,
-          webhook: { tenantId: request.user!.tenantId! },
+          webhook: { tenantId: request.user.tenantId! },
         },
         include: { webhook: true },
       });
@@ -376,7 +376,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       const { id } = request.params;
 
       const webhook = await fastify.prisma.webhook.findUnique({
-        where: { id, tenantId: request.user!.tenantId! },
+        where: { id, tenantId: request.user.tenantId! },
       });
 
       if (!webhook) {
@@ -396,7 +396,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
           event: 'webhook.test',
           payload: { test: true, timestamp: new Date().toISOString() },
           status: 'PENDING',
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
       });
 
@@ -437,7 +437,7 @@ export default async function webhookRoutes(fastify: FastifyInstance) {
       const { id } = request.params; // This id is the deliveryId
 
       const delivery = await fastify.prisma.webhookDelivery.findFirst({
-        where: { id, tenantId: request.user!.tenantId! },
+        where: { id, tenantId: request.user.tenantId! },
       });
 
       if (!delivery) {

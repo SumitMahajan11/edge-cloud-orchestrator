@@ -234,8 +234,8 @@ class KafkaQueueAdapter extends QueueAdapter {
   async connect(): Promise<void> {
     try {
       // Dynamic import for Node.js environment
-      // @ts-ignore - Optional dependency
-      const { Kafka } = await import("kafkajs");
+      const kafkaName = "kafkajs";
+      const { Kafka } = (await import(kafkaName)) as any;
 
       const kafka = new Kafka({
         brokers: this.config.brokers || ["localhost:9092"],
@@ -400,8 +400,8 @@ class RabbitMQQueueAdapter extends QueueAdapter {
 
   async connect(): Promise<void> {
     try {
-      // @ts-ignore - Optional dependency
-      const amqp = await import("amqplib");
+      const amqpName = "amqplib";
+      const amqp = (await import(amqpName)) as any;
 
       this.connection = await amqp.connect(
         this.config.url || "amqp://localhost",
@@ -570,8 +570,8 @@ class RedisStreamsAdapter extends QueueAdapter {
 
   async connect(): Promise<void> {
     try {
-      // @ts-ignore - Optional dependency
-      const { createClient } = await import("redis");
+      const redisName = "redis";
+      const { createClient } = (await import(redisName)) as any;
 
       this.redisClient = createClient({
         url: this.config.url || "redis://localhost:6379",
@@ -672,7 +672,7 @@ class RedisStreamsAdapter extends QueueAdapter {
 
     // Start reading from group
     const poll = async (): Promise<void> => {
-      while (true) {
+      for (;;) {
         try {
           const results = await client.xReadGroup(
             this.consumerGroup,

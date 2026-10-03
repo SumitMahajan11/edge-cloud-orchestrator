@@ -32,20 +32,20 @@ export default async function costRoutes(fastify: FastifyInstance) {
         request.tPrisma.costRecord.aggregate({
           where: {
             recordedAt: { gte: startOfMonth },
-            tenantId: request.user!.tenantId!,
+            tenantId: request.user.tenantId!,
           },
           _sum: { cost: true },
         }),
         request.tPrisma.costRecord.aggregate({
           where: {
             recordedAt: { gte: startOfLastMonth, lt: startOfMonth },
-            tenantId: request.user!.tenantId!,
+            tenantId: request.user.tenantId!,
           },
           _sum: { cost: true },
         }),
         request.tPrisma.costRecord.groupBy({
           by: ['resourceType'],
-          where: { tenantId: request.user!.tenantId! },
+          where: { tenantId: request.user.tenantId! },
           _sum: { cost: true },
         }),
       ]);
@@ -95,7 +95,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
 
       const records = await request.tPrisma.costRecord.findMany({
         where: {
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
           ...(nodeId && { nodeId }),
           ...(resourceType && { resourceType }),
           ...(from && { recordedAt: { gte: new Date(from) } }),
@@ -135,7 +135,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
     async (request, _reply) => {
       const byNode = await request.tPrisma.costRecord.groupBy({
         by: ['nodeId'],
-        where: { tenantId: request.user!.tenantId! },
+        where: { tenantId: request.user.tenantId! },
         _sum: { cost: true },
         _count: true,
       });
@@ -145,7 +145,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
         .map((n) => n.nodeId)
         .filter((id): id is string => !!id);
       const nodes = await request.tPrisma.edgeNode.findMany({
-        where: { id: { in: nodeIds }, tenantId: request.user!.tenantId! },
+        where: { id: { in: nodeIds }, tenantId: request.user.tenantId! },
         select: { id: true, name: true, region: true },
       });
 
@@ -189,7 +189,7 @@ export default async function costRoutes(fastify: FastifyInstance) {
       const monthToDate = await request.tPrisma.costRecord.aggregate({
         where: {
           recordedAt: { gte: startOfMonth },
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
         _sum: { cost: true },
       });
