@@ -375,9 +375,9 @@ export class TaskScheduler extends EventEmitter {
     // Call cold start handler if registered
     if (
       this.coldStartHandler &&
-      typeof (this.coldStartHandler as any).syncAllNodes === 'function'
+      typeof (this.coldStartHandler).syncAllNodes === 'function'
     ) {
-      await (this.coldStartHandler as any).syncAllNodes(this.prisma);
+      await (this.coldStartHandler).syncAllNodes(this.prisma);
     }
 
     this.logger.info(
@@ -734,7 +734,7 @@ export class TaskScheduler extends EventEmitter {
           (n) => this.carbonClient.mapRegionToZone(n.region) === zone,
         );
         const firstForecast = forecast[0];
-        if (!firstForecast) continue;
+        if (!firstForecast) {continue;}
         const currentIntensity =
           zoneNodes.find((n) => n.carbonIntensity !== null)?.carbonIntensity ??
           firstForecast.carbonIntensity;
@@ -814,7 +814,7 @@ export class TaskScheduler extends EventEmitter {
   }
 
   async processQueue(): Promise<void> {
-    if (!this.isRunning) return;
+    if (!this.isRunning) {return;}
 
     const isLeader = this.leaderElection.isCurrentlyLeader();
     if (!isLeader) {
@@ -892,7 +892,7 @@ export class TaskScheduler extends EventEmitter {
     const tenantIds = Array.from(
       new Set(pendingTasks.map((t) => t.tenantId).filter((id): id is string => !!id)),
     );
-    let tenantPolicyMap = new Map<string, any>();
+    const tenantPolicyMap = new Map<string, any>();
     if (tenantIds.length > 0) {
       const cacheResults = await Promise.all(
         tenantIds.map(async (tid) => {
@@ -1038,7 +1038,7 @@ export class TaskScheduler extends EventEmitter {
       const taskRuntime = ((task as any).runtime ?? 'DOCKER').toLowerCase();
       const runtimeCompatible = nodesForTask.filter((n: any) => {
         const caps: string[] | undefined = n.capabilities;
-        if (!caps || caps.length === 0) return true;
+        if (!caps || caps.length === 0) {return true;}
         return caps.some((c: string) => c.toLowerCase() === taskRuntime);
       });
       const candidateNodes =
@@ -1160,7 +1160,7 @@ export class TaskScheduler extends EventEmitter {
         }
 
         // Increment tasksRunning in-memory for this node
-        const nodeToUpdate = inMemoryNodes.find((n) => n.id === matchedNode!.id);
+        const nodeToUpdate = inMemoryNodes.find((n) => n.id === matchedNode.id);
         if (nodeToUpdate) {
           nodeToUpdate.tasksRunning++;
         }
@@ -1246,7 +1246,10 @@ export class TaskScheduler extends EventEmitter {
   private async findNode(
     task: Task,
   ): Promise<{ id: string; url: string; mlResult?: any } | null> {
-    console.log(`[DEBUG_TEST] findNode called for task: ${task.id}, policy: ${task.policy}, tenantId: ${(task as any).tenantId}`);
+    this.logger.debug(
+      { taskId: task.id, policy: task.policy, tenantId: (task as any).tenantId },
+      '[findNode] Starting findNode search',
+    );
     const nodes = await this.prisma.edgeNode.findMany({
       where: {
         status: 'ONLINE',
@@ -1260,7 +1263,10 @@ export class TaskScheduler extends EventEmitter {
       ],
     });
 
-    console.log(`[DEBUG_TEST] findNode DB query found ${nodes.length} nodes:`, nodes.map(n => ({ id: n.id, status: n.status, tenantId: n.tenantId })));
+    this.logger.debug(
+      { count: nodes.length, nodes: nodes.map(n => ({ id: n.id, status: n.status, tenantId: n.tenantId })) },
+      '[findNode] DB query returned nodes',
+    );
 
     if (nodes.length === 0) {
       return null;
@@ -1275,7 +1281,7 @@ export class TaskScheduler extends EventEmitter {
     const taskRuntime: string = ((task as any).runtime ?? 'DOCKER').toLowerCase();
     const runtimeCompatibleNodes = nodes.filter((n: any) => {
       const caps: string[] | undefined = n.capabilities;
-      if (!caps || caps.length === 0) return true; // unconfigured → allow all
+      if (!caps || caps.length === 0) {return true;} // unconfigured → allow all
       return caps.some((c: string) => c.toLowerCase() === taskRuntime);
     });
 
@@ -1291,7 +1297,10 @@ export class TaskScheduler extends EventEmitter {
       ? runtimeCompatibleNodes
       : nodes;
 
-    console.log(`[DEBUG_TEST] findNode step 1 (runtime check) done. Candidate count: ${candidateNodes.length}`);
+    this.logger.debug(
+      { candidateCount: candidateNodes.length },
+      '[findNode] Step 1 runtime check complete',
+    );
 
     // ── 2. Circuit-breaker exclusion ─────────────────────────────────────────
     const circuitStates = await Promise.all(
@@ -1300,7 +1309,7 @@ export class TaskScheduler extends EventEmitter {
         isOpen: await this.isCircuitOpen(n.id),
       })),
     );
-    console.log(`[DEBUG_TEST] findNode step 2 (circuit breaker check) done.`);
+    this.logger.debug('[findNode] Step 2 circuit breaker check complete');
 
     const openCircuits = new Set(
       circuitStates
@@ -1315,14 +1324,20 @@ export class TaskScheduler extends EventEmitter {
       return null;
     }
 
-    console.log(`[DEBUG_TEST] findNode step 3 (circuit check) done. Available nodes: ${availableNodes.length}`);
+    this.logger.debug(
+      { availableCount: availableNodes.length },
+      '[findNode] Step 3 circuit check complete',
+    );
 
     // ── 2b. Node Health penalty multiplier mapping ───────────────────────────
     const nodeIds = availableNodes.map((n) => n.id);
     const healthScores = await this.prisma.nodeHealthScore.findMany({
       where: { nodeId: { in: nodeIds } },
     });
-    console.log(`[DEBUG_TEST] findNode step 4 (node health scores fetched) done. count: ${healthScores.length}`);
+    this.logger.debug(
+      { count: healthScores.length },
+      '[findNode] Step 4 node health scores fetched',
+    );
 
     const healthMap = new Map(healthScores.map((h) => [h.nodeId, h.penaltyMultiplier]));
 
@@ -1419,9 +1434,9 @@ export class TaskScheduler extends EventEmitter {
 
     // ── 5. ML-policy path ────────────────────────────────────────────────────
     if (task.policy === 'ml-optimized') {
-      console.log(`[DEBUG_TEST] findNode step 6 (ML-policy path matched).`);
+      this.logger.debug('[findNode] Step 6 ML-policy path matched');
       const { withSpan } = await import('../lib/tracing.js');
-      console.log(`[DEBUG_TEST] findNode step 7 (calling mlScheduler.schedule).`);
+      this.logger.debug('[findNode] Step 7 calling mlScheduler.schedule');
       try {
         const selectedResult = await withSpan(
           'scheduler:ml_decision',
@@ -1438,9 +1453,16 @@ export class TaskScheduler extends EventEmitter {
           },
         );
 
-        console.log(`[DEBUG_TEST] findNode step 8 (mlScheduler.schedule returned):`, JSON.stringify(selectedResult));
-
         if (selectedResult) {
+          this.logger.debug(
+            {
+              nodeId: selectedResult.decision.nodeId,
+              score: selectedResult.decision.score,
+              modelVersion: selectedResult.modelVersion,
+              fallbackUsed: selectedResult.fallbackUsed,
+            },
+            '[findNode] Step 8 mlScheduler.schedule returned',
+          );
           const node = affinityOrderedNodes.find(
             (n) => n.id === selectedResult.decision.nodeId,
           );
@@ -1449,7 +1471,7 @@ export class TaskScheduler extends EventEmitter {
             : null;
         }
       } catch (err: any) {
-        console.error(`[DEBUG_TEST] Error in mlScheduler.schedule:`, err);
+        this.logger.error({ err }, '[findNode] Error in mlScheduler.schedule');
         throw err;
       }
     }
@@ -1572,11 +1594,10 @@ export class TaskScheduler extends EventEmitter {
       // Shadow Mode (A/B testing) evaluation logic
       await this.processShadowOutcome(metadata, actualScore);
 
-    } catch (error) {
-      console.error('[ERROR_ML_OUTCOME] Failed to record task outcome for ML:', error);
+    } catch (err: any) {
       this.logger.error(
-        { taskId, error },
-        'Failed to record task outcome for ML',
+        { taskId, err },
+        '[ML_OUTCOME] Failed to record task outcome for ML',
       );
     }
   }
@@ -1666,10 +1687,9 @@ export class TaskScheduler extends EventEmitter {
         'Agent improved scheduling efficiency: updated bandit weights from outcome.',
       );
     } catch (err: any) {
-      console.error('[ERROR_BANDIT] Failed to execute contextual bandit feedback loop update:', err);
       this.logger.error(
         { taskId: task.id, error: err.message },
-        'Failed to execute contextual bandit feedback loop update',
+        '[BANDIT] Failed to execute contextual bandit feedback loop update',
       );
     }
   }
@@ -1682,10 +1702,10 @@ export class TaskScheduler extends EventEmitter {
     actualScore: number,
   ): Promise<void> {
     const shadowResult = metadata.shadowResult;
-    console.log(`[DEBUG_OUTCOME] shadowResult=`, JSON.stringify(shadowResult));
     if (shadowResult && shadowResult.version && typeof shadowResult.score === 'number') {
       const shadowScore = shadowResult.score;
       const shadowVersion = shadowResult.version;
+      this.logger.debug({ version: shadowVersion, score: shadowScore }, '[processShadowOutcome] shadowResult outcome');
       const shadowError = Math.abs(shadowScore - actualScore);
 
       // Store this error in Redis list 'ml:shadow_errors'
@@ -1783,7 +1803,7 @@ export class TaskScheduler extends EventEmitter {
         where: { id: taskId },
         select: { tenantId: true, isDeferrable: true, metadata: true },
       });
-      if (!task) return;
+      if (!task) {return;}
 
       // Check if a carbon record already exists for this taskId to prevent duplicate key errors
       const existingRecord = await (this.prisma as any).carbonRecord.findUnique({
@@ -1799,7 +1819,7 @@ export class TaskScheduler extends EventEmitter {
         where: { id: nodeId },
         select: { region: true },
       });
-      if (!node) return;
+      if (!node) {return;}
 
       const zone = this.carbonClient.mapRegionToZone(node.region);
 
@@ -2266,10 +2286,10 @@ export class TaskScheduler extends EventEmitter {
       // So we'll just log it if it's slow
       const wsTime = performance.now() - tWs;
       if (wsTime > 10)
-        this.logger.warn(
+        {this.logger.warn(
           { wsTime, taskId: task.id },
           'Slow WebSocket broadcast',
-        );
+        );}
     } catch (error) {
       // Circuit breaker automatically records failure
       // Sync to Redis if circuit is now open
@@ -2447,7 +2467,7 @@ export class TaskScheduler extends EventEmitter {
             // ignore
           }
         }
-        const predictions = (explanation as any)?.predictions;
+        const predictions = (explanation)?.predictions;
         const predictedLatency =
           typeof predictions?.latency === 'number' ? predictions.latency : 100;
         const predictedCpuUsage =
@@ -2512,7 +2532,7 @@ export class TaskScheduler extends EventEmitter {
 
   async getMLModelCurrent(): Promise<any> {
     const active = await this.modelRegistry.getActiveModel();
-    if (!active) return null;
+    if (!active) {return null;}
 
     return {
       version: active.version,
@@ -2566,7 +2586,7 @@ export class TaskScheduler extends EventEmitter {
         timestamp: new Date().toISOString(),
         score: current.driftScore,
       });
-      if (this.driftHistory.length > 100) this.driftHistory.shift();
+      if (this.driftHistory.length > 100) {this.driftHistory.shift();}
       this.lastDriftCheck = now;
     }
 
@@ -2636,7 +2656,6 @@ export class TaskScheduler extends EventEmitter {
         // Immediately trigger checkHotSwap to load the shadow model
         await this.mlScheduler.checkHotSwap();
       } catch (err: any) {
-        console.error("RETRAIN_ERROR", err);
         this.logger.error({ err }, 'ML retraining failed.');
         this.retrainStatus = 'FAILED';
         this.retrainError = err.message;

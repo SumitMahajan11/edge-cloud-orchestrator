@@ -248,7 +248,7 @@ app.addSchema({ $id: 'HealthSchema', ...zodToFastifySchema(HealthSchema) });
 app.addHook('onError', async (request, _reply, error) => {
   const method = request?.method || 'unknown';
   const url = request?.url || 'unknown';
-  console.error(`GLOBAL ERROR [${method} ${url}]:`, error);
+  logger.error({ method, url, err: error }, 'GLOBAL ERROR');
 });
 
 // Development mode flag
@@ -574,7 +574,7 @@ async function registerRoutes() {
   });
 
   app.post('/debug/rate-limit/reset', { config: { public: true, rateLimit: false } }, async (_request, reply) => {
-    console.log('[DEBUG] Hit /debug/rate-limit/reset');
+    logger.debug('[DEBUG] Hit /debug/rate-limit/reset');
     if (env.NODE_ENV !== 'production') {
       try {
         // Fastify 4 / fastify-rate-limit 9 exposes the store via app.rateLimit
@@ -1451,7 +1451,7 @@ export async function init(overrides: any = {}) {
 
     return app;
   } catch (err) {
-    console.error('API INITIALIZATION ERROR:', err);
+    logger.error({ err }, 'API INITIALIZATION ERROR');
     throw err;
   }
 }
