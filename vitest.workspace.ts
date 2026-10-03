@@ -59,6 +59,15 @@ export default defineWorkspace([
   },
   {
     ...sharedConfig,
+    root: "./packages/circuit-breaker",
+    test: {
+      ...sharedConfig.test,
+      name: "circuit-breaker",
+      include: ["**/*.spec.ts", "**/*.test.ts"],
+    },
+  },
+  {
+    ...sharedConfig,
     root: "./packages/ml-scheduler",
     test: {
       ...sharedConfig.test,
