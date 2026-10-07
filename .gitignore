@@ -162,4 +162,5 @@ e2e_audit/
 ui-audit-output/
 models/latest.json
 models/train_output.txt
+STACK.md
 
