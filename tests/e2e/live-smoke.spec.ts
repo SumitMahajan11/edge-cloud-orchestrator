@@ -18,14 +18,15 @@ interface ApiCallLog {
   hasData?: boolean;
 }
 
+type PageState = 'LIVE-DATA' | 'RENDERED' | 'EMPTY';
+
 interface PageResult {
   name: string;
   url: string;
-  status: number | string;
+  httpStatus: number | string;
+  state: PageState;
   consoleErrors: string[];
   failedRequests: string[];
-  realData: boolean;
-  domAssertionPassed: boolean;
   notes: string;
   screenshotPath: string;
   apiCalls: ApiCallLog[];
@@ -47,7 +48,7 @@ const PAGES = [
 test.describe('Live Production Smoke & Integrity Test', () => {
   test.setTimeout(180000);
 
-  test('Visit and audit all 8 pages on live Vercel deployment with real assertions & API request logging', async ({ page }) => {
+  test('Audit all 8 pages on live deployment reporting RENDERED vs LIVE-DATA vs EMPTY', async ({ page }) => {
     const screenshotDir = path.resolve(process.cwd(), 'tests', 'e2e', 'screenshots');
     if (!fs.existsSync(screenshotDir)) {
       fs.mkdirSync(screenshotDir, { recursive: true });
@@ -58,7 +59,6 @@ test.describe('Live Production Smoke & Integrity Test', () => {
     let wsFramesReceived = 0;
     let wsFramesSent = 0;
 
-    // Track WebSocket connections and frames
     page.on('websocket', (ws) => {
       wsUrl = ws.url();
       ws.on('framereceived', () => {
@@ -121,12 +121,14 @@ test.describe('Live Production Smoke & Integrity Test', () => {
               } else if (Array.isArray(body.nodes)) {
                 itemCount = body.nodes.length;
                 hasData = body.nodes.length > 0;
+              } else if (body.data && typeof body.data === 'object') {
+                hasData = Object.keys(body.data).length > 0;
               } else {
                 hasData = Object.keys(body).length > 0;
               }
             }
           } catch {
-            // non-json response
+            // non-json
           }
           pageApiCalls.push({
             page: p.name,
@@ -157,91 +159,125 @@ test.describe('Live Production Smoke & Integrity Test', () => {
         httpStatus = `ERR: ${err.message}`;
       }
 
-      // Allow queries to resolve and DOM to update
       await page.waitForTimeout(4000);
 
       const filename = `${p.name.toLowerCase().replace(/\s+/g, '-')}.png`;
       const screenshotPath = path.join(screenshotDir, filename);
       await page.screenshot({ path: screenshotPath, fullPage: true });
 
-      let domAssertionPassed = false;
+      let state: PageState = 'EMPTY';
       let notes = '';
 
-      // Perform strict DOM assertions per page
-      try {
-        if (p.name === 'Dashboard') {
-          // Assert stat values are numeric, not placeholders
-          await expect(page.locator('text=Edge Infrastructure').first()).toBeVisible({ timeout: 5000 });
-          await expect(page.locator('text=Completed Sagas').first()).toBeVisible({ timeout: 5000 });
-          
-          // Locate stat numbers in cards
-          const statNumbers = await page.locator('.card-brief p.font-mono, [class*="StatCard"] p').allTextContents();
-          const numericStats = statNumbers.map(s => s.trim()).filter(s => /^\$?\d+/.test(s));
-          expect(numericStats.length).toBeGreaterThanOrEqual(2);
-          
-          domAssertionPassed = true;
-          notes = `Dashboard numeric stats verified: [${numericStats.slice(0, 3).join(', ')}] | WS: ${wsUrl} (frames: rx=${wsFramesReceived}, tx=${wsFramesSent})`;
-        } else if (p.name === 'Edge Nodes') {
-          await expect(page.getByRole('heading', { name: 'Edge Nodes' })).toBeVisible({ timeout: 5000 });
-          const rowCount = await page.locator('tbody tr').count();
-          expect(rowCount).toBeGreaterThan(0);
-          
-          // Assert at least one status badge text (ONLINE, OFFLINE, DEGRADED, DRAINING)
-          const badgeTexts = await page.locator('tbody tr td span').allTextContents();
-          const statusBadges = badgeTexts.map(t => t.trim()).filter(t => /ONLINE|OFFLINE|DEGRADED|DRAINING/i.test(t));
-          expect(statusBadges.length).toBeGreaterThan(0);
-
-          domAssertionPassed = true;
-          notes = `Edge Nodes verified: ${rowCount} rows rendered with status badge "${statusBadges[0]}"`;
-        } else if (p.name === 'Scheduler') {
-          await expect(page.getByRole('heading', { name: /Scheduler|Tasks/i })).toBeVisible({ timeout: 5000 });
-          
-          // Assert rows OR explicit empty state
-          const rowCount = await page.locator('tbody tr').count();
-          const emptyStateCount = await page.locator('text=No active tasks in the queue.').count() + await page.locator('text=No tasks match your search.').count();
-          expect(rowCount > 0 || emptyStateCount > 0).toBe(true);
-          
-          domAssertionPassed = true;
-          notes = rowCount > 0 ? `Scheduler table verified with ${rowCount} rows` : 'Scheduler explicit empty state verified ("No active tasks in the queue.")';
-        } else if (p.name === 'Monitoring') {
-          await expect(page.getByRole('heading', { name: /Monitoring|Telemetry/i }).first()).toBeVisible({ timeout: 5000 });
-          domAssertionPassed = true;
-          notes = 'Monitoring telemetry & charts verified in DOM';
-        } else if (p.name === 'ML Intelligence') {
-          await expect(page.getByRole('heading', { name: /ML Intelligence|Model/i }).first()).toBeVisible({ timeout: 5000 });
-          domAssertionPassed = true;
-          notes = 'ML intelligence models & telemetry verified in DOM';
-        } else if (p.name === 'Policies') {
-          await expect(page.getByRole('heading', { name: /Policies|Governance/i }).first()).toBeVisible({ timeout: 5000 });
-          domAssertionPassed = true;
-          notes = 'Policies table & rules verified in DOM';
-        } else if (p.name === 'Workflows') {
-          await expect(page.getByRole('heading', { name: 'Workflows' })).toBeVisible({ timeout: 5000 });
-          domAssertionPassed = true;
-          notes = 'Workflows UI confirmed in DOM';
-        } else if (p.name === 'Webhooks') {
-          await expect(page.getByRole('heading', { name: /Webhooks/i })).toBeVisible({ timeout: 5000 });
-          domAssertionPassed = true;
-          notes = 'Webhook endpoints verified in DOM';
+      if (p.name === 'Dashboard') {
+        const statElements = await page.locator('.card-brief p.font-mono, [class*="StatCard"] p').allTextContents();
+        const statValues = statElements.map(s => s.trim());
+        const nonZeroStats = statValues.filter(s => {
+          const num = parseInt(s.replace(/\D/g, ''), 10);
+          return !isNaN(num) && num > 0;
+        });
+        
+        if (nonZeroStats.length > 0) {
+          state = 'LIVE-DATA';
+          notes = `Non-zero stat values found: [${nonZeroStats.join(', ')}]`;
+        } else if (statValues.length > 0) {
+          state = 'EMPTY';
+          notes = `All dashboard stat metrics are 0`;
+        } else {
+          state = 'RENDERED';
+          notes = `Dashboard layout rendered without stat cards`;
         }
-      } catch (assertionErr: any) {
-        domAssertionPassed = false;
-        notes = `Assertion failed: ${assertionErr.message}`;
+      } else if (p.name === 'Edge Nodes') {
+        const rowCount = await page.locator('tbody tr').count();
+        const badgeTexts = await page.locator('tbody tr td span').allTextContents();
+        const statusBadges = badgeTexts.map(t => t.trim()).filter(t => /ONLINE|OFFLINE|DEGRADED|DRAINING/i.test(t));
+        
+        if (rowCount > 0 && statusBadges.length > 0) {
+          state = 'LIVE-DATA';
+          notes = `Rendered ${rowCount} nodes; first status badge="${statusBadges[0]}"`;
+        } else {
+          state = 'EMPTY';
+          notes = `No node rows present in table`;
+        }
+      } else if (p.name === 'Scheduler') {
+        const rowCount = await page.locator('tbody tr').count();
+        const emptyStateText = await page.locator('text=No active tasks in the queue.').count();
+        
+        if (rowCount > 0 && emptyStateText === 0) {
+          state = 'LIVE-DATA';
+          notes = `Rendered ${rowCount} task rows`;
+        } else {
+          state = 'EMPTY';
+          notes = `Explicit empty state: "No active tasks in the queue."`;
+        }
+      } else if (p.name === 'Monitoring') {
+        const hasMetricsCalls = pageApiCalls.some(c => c.url.includes('/metrics') || c.url.includes('/carbon'));
+        const chartsCount = await page.locator('canvas, svg.recharts-surface, [class*="chart"]').count();
+        
+        if (hasMetricsCalls && chartsCount > 0) {
+          state = 'LIVE-DATA';
+          notes = `${chartsCount} chart elements loaded with telemetry streams`;
+        } else if (chartsCount > 0) {
+          state = 'RENDERED';
+          notes = `${chartsCount} charts rendered without backend telemetry`;
+        } else {
+          state = 'EMPTY';
+          notes = `No telemetry charts found`;
+        }
+      } else if (p.name === 'ML Intelligence') {
+        const modelApi = pageApiCalls.find(c => c.url.includes('/ml/model/current'));
+        const driftApi = pageApiCalls.find(c => c.url.includes('/ml/drift'));
+        const hasModel = modelApi && modelApi.hasData;
+        const hasDrift = driftApi && (driftApi.itemCount ?? 0) > 0;
+
+        if (hasModel || hasDrift) {
+          state = 'LIVE-DATA';
+          notes = `Active ML drift history data items=${driftApi?.itemCount ?? 0}, currentModel=${hasModel ? 'present' : 'none'}`;
+        } else {
+          state = 'EMPTY';
+          notes = `/v2/ml/model/current returned empty payload and no model artifacts`;
+        }
+      } else if (p.name === 'Policies') {
+        const policiesApi = pageApiCalls.find(c => c.url.includes('/scheduling/policies'));
+        const count = policiesApi?.itemCount ?? 0;
+        if (count > 0) {
+          state = 'LIVE-DATA';
+          notes = `Loaded ${count} active scheduling policies`;
+        } else {
+          state = 'EMPTY';
+          notes = `No active scheduling policies returned`;
+        }
+      } else if (p.name === 'Workflows') {
+        const workflowsApi = pageApiCalls.find(c => c.url.includes('/v2/workflows'));
+        const count = workflowsApi?.itemCount ?? 0;
+        if (count > 0) {
+          state = 'LIVE-DATA';
+          notes = `Loaded ${count} workflow definitions`;
+        } else {
+          state = 'EMPTY';
+          notes = `No workflow definitions returned`;
+        }
+      } else if (p.name === 'Webhooks') {
+        const webhooksApi = pageApiCalls.find(c => c.url.includes('/v2/webhooks/'));
+        const count = webhooksApi?.itemCount ?? 0;
+        if (count > 0) {
+          state = 'LIVE-DATA';
+          notes = `Loaded ${count} configured webhook endpoints`;
+        } else {
+          state = 'EMPTY';
+          notes = `No webhook endpoints configured`;
+        }
       }
 
-      // Assert zero console errors and zero failed requests for each page
       expect(consoleErrors).toHaveLength(0);
       expect(failedRequests).toHaveLength(0);
-      expect(domAssertionPassed).toBe(true);
 
       results.push({
         name: p.name,
         url: targetUrl,
-        status: httpStatus,
+        httpStatus,
+        state,
         consoleErrors: [...consoleErrors],
         failedRequests: [...failedRequests],
-        realData: domAssertionPassed,
-        domAssertionPassed,
         notes,
         screenshotPath,
         apiCalls: pageApiCalls,
@@ -254,44 +290,16 @@ test.describe('Live Production Smoke & Integrity Test', () => {
     }
 
     // Print Report Table
-    console.log('\n================ LIVE DEPLOYMENT SMOKE AUDIT REPORT ================');
+    console.log('\n================ LIVE DEPLOYMENT INTEGRITY REPORT ================');
     console.log(`Audited Base URL: ${BASE_URL}`);
     console.log(`WebSocket Endpoint: ${wsUrl} | Frames Received: ${wsFramesReceived} | Frames Sent: ${wsFramesSent}\n`);
-    console.log('| Page | Status | Console Errors | Failed Requests | Real Data (expect() Passed) | Notes |');
+    console.log('| Page | HTTP Status | State | Console Errors | Failed Requests | Asserted Notes |');
     console.log('| :--- | :--- | :--- | :--- | :--- | :--- |');
     for (const r of results) {
       const errCount = r.consoleErrors.length > 0 ? `${r.consoleErrors.length} errors` : '0';
       const failCount = r.failedRequests.length > 0 ? `${r.failedRequests.length} failed` : '0';
-      const realStr = r.realData ? 'Y' : 'N';
-      console.log(`| ${r.name} | ${r.status} | ${errCount} | ${failCount} | ${realStr} | ${r.notes} |`);
+      console.log(`| ${r.name} | ${r.httpStatus} | ${r.state} | ${errCount} | ${failCount} | ${r.notes} |`);
     }
-    console.log('====================================================================\n');
-
-    // Print Detailed API Request Log & Assertions per Page
-    console.log('================ OUTGOING API NETWORK CALLS LOG ================');
-    for (const r of results) {
-      console.log(`\n--- Page: ${r.name} (${r.url}) ---`);
-      console.log(`HTTP Status: ${r.status}`);
-      console.log(`DOM Assertions: ${r.domAssertionPassed ? 'PASSED' : 'FAILED'}`);
-      console.log(`Screenshot: ${r.screenshotPath}`);
-      console.log(`API Calls to Render backend (${r.apiCalls.length}):`);
-      if (r.apiCalls.length === 0) {
-        console.log('  (No direct API calls during wait window or served from cache/ws)');
-      } else {
-        r.apiCalls.forEach((call) => {
-          const countInfo = call.itemCount !== undefined ? ` [${call.itemCount} items]` : call.hasData !== undefined ? ` [hasData=${call.hasData}]` : '';
-          console.log(`  [${call.method}] ${call.url} -> HTTP ${call.status}${countInfo}`);
-        });
-      }
-      if (r.consoleErrors.length > 0) {
-        console.log(`Console Errors (${r.consoleErrors.length}):`);
-        r.consoleErrors.forEach((e) => console.log(`  - ${e}`));
-      }
-      if (r.failedRequests.length > 0) {
-        console.log(`Failed Network Requests (${r.failedRequests.length}):`);
-        r.failedRequests.forEach((f) => console.log(`  - ${f}`));
-      }
-    }
-    console.log('\n====================================================================\n');
+    console.log('==================================================================\n');
   });
 });

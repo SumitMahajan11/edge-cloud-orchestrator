@@ -78,6 +78,9 @@ npm vitest run
 npx tsx scripts/system-load-benchmark.ts
 npx tsx scripts/carbon-benchmark.ts
 npx tsx scripts/fl-simulator.ts 5
+
+# Node Telemetry Simulator (Simulated edge node heartbeats: sim-edge-01..03)
+npx tsx scripts/heartbeat-sim.ts
 ```
 
 ## Empirical Benchmarks

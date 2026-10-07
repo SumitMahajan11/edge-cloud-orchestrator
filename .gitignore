@@ -167,4 +167,5 @@ scripts/rotate-*.ts
 scripts/run-smoke.js
 secrets.local.txt
 secrets*.txt
+tests/e2e/screenshots/
 

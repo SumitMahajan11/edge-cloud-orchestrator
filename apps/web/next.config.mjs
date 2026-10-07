@@ -5,6 +5,12 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  env: {
+    NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA:
+      process.env.VERCEL_GIT_COMMIT_SHA ||
+      process.env.NEXT_PUBLIC_VERCEL_GIT_COMMIT_SHA ||
+      "unknown",
+  },
   webpack: (config, { isServer }) => {
     if (isServer) {
       config.ignoreWarnings = [

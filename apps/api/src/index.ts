@@ -680,12 +680,19 @@ async function registerRoutes() {
               status: { type: 'string' },
               timestamp: { type: 'string' },
               version: { type: 'string' },
+              commit: { type: 'string' },
             },
           },
         },
       },
     },
-    async () => HealthCheck.getLiveness(),
+    async () => {
+      const liveness = HealthCheck.getLiveness();
+      return {
+        ...liveness,
+        commit: process.env.RENDER_GIT_COMMIT || process.env.GIT_COMMIT || 'unknown',
+      };
+    },
   );
 
   app.get(
