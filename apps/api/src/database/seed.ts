@@ -20,6 +20,9 @@ async function main() {
   logger.info('Seeding database with idempotent logic...');
 
   // Environment-based credentials with secure defaults
+  if (env.NODE_ENV === 'production' && !env.SEED_ADMIN_PASSWORD) {
+    throw new Error('SEED_ADMIN_PASSWORD is required in production environment');
+  }
   const ADMIN_PASSWORD = env.SEED_ADMIN_PASSWORD || 'Admin123!';
   const DEFAULT_PASSWORD = 'Password123!';
 

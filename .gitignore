@@ -163,4 +163,7 @@ ui-audit-output/
 models/latest.json
 models/train_output.txt
 STACK.md
+scripts/rotate-*.ts
+secrets.local.txt
+secrets*.txt
 
