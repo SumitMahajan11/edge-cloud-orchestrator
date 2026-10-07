@@ -164,8 +164,12 @@ models/latest.json
 models/train_output.txt
 STACK.md
 scripts/rotate-*.ts
+scripts/cleanup-*.ts
 scripts/run-smoke.js
 secrets.local.txt
 secrets*.txt
 tests/e2e/screenshots/
+nodes-backup.json
+audit-*.json
+
 

@@ -76,6 +76,7 @@ export function NodesTableView({
             {nodes.map((n) => (
               <motion.tr
                 key={n.id}
+                data-testid="node-row"
                 layout
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}

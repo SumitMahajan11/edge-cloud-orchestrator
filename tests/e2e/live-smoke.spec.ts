@@ -18,7 +18,7 @@ interface ApiCallLog {
   hasData?: boolean;
 }
 
-type PageState = 'LIVE-DATA' | 'RENDERED' | 'EMPTY';
+type PageState = 'LIVE-DATA' | 'PARTIAL' | 'RENDERED' | 'EMPTY';
 
 interface PageResult {
   name: string;
@@ -48,7 +48,7 @@ const PAGES = [
 test.describe('Live Production Smoke & Integrity Test', () => {
   test.setTimeout(180000);
 
-  test('Audit all 8 pages on live deployment reporting RENDERED vs LIVE-DATA vs EMPTY', async ({ page }) => {
+  test('Audit all 8 pages on live deployment reporting RENDERED vs LIVE-DATA vs PARTIAL vs EMPTY', async ({ page }) => {
     const screenshotDir = path.resolve(process.cwd(), 'tests', 'e2e', 'screenshots');
     if (!fs.existsSync(screenshotDir)) {
       fs.mkdirSync(screenshotDir, { recursive: true });
@@ -121,6 +121,9 @@ test.describe('Live Production Smoke & Integrity Test', () => {
               } else if (Array.isArray(body.nodes)) {
                 itemCount = body.nodes.length;
                 hasData = body.nodes.length > 0;
+              } else if (Array.isArray(body.webhooks)) {
+                itemCount = body.webhooks.length;
+                hasData = body.webhooks.length > 0;
               } else if (body.data && typeof body.data === 'object') {
                 hasData = Object.keys(body.data).length > 0;
               } else {
@@ -169,39 +172,53 @@ test.describe('Live Production Smoke & Integrity Test', () => {
       let notes = '';
 
       if (p.name === 'Dashboard') {
-        const statElements = await page.locator('.card-brief p.font-mono, [class*="StatCard"] p').allTextContents();
-        const statValues = statElements.map(s => s.trim());
-        const nonZeroStats = statValues.filter(s => {
-          const num = parseInt(s.replace(/\D/g, ''), 10);
-          return !isNaN(num) && num > 0;
+        const cardStats = await page.$$eval('.card-brief', (cards) => {
+          return cards.map((c) => {
+            const titleEl = c.querySelector('span, p, h3');
+            const valEl = c.querySelector('.font-mono, .text-2xl, p');
+            const title = titleEl ? (titleEl.textContent || '').trim() : '';
+            const val = valEl ? (valEl.textContent || '').trim() : '';
+            return `${title}: ${val}`;
+          }).filter((s) => s.length > 3);
         });
-        
-        if (nonZeroStats.length > 0) {
+
+        const nonZeroValues = cardStats.filter((p) => {
+          const numMatch = p.match(/\d+/);
+          return numMatch && parseInt(numMatch[0], 10) > 0;
+        });
+
+        if (nonZeroValues.length > 0) {
           state = 'LIVE-DATA';
-          notes = `Non-zero stat values found: [${nonZeroStats.join(', ')}]`;
-        } else if (statValues.length > 0) {
+          notes = cardStats.slice(0, 5).join(' | ');
+        } else if (cardStats.length > 0) {
           state = 'EMPTY';
-          notes = `All dashboard stat metrics are 0`;
+          notes = `All stat cards zero: ${cardStats.slice(0, 5).join(' | ')}`;
         } else {
           state = 'RENDERED';
-          notes = `Dashboard layout rendered without stat cards`;
+          notes = 'Layout rendered without cards';
         }
       } else if (p.name === 'Edge Nodes') {
         const rowCount = await page.locator('tbody tr').count();
+        const nodesApi = pageApiCalls.find((c) => c.url.includes('/v2/nodes'));
+        const apiCount = nodesApi?.itemCount ?? 0;
+
+        // Strict assertion: DOM count must match /v2/nodes item count
+        expect(rowCount).toBe(apiCount);
+
         const badgeTexts = await page.locator('tbody tr td span').allTextContents();
-        const statusBadges = badgeTexts.map(t => t.trim()).filter(t => /ONLINE|OFFLINE|DEGRADED|DRAINING/i.test(t));
-        
+        const statusBadges = badgeTexts.map((t) => t.trim()).filter((t) => /ONLINE|OFFLINE|DEGRADED|DRAINING/i.test(t));
+
         if (rowCount > 0 && statusBadges.length > 0) {
           state = 'LIVE-DATA';
-          notes = `Rendered ${rowCount} nodes; first status badge="${statusBadges[0]}"`;
+          notes = `DOM rows (${rowCount}) exactly match API count (${apiCount}); status="${statusBadges[0]}"`;
         } else {
           state = 'EMPTY';
-          notes = `No node rows present in table`;
+          notes = `No nodes in table (DOM=${rowCount}, API=${apiCount})`;
         }
       } else if (p.name === 'Scheduler') {
         const rowCount = await page.locator('tbody tr').count();
         const emptyStateText = await page.locator('text=No active tasks in the queue.').count();
-        
+
         if (rowCount > 0 && emptyStateText === 0) {
           state = 'LIVE-DATA';
           notes = `Rendered ${rowCount} task rows`;
@@ -210,9 +227,9 @@ test.describe('Live Production Smoke & Integrity Test', () => {
           notes = `Explicit empty state: "No active tasks in the queue."`;
         }
       } else if (p.name === 'Monitoring') {
-        const hasMetricsCalls = pageApiCalls.some(c => c.url.includes('/metrics') || c.url.includes('/carbon'));
+        const hasMetricsCalls = pageApiCalls.some((c) => c.url.includes('/metrics') || c.url.includes('/carbon'));
         const chartsCount = await page.locator('canvas, svg.recharts-surface, [class*="chart"]').count();
-        
+
         if (hasMetricsCalls && chartsCount > 0) {
           state = 'LIVE-DATA';
           notes = `${chartsCount} chart elements loaded with telemetry streams`;
@@ -224,20 +241,23 @@ test.describe('Live Production Smoke & Integrity Test', () => {
           notes = `No telemetry charts found`;
         }
       } else if (p.name === 'ML Intelligence') {
-        const modelApi = pageApiCalls.find(c => c.url.includes('/ml/model/current'));
-        const driftApi = pageApiCalls.find(c => c.url.includes('/ml/drift'));
+        const modelApi = pageApiCalls.find((c) => c.url.includes('/ml/model/current'));
+        const driftApi = pageApiCalls.find((c) => c.url.includes('/ml/drift'));
         const hasModel = modelApi && modelApi.hasData;
-        const hasDrift = driftApi && (driftApi.itemCount ?? 0) > 0;
+        const driftCount = driftApi?.itemCount ?? 0;
 
-        if (hasModel || hasDrift) {
+        if (driftCount > 0 && !hasModel) {
+          state = 'PARTIAL';
+          notes = `Active drift history (${driftCount} points), but currentModel is none`;
+        } else if (hasModel && driftCount > 0) {
           state = 'LIVE-DATA';
-          notes = `Active ML drift history data items=${driftApi?.itemCount ?? 0}, currentModel=${hasModel ? 'present' : 'none'}`;
+          notes = `Active model and drift history (${driftCount} points) present`;
         } else {
           state = 'EMPTY';
-          notes = `/v2/ml/model/current returned empty payload and no model artifacts`;
+          notes = `/v2/ml/model/current returned empty payload and no drift history`;
         }
       } else if (p.name === 'Policies') {
-        const policiesApi = pageApiCalls.find(c => c.url.includes('/scheduling/policies'));
+        const policiesApi = pageApiCalls.find((c) => c.url.includes('/scheduling/policies'));
         const count = policiesApi?.itemCount ?? 0;
         if (count > 0) {
           state = 'LIVE-DATA';
@@ -247,7 +267,7 @@ test.describe('Live Production Smoke & Integrity Test', () => {
           notes = `No active scheduling policies returned`;
         }
       } else if (p.name === 'Workflows') {
-        const workflowsApi = pageApiCalls.find(c => c.url.includes('/v2/workflows'));
+        const workflowsApi = pageApiCalls.find((c) => c.url.includes('/v2/workflows'));
         const count = workflowsApi?.itemCount ?? 0;
         if (count > 0) {
           state = 'LIVE-DATA';
@@ -257,7 +277,7 @@ test.describe('Live Production Smoke & Integrity Test', () => {
           notes = `No workflow definitions returned`;
         }
       } else if (p.name === 'Webhooks') {
-        const webhooksApi = pageApiCalls.find(c => c.url.includes('/v2/webhooks/'));
+        const webhooksApi = pageApiCalls.find((c) => c.url.includes('/v2/webhooks/'));
         const count = webhooksApi?.itemCount ?? 0;
         if (count > 0) {
           state = 'LIVE-DATA';

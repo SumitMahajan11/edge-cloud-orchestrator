@@ -179,7 +179,7 @@ async function run() {
     registeredNodes.push({ id, name: nodeCfg.name });
   }
 
-  const totalDurationSec = 90;
+  const totalDurationSec = process.argv[2] ? parseInt(process.argv[2], 10) : 90;
   const intervalSec = 10;
   const iterations = Math.floor(totalDurationSec / intervalSec);
 
