@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        app: [api, agent, web]
+        app: [api, agent]
     permissions:
       contents: read
       packages: write
@@ -81,9 +81,6 @@ jobs:
           fi
           if [[ "${{ matrix.app }}" == "agent" && $SIZE_MB -gt 20 ]]; then
             echo "::error::Agent image size (${SIZE_MB}MB) exceeds 20MB limit!" && exit 1
-          fi
-          if [[ "${{ matrix.app }}" == "web" && $SIZE_MB -gt 150 ]]; then
-            echo "::error::Web image size (${SIZE_MB}MB) exceeds 150MB limit!" && exit 1
           fi
 
 
