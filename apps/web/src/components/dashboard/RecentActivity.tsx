@@ -48,9 +48,9 @@ export function RecentActivity() {
             {recent.map((e, idx) => {
               const meta = classify(e.type);
               const entityId: string | undefined =
-                (e.data as any)?.taskId ??
-                (e.data as any)?.nodeId ??
-                (e.data as any)?.id;
+                (e.data)?.taskId ??
+                (e.data)?.nodeId ??
+                (e.data)?.id;
               const entityPath = entityLink(e.type, entityId);
 
               return (
@@ -138,22 +138,22 @@ function classify(type: string) {
 }
 
 function entityLink(type: string, id: string | undefined): string | null {
-  if (!id) return null;
+  if (!id) {return null;}
   if (type.startsWith("task."))
-    return `/scheduler?task=${encodeURIComponent(id)}`;
-  if (type.startsWith("node.")) return `/nodes?node=${encodeURIComponent(id)}`;
+    {return `/scheduler?task=${encodeURIComponent(id)}`;}
+  if (type.startsWith("node.")) {return `/nodes?node=${encodeURIComponent(id)}`;}
   return null;
 }
 
 function summary(d: any): string {
-  if (!d || typeof d !== "object") return String(d ?? "");
-  if (d.message) return String(d.message);
-  if (d.status) return `STATUS: ${String(d.status).toUpperCase()}`;
+  if (!d || typeof d !== "object") {return String(d ?? "");}
+  if (d.message) {return String(d.message);}
+  if (d.status) {return `STATUS: ${String(d.status).toUpperCase()}`;}
   try {
     const keys = Object.keys(d).filter((k) => k !== "id" && k !== "timestamp");
     const firstKey = keys[0];
     if (firstKey)
-      return `${firstKey.toUpperCase()}: ${String(d[firstKey]).slice(0, 40)}`;
+      {return `${firstKey.toUpperCase()}: ${String(d[firstKey]).slice(0, 40)}`;}
     return JSON.stringify(d).slice(0, 60);
   } catch {
     return "DATA_STREAM_BINARY";
@@ -163,9 +163,9 @@ function summary(d: any): string {
 function relTime(ts: number): string {
   const diff = Math.max(0, Date.now() - ts);
   const s = Math.floor(diff / 1000);
-  if (s < 60) return `${s}s`;
+  if (s < 60) {return `${s}s`;}
   const m = Math.floor(s / 60);
-  if (m < 60) return `${m}m`;
+  if (m < 60) {return `${m}m`;}
   const h = Math.floor(m / 60);
   return `${h}h`;
 }

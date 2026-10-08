@@ -130,7 +130,7 @@ export async function reliableCall<T>(
           );
         }),
       ]).finally(() => {
-        if (timeoutId) clearTimeout(timeoutId);
+        if (timeoutId) {clearTimeout(timeoutId);}
       });
 
       return result;
@@ -201,7 +201,7 @@ export function isRetryableError(
   error: unknown,
   retryableStatusCodes: number[] = [408, 429, 500, 502, 503, 504],
 ): boolean {
-  if (!error) return false;
+  if (!error) {return false;}
 
   const err = error as any;
 

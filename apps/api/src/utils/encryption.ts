@@ -9,6 +9,7 @@
 import {
   createCipheriv,
   createDecipheriv,
+  createHash,
   randomBytes,
   scryptSync,
 } from 'crypto';
@@ -133,6 +134,5 @@ export function isEncrypted(value: string): boolean {
  * @returns SHA-256 hash
  */
 export function hashSensitive(data: string): string {
-  const { createHash } = require('crypto');
   return createHash('sha256').update(data).digest('hex');
 }

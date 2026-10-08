@@ -67,7 +67,7 @@ describe('OpenAPI Contract Validation', () => {
     });
 
     expect(error).toBeUndefined();
-    expect((data as any)?.data[0].name).toBe('edge-node-alpha');
+    expect((data)?.data[0].name).toBe('edge-node-alpha');
     expect(mockFetch).toHaveBeenCalled();
     const [request] = mockFetch.mock.calls[0];
     expect(request.url).toBe(

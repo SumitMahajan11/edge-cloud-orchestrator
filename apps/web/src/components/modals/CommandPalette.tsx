@@ -175,7 +175,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
   );
 
   const filteredCommands = useMemo(() => {
-    if (!searchQuery) return commands;
+    if (!searchQuery) {return commands;}
     const query = searchQuery.toLowerCase();
     return commands.filter((cmd) => cmd.label.toLowerCase().includes(query));
   }, [commands, searchQuery]);
@@ -186,7 +186,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!isOpen) return;
+      if (!isOpen) {return;}
 
       switch (e.key) {
         case "ArrowDown":
@@ -264,7 +264,7 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                     const groupCommands = filteredCommands.filter(
                       (c) => c.group === group,
                     );
-                    if (groupCommands.length === 0) return null;
+                    if (groupCommands.length === 0) {return null;}
 
                     return (
                       <div key={group}>

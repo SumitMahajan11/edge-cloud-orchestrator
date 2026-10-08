@@ -5,7 +5,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import {
-  createTestTask,
   setupTestApp,
   teardownTestApp,
   type TestContext,

@@ -59,7 +59,7 @@ export class ModelRegistry {
 
   async getActiveModel(): Promise<ModelMetadata | null> {
     const version = await this.redis.get(this.REDIS_KEY);
-    if (!version) return null;
+    if (!version) {return null;}
     return this.getModelMetadata(version);
   }
 
@@ -104,7 +104,7 @@ export class ModelRegistry {
 
   async getModelMetadata(version: string): Promise<ModelMetadata | null> {
     const metaPath = path.join(this.MODEL_DIR, `model_${version}.json`);
-    if (!fs.existsSync(metaPath)) return null;
+    if (!fs.existsSync(metaPath)) {return null;}
 
     try {
       const content = fs.readFileSync(metaPath, "utf-8");
@@ -117,13 +117,13 @@ export class ModelRegistry {
 
   private async pruneOldModels(): Promise<void> {
     const models = await this.listModels();
-    if (models.length <= 3) return;
+    if (models.length <= 3) {return;}
 
     const toDelete = models.slice(3);
     const activeVersion = await this.redis.get(this.REDIS_KEY);
 
     for (const model of toDelete) {
-      if (model.version === activeVersion) continue;
+      if (model.version === activeVersion) {continue;}
 
       try {
         const metaPath = path.join(
@@ -135,8 +135,8 @@ export class ModelRegistry {
           `model_${model.version}.bin`,
         ); // Assuming XGBoost binary name
 
-        if (fs.existsSync(metaPath)) fs.unlinkSync(metaPath);
-        if (fs.existsSync(artifactPath)) fs.unlinkSync(artifactPath);
+        if (fs.existsSync(metaPath)) {fs.unlinkSync(metaPath);}
+        if (fs.existsSync(artifactPath)) {fs.unlinkSync(artifactPath);}
 
         logger.info({ version: model.version }, "Pruned old model artifact");
       } catch (_e) {

@@ -42,7 +42,7 @@ const ALLOWED_COMMANDS: Record<
   },
 };
 
-type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
+export type AllowedCommand = keyof typeof ALLOWED_COMMANDS;
 
 export class CommandExecutionError extends Error {
   command: string;
@@ -128,7 +128,7 @@ function validateArg(arg: string, argIndex: number): void {
  */
 function validateCommand(command: string, args: string[]): void {
   // Check if command is allowed
-  const allowedCommand = ALLOWED_COMMANDS[command as AllowedCommand];
+  const allowedCommand = ALLOWED_COMMANDS[command];
 
   if (!allowedCommand) {
     throw new CommandExecutionError(
@@ -240,7 +240,7 @@ export async function safeExec(
 
     // Handle completion
     proc.on('close', (code: number | null) => {
-      if (settled) return;
+      if (settled) {return;}
       settled = true;
       clearTimeout(timeout);
 

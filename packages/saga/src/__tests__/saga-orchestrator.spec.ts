@@ -57,14 +57,14 @@ class MockPrisma {
     },
     update: async ({ where, data }: any) => {
       const inst = this.instances.get(where.id);
-      if (!inst) throw new Error(`SagaInstance ${where.id} not found`);
+      if (!inst) {throw new Error(`SagaInstance ${where.id} not found`);}
       const updated = { ...inst, ...data, updatedAt: new Date() };
       this.instances.set(where.id, updated);
       return updated;
     },
     findUnique: async ({ where, include }: any) => {
       const inst = this.instances.get(where.id);
-      if (!inst) return null;
+      if (!inst) {return null;}
       if (include?.steps) {
         const stepList = Array.from(this.steps.values())
           .filter((s: any) => s.sagaId === where.id)
@@ -108,7 +108,7 @@ class MockPrisma {
     },
     update: async ({ where, data }: any) => {
       const step = this.steps.get(where.id);
-      if (!step) throw new Error(`SagaStep ${where.id} not found`);
+      if (!step) {throw new Error(`SagaStep ${where.id} not found`);}
       const updated = { ...step, ...data };
       this.steps.set(where.id, updated);
       return updated;
@@ -365,7 +365,7 @@ describe("SagaOrchestrator", () => {
         stepName: "step1",
         reason: "already_executed",
       });
-      expect(stepDef.steps[0]!.execute).not.toHaveBeenCalled();
+      expect(stepDef.steps[0].execute).not.toHaveBeenCalled();
     });
   });
 

@@ -44,14 +44,14 @@ process.on('uncaughtException', (err: any) => {
   // For all other errors, we log and re-throw to allow normal crash behavior
   // which surfaces the stack trace and triggers a supervisor restart.
   logger.error(
-    { err: (err as any)?.message || err, stack: (err as any)?.stack },
+    { err: (err)?.message || err, stack: (err)?.stack },
     'Uncaught exception caught — logged cleanly to prevent process crash',
   );
 });
 
 process.on('unhandledRejection', (reason: any) => {
   logger.error(
-    { reason: (reason as any)?.message || reason, stack: (reason as any)?.stack },
+    { reason: (reason)?.message || reason, stack: (reason)?.stack },
     'Unhandled rejection caught — logged cleanly to prevent process crash',
   );
 });
@@ -150,7 +150,7 @@ app.decorate('requirePermission', (permission: string) => {
 app.addHook('preHandler', async (request, reply) => {
   // 1. Check if route is explicitly marked as public
   const isPublic = request.routeOptions.config?.public === true;
-  if (isPublic) return;
+  if (isPublic) {return;}
 
   // 2. Public routes: health checks, docs, websocket, version, and ALL static frontend assets
   const rawUrl: string = request.url || '';
@@ -193,7 +193,7 @@ app.addHook('preHandler', async (request, reply) => {
       error: {
         code: 'UNAUTHORIZED',
         message: 'Authentication required. This endpoint is protected by Default Deny policy.',
-        requestId: (request.headers['x-request-id'] as string) || (request.id as string),
+        requestId: (request.headers['x-request-id'] as string) || (request.id),
         timestamp: new Date().toISOString(),
       },
     });
@@ -201,7 +201,7 @@ app.addHook('preHandler', async (request, reply) => {
 });
 
 app.addHook('onRequest', async (request: any, reply: any) => {
-  if (!request || !request.headers) return;
+  if (!request || !request.headers) {return;}
   const url = request.url || '';
 
   // Only apply version checking to actual API routes
@@ -312,7 +312,7 @@ async function registerPlugins() {
         if (cleanAllowed.startsWith('*.')) {
           const domain = cleanAllowed.slice(2);
           const cleanOrigin = origin.replace(/^https?:\/\//, '');
-          return cleanOrigin.endsWith('.' + domain) || cleanOrigin === domain;
+          return cleanOrigin.endsWith(`.${  domain}`) || cleanOrigin === domain;
         }
         return false;
       });
@@ -367,7 +367,7 @@ async function registerPlugins() {
   await app.register(rateLimit, {
     max: async () => {
       // TEST CONFIG: Keep max high enough so normal tests don't hit it
-      if (env.NODE_ENV === 'test' || process.env.RATE_LIMIT_TEST_MODE === 'true') return 100;
+      if (env.NODE_ENV === 'test' || process.env.RATE_LIMIT_TEST_MODE === 'true') {return 100;}
       // Adaptive rate limit based on system load
       try {
         const limit = await backpressureController.getAdaptiveRateLimit();
@@ -437,7 +437,7 @@ async function registerPlugins() {
 
   // HTTP request metrics hook
   app.addHook('onResponse', async (request, reply) => {
-    if (!request || !reply) return;
+    if (!request || !reply) {return;}
     try {
       const route = (request as any).routerPath || request.url || 'unknown';
       const { method } = request;
@@ -585,7 +585,7 @@ async function registerRoutes() {
            } else if (store.lru && typeof store.lru.clear === 'function') {
              store.lru.clear();
            }
-        } else if (redis && !(redis as any).isMock) {
+        } else if (redis && !(redis).isMock) {
            const keys = await redis.keys('rate-limit:*');
            if (keys.length > 0) {
              await redis.del(...keys);
@@ -726,7 +726,7 @@ async function registerRoutes() {
       const liveness = HealthCheck.getLiveness();
       if (
         redis &&
-        !(redis as any).isMock &&
+        !(redis).isMock &&
         Date.now() - lastRedisHealthy > 30000
       ) {
         return { ...liveness, status: 'degraded', reason: 'Redis unreachable' };
@@ -1074,7 +1074,7 @@ export async function init(overrides: any = {}) {
       },
       zremrangebyscore: async (key: string, min: number, max: number) => {
         const set = zsets.get(key);
-        if (!set) return 0;
+        if (!set) {return 0;}
         const initialLen = set.length;
         const newSet = set.filter((i) => i.score < min || i.score > max);
         zsets.set(key, newSet);
@@ -1175,7 +1175,7 @@ export async function init(overrides: any = {}) {
         }
 
         mockStorage.set(key, String(current + 1));
-        if (current >= 100) return [0, 0, 100, -1];
+        if (current >= 100) {return [0, 0, 100, -1];}
         return [1, 100 - current, 100, -1];
       },
       pipeline: () => {
@@ -1484,8 +1484,8 @@ export async function start() {
       await shutdownServices(logger);
     });
     GracefulShutdown.registerHandler('db', async () => {
-      if (prisma) await prisma.$disconnect();
-      if (redis) redis.disconnect();
+      if (prisma) {await prisma.$disconnect();}
+      if (redis) {redis.disconnect();}
     });
 
     HealthCheck.setReady(true);

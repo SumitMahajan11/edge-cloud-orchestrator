@@ -64,7 +64,7 @@ export class GridCarbonClient {
         );
       }
 
-      const data = (await response.json()) as any;
+      const data = (await response.json());
       const intensity = data.carbonIntensity;
 
       if (typeof intensity !== "number") {
@@ -124,7 +124,7 @@ export class GridCarbonClient {
         );
       }
 
-      const data = (await response.json()) as any;
+      const data = (await response.json());
       const forecast = data.forecast;
 
       if (!Array.isArray(forecast)) {
@@ -170,10 +170,10 @@ export class GridCarbonClient {
    */
   mapRegionToZone(region: string): string {
     const upper = region.toUpperCase();
-    if (upper.startsWith("US-WEST")) return "US-WEST";
-    if (upper.startsWith("US-EAST")) return "US-EAST";
-    if (upper.startsWith("EU-DE")) return "EU-DE";
-    if (upper.startsWith("AP-SG")) return "AP-SG";
+    if (upper.startsWith("US-WEST")) {return "US-WEST";}
+    if (upper.startsWith("US-EAST")) {return "US-EAST";}
+    if (upper.startsWith("EU-DE")) {return "EU-DE";}
+    if (upper.startsWith("AP-SG")) {return "AP-SG";}
     return upper;
   }
 }

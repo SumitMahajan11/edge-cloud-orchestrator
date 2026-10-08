@@ -299,15 +299,15 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
           ...(data.bandwidthOutMbps !== undefined && {
             bandwidthOutMbps: data.bandwidthOutMbps,
           }),
-          tenantId: request.user!.tenantId!,
+          tenantId: request.user.tenantId!,
         },
       });
 
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'node.created',
           entityType: 'node',
           entityId: node.id,
@@ -344,7 +344,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       const data = request.body;
 
       const existingNode = await fastify.prisma.edgeNode.findFirst({
-        where: { id, tenantId: request.user!.tenantId! },
+        where: { id, tenantId: request.user.tenantId! },
       });
 
       if (!existingNode) {
@@ -366,8 +366,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'node.updated',
           entityType: 'node',
           entityId: node.id,
@@ -416,7 +416,7 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       }
 
       const existingNode = await fastify.prisma.edgeNode.findFirst({
-        where: { id, tenantId: request.user!.tenantId! },
+        where: { id, tenantId: request.user.tenantId! },
       });
 
       if (!existingNode) {
@@ -437,8 +437,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'node.deleted',
           entityType: 'node',
           entityId: id,
@@ -671,8 +671,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: enabled
             ? 'node.maintenance_enabled'
             : 'node.maintenance_disabled',
@@ -725,8 +725,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'node.drain_started',
           entityType: 'node',
           entityId: id,
@@ -776,8 +776,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       // Audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'node.forced_offline',
           entityType: 'node',
           entityId: id,
@@ -926,8 +926,8 @@ export default async function nodeRoutes(fastify: FastifyInstance) {
       // Create audit log
       await request.tPrisma.auditLog.create({
         data: {
-          userId: request.user!.id,
-          tenantId: request.user!.tenantId!,
+          userId: request.user.id,
+          tenantId: request.user.tenantId!,
           action: 'node.certificate_rotated',
           entityType: 'node',
           entityId: id,

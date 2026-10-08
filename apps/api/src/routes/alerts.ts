@@ -44,7 +44,7 @@ export default async function alertRoutes(fastify: FastifyInstance) {
       },
     },
     async (request, _reply) => {
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
       const dbAlerts = await fastify.prisma.alert.findMany({
         where: { tenantId },
         orderBy: { createdAt: 'desc' },
@@ -88,7 +88,7 @@ export default async function alertRoutes(fastify: FastifyInstance) {
     },
     async (request, reply) => {
       const { id } = request.params;
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
 
       const alert = await fastify.prisma.alert.findFirst({
         where: { id, tenantId },
@@ -171,7 +171,7 @@ export default async function alertRoutes(fastify: FastifyInstance) {
         request.body.title,
         request.body.description,
         'manual-test',
-        request.user!.tenantId!,
+        request.user.tenantId!,
       );
 
       return { success: true };

@@ -13,15 +13,12 @@ import { Button } from "../ui/button";
 import {
   Download,
   Leaf,
-  Calendar,
   AlertCircle,
   TrendingDown,
   Clock,
   Briefcase,
   Globe,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import { formatDistanceToNow } from "date-fns";
 
 export function CarbonSummaryWidget() {
   const [days, setDays] = useState(30);

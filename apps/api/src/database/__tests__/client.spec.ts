@@ -58,7 +58,7 @@ describe('PrismaClientWithReplicas', () => {
 
     // Second call should have read replica datasource
     const secondCall = vi.mocked(PrismaClient).mock.calls[1];
-    if (!secondCall) throw new Error('Second call to PrismaClient not found');
+    if (!secondCall) {throw new Error('Second call to PrismaClient not found');}
     expect(secondCall[0]).toMatchObject({
       datasources: {
         db: {

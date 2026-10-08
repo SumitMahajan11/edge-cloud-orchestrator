@@ -13,7 +13,7 @@ export class CertManager {
   }
 
   getSecureContextOptions() {
-    if (!this.config.ENABLE_MTLS) return null;
+    if (!this.config.ENABLE_MTLS) {return null;}
 
     const cert = fs.readFileSync(this.config.TLS_CERT_PATH);
     const key = fs.readFileSync(this.config.TLS_KEY_PATH);
@@ -51,7 +51,7 @@ export class CertManager {
         );
       }
     } catch (err: any) {
-      if (err.message.includes("FATAL")) throw err;
+      if (err.message.includes("FATAL")) {throw err;}
       logger.error("Failed to validate certificate expiry:", err);
     }
   }
@@ -84,7 +84,7 @@ export function verifySignature(
   signature: string,
   secret: string,
 ): boolean {
-  if (!signature) return false;
+  if (!signature) {return false;}
 
   const expected = crypto
     .createHmac("sha256", secret)
@@ -119,8 +119,8 @@ export function validateTaskPayload(
       return {
         valid: false,
         error:
-          "Invalid input payload: " +
-          (res.error.issues[0]?.message ?? "Unknown error"),
+          `Invalid input payload: ${ 
+          res.error.issues[0]?.message ?? "Unknown error"}`,
       };
     }
   }
@@ -131,8 +131,8 @@ export function validateTaskPayload(
       return {
         valid: false,
         error:
-          "Invalid metadata payload: " +
-          (res.error.issues[0]?.message ?? "Unknown error"),
+          `Invalid metadata payload: ${ 
+          res.error.issues[0]?.message ?? "Unknown error"}`,
       };
     }
   }

@@ -15,14 +15,12 @@ import { trace, SpanStatusCode } from "@opentelemetry/api";
 import type { Span } from "@opentelemetry/api";
 import { CompositeSampler } from "./otel-sampler";
 
-const isDev = process.env.NODE_ENV === "development";
-
 /**
  * Initializes OpenTelemetry tracing for the web application.
  * Correlates frontend user actions with backend traces using traceparent propagation.
  */
 export function initTracing() {
-  if (typeof window === "undefined") return;
+  if (typeof window === "undefined") {return;}
 
   const sampler = new ParentBasedSampler({
     root: new CompositeSampler(0.1),

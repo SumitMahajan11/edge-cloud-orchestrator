@@ -118,7 +118,7 @@ async function aggregateBusinessMetrics() {
   try {
     const res = await fetch(`${SERVICES.task}/tasks/stats`);
     if (res.ok) {
-      const stats = (await res.json()) as any;
+      const stats = (await res.json());
       pendingTasksGauge.set(stats.pending || 0);
     }
   } catch (err) {
@@ -129,18 +129,18 @@ async function aggregateBusinessMetrics() {
   for (const [name, url] of Object.entries(SERVICES)) {
     try {
       const res = await fetch(`${url}/metrics`);
-      if (!res.ok) continue;
+      if (!res.ok) {continue;}
 
       const text = await res.text();
 
       if (name === "scheduler") {
         const match = text.match(/scheduling_duration_ms_sum\s+([\d.]+)/);
-        if (match) schedulingDecisionHistogram.observe(parseFloat(match[1]));
+        if (match) {schedulingDecisionHistogram.observe(parseFloat(match[1]));}
       }
 
       if (name === "api") {
         const match = text.match(/system_load_score\s+([\d.]+)/);
-        if (match) systemLoadGauge.set(parseFloat(match[1]));
+        if (match) {systemLoadGauge.set(parseFloat(match[1]));}
       }
     } catch (err) {
       logger.debug(
@@ -207,7 +207,7 @@ async function start() {
     // Initialize shutdown manager
     GracefulShutdown.init();
     GracefulShutdown.registerHandler("redis", async () => {
-      if (redis) redis.disconnect();
+      if (redis) {redis.disconnect();}
     });
     GracefulShutdown.registerHandler("app", async () => {
       await app.close();

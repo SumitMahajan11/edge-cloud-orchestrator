@@ -24,7 +24,7 @@ export function AnimatedCounter({
   const previousValueRef = useRef(value);
 
   useEffect(() => {
-    if (previousValueRef.current === value) return;
+    if (previousValueRef.current === value) {return;}
 
     startValueRef.current = displayValue;
     previousValueRef.current = value;

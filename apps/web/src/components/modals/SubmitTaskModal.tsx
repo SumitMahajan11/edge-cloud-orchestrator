@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Play, Cpu, Server, Compass, Layers } from "lucide-react";
+import { X, Play, Cpu, Compass, Layers } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -55,11 +55,11 @@ export function SubmitTaskModal({ isOpen, onClose }: SubmitTaskModalProps) {
     const newErrors: Record<string, string> = {};
 
     if (s === 1) {
-      if (!formData.name.trim()) newErrors.name = "Task name is required";
-      if (!formData.image.trim()) newErrors.image = "Container image/WASM path is required";
+      if (!formData.name.trim()) {newErrors.name = "Task name is required";}
+      if (!formData.image.trim()) {newErrors.image = "Container image/WASM path is required";}
     } else if (s === 2) {
-      if (formData.cpuCores < 1) newErrors.cpuCores = "Min 1 core";
-      if (formData.memoryGB < 1) newErrors.memoryGB = "Min 1 GB";
+      if (formData.cpuCores < 1) {newErrors.cpuCores = "Min 1 core";}
+      if (formData.memoryGB < 1) {newErrors.memoryGB = "Min 1 GB";}
     }
 
     setErrors(newErrors);
@@ -67,7 +67,7 @@ export function SubmitTaskModal({ isOpen, onClose }: SubmitTaskModalProps) {
   };
 
   const handleNext = () => {
-    if (validateStep(step)) setStep((s) => s + 1);
+    if (validateStep(step)) {setStep((s) => s + 1);}
   };
 
   const handleBack = () => {
@@ -81,7 +81,7 @@ export function SubmitTaskModal({ isOpen, onClose }: SubmitTaskModalProps) {
     const step2Valid = validateStep(2);
     if (!step1Valid || !step2Valid) {
       // Jump back to the first step that has errors
-      if (!step1Valid) setStep(1);
+      if (!step1Valid) {setStep(1);}
       return;
     }
 

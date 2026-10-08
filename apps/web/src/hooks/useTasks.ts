@@ -20,7 +20,7 @@ export function useTasks(params?: Record<string, unknown>) {
     queryKey: queryKeys.tasks.list(params),
     queryFn: async () => {
       const { data, error } = await getV2Tasks({ query: params as any });
-      if (error) throw error;
+      if (error) {throw error;}
       return transformTasksFromApi((data as any).data || []);
     },
     staleTime: STALE.taskStatus,
@@ -32,7 +32,7 @@ export function useTask(id: string) {
     queryKey: queryKeys.tasks.detail(id),
     queryFn: async () => {
       const { data, error } = await getV2TasksById({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return transformTaskFromApi(data as any);
     },
     enabled: !!id,
@@ -53,7 +53,7 @@ export function useSubmitTask() {
     }) => {
       const apiPayload = transformTaskToApi(task);
       const { data, error } = await postV2Tasks({ body: apiPayload });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {
@@ -67,7 +67,7 @@ export function useCancelTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await postV2TasksByIdCancel({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: (_, id) => {
@@ -83,7 +83,7 @@ export function useRetryTask() {
   return useMutation({
     mutationFn: async (id: string) => {
       const { data, error } = await postV2TasksByIdRetry({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: (_, id) => {
@@ -100,7 +100,7 @@ export function useTaskStats() {
     queryKey: queryKeys.tasks.stats(),
     queryFn: async () => {
       const { data, error } = await getV2TasksStats();
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     staleTime: STALE.taskStatus,

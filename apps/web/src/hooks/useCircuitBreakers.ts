@@ -26,7 +26,7 @@ export function useCircuitBreakers() {
 
   // Subscribe to WebSocket events for immediate updates
   useEffect(() => {
-    if (eventStream.length === 0) return;
+    if (eventStream.length === 0) {return;}
 
     const lastEvent = eventStream[eventStream.length - 1];
     if (
@@ -46,7 +46,7 @@ export function useCircuitBreakers() {
       queryClient.setQueryData<CircuitBreakerState[]>(
         ["circuit-breakers"],
         (old) => {
-          if (!old) return old;
+          if (!old) {return old;}
           return old.map((cb) =>
             cb.name === payload.name
               ? {
@@ -82,7 +82,7 @@ export function useCircuitBreakers() {
       queryClient.setQueryData<CircuitBreakerState[]>(
         ["circuit-breakers"],
         (old) => {
-          if (!old) return old;
+          if (!old) {return old;}
           return old.map((cb) =>
             cb.name === name
               ? {

@@ -23,10 +23,10 @@ function validateCerts(options: MtlsOptions): {
   const { certPath, keyPath, caPath } = options;
 
   if (!fs.existsSync(certPath))
-    throw new Error(`Cert file not found: ${certPath}`);
+    {throw new Error(`Cert file not found: ${certPath}`);}
   if (!fs.existsSync(keyPath))
-    throw new Error(`Key file not found: ${keyPath}`);
-  if (!fs.existsSync(caPath)) throw new Error(`CA file not found: ${caPath}`);
+    {throw new Error(`Key file not found: ${keyPath}`);}
+  if (!fs.existsSync(caPath)) {throw new Error(`CA file not found: ${caPath}`);}
 
   const cert = fs.readFileSync(certPath);
   const key = fs.readFileSync(keyPath);
@@ -91,9 +91,9 @@ export function validateClientCertificate(
   cert: any,
   expectedPattern: RegExp,
 ): boolean {
-  if (!cert || !cert.subject) return false;
+  if (!cert || !cert.subject) {return false;}
   const cn = cert.subject.CN;
-  if (!cn) return false;
+  if (!cn) {return false;}
 
   const isValid = expectedPattern.test(cn);
   if (!isValid) {

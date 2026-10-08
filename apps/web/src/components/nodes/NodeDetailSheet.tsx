@@ -65,7 +65,7 @@ export function NodeDetailSheet({
   onForceOffline,
   onRotateCertificate,
 }: NodeDetailSheetProps) {
-  if (!node) return null;
+  if (!node) {return null;}
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -741,7 +741,7 @@ function hashId(s: string): number {
 
 function deriveCertStatus(id: string): "valid" | "expiring" | "expired" {
   const h = hashId(id);
-  if (h % 7 === 0) return "expired";
-  if (h % 13 === 0) return "expiring";
+  if (h % 7 === 0) {return "expired";}
+  if (h % 13 === 0) {return "expiring";}
   return "valid";
 }

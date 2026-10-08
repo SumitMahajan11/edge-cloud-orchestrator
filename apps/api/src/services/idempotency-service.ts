@@ -274,7 +274,7 @@ export class IdempotencyService {
   }
 
   private parseResult(val: any): Record<string, unknown> | null {
-    if (!val) return null;
+    if (!val) {return null;}
     if (typeof val === 'string') {
       try {
         return JSON.parse(val);

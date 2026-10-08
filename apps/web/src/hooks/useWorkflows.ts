@@ -12,7 +12,7 @@ export function useWorkflows() {
     queryKey: queryKeys.workflows.all,
     queryFn: async () => {
       const { data, error } = await getV2Workflows();
-      if (error) throw error;
+      if (error) {throw error;}
       return (data as any).data || [];
     },
     staleTime: STALE.taskStatus,
@@ -24,7 +24,7 @@ export function useWorkflow(id: string) {
     queryKey: queryKeys.workflows.detail(id),
     queryFn: async () => {
       const { data, error } = await getV2WorkflowsById({ path: { id } });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     enabled: !!id,
@@ -37,7 +37,7 @@ export function useExecuteWorkflow() {
       const { data, error } = await postV2WorkflowsByIdExecute({
         path: { id },
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: (_, id) => {
@@ -53,9 +53,9 @@ export function useCreateWorkflow() {
   return useMutation({
     mutationFn: async (workflowData: any) => {
       const { data, error } = await postV2Workflows({
-        body: workflowData as any,
+        body: workflowData,
       });
-      if (error) throw error;
+      if (error) {throw error;}
       return data;
     },
     onSuccess: () => {

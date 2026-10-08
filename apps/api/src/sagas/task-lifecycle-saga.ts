@@ -272,8 +272,8 @@ export function createTaskLifecycleSaga(
       await prisma.taskExecution.create({
         data: {
           taskId: context.taskId,
-          nodeId: context.nodeId!,
-          nodeUrl: context.nodeUrl!,
+          nodeId: context.nodeId,
+          nodeUrl: context.nodeUrl,
           status: 'PENDING',
           scheduledAt: new Date(),
           tenantId: context.tenantId!,

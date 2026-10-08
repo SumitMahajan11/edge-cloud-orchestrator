@@ -32,7 +32,7 @@ export default function LoginPage() {
         router.push("/");
       }
     } else {
-      if (password.length < 12) return;
+      if (password.length < 12) {return;}
       const result = await register(email, password, name);
       if (result) {
         setIsLogin(true);

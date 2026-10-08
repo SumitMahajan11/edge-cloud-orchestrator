@@ -255,7 +255,7 @@ export class BackpressureController extends EventEmitter {
     try {
       // Find all node metric keys
       const keys = await this.redis.keys('node:*:metrics');
-      if (!keys || keys.length === 0) return [];
+      if (!keys || keys.length === 0) {return [];}
 
       const loads: number[] = [];
       for (const key of keys) {

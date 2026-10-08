@@ -82,7 +82,7 @@ class WebSocketClient {
           // Send queued messages
           while (this.messageQueue.length > 0) {
             const msg = this.messageQueue.shift();
-            if (msg) this.send(msg);
+            if (msg) {this.send(msg);}
           }
 
           // Flush pending subscriptions (CRITICAL FIX: prevents race condition)
@@ -125,7 +125,7 @@ class WebSocketClient {
             refreshAuth().then((success) => {
               if (success) {
                 const newToken = authStorage.getToken();
-                if (newToken) this.setToken(newToken);
+                if (newToken) {this.setToken(newToken);}
                 this.reconnectAttempts = 0;
                 this.scheduleReconnect();
               } else {

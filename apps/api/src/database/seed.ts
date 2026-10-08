@@ -106,8 +106,8 @@ async function main() {
       update: { status: NodeStatus.ONLINE },
       create: {
         name: nodeName,
-        location: `Datacenter ${region!.toUpperCase()}-${i}`,
-        region: region!,
+        location: `Datacenter ${region.toUpperCase()}-${i}`,
+        region: region,
         status: NodeStatus.ONLINE,
         ipAddress: `192.168.1.${100 + i}`,
         port: 4000 + i,
@@ -115,7 +115,7 @@ async function main() {
         cpuCores: i % 2 === 0 ? 8 : 4,
         memoryGB: i % 2 === 0 ? 32 : 16,
         storageGB: 500,
-        tenantId: createdTenants[0]!.id, // Assign most to demo-org
+        tenantId: createdTenants[0].id, // Assign most to demo-org
         costPerHour: 0.05,
         maxTasks: 20,
       },
@@ -153,13 +153,13 @@ async function main() {
   ];
 
   const dbNodes = await prisma.edgeNode.findMany({
-    where: { tenantId: createdTenants[0]!.id },
+    where: { tenantId: createdTenants[0].id },
   });
 
   for (let i = 0; i < taskSpecs.length; i++) {
-    const spec = taskSpecs[i]!;
+    const spec = taskSpecs[i];
     const existing = await prisma.task.findFirst({
-      where: { name: spec.name, tenantId: createdTenants[0]!.id },
+      where: { name: spec.name, tenantId: createdTenants[0].id },
     });
 
     const assignedNode = ['RUNNING', 'COMPLETED', 'FAILED'].includes(spec.status)
@@ -176,7 +176,7 @@ async function main() {
       reason: 'Initial seed',
       runtime: Runtime.DOCKER,
       image: 'edgecloud/worker:latest',
-      tenantId: createdTenants[0]!.id,
+      tenantId: createdTenants[0].id,
       nodeId: assignedNode ? assignedNode.id : null,
       metadata: {
         specs: {
@@ -212,7 +212,7 @@ async function main() {
       url: 'http://localhost:9000/webhook',
       events: ['task.completed', 'task.failed'],
       enabled: true,
-      tenantId: createdTenants[0]!.id,
+      tenantId: createdTenants[0].id,
     },
   });
   logger.info('Sample webhook verified');

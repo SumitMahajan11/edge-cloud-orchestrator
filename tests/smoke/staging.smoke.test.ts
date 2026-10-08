@@ -206,7 +206,7 @@ describe("Node Service — Heartbeat pipeline", () => {
             total: number;
           };
           onlineCount = body.total ?? body.nodes?.length ?? 0;
-          if (onlineCount > 0) break;
+          if (onlineCount > 0) {break;}
         }
       } catch {
         // Retry on network errors
@@ -287,7 +287,7 @@ describe("Task submission — end-to-end", () => {
 
       const ok = res.status === 201 || res.status === 202;
       const body = (await res.json()) as { id: string; status: string };
-      if (ok) createdTaskId = body.id;
+      if (ok) {createdTaskId = body.id;}
 
       recordResult(
         "tasks:submit",
@@ -326,7 +326,7 @@ describe("Task submission — end-to-end", () => {
         if (res.ok) {
           const body = (await res.json()) as { status: string };
           finalStatus = body.status;
-          if (finalStatus !== "PENDING") break;
+          if (finalStatus !== "PENDING") {break;}
         }
       } catch {
         // Retry
@@ -393,7 +393,7 @@ describe("WebSocket Gateway", () => {
         isDown ? error : undefined,
       );
 
-      if (isDown) throw err;
+      if (isDown) {throw err;}
       // Protocol errors from fetch trying to do WS are expected — test passes
     }
   });

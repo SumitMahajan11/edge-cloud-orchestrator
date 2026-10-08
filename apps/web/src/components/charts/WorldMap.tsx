@@ -146,16 +146,16 @@ export function WorldMap({ nodes, className, carbonMode }: WorldMapProps) {
 
   const getIntensityForRegion = (regionId: string) => {
     const zone = REGION_TO_ZONE[regionId];
-    if (!zone) return 0;
+    if (!zone) {return 0;}
     return liveIntensities[zone] || 0;
   };
 
   const getStatusColor = (regionId: string, status: EdgeNode["status"]) => {
     if (carbonMode) {
       const intensity = getIntensityForRegion(regionId);
-      if (intensity === 0) return "#3f3f46";
-      if (intensity < 200) return "#10b981";
-      if (intensity < 400) return "#f59e0b";
+      if (intensity === 0) {return "#3f3f46";}
+      if (intensity < 200) {return "#10b981";}
+      if (intensity < 400) {return "#f59e0b";}
       return "#ef4444";
     }
     switch (status) {

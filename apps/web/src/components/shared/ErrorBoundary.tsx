@@ -87,7 +87,7 @@ class ErrorBoundary extends Component<Props, State> {
     const { children, fallback } = this.props;
 
     if (hasError) {
-      if (fallback) return fallback;
+      if (fallback) {return fallback;}
 
       return (
         <div className="min-h-screen bg-[#050508] text-foreground flex items-center justify-center p-6 font-mono relative overflow-hidden">

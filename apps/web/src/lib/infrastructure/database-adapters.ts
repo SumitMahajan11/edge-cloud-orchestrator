@@ -82,8 +82,8 @@ class PostgresAdapter implements DatabaseAdapter {
       // Dynamic import for Node.js only - wrapped in try/catch for environments without pg
       const pgModule = await (async () => {
         try {
-          // @ts-ignore - Dynamic import of optional Node.js module
-          return await import("pg");
+          const pgName = "pg";
+          return await import(pgName);
         } catch {
           return null;
         }
@@ -273,8 +273,8 @@ class SQLiteAdapter implements DatabaseAdapter {
       try {
         const sqliteModule = await (async () => {
           try {
-            // @ts-ignore - Dynamic import of optional Node.js module
-            return await import("better-sqlite3");
+            const sqliteName = "better-sqlite3";
+            return await import(sqliteName);
           } catch {
             return null;
           }

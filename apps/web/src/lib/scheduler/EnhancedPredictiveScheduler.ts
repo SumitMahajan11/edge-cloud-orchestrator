@@ -106,8 +106,8 @@ export class EnhancedPredictiveScheduler {
    */
   private async initializeDatabase(): Promise<void> {
     try {
-      // @ts-ignore - Optional dependency
-      const { Pool } = await import("pg");
+      const pgName = "pg";
+      const { Pool } = (await import(pgName)) as any;
 
       this.dbClient = new Pool({
         connectionString: this.config.databaseUrl,

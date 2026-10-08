@@ -136,7 +136,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
               timeout,
               retryPolicy,
             } as any,
-            tenantId: request.user!.tenantId!,
+            tenantId: request.user.tenantId!,
           } as any,
         });
 
@@ -195,7 +195,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
 
       const executionId = await fastify.workflowEngine.executeWorkflow(
         id,
-        request.user!.tenantId!,
+        request.user.tenantId!,
       );
 
       return reply.status(202).send({
@@ -278,7 +278,7 @@ export default async function workflowRoutes(fastify: FastifyInstance) {
       const { name, version, nodes, edges } = request.body;
 
       const existing = await request.tPrisma.workflow.findFirst({
-        where: { id, tenantId: request.user!.tenantId! },
+        where: { id, tenantId: request.user.tenantId! },
       });
 
       if (!existing) {

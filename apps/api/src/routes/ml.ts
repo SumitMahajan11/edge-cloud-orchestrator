@@ -256,7 +256,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const tenantId = await resolveTenantId(fastify, request, reply);
-      if (reply.sent) return;
+      if (reply.sent) {return;}
 
       let round = await fastify.prisma.federatedRound.findFirst({
         where: { tenantId, status: 'RUNNING' },
@@ -317,7 +317,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const tenantId = await resolveTenantId(fastify, request, reply);
-      if (reply.sent) return;
+      if (reply.sent) {return;}
 
       const { modelId } = request.params as { modelId: string };
 
@@ -411,7 +411,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, reply: FastifyReply) => {
       const tenantId = await resolveTenantId(fastify, request, reply);
-      if (reply.sent) return;
+      if (reply.sent) {return;}
 
       const { roundId, nodeId, weightsUrl, sampleCount, avgReward } = request.body as {
         roundId: string;
@@ -497,7 +497,7 @@ export default async function mlRoutes(fastify: FastifyInstance) {
     '/federated/weights/upload',
     async (request: FastifyRequest, reply: FastifyReply) => {
       const tenantId = await resolveTenantId(fastify, request, reply);
-      if (reply.sent) return;
+      if (reply.sent) {return;}
 
       const data = await request.file();
       if (!data) {

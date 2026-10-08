@@ -157,7 +157,7 @@ export class MultiObjectiveScorer {
     // Lower latency is better
     // Assume 0-500ms range
     const maxLatency = 500;
-    if (latency === undefined || latency === null) return 0.5; // Median score
+    if (latency === undefined || latency === null) {return 0.5;} // Median score
     return Math.max(0, 1 - latency / maxLatency);
   }
 
@@ -189,7 +189,7 @@ export class MultiObjectiveScorer {
 
   private normalizeCarbon(carbonIntensity: number, maxCarbon?: number): number {
     // Lower carbon intensity is better
-    if (carbonIntensity === undefined || carbonIntensity === null) return 0.5;
+    if (carbonIntensity === undefined || carbonIntensity === null) {return 0.5;}
 
     // Relative normalization if maxCarbon is provided
     if (maxCarbon && maxCarbon > 0) {

@@ -114,7 +114,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
-      return buildSystemMetrics(request.user!.tenantId!);
+      return buildSystemMetrics(request.user.tenantId!);
     },
   );
 
@@ -129,7 +129,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       schema: { tags: ['metrics'], summary: 'Get system metrics' },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
-      return buildSystemMetrics(request.user!.tenantId!);
+      return buildSystemMetrics(request.user.tenantId!);
     },
   );
 
@@ -167,7 +167,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
       const nodes = await fastify.prisma.edgeNode.findMany({
-        where: { status: 'ONLINE' as any, tenantId: request.user!.tenantId! },
+        where: { status: 'ONLINE' as any, tenantId: request.user.tenantId! },
       });
       return { total: nodes.length, nodes };
     },
@@ -198,7 +198,7 @@ export default async function metricsRoutes(fastify: FastifyInstance) {
       },
     },
     async (request: FastifyRequest, _reply: FastifyReply) => {
-      const tenantId = request.user!.tenantId!;
+      const tenantId = request.user.tenantId!;
       const [activeModels, trainingJobs] = await Promise.all([
         fastify.prisma.fLModel.count({ where: { tenantId, isActive: true } }),
         fastify.prisma.fLSession.count({

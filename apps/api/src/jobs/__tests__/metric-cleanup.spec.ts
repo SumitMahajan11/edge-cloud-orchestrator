@@ -36,7 +36,7 @@ describe('MetricCleanupJob', () => {
     };
 
     logger = pino({ level: 'silent' });
-    job = new MetricCleanupJob(prisma as any, logger, 24 * 60 * 60 * 1000, 30);
+    job = new MetricCleanupJob(prisma, logger, 24 * 60 * 60 * 1000, 30);
   });
 
   afterEach(() => {

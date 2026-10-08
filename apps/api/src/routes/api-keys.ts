@@ -21,7 +21,7 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       const apiKeys = await fastify.prisma.apiKey.findMany({
-        where: { userId: request.user!.id },
+        where: { userId: request.user.id },
         select: {
           id: true,
           name: true,
@@ -67,7 +67,7 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
       const { apiKeyService } = fastify;
 
       const result = await apiKeyService.createApiKey(
-        request.user!.id,
+        request.user.id,
         name,
         permissions,
       );
@@ -75,7 +75,7 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
       // Add expiresAt if provided
       if (expiresAt) {
         await fastify.prisma.apiKey.update({
-          where: { name_userId: { name, userId: request.user!.id } }, // Assuming unique constraint or find by name
+          where: { name_userId: { name, userId: request.user.id } }, // Assuming unique constraint or find by name
           data: { expiresAt: new Date(expiresAt) },
         });
       }
@@ -100,7 +100,7 @@ export default async function apiKeyRoutes(fastify: FastifyInstance) {
     },
     async (request, _reply) => {
       const { apiKeyService } = fastify;
-      await apiKeyService.revokeApiKey(request.params.id, request.user!.id);
+      await apiKeyService.revokeApiKey(request.params.id, request.user.id);
       return { success: true };
     },
   );

@@ -9,7 +9,6 @@ import type {
   Task,
   TaskPriority,
   TaskType,
-  RuntimeType,
 } from "../../types";
 import { predictiveScheduler } from "../predictive-scheduler";
 import { clamp, generateId, getRandomFloat, getRandomInt } from "./utils";

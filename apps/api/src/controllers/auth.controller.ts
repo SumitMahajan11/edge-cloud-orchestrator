@@ -53,7 +53,7 @@ export class AuthController {
           ),
         ]);
         lastError = null;
-        if (user) break;
+        if (user) {break;}
       } catch (dbErr: any) {
         lastError = dbErr;
         request.log.warn(
@@ -304,7 +304,7 @@ export class AuthController {
 
   async me(request: FastifyRequest, _reply: FastifyReply): Promise<any> {
     const user = await (request.server as any).prisma.user.findUnique({
-      where: { id: request.user!.id },
+      where: { id: request.user.id },
       select: {
         id: true,
         email: true,
@@ -321,7 +321,7 @@ export class AuthController {
     request: FastifyRequest,
     _reply: FastifyReply,
   ): Promise<any> {
-    const userId = request.user!.id;
+    const userId = request.user.id;
     const sessions = await this.authService.listUserSessions(userId);
     return sessions;
   }
@@ -330,7 +330,7 @@ export class AuthController {
     request: FastifyRequest<{ Params: { id: string } }>,
     _reply: FastifyReply,
   ): Promise<any> {
-    const userId = request.user!.id;
+    const userId = request.user.id;
     const sessionId = request.params.id;
     await this.authService.revokeSessionById(sessionId, userId);
     return { success: true };
@@ -340,7 +340,7 @@ export class AuthController {
     request: FastifyRequest,
     _reply: FastifyReply,
   ): Promise<any> {
-    const userId = request.user!.id;
+    const userId = request.user.id;
     await this.authService.revokeAllUserSessions(userId);
     return { success: true };
   }

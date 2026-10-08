@@ -80,7 +80,7 @@ export function StatusBadge({
   showDot = true,
   className,
 }: StatusBadgeProps) {
-  const config = statusConfig[status] ?? statusConfig["info"]!;
+  const config = statusConfig[status] ?? statusConfig["info"];
 
   return (
     <span

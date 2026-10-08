@@ -408,7 +408,7 @@ describe.skipIf(!process.env.RUN_INTEGRATION_TESTS)('Integration Tests', () => {
       const rateLimitClient = axios.create({ baseURL: API_URL, timeout: 5000, headers: { 'Content-Type': 'application/json', 'Connection': 'close' } });
       rateLimitClient.interceptors.request.use((config) => {
         const version = config.headers?.['x-api-version'] || config.headers?.['X-API-Version'] || 'v1';
-        if (config.url && config.url.startsWith('/api/')) config.url = config.url.replace('/api/', `/${version}/`);
+        if (config.url && config.url.startsWith('/api/')) {config.url = config.url.replace('/api/', `/${version}/`);}
         return config;
       });
 

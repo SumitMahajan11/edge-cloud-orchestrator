@@ -5,7 +5,7 @@ export function generateId(): string {
 }
 
 export function generateShortId(): string {
-  return uuidv4().split("-")[0]!;
+  return uuidv4().split("-")[0];
 }
 
 export function generateEventId(): string {

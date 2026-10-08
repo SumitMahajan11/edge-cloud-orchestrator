@@ -9,7 +9,6 @@ import {
   Trash2,
   Edit2,
   Search,
-  Filter,
   Sliders,
   Leaf,
   DollarSign,
@@ -193,7 +192,7 @@ export default function PoliciesPage() {
     : ((schedulingPolicies as any)?.policies || []);
 
   const filteredPolicies = safePolicies.filter((p) => {
-    if (!search) return true;
+    if (!search) {return true;}
     const cleanName = p.name.replace(/ - [a-f0-9-]+$/, "");
     return (
       cleanName.toLowerCase().includes(search.toLowerCase()) ||

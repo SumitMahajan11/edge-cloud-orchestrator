@@ -1,4 +1,4 @@
-import { NodeStatus, PrismaClient, type Task } from '@prisma/client';
+import { NodeStatus, PrismaClient } from '@prisma/client';
 import Redis from 'ioredis';
 import type { Logger } from 'pino';
 import { tracer } from '@edgecloud/shared-kernel';
@@ -313,7 +313,7 @@ export class HeartbeatMonitor {
         });
 
         if (this.taskScheduler) {
-          await this.taskScheduler.enqueue(updatedTask as Task);
+          await this.taskScheduler.enqueue(updatedTask);
         }
       }
 

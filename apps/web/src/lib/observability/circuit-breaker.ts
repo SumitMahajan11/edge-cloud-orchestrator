@@ -180,7 +180,7 @@ export class CircuitBreaker {
   }
 
   canExecute(): boolean {
-    if (this.state === "CLOSED") return true;
+    if (this.state === "CLOSED") {return true;}
     if (this.state === "OPEN") {
       if (Date.now() >= this.nextAttempt) {
         this.state = "HALF_OPEN"; // Automatic transition

@@ -269,7 +269,7 @@ export class SchedulerRateLimiter extends EventEmitter {
   }
 
   private startRecoveryCheck(): void {
-    if (this.recoveryTimer) return;
+    if (this.recoveryTimer) {return;}
 
     this.recoveryTimer = setTimeout(async () => {
       try {

@@ -7,6 +7,7 @@ const TASK_COUNT = parseInt(process.env.TASK_COUNT || "1000", 10);
 const REQ_PER_SEC = parseInt(process.env.REQ_PER_SEC || "100", 10);
 
 import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
 async function measureLatency() {
   console.log("🚀 Starting Scheduling Latency Load Test");
@@ -26,7 +27,6 @@ async function measureLatency() {
 
   // Clean up existing LatNode-* nodes and LatTask-* tasks from DB to avoid duplicate name conflicts
   console.log("Cleaning up previous test nodes/tasks from database...");
-  const { PrismaClient } = require("@prisma/client");
   const prisma = new PrismaClient();
   try {
     const latNodes = await prisma.edgeNode.findMany({

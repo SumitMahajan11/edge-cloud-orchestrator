@@ -89,7 +89,7 @@ class ConnectionManager extends EventEmitter {
 
   private handleMessage(connectionId: string, data: any): void {
     const connection = this.connections.get(connectionId);
-    if (!connection) return;
+    if (!connection) {return;}
 
     connection.lastActivity = Date.now();
     connection.isAlive = true;
@@ -122,7 +122,7 @@ class ConnectionManager extends EventEmitter {
     channels: string[],
   ): Promise<void> {
     const connection = this.connections.get(connectionId);
-    if (!connection) return;
+    if (!connection) {return;}
 
     for (const ch of channels) {
       connection.subscriptions.add(ch);
@@ -151,7 +151,7 @@ class ConnectionManager extends EventEmitter {
 
   private handleUnsubscribe(connectionId: string, channels: string[]): void {
     const connection = this.connections.get(connectionId);
-    if (!connection) return;
+    if (!connection) {return;}
     channels.forEach((ch) => connection.subscriptions.delete(ch));
     this.send(connectionId, { type: "unsubscribed", channels });
   }
@@ -180,20 +180,20 @@ class ConnectionManager extends EventEmitter {
       timestamp: Date.now(),
     };
     for (const [id, conn] of this.connections) {
-      if (!allowedRoles.includes(conn.metadata.role)) continue;
+      if (!allowedRoles.includes(conn.metadata.role)) {continue;}
       if (
         message.region &&
         conn.metadata.region &&
         message.region !== conn.metadata.region
       )
-        continue;
-      if (conn.subscriptions.has(channel)) this.send(id, payload);
+        {continue;}
+      if (conn.subscriptions.has(channel)) {this.send(id, payload);}
     }
   }
 
   send(connectionId: string, message: any): void {
     const connection = this.connections.get(connectionId);
-    if (!connection || connection.socket.readyState !== 1) return;
+    if (!connection || connection.socket.readyState !== 1) {return;}
     try {
       connection.socket.send(JSON.stringify(message));
     } catch (e) {
@@ -262,7 +262,7 @@ const CHANNEL_PERMISSIONS: Record<string, string[]> = {
 function validateWebSocketToken(req: any): any {
   const token =
     req.query.token || req.headers["authorization"]?.replace("Bearer ", "");
-  if (!token) return { valid: false, error: "No token" };
+  if (!token) {return { valid: false, error: "No token" };}
   try {
     const decoded = jwt.verify(token, env.JWT_SECRET) as any;
     return {
@@ -386,8 +386,8 @@ async function start() {
       connectionManager.closeAll();
     });
     GracefulShutdown.registerHandler("redis", async () => {
-      if (redis) redis.disconnect();
-      if (redisSub) redisSub.disconnect();
+      if (redis) {redis.disconnect();}
+      if (redisSub) {redisSub.disconnect();}
     });
     GracefulShutdown.registerHandler("app", async () => {
       await app.close();

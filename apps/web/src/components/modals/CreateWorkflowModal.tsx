@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Network, Link as LinkIcon, Settings } from "lucide-react";
+import { X, Network } from "lucide-react";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import {
@@ -10,7 +10,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { cn } from "../../lib/utils";
 
 interface CreateWorkflowModalProps {
   isOpen: boolean;
@@ -27,7 +26,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {return;}
 
     onSubmit({
       name: formData.name.trim(),
@@ -35,7 +34,7 @@ export function CreateWorkflowModal({ isOpen, onClose, onSubmit }: CreateWorkflo
       nodes: [
         {
           id: "step-1",
-          name: formData.name.trim() + " Initial Step",
+          name: `${formData.name.trim()  } Initial Step`,
           type: "task",
           config: { trigger: formData.trigger, description: formData.description },
           inputs: [],

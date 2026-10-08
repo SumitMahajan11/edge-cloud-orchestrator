@@ -27,7 +27,7 @@ export const registerSchema = z.object({
     .trim()
     .min(2, 'Name must be at least 2 characters')
     .max(100)
-    .regex(/^[a-zA-Z\s\-\.]+$/, 'Name contains invalid characters'),
+    .regex(/^[a-zA-Z\s\-.]+$/, 'Name contains invalid characters'),
 });
 
 export const loginSchema = z.object({
@@ -79,14 +79,14 @@ export const createNodeSchema = z.object({
     .trim()
     .min(1)
     .max(200)
-    .regex(/^[a-zA-Z0-9\s\-_,\.]+$/, 'Location contains invalid characters'),
+    .regex(/^[a-zA-Z0-9\s\-_,.]+$/, 'Location contains invalid characters'),
   region: z
     .string()
     .trim()
     .min(1)
     .max(50)
     .regex(
-      /^[a-z0-9\-]+$/,
+      /^[a-z0-9-]+$/,
       'Region must be lowercase alphanumeric with hyphens',
     ),
   ipAddress: z.string().ip({ version: 'v4' }),

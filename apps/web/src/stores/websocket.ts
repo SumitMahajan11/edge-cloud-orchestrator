@@ -68,7 +68,7 @@ export const useWsStore = create<WsState>((set) => ({
 
   connect: async () => {
     const token = authStorage.getToken();
-    if (token) wsClient.setToken(token);
+    if (token) {wsClient.setToken(token);}
     set({ status: "RECONNECTING" });
     try {
       await wsClient.connect();
@@ -111,7 +111,7 @@ function processBatch() {
   pendingEvents = [];
   batchTimer = null;
 
-  if (events.length === 0) return;
+  if (events.length === 0) {return;}
 
   const store = useWsStore.getState();
   const prev = store.eventStream;
@@ -121,7 +121,7 @@ function processBatch() {
 
   useWsStore.setState({
     eventStream: next,
-    lastEventAt: lastEvent!.receivedAt,
+    lastEventAt: lastEvent.receivedAt,
   });
 }
 
@@ -179,7 +179,7 @@ function invalidateForEvent(evt: WsEvent) {
  */
 let wired = false;
 export function initWsStore() {
-  if (wired) return;
+  if (wired) {return;}
   wired = true;
 
   wsClient.onConnect(() => {

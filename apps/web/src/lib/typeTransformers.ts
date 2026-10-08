@@ -94,7 +94,6 @@ const STATUS_MAP: Record<string, TaskStatus> = {
 };
 
 // STATUS_REVERSE_MAP is used by transformTaskToApi via TASK_TYPE_REVERSE_MAP pattern
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const STATUS_REVERSE_MAP: Record<TaskStatus, string> = {
   pending: "PENDING",
   scheduled: "SCHEDULED",
@@ -204,7 +203,7 @@ export function transformTaskFromApi(apiTask: any): Task {
 export function transformTaskToApi(task: Partial<Task>): any {
   const mappedType = task.type
     ? TASK_TYPE_REVERSE_MAP[task.type] ||
-      task.type.toUpperCase().replace(/[\s\-\/]/g, "_")
+      task.type.toUpperCase().replace(/[\s\-/]/g, "_")
     : "MODEL_INFERENCE";
   return {
     name: task.name,
