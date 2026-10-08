@@ -17,7 +17,7 @@
     "@edgecloud/api-client": "workspace:*",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/exporter-trace-otlp-http": "^0.57.0",
-    "@opentelemetry/instrumentation": "^0.57.0",
+    "@opentelemetry/instrumentation": "^0.221.0",
     "@opentelemetry/instrumentation-fetch": "^0.57.0",
     "@opentelemetry/instrumentation-xml-http-request": "^0.57.0",
     "@opentelemetry/resources": "^1.30.1",
