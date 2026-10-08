@@ -60,7 +60,6 @@ $buildOrder = @(
     "packages/security",
     "packages/observability",
     "packages/chaos",
-    "packages/analytics",
     "packages/performance",
     "packages/scheduler",
     "packages/sandbox",
