@@ -34,7 +34,7 @@ export async function authenticate(
 
   try {
     const authHeader = request.headers.authorization;
-    console.log('[AUTHENTICATE] URL:', request.url, 'authHeader:', authHeader);
+    request.log.debug({ url: request.url, hasAuthHeader: !!authHeader }, '[AUTHENTICATE] Processing auth header');
 
     if (!authHeader?.startsWith('Bearer ')) {
       // Check for API Key
@@ -97,7 +97,7 @@ export async function authenticate(
 
     enterWithTenantContext(decoded.tenantId || undefined);
   } catch (error: any) {
-    console.error('--- AUTH ERROR ---', error.message);
+    request.log.error({ err: error }, '--- AUTH ERROR ---');
     return sendAuthError(reply, 401, 'UNAUTHORIZED', 'Authentication failed');
   }
 }

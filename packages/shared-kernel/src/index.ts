@@ -185,7 +185,12 @@ export * as v1Contracts from "./api-contracts/v1/task.js";
 export * as v1NodeContracts from "./api-contracts/v1/node.js";
 
 // Logging
-export { createLogger, logger } from "./logger/index.js";
+export {
+  createLogger,
+  logger,
+  getActiveTraceContext,
+  injectTraceContextToLog,
+} from "./logger/index.js";
 export type { Logger, LoggerConfig } from "./logger/index.js";
 export type { LogContext } from "./logger/context.js";
 export {

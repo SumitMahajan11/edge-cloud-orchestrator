@@ -44,14 +44,16 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
 
   fastify.addHook("onRequest", async (request, reply) => {
     const requestId = (request.headers["x-request-id"] as string) || uuidv4();
-    const traceId = (request.headers["x-trace-id"] as string) || requestId;
+    const traceId = request.headers["x-trace-id"] as string | undefined;
 
     void reply.header("x-request-id", requestId);
-    void reply.header("x-trace-id", traceId);
+    if (traceId) {
+      void reply.header("x-trace-id", traceId);
+    }
 
     // Set up AsyncLocalStorage context for the entire request duration
     return new Promise<void>((resolve) => {
-      runWithContext({ requestId, traceId }, () => {
+      runWithContext({ requestId, ...(traceId ? { traceId } : {}) }, () => {
         // Log request start
         logger.info(
           {
@@ -60,7 +62,7 @@ const loggingPluginCallback: FastifyPluginAsync<LoggingPluginOptions> = async (
             url: request.url,
             remoteAddress: request.ip,
             requestId,
-            traceId,
+            ...(traceId ? { trace_id: traceId } : {}),
           },
           `Incoming ${request.method} ${request.url}`,
         );

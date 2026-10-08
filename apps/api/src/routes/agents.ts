@@ -8,11 +8,9 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
   const { AgentRegistrationService, CertificateAuthorityManager } =
     await import('../services/mtls-authentication.js');
 
-  console.log(
-    'DEBUG [agentRoutes] Entering agentRoutes, fastify.prisma exists:',
-    !!fastify.prisma,
-    'hasDecorator(prisma):',
-    fastify.hasDecorator('prisma'),
+  fastify.log.debug(
+    { hasPrisma: !!fastify.prisma, hasDecorator: fastify.hasDecorator('prisma') },
+    'DEBUG [agentRoutes] Entering agentRoutes',
   );
   if (!fastify.prisma) {
     fastify.log.error(
