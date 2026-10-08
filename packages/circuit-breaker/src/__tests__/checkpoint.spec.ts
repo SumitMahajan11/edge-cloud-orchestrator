@@ -1,6 +1,10 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import { CheckpointManager, InMemoryCheckpointStore } from "../checkpoint";
+import {
+  AutomaticCheckpointing,
+  CheckpointManager,
+  InMemoryCheckpointStore,
+} from "../checkpoint";
 
 describe("CheckpointManager", () => {
   let manager: CheckpointManager;
@@ -9,31 +13,50 @@ describe("CheckpointManager", () => {
   beforeEach(() => {
     store = new InMemoryCheckpointStore();
     manager = new CheckpointManager(store);
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   describe("save and load", () => {
-    it("should save a checkpoint", async () => {
-      await manager.save("task-1", { step: 1, data: "test" });
+    it("should save a checkpoint and emit checkpointCreated event", async () => {
+      const createdSpy = vi.fn();
+      manager.on("checkpointCreated", createdSpy);
+
+      const cp = await manager.save("task-1", { step: 1, data: "test" });
 
       const checkpoint = await manager.load("task-1");
 
       expect(checkpoint).not.toBeNull();
       expect(checkpoint?.state).toEqual({ step: 1, data: "test" });
+      expect(createdSpy).toHaveBeenCalledWith({
+        taskId: "task-1",
+        checkpointId: cp.id,
+      });
     });
 
     it("should return null for non-existent checkpoint", async () => {
       const checkpoint = await manager.load("non-existent");
-
       expect(checkpoint).toBeNull();
     });
 
-    it("should save multiple checkpoints for same task", async () => {
-      await manager.save("task-1", { step: 1 });
+    it("should save multiple checkpoints for same task and restore latest or by ID", async () => {
+      const cp1 = await manager.save("task-1", { step: 1 });
       await manager.save("task-1", { step: 2 });
 
       const checkpoints = await manager.list("task-1");
-
       expect(checkpoints).toHaveLength(2);
+
+      const restoredLatest = await manager.restoreFromCheckpoint("task-1");
+      expect(restoredLatest).toEqual({ step: 2 });
+
+      const restoredSpecific = await manager.restoreFromCheckpoint("task-1", cp1.id);
+      expect(restoredSpecific).toEqual({ step: 1 });
+
+      const restoredNull = await manager.restoreFromCheckpoint("non-existent-task");
+      expect(restoredNull).toBeNull();
     });
 
     it("should increment sequence numbers", async () => {
@@ -60,7 +83,6 @@ describe("CheckpointManager", () => {
 
     it("should return empty array for task with no checkpoints", async () => {
       const checkpoints = await manager.list("no-checkpoints");
-
       expect(checkpoints).toEqual([]);
     });
   });
@@ -103,6 +125,56 @@ describe("CheckpointManager", () => {
       const latest = await manager.getLatest("no-checkpoints");
 
       expect(latest).toBeNull();
+    });
+  });
+
+  describe("withCheckpoint Execution Wrapper", () => {
+    it("should restore state before executing and save state on success", async () => {
+      let taskState = { count: 10 };
+      let capturedRestored: any;
+      const onRestore = vi.fn().mockImplementation((state) => {
+        capturedRestored = { ...state };
+        taskState = { ...state };
+      });
+
+      // Save initial checkpoint
+      await manager.save("batch-job", { count: 5 });
+
+      const result = await manager.withCheckpoint(
+        "batch-job",
+        async () => {
+          taskState.count += 1;
+          return "done";
+        },
+        () => taskState,
+        onRestore,
+      );
+
+      expect(result).toBe("done");
+      expect(onRestore).toHaveBeenCalledTimes(1);
+      expect(capturedRestored).toEqual({ count: 5 });
+      expect(taskState.count).toBe(6);
+
+      const latest = await manager.getLatest("batch-job");
+      expect(latest?.state).toEqual({ count: 6 });
+    });
+
+    it("should save checkpoint on failure and propagate error", async () => {
+      const taskState = { step: "started" };
+
+      await expect(
+        manager.withCheckpoint(
+          "failing-job",
+          async () => {
+            taskState.step = "crashed";
+            throw new Error("Job execution failed");
+          },
+          () => taskState,
+        ),
+      ).rejects.toThrow("Job execution failed");
+
+      const latest = await manager.getLatest("failing-job");
+      expect(latest?.state).toEqual({ step: "crashed" });
     });
   });
 });
@@ -149,5 +221,61 @@ describe("InMemoryCheckpointStore", () => {
     const loaded = await store.load("task-1", "cp-2");
 
     expect(loaded?.state).toEqual({ step: 2 });
+  });
+});
+
+describe("AutomaticCheckpointing", () => {
+  let manager: CheckpointManager;
+  let auto: AutomaticCheckpointing;
+
+  beforeEach(() => {
+    manager = new CheckpointManager();
+    auto = new AutomaticCheckpointing(manager);
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    auto.stopAll();
+    vi.useRealTimers();
+  });
+
+  it("should periodically create checkpoints and emit autoCheckpoint", async () => {
+    const state = { processed: 0 };
+    const autoSpy = vi.fn();
+    auto.on("autoCheckpoint", autoSpy);
+
+    auto.start("stream-task", () => state, 500);
+
+    state.processed = 50;
+    await vi.advanceTimersByTimeAsync(500);
+
+    expect(autoSpy).toHaveBeenCalledTimes(1);
+    let latest = await manager.getLatest("stream-task");
+    expect(latest?.state).toEqual({ processed: 50 });
+
+    state.processed = 100;
+    await vi.advanceTimersByTimeAsync(500);
+    expect(autoSpy).toHaveBeenCalledTimes(2);
+    latest = await manager.getLatest("stream-task");
+    expect(latest?.state).toEqual({ processed: 100 });
+
+    auto.stop("stream-task");
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(autoSpy).toHaveBeenCalledTimes(2);
+  });
+
+  it("should emit autoCheckpointError on exception in getState", async () => {
+    const errorSpy = vi.fn();
+    auto.on("autoCheckpointError", errorSpy);
+
+    auto.start("faulty-task", () => {
+      throw new Error("Serialization failure");
+    }, 200);
+
+    await vi.advanceTimersByTimeAsync(200);
+
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ taskId: "faulty-task", error: expect.any(Error) }),
+    );
   });
 });
