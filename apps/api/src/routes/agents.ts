@@ -89,16 +89,25 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
         }
         const caCert = new X509Certificate(caCertPem);
         if (!x509Cert.verify(caCert.publicKey)) {
-          request.log.warn('Client certificate from X-Client-Cert signature verification failed');
+          request.log.warn(
+            'Client certificate from X-Client-Cert signature verification failed',
+          );
           return null;
         }
 
-         // C. Secondary IP-based restriction (TRUST_PROXY check)
+        // C. Secondary IP-based restriction (TRUST_PROXY check)
         if (env.TRUST_PROXY) {
-          const trustedProxies = env.TRUST_PROXY.split(',').map((ip) => ip.trim());
+          const trustedProxies = env.TRUST_PROXY.split(',').map((ip) =>
+            ip.trim(),
+          );
           const remoteIp = request.raw.socket.remoteAddress;
-          const normalizedRemoteIp = remoteIp?.startsWith('::ffff:') ? remoteIp.substring(7) : remoteIp;
-          if (!normalizedRemoteIp || !trustedProxies.includes(normalizedRemoteIp)) {
+          const normalizedRemoteIp = remoteIp?.startsWith('::ffff:')
+            ? remoteIp.substring(7)
+            : remoteIp;
+          if (
+            !normalizedRemoteIp ||
+            !trustedProxies.includes(normalizedRemoteIp)
+          ) {
             request.log.warn(
               { ip: normalizedRemoteIp, trustedProxies },
               'X-Client-Cert rejected because request IP does not match TRUST_PROXY',
@@ -106,7 +115,9 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
             return null;
           }
         } else {
-          request.log.warn('X-Client-Cert rejected because TRUST_PROXY is not configured');
+          request.log.warn(
+            'X-Client-Cert rejected because TRUST_PROXY is not configured',
+          );
           return null;
         }
 
@@ -115,7 +126,10 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
           return CNMatch[1].trim();
         }
       } catch (err) {
-        request.log.error({ err }, 'Failed to parse or verify X-Client-Cert header');
+        request.log.error(
+          { err },
+          'Failed to parse or verify X-Client-Cert header',
+        );
       }
     }
 
@@ -180,7 +194,9 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
       try {
         await caInitPromise;
         const result = await registrationService.registerAgent(
-          request.body as Parameters<import('../services/mtls-authentication.js').AgentRegistrationService['registerAgent']>[0],
+          request.body as Parameters<
+            import('../services/mtls-authentication.js').AgentRegistrationService['registerAgent']
+          >[0],
         );
         return result;
       } catch (error: unknown) {
@@ -397,6 +413,9 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
               properties: {
                 cpu_usage: { type: 'number' },
                 memory_usage: { type: 'number' },
+                gpu_model: { type: 'string', nullable: true },
+                gpu_memory_mb: { type: 'integer', nullable: true },
+                gpu_utilization: { type: 'number', nullable: true },
               },
             },
           },
@@ -437,12 +456,18 @@ const agentRoutes: FastifyPluginAsync = async (fastify: FastifyInstance) => {
 
       // Update node status and metrics
       const data = request.body as Record<string, unknown>;
+      const metrics = (data.metrics ?? {}) as Record<string, unknown>;
       await fastify.prisma.edgeNode.update({
         where: { id: nodeId as string },
         data: {
           status: 'ONLINE',
           lastHeartbeat: new Date((data.timestamp as number) * 1000),
-          // Optionally store metrics in NodeMetric table
+          ...(typeof metrics.gpu_model === 'string' && {
+            gpuModel: metrics.gpu_model,
+          }),
+          ...(typeof metrics.gpu_memory_mb === 'number' && {
+            gpuMemoryMb: metrics.gpu_memory_mb,
+          }),
         },
       });
 

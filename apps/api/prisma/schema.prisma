@@ -150,6 +150,8 @@ model EdgeNode {
   cpuCores  Int
   memoryGB  Int
   storageGB Int
+  gpuModel      String?
+  gpuMemoryMb   Int?
 
   // Current metrics
   cpuUsage     Float @default(0)
@@ -260,6 +262,7 @@ model Task {
   policy   String
   reason   String
   runtime  Runtime @default(DOCKER)
+  requiresGpu Boolean @default(false)
   image    String?
   wasmArtifactId String?
   affinity String?
@@ -1266,5 +1269,4 @@ model SchedulingOutcome {
   @@index([tenantId])
   @@map("scheduling_outcomes")
 }
-
 
